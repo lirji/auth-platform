@@ -1,0 +1,25 @@
+// HIS 数据权限模型 (ReBAC / SpiceDB)
+// ⚠️ 与 knowledge.zed 合并为一份 schema 加载(user 定义在 knowledge.zed,此处不重复定义)。
+// 演示:只能看本科室 + 科主任看全科 + 主治医生跨科看自己患者 + 记录作者。
+
+definition dept {                       // 科室
+    relation member: user               // 科室成员(医生/护士)
+    relation head: user                 // 科室主任
+    permission access = member + head   // 属于本科室(成员或主任)
+}
+
+definition patient {                    // 患者
+    relation attending: user            // 主治医生(可跨科)
+    permission care = attending
+}
+
+definition encounter {                  // 就诊 / 病历记录
+    relation dept: dept                 // 记录所属科室
+    relation subject: patient           // 关联患者
+    relation author: user               // 记录医生(创建者)
+
+    // 可见 = 作者 ∪ 本科室(成员/主任) ∪ 该患者的主治医生(跨科)
+    permission view = author + dept->access + subject->care
+    // 可改 = 作者 ∪ 科主任
+    permission edit = author + dept->head
+}

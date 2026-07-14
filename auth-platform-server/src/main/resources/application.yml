@@ -1,0 +1,17 @@
+server:
+  port: 8200
+
+spring:
+  application:
+    name: auth-platform-server
+
+authz:
+  spicedb:
+    endpoint: ${SPICEDB_HTTP:http://localhost:8543}
+    token: ${SPICEDB_KEY:authz_dev_key}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

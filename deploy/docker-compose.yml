@@ -1,0 +1,67 @@
+# 内部统一权限平台 — 基建 (Phase 0)
+# Casdoor(身份/SSO) + SpiceDB(ReBAC 授权) + Postgres(SpiceDB & Casdoor datastore)
+# 端口全部变量化，避开现有项目占用(8080-8092 / 9000-9008 / 5432 / 6379 等)。
+# 起前建议: docker compose -p auth-platform down --remove-orphans
+name: auth-platform
+
+services:
+  authz-postgres:
+    image: postgres:16
+    container_name: authz-postgres
+    environment:
+      POSTGRES_USER: ${PG_USER:-authz}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-authz_dev_pw}
+      POSTGRES_DB: spicedb          # SpiceDB 库; Casdoor 库由 Casdoor 自建(dbName=casdoor)
+    ports:
+      - "${SPICEDB_PG_PORT:-15432}:5432"
+    volumes:
+      - authz-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-authz} -d spicedb"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  # 一次性: SpiceDB postgres datastore 迁移(serve 前必须跑)
+  spicedb-migrate:
+    image: authzed/spicedb:latest
+    container_name: authz-spicedb-migrate
+    command: datastore migrate head
+    environment:
+      SPICEDB_DATASTORE_ENGINE: postgres
+      SPICEDB_DATASTORE_CONN_URI: "postgres://${PG_USER:-authz}:${PG_PASSWORD:-authz_dev_pw}@authz-postgres:5432/spicedb?sslmode=disable"
+    depends_on:
+      authz-postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  spicedb:
+    image: authzed/spicedb:latest
+    container_name: authz-spicedb
+    command: serve
+    environment:
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_KEY:-authz_dev_key}
+      SPICEDB_DATASTORE_ENGINE: postgres
+      SPICEDB_DATASTORE_CONN_URI: "postgres://${PG_USER:-authz}:${PG_PASSWORD:-authz_dev_pw}@authz-postgres:5432/spicedb?sslmode=disable"
+      SPICEDB_HTTP_ENABLED: "true"   # 开 REST 网关便于 curl 验证 / knowledge-service 走 HTTP 传输
+    ports:
+      - "${SPICEDB_GRPC_PORT:-50051}:50051"   # gRPC
+      - "${SPICEDB_HTTP_PORT:-8543}:8443"     # HTTP API(默认 8443 -> 宿主 8543)
+      - "${SPICEDB_METRICS_PORT:-9099}:9090"  # Prometheus(默认 9090 被占 -> 宿主 9099)
+    depends_on:
+      spicedb-migrate:
+        condition: service_completed_successfully
+
+  casdoor:
+    image: casbin/casdoor:latest
+    container_name: authz-casdoor
+    ports:
+      - "${CASDOOR_PORT:-8000}:8000"
+    volumes:
+      - ./casdoor/app.conf:/conf/app.conf
+    depends_on:
+      authz-postgres:
+        condition: service_healthy
+
+volumes:
+  authz-pg-data:

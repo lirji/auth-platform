@@ -1,0 +1,55 @@
+// 知识库授权模型 (ReBAC / SpiceDB schema)
+// 对象 id 约定: 业务侧用 <tenantId>_<docId> 等带租户前缀消歧。
+// RBAC 作为特例: "租户级角色" = 把角色对应的 group 绑到 space 的对应 relation。
+
+definition user {}
+
+definition group {
+    relation member: user | group#member       // 组可嵌套
+    permission membership = member
+}
+
+definition organization {                       // = 租户 / 公司
+    relation admin: user | group#member
+    relation member: user | group#member
+    permission administrate = admin
+}
+
+definition space {                              // 知识库 (集合)
+    relation parent_org: organization
+    relation owner: user
+    relation admin: user | group#member
+    relation editor: user | group#member
+    relation commenter: user | group#member
+    relation viewer: user | group#member
+    relation public_viewer: user:*              // 公开链接: 通配主体
+
+    permission manage  = owner + admin + parent_org->administrate
+    permission edit    = editor + manage
+    permission comment = commenter + edit
+    permission view    = viewer + comment + public_viewer
+}
+
+definition folder {                             // 文件夹 (可嵌套)
+    relation parent_space: space
+    relation parent_folder: folder
+    relation editor: user | group#member
+    relation viewer: user | group#member
+
+    permission edit = editor + parent_folder->edit + parent_space->edit
+    permission view = viewer + edit + parent_folder->view + parent_space->view
+}
+
+definition document {                           // 单篇文档
+    relation parent_space: space
+    relation parent_folder: folder
+    relation owner: user
+    relation editor: user | group#member
+    relation commenter: user | group#member
+    relation viewer: user | group#member
+    relation public_viewer: user:*              // 单篇公开
+
+    permission edit    = owner + editor + parent_folder->edit + parent_space->edit
+    permission comment = commenter + edit
+    permission view    = viewer + comment + public_viewer + parent_folder->view + parent_space->view
+}

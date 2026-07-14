@@ -1,0 +1,22 @@
+server:
+  port: 8201
+
+spring:
+  application:
+    name: auth-platform-admin
+
+authz:
+  spicedb:
+    endpoint: ${SPICEDB_HTTP:http://localhost:8543}
+    token: ${SPICEDB_KEY:authz_dev_key}
+  security:
+    jwk-set-uri: ${CASDOOR_JWKS:http://localhost:8000/.well-known/jwks}
+    issuer: ${CASDOOR_ISSUER:http://localhost:8000}
+    client-id: ${CASDOOR_CLIENT_ID:}          # aud 校验(= console 的 Casdoor client_id);空则跳过
+    webhook-secret: ${AUTHZ_WEBHOOK_SECRET:}  # webhook 共享密钥;空则不校验(仅本地)
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

@@ -1,0 +1,48 @@
+# ---- Maven / Java 构建产物 ----
+target/
+*.class
+*.jar
+*.war
+*.ear
+dependency-reduced-pom.xml
+# Maven Wrapper 采用 only-script 类型（无 jar）；wrapper 脚本与 properties 需提交，
+# 仅忽略构建时产生的临时文件
+.mvn/timing.properties
+.mvn/.develocity/
+
+# ---- IntelliJ IDEA ----
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# ---- Eclipse / VS Code ----
+.classpath
+.project
+.settings/
+.factorypath
+.vscode/
+
+# ---- 日志 ----
+*.log
+logs/
+
+# ---- 环境与密钥（deploy/.env 含预共享 Bearer key，勿提交）----
+.env
+deploy/.env
+*.env.local
+
+# ---- auth-console（规划中的 React 前端）----
+node_modules/
+auth-console/dist/
+auth-console/build/
+auth-console/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- 操作系统 ----
+.DS_Store
+Thumbs.db
