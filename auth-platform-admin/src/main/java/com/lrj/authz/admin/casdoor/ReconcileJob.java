@@ -1,5 +1,6 @@
 package com.lrj.authz.admin.casdoor;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,14 +13,18 @@ import org.springframework.stereotype.Component;
 public class ReconcileJob {
 
     private final GroupSyncService sync;
+    /** 部门树同步（仅 department-sync-enabled 时存在）；一并对账。 */
+    private final ObjectProvider<DepartmentSyncService> departmentSync;
 
-    public ReconcileJob(GroupSyncService sync) {
+    public ReconcileJob(GroupSyncService sync, ObjectProvider<DepartmentSyncService> departmentSync) {
         this.sync = sync;
+        this.departmentSync = departmentSync;
     }
 
     @Scheduled(fixedDelayString = "${authz.casdoor.reconcile-interval-ms:300000}",
             initialDelayString = "${authz.casdoor.reconcile-interval-ms:300000}")
     public void reconcile() {
         sync.sync();
+        departmentSync.ifAvailable(DepartmentSyncService::sync);
     }
 }

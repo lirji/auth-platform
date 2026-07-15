@@ -20,7 +20,14 @@ public class CasdoorConfig {
     }
 
     @Bean
-    public GroupSyncService groupSyncService(CasdoorClient client, AuthzEngine engine) {
-        return new GroupSyncService(client, engine);
+    public GroupSyncService groupSyncService(CasdoorClient client, AuthzEngine engine, CasdoorProperties props) {
+        return new GroupSyncService(client, engine, props.getDeleteThreshold());
+    }
+
+    /** 部门树同步（部门层级授权模型）；仅 authz.casdoor.department-sync-enabled=true 时装配。 */
+    @Bean
+    @ConditionalOnProperty(prefix = "authz.casdoor", name = "department-sync-enabled", havingValue = "true")
+    public DepartmentSyncService departmentSyncService(CasdoorClient client, AuthzEngine engine, CasdoorProperties props) {
+        return new DepartmentSyncService(client, engine, props.getDeleteThreshold());
     }
 }

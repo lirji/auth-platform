@@ -15,6 +15,10 @@ public class CasdoorProperties {
     private String subjectField = "id";
     private boolean reconcileEnabled = false;
     private long reconcileIntervalMs = 300_000;
+    /** 是否同步部门树到 SpiceDB {@code department}（部门层级授权模型）；默认 false（引入即安全，不动旧 group 同步）。 */
+    private boolean departmentSyncEnabled = false;
+    /** 一轮组同步允许的最大 DELETE 数; 超过则中止整轮不写 (防 Casdoor 拉取不全导致大面积撤权)。<0=不限制。 */
+    private int deleteThreshold = 1000;
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -30,6 +34,10 @@ public class CasdoorProperties {
     public void setSubjectField(String subjectField) { this.subjectField = subjectField; }
     public boolean isReconcileEnabled() { return reconcileEnabled; }
     public void setReconcileEnabled(boolean reconcileEnabled) { this.reconcileEnabled = reconcileEnabled; }
+    public boolean isDepartmentSyncEnabled() { return departmentSyncEnabled; }
+    public void setDepartmentSyncEnabled(boolean departmentSyncEnabled) { this.departmentSyncEnabled = departmentSyncEnabled; }
     public long getReconcileIntervalMs() { return reconcileIntervalMs; }
     public void setReconcileIntervalMs(long reconcileIntervalMs) { this.reconcileIntervalMs = reconcileIntervalMs; }
+    public int getDeleteThreshold() { return deleteThreshold; }
+    public void setDeleteThreshold(int deleteThreshold) { this.deleteThreshold = deleteThreshold; }
 }

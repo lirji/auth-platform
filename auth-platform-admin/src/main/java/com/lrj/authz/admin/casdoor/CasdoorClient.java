@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.client.RestClient;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +25,10 @@ public class CasdoorClient {
                 .build();
     }
 
-    /** 期望的组成员: 短组名 -> subject id 集合 (从各用户的 groups 字段聚合)。 */
+    /**
+     * 期望的组成员: <strong>租户化组 id</strong> {@code <org>_<group>} -> subject id 集合 (从各用户 groups 聚合)。
+     * 用 {@link CasdoorGroupIds} 把租户前缀固化进 group id, 避免不同租户同名组在 SpiceDB 合并 (跨租户串权)。
+     */
     public Map<String, Set<String>> groupMembers() {
         Map<String, Set<String>> map = new TreeMap<>();
         JsonNode data = get("/api/get-users?owner=" + props.getOrganization()).path("data");
@@ -34,25 +38,115 @@ public class CasdoorClient {
                 continue;
             }
             for (JsonNode g : u.path("groups")) {
-                String gn = shortName(g.asText());
-                if (!gn.isBlank()) {
-                    map.computeIfAbsent(gn, k -> new LinkedHashSet<>()).add(subject);
+                String gid = scopedGroupId(g.asText());
+                if (gid != null) {
+                    map.computeIfAbsent(gid, k -> new LinkedHashSet<>()).add(subject);
                 }
             }
         }
         return map;
     }
 
-    /** Casdoor 里存在的全部组 (短名), 用于对账时处理"成员被清空"的组。 */
+    /** Casdoor 里存在的全部组 (<strong>租户化 id</strong>), 用于对账时处理"成员被清空"的组。 */
     public Set<String> groupNames() {
         Set<String> names = new LinkedHashSet<>();
         for (JsonNode g : get("/api/get-groups?owner=" + props.getOrganization()).path("data")) {
-            String n = g.path("name").asText();
-            if (n != null && !n.isBlank()) {
-                names.add(n);
+            String name = g.path("name").asText();
+            if (name != null && !name.isBlank()) {
+                String owner = g.path("owner").asText(props.getOrganization());
+                names.add(CasdoorGroupIds.encode(owner, name));
             }
         }
         return names;
+    }
+
+    /**
+     * 把 Casdoor 的组引用 (完整 {@code <org>/<group>} 或短名) 编码成租户化 SpiceDB group id。
+     * 完整路径取其 org 段; 短名回退到配置的 organization。非法字符由 {@link CasdoorGroupIds#encode} fail-closed 抛出。
+     */
+    private String scopedGroupId(String groupRef) {
+        if (groupRef == null || groupRef.isBlank()) {
+            return null;
+        }
+        int i = groupRef.lastIndexOf('/');
+        String org = i >= 0 ? groupRef.substring(0, i) : props.getOrganization();
+        String group = i >= 0 ? groupRef.substring(i + 1) : groupRef;
+        return CasdoorGroupIds.encode(org, group);
+    }
+
+    /**
+     * 部门树期望态快照（部门层级模型）：一次拉全 users/groups/roles，产出 SpiceDB {@code department} 需要的三类关系。
+     * <ul>
+     *   <li>{@code members}: 租户化 department id -> 成员 subject 集合（同 {@link #groupMembers}，但用于 department）。</li>
+     *   <li>{@code parents}: 子 department id -> 父 department id（来自 group {@code parentId}，形如 {@code <org>/<parent>}）。</li>
+     *   <li>{@code admins}: department id -> 管理员 subject 集合（V-03：约定 Casdoor role 名 {@code <group>-admin} 的
+     *       users 即该部门管理员；用户名经用户表解析为 subject）。</li>
+     * </ul>
+     * 单 org（{@code props.organization}）；多 org 分页/熔断为后续（见计划）。字段/父子形状为实测所得，异常安全跳过。
+     */
+    public DepartmentSnapshot departmentSnapshot() {
+        String org = props.getOrganization();
+        Map<String, Set<String>> members = new TreeMap<>();
+        Map<String, String> nameToSubject = new HashMap<>();
+        for (JsonNode u : get("/api/get-users?owner=" + org).path("data")) {
+            String name = u.path("name").asText();
+            String subject = "name".equals(props.getSubjectField()) ? name : u.path("id").asText();
+            if (subject == null || subject.isBlank()) {
+                continue;
+            }
+            if (name != null && !name.isBlank()) {
+                nameToSubject.put(name, subject);
+            }
+            for (JsonNode g : u.path("groups")) {
+                String gid = scopedGroupId(g.asText());
+                if (gid != null) {
+                    members.computeIfAbsent(gid, k -> new LinkedHashSet<>()).add(subject);
+                }
+            }
+        }
+        Set<String> deptIds = new LinkedHashSet<>();
+        Map<String, String> parents = new TreeMap<>();
+        for (JsonNode g : get("/api/get-groups?owner=" + org).path("data")) {
+            String name = g.path("name").asText();
+            if (name == null || name.isBlank()) {
+                continue;
+            }
+            String gowner = g.path("owner").asText(org);
+            String id = CasdoorGroupIds.encode(gowner, name);
+            deptIds.add(id);
+            String parentRef = g.path("parentId").asText("");
+            if (parentRef != null && !parentRef.isBlank()) {
+                parents.put(id, scopedGroupId(parentRef));   // <org>/<parent> -> <org>_<parent>
+            }
+        }
+        Map<String, Set<String>> admins = new TreeMap<>();
+        String suffix = "-admin";
+        for (JsonNode role : get("/api/get-roles?owner=" + org).path("data")) {
+            String rname = role.path("name").asText("");
+            if (rname.length() <= suffix.length() || !rname.endsWith(suffix)) {
+                continue;
+            }
+            String dept = rname.substring(0, rname.length() - suffix.length());
+            String rowner = role.path("owner").asText(org);
+            String deptId = CasdoorGroupIds.encode(rowner, dept);
+            for (JsonNode uref : role.path("users")) {
+                String ref = uref.asText("");
+                int i = ref.lastIndexOf('/');
+                String uname = i >= 0 ? ref.substring(i + 1) : ref;   // <org>/<username> -> <username>
+                String sub = nameToSubject.get(uname);
+                if (sub != null) {
+                    admins.computeIfAbsent(deptId, k -> new LinkedHashSet<>()).add(sub);
+                }
+            }
+        }
+        return new DepartmentSnapshot(deptIds, members, parents, admins);
+    }
+
+    /** 部门树期望态：全部 department id + 成员/父/管理员映射。 */
+    public record DepartmentSnapshot(Set<String> deptIds,
+                                     Map<String, Set<String>> members,
+                                     Map<String, String> parents,
+                                     Map<String, Set<String>> admins) {
     }
 
     private JsonNode get(String path) {
@@ -62,11 +156,5 @@ public class CasdoorClient {
         } catch (Exception e) {
             throw new IllegalStateException("Casdoor 响应解析失败: " + e.getMessage(), e);
         }
-    }
-
-    /** "built-in/engineers" -> "engineers"。 */
-    private static String shortName(String full) {
-        int i = full.lastIndexOf('/');
-        return i >= 0 ? full.substring(i + 1) : full;
     }
 }
