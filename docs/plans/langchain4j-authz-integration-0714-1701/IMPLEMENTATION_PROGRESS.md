@@ -153,11 +153,18 @@ AP server+sdk `install -am`：BUILD SUCCESS；knowledge-service 重测：**162 t
   - `admin`→`admin` role→token 带全 **11 scope**（`deploy/casdoor-seed.sh` + 分配 admin role 后实测）。
   - `CasdoorJwksIntegrationTest.filter_endToEnd_realToken_...`：**真实 Casdoor token → 真实 JWKS 验签 → filter 提取 permissions → 内部 JWT**，断言 `tenant=built-in`、`userId=sub`、`scopes ⊆ allowlist`、Authorization 剥离。edge-gateway **19 tests 绿**（2 集成测试需 `CASDOOR_CLIENT_ID/SECRET` env，否则 skip）。
 
+## ③ 阶段④（前端 OIDC）✅（2026-07-15）
+capability-showcase-frontend 接 Casdoor OIDC（Authorization Code + PKCE），构建期 `VITE_AUTH_MODE=apikey(默认)/oidc/dual` 三态灰度、可秒回滚、apikey 零回归。走了 `/frontend-plan`（计划：`~/.claude/plans/langchain4j-platform-auth-platform-iam-iridescent-papert.md`，DR-1~DR-11 + §13 全程进度），并经 `/codex-review` 两批修复 + DR-1 完整硬化。**已全部合入 langchain4j-platform `main`（4 提交）**：
+- `ca13976 feat(knowledge)`：① SpiceDB ReBAC 文档级判权（disabled/shadow/enforce，默认关）。
+- `5d8a3bc feat(edge)`：② Casdoor SSO 换发内部 JWT（`CasdoorTokenExchangeFilter` -120，默认关）。
+- `25a1df0 feat(showcase)`：③ 前端 OIDC 阶段④（`oidc-client-ts` 薄封装、sessionStorage 存 token、双驱动 auth store、`/callback`、灰度门控）+ codex-review 批1（真 bug/安全）+ 批2（生产化：edge pom 换 `spring-security-oauth2-jose` 去自动安全链根治 CORS 预检 401、头大小进 yml、build args、回调路由用配置、credentialMode Casdoor-aware）。
+- `4b3e729 feat(showcase)`：③ DR-1 完整硬化——SessionExpiredDialog + authorizedFetch 弹模态引导重登、humanizeError OIDC 分支、authPrompt 单一文案源、curl Bearer 占位符、SSE 中途断流续订、BroadcastChannel 多标签登出、nginx CSP。
+- **验证**：前端 344 tests + type-check + 生产构建全绿；edge 22 tests + `mvn package`；运行期冒烟通过（CORS 预检 200、Casdoor 8.8KB token→200 不再 431、no-token 401、dual 200）；CSP 已在 :8093 nginx 实测。
+
 ## ③ 剩余阶段（下一步）
-- 阶段④：前端 OIDC（capability-showcase-frontend 接 Casdoor 登录，走 /frontend-plan）。
 - 阶段⑤：灰度（三模并存→Casdoor default→Casdoor-only；`edge.casdoor.enabled=true` + 移除 legacy）。
 - 阶段⑥：② 组同步 reconciler（Casdoor groups→SpiceDB role group→绑 space）+ 历史 subject username→sub crosswalk。
-- 生产化：Casdoor 用户→角色的迁移（auth DB crosswalk）、真实 audience/多 org、RS256 内部 JWT。
+- 生产化：Casdoor 用户→角色的迁移（auth DB crosswalk）、真实 audience/多 org、RS256 内部 JWT；`server.max-http-request-header-size`/CSP 域名按 prod 落定。
 
 ---
 

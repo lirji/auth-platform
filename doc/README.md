@@ -10,6 +10,7 @@
 
 | 文档 | 内容 |
 |---|---|
+| [getting-started-authz.md](./getting-started-authz.md) | **新手上手**：如何建立用户/组织/权限关系（ReBAC 换脑子 + 手把手 grant 示例 + 验证） |
 | [databases.md](./databases.md) | 数据库与存储：PostgreSQL、SpiceDB（关系元组存储）、数据模型（`.zed`）、一致性水位 |
 | [components.md](./components.md) | 组件清单：基础设施/中间件、后端 Java/Spring 模块与依赖、前端 React 依赖 |
 
