@@ -18,4 +18,7 @@ public @interface CheckAccess {
     String resourceType();
 
     String resourceIdParam();
+
+    /** true 时判权用 FULLY_CONSISTENT（撤权/敏感授权变更立即生效）；默认 minimizeLatency（低延迟）。 */
+    boolean fullyConsistent() default false;
 }

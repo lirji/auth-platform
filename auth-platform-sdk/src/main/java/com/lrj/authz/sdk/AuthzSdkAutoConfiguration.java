@@ -18,7 +18,8 @@ public class AuthzSdkAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AuthzEngine authzEngine(AuthzClientProperties props) {
-        return new RemoteAuthzEngine(props.getServerUrl());
+        return new RemoteAuthzEngine(props.getServerUrl(), props.getToken(),
+                props.getConnectTimeout(), props.getReadTimeout());
     }
 
     @Bean
