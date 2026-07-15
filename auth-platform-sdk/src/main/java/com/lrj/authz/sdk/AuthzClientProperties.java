@@ -12,6 +12,15 @@ public class AuthzClientProperties {
     /** auth-platform-server 判权服务地址。 */
     private String serverUrl = "http://localhost:8200";
 
+    /** 调 server 的 service credential (Bearer)。空则不带 Authorization 头（server 端未开鉴权时用）。 */
+    private String token = "";
+
+    /** 连接超时（防判权服务不可达时长时间占用请求线程）。 */
+    private java.time.Duration connectTimeout = java.time.Duration.ofSeconds(2);
+
+    /** 读超时。 */
+    private java.time.Duration readTimeout = java.time.Duration.ofSeconds(5);
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -26,5 +35,29 @@ public class AuthzClientProperties {
 
     public void setServerUrl(String serverUrl) {
         this.serverUrl = serverUrl;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public java.time.Duration getConnectTimeout() {
+        return connectTimeout;
+    }
+
+    public void setConnectTimeout(java.time.Duration connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
+
+    public java.time.Duration getReadTimeout() {
+        return readTimeout;
+    }
+
+    public void setReadTimeout(java.time.Duration readTimeout) {
+        this.readTimeout = readTimeout;
     }
 }

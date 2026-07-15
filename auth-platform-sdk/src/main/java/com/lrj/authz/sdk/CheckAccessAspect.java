@@ -26,7 +26,9 @@ public class CheckAccessAspect {
         SubjectRef subject = subjectResolver.currentSubject();
         String resourceId = resolveParam(pjp, checkAccess.resourceIdParam());
         ResourceRef resource = ResourceRef.of(checkAccess.resourceType(), resourceId);
-        boolean allowed = engine.check(subject, checkAccess.permission(), resource, Consistency.minimizeLatency());
+        Consistency consistency = checkAccess.fullyConsistent()
+                ? Consistency.fullyConsistent() : Consistency.minimizeLatency();
+        boolean allowed = engine.check(subject, checkAccess.permission(), resource, consistency);
         if (!allowed) {
             throw new AccessDeniedException(
                     "拒绝: subject=" + subject + " 无 " + checkAccess.permission() + " 权限 on " + resource.ref());

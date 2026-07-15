@@ -21,7 +21,29 @@ public class RemoteAuthzEngine implements AuthzEngine {
     private final ObjectMapper mapper = new ObjectMapper();
 
     public RemoteAuthzEngine(String serverBaseUrl) {
-        this.rest = RestClient.builder().baseUrl(serverBaseUrl).build();
+        this(serverBaseUrl, null);
+    }
+
+    public RemoteAuthzEngine(String serverBaseUrl, String token) {
+        this(serverBaseUrl, token, java.time.Duration.ofSeconds(2), java.time.Duration.ofSeconds(5));
+    }
+
+    /**
+     * @param token          service credential (Bearer)；空/null 则不带 Authorization 头。
+     * @param connectTimeout 连接超时（防判权服务不可达时长时间占用请求线程）。
+     * @param readTimeout    读超时。
+     */
+    public RemoteAuthzEngine(String serverBaseUrl, String token,
+                             java.time.Duration connectTimeout, java.time.Duration readTimeout) {
+        org.springframework.http.client.SimpleClientHttpRequestFactory factory =
+                new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout((int) connectTimeout.toMillis());
+        factory.setReadTimeout((int) readTimeout.toMillis());
+        RestClient.Builder builder = RestClient.builder().requestFactory(factory).baseUrl(serverBaseUrl);
+        if (token != null && !token.isBlank()) {
+            builder = builder.defaultHeaders(h -> h.setBearerAuth(token));
+        }
+        this.rest = builder.build();
     }
 
     @Override
