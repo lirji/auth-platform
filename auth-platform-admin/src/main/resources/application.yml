@@ -1,5 +1,9 @@
 server:
   port: 8201
+  # Casdoor 的 access_token 常达 8-9KB(内嵌完整 user 对象)，超过默认 8KB header 上限会在鉴权前被
+  # Tomcat 直接 400。凡接收 Casdoor 用户 token 的服务都须放大此值(接入方同理)。
+  # 注意 Spring Boot 3 的属性名是 max-http-request-header-size(2.x 的 max-http-header-size 已失效)。
+  max-http-request-header-size: 64KB
 
 spring:
   application:
