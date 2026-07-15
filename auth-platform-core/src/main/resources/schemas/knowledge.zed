@@ -40,16 +40,35 @@ definition folder {                             // 文件夹 (可嵌套)
     permission view = viewer + edit + parent_folder->view + parent_space->view
 }
 
-definition document {                           // 单篇文档
+definition department {                         // 部门 (由 Casdoor 嵌套 group 同步; 一人一部门)
+    relation parent: department                 // 上级部门 (根部门无 parent; 非根至多一个 parent)
+    relation member: user                       // 本部门成员
+    relation admin: user | group#member         // 部门管理员
+
+    // 能自动读"本部门文档"的人 = 本部门成员 ∪ 所有上级部门成员 (递归向上)
+    permission doc_reader = member + parent->doc_reader
+    // 能审批/管理"本部门文档"的人 = 本部门管理员 ∪ 所有上级部门管理员 (递归向上)
+    permission doc_admin  = admin + parent->doc_admin
+}
+
+definition document {                           // 单篇文档 (部门层级模型, 取代 D3)
+    relation home_dept: department              // 归属部门 (= 上传人部门)
+    relation owner: user                        // 上传人
+    relation viewer: user | group#member        // 单篇授权 (申请通过/直接分享); 兼容窗口保留 group, contract 收窄为 user
+    relation public: user:*                     // 公共文档: 所有人可读
+
+    // 兼容窗口保留的旧 relation: 仅供回滚 / auth-console 控制台; 不进入下面的新 view/edit (方向相反)
     relation parent_space: space
     relation parent_folder: folder
-    relation owner: user
     relation editor: user | group#member
     relation commenter: user | group#member
-    relation viewer: user | group#member
-    relation public_viewer: user:*              // 单篇公开
+    relation public_viewer: user:*
 
-    permission edit    = owner + editor + parent_folder->edit + parent_space->edit
-    permission comment = commenter + edit
-    permission view    = viewer + comment + public_viewer + parent_folder->view + parent_space->view
+    // 可读者 = owner + 单篇授权 + 公共 + (本部门+所有上级部门)成员
+    permission view    = owner + viewer + public + home_dept->doc_reader
+    // 可分享者 = owner + 本部门成员 + (本部门+所有上级)管理员
+    permission share   = owner + home_dept->member + home_dept->doc_admin
+    // 删除/覆盖: 仅上传人 (V-06, 用户 2026-07-15 定)
+    permission edit    = owner
+    permission comment = commenter + edit       // 兼容保留 (knowledge-service 不用)
 }
