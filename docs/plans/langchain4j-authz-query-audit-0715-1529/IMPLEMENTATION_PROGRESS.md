@@ -28,5 +28,16 @@
 FINAL_PLAN §9.1 列出的 langchain4j 测试增补（`RealKnowledgeAuthzTest` 二批失败/部分 map/指标、`KnowledgeQueryServiceAuthzTest` shared-AND/reranker 不见 deny 正文/池边界、`CheckAccessShareTest` engine 异常不写 viewer、`KnowledgeAuthzIntegrationTest` D3 三态）。
 **阻塞点**：① 这些落在 langchain4j 仓，而该仓当前有大量**与本任务无关的未提交改动**（rag-tenant-authz + OIDC 批3），混入需谨慎拆分；② D3 集成/E2E 需活栈，本地无法 `跑测试` 验证（违反"每阶段编译+跑测试"纪律）。→ **已就此向用户 checkpoint。**
 
+## codex-review 闭环（2026-07-15，对提交 f3bbfc6）
+
+Codex 独立审查后，Claude 逐条核验，采纳 3 项（用户批「修 ①②③」），均已修 + 全量构建绿：
+
+- **① D3 门禁假阳性（fixture，中）**：原取"首个成员"判 view，若 `OWNER_USER==该成员`或存量文档已直授，会经 owner/直授路径假阳性通过，不证明 D3 链。→ 改取**非 OWNER_USER 成员**校验；存量直授无法被 seed 排除，已在脚本+计划注明为已知局限。
+- **② 缺样本 skip 却 exit 0（fixture，中）**：违背"绕过脚本无法得绿"。→ APPLY 下无法隔离验证 D3 即**非零退出（exit 4）**，留 `ALLOW_UNVERIFIED=1` 给分步 seeding。
+- **③ SpiceDbAuthzEngine 吞 pair error（core，中，本提交外）**：core:59-63 按下标取 pairs、忽略 per-item `error`、缺 permissionship 折成 false；server 再重建干净响应 → SDK 的 F3 在真实 server 面前永不触发，shadow 仍把 SpiceDB 错误记成 deny。→ `check`/`checkBulk` 加 `hasPermission` 严格校验（pairs 基数 + per-item error + permissionship 非空即抛），与 SDK F3 对称，端到端不再"错误伪装成 deny"。仍 fail-closed。
+- **④ single check 无 HTTP 测试（低）**：已认，属暂停的 Stage 4 测试（需 MockRestServiceServer）。**⑤ resource asText/重复请求（低）**：rag-tenant-authz 代码、理论情形，暂不改。
+
+验证：`./mvnw clean install` 全模块 **BUILD SUCCESS**（sdk 11、server 6、admin 等全绿）；fixture `bash -n`+dry-run 通过。③ 的运行期路径需 server-smoke（活栈）实测。**均在分支 `sdk-strict-authz-response` 追加提交。**
+
 ## 阶段 5 — 文档与终检
 （待阶段 4 定案）

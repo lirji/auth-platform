@@ -36,7 +36,7 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         body.put("permission", permission);
         body.put("subject", subjectJson(subject));
         JsonNode resp = post("/v1/permissions/check", body);
-        return HAS_PERMISSION.equals(resp.path("permissionship").asText());
+        return hasPermission(resp, "check");
     }
 
     @Override
@@ -58,11 +58,37 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         body.put("items", items);
         JsonNode resp = post("/v1/permissions/checkbulk", body);
         JsonNode pairs = resp.path("pairs");
+        // 严格校验 pairs 基数：SpiceDB checkbulk 按请求顺序回 pairs，缺项/多项都说明响应不可信 → 抛协议异常
+        // （否则按下标盲映射会把漏项静默当 deny）。
+        if (!pairs.isArray() || pairs.size() != resources.size()) {
+            throw new IllegalStateException("SpiceDB checkbulk 响应 pairs 基数不符: 期望 " + resources.size()
+                    + ", 实际 " + (pairs.isArray() ? String.valueOf(pairs.size()) : "非数组/缺失") + " —— 判权结果不可信");
+        }
         for (int i = 0; i < resources.size(); i++) {
-            JsonNode item = pairs.path(i).path("item");
-            out.put(resources.get(i), HAS_PERMISSION.equals(item.path("permissionship").asText()));
+            JsonNode pair = pairs.path(i);
+            // pair 是 oneof(item|error)：某项返回 error（如 SpiceDB 内部错误）不能静默折成 deny，抛出让上游按依赖故障处理。
+            if (pair.hasNonNull("error")) {
+                throw new IllegalStateException("SpiceDB checkbulk 第 " + i + " 项返回 error(code="
+                        + pair.path("error").path("code").asText("?") + ") —— 判权结果不可信");
+            }
+            out.put(resources.get(i), hasPermission(pair.path("item"), "checkbulk[" + i + "]"));
         }
         return out;
+    }
+
+    /**
+     * 从 SpiceDB check/checkbulk 的结果节点严格取 permissionship：缺失/空即抛 {@link IllegalStateException}（协议异常）。
+     * 不再把"没有 permissionship"静默折成 false —— 否则 SpiceDB 侧的错误/畸形会被伪装成普通 deny，上游 shadow
+     * 会把依赖错误错记为 deny（掩盖故障）。抛出后经 server→SDK 的 HTTP 层表现为依赖错误：knowledge 侧 enforce
+     * fail-closed、shadow 记 error 指标（与 SDK 的 F3 严格校验对称，端到端不再"错误伪装成 deny"）。
+     * NO_PERMISSION 等合法否定仍返回 false（不改变有效判权语义）。
+     */
+    private static boolean hasPermission(JsonNode item, String op) {
+        String ship = item.path("permissionship").asText("");
+        if (ship.isEmpty()) {
+            throw new IllegalStateException("SpiceDB " + op + " 响应缺 permissionship —— 判权结果不可信");
+        }
+        return HAS_PERMISSION.equals(ship);
     }
 
     @Override
