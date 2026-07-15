@@ -9,6 +9,13 @@ authz:
   spicedb:
     endpoint: ${SPICEDB_HTTP:http://localhost:8543}
     token: ${SPICEDB_KEY:authz_dev_key}
+  # 写/读端最小 service-credential 关口。默认关（dev/smoke 兼容）；
+  # 生产必须 enabled=true 且配置 token，否则 /v1/relationships 写端裸奔。
+  # enabled=true 时 /v1/** 需请求头 Authorization: Bearer <token>；health/info 放行。
+  server:
+    security:
+      enabled: ${AUTHZ_SERVER_SECURITY_ENABLED:false}
+      token: ${AUTHZ_SERVER_TOKEN:}
 
 management:
   endpoints:
