@@ -32,13 +32,17 @@ public class RemoteAuthzEngine implements AuthzEngine {
      * @param token          service credential (Bearer)；空/null 则不带 Authorization 头。
      * @param connectTimeout 连接超时（防判权服务不可达时长时间占用请求线程）。
      * @param readTimeout    读超时。
+     *                       底层用 JDK HttpClient（连接池化 keep-alive）——SimpleClientHttpRequestFactory 的
+     *                       HttpURLConnection 每主机默认仅 5 条持久连接,高并发判权会在建连上排队。
      */
     public RemoteAuthzEngine(String serverBaseUrl, String token,
                              java.time.Duration connectTimeout, java.time.Duration readTimeout) {
-        org.springframework.http.client.SimpleClientHttpRequestFactory factory =
-                new org.springframework.http.client.SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout((int) connectTimeout.toMillis());
-        factory.setReadTimeout((int) readTimeout.toMillis());
+        java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
+                .connectTimeout(connectTimeout)
+                .build();
+        org.springframework.http.client.JdkClientHttpRequestFactory factory =
+                new org.springframework.http.client.JdkClientHttpRequestFactory(httpClient);
+        factory.setReadTimeout(readTimeout);
         RestClient.Builder builder = RestClient.builder().requestFactory(factory).baseUrl(serverBaseUrl);
         if (token != null && !token.isBlank()) {
             builder = builder.defaultHeaders(h -> h.setBearerAuth(token));

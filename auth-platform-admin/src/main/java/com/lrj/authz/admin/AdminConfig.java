@@ -10,6 +10,7 @@ public class AdminConfig {
 
     @Bean
     public AuthzEngine authzEngine(AdminSpiceDbProperties props) {
-        return new SpiceDbAuthzEngine(props.getEndpoint(), props.getToken());
+        return new SpiceDbAuthzEngine(props.getEndpoint(), props.getToken(),
+                props.getConnectTimeout(), props.getReadTimeout());
     }
 }

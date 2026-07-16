@@ -22,7 +22,25 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
     private final ObjectMapper mapper = new ObjectMapper();
 
     public SpiceDbAuthzEngine(String baseUrl, String presharedKey) {
+        this(baseUrl, presharedKey, java.time.Duration.ofSeconds(2), java.time.Duration.ofSeconds(15));
+    }
+
+    /**
+     * @param connectTimeout 连接超时（防 SpiceDB 不可达时无限占用请求线程）。
+     * @param readTimeout    读超时；lookup/expand 大结果全量缓冲后解析，需给足（默认 15s）。
+     *                       底层用 JDK HttpClient（连接池化 keep-alive）——SimpleClientHttpRequestFactory 的
+     *                       HttpURLConnection 每主机默认仅 5 条持久连接,高并发判权会在建连上排队。
+     */
+    public SpiceDbAuthzEngine(String baseUrl, String presharedKey,
+                              java.time.Duration connectTimeout, java.time.Duration readTimeout) {
+        java.net.http.HttpClient http = java.net.http.HttpClient.newBuilder()
+                .connectTimeout(connectTimeout)
+                .build();
+        org.springframework.http.client.JdkClientHttpRequestFactory factory =
+                new org.springframework.http.client.JdkClientHttpRequestFactory(http);
+        factory.setReadTimeout(readTimeout);
         this.rest = RestClient.builder()
+                .requestFactory(factory)
                 .baseUrl(baseUrl)
                 .defaultHeaders(h -> h.setBearerAuth(presharedKey))
                 .build();

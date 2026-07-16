@@ -10,6 +10,7 @@ public class AuthzConfig {
 
     @Bean
     public AuthzEngine authzEngine(SpiceDbProperties props) {
-        return new SpiceDbAuthzEngine(props.getEndpoint(), props.getToken());
+        return new SpiceDbAuthzEngine(props.getEndpoint(), props.getToken(),
+                props.getConnectTimeout(), props.getReadTimeout());
     }
 }
