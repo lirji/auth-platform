@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -22,15 +23,18 @@ import java.util.Map;
 public class CasdoorSyncController {
 
     private final ObjectProvider<GroupSyncService> syncProvider;
+    private final ObjectProvider<DepartmentSyncService> deptSyncProvider;
     private final String webhookSecret;
 
     public CasdoorSyncController(ObjectProvider<GroupSyncService> syncProvider,
+                                 ObjectProvider<DepartmentSyncService> deptSyncProvider,
                                  @Value("${authz.security.webhook-secret:}") String webhookSecret) {
         this.syncProvider = syncProvider;
+        this.deptSyncProvider = deptSyncProvider;
         this.webhookSecret = webhookSecret;
     }
 
-    /** 手动全量同步(经用户 token,SecurityConfig 要求 authz-admin)。 */
+    /** 手动全量组同步(经用户 token,SecurityConfig 要求 authz-admin)。 */
     @PostMapping("/sync")
     public ResponseEntity<?> sync() {
         GroupSyncService sync = syncProvider.getIfAvailable();
@@ -40,8 +44,18 @@ public class CasdoorSyncController {
         return ResponseEntity.ok(sync.sync());
     }
 
+    /** 手动全量部门树同步(需 authz-admin;authz.casdoor.department-sync-enabled=false 时 409)。 */
+    @PostMapping("/sync-departments")
+    public ResponseEntity<?> syncDepartments() {
+        DepartmentSyncService sync = deptSyncProvider.getIfAvailable();
+        if (sync == null) {
+            return ResponseEntity.status(409).body(Map.of("error", "authz.casdoor.department-sync-enabled=false"));
+        }
+        return ResponseEntity.ok(sync.sync());
+    }
+
     /**
-     * Casdoor webhook: 用户/组变更事件触发一次全量同步(差量幂等兜底)。
+     * Casdoor webhook: 用户/组变更事件触发一次全量同步(差量幂等兜底);部门同步已启用时一并触发。
      * SecurityConfig 放行本端点(非用户 token),改用共享密钥头 X-Webhook-Secret 校验(常量时间比较)。
      */
     @PostMapping("/webhook")
@@ -57,6 +71,13 @@ public class CasdoorSyncController {
         if (sync == null) {
             return ResponseEntity.status(409).body(Map.of("error", "disabled"));
         }
-        return ResponseEntity.ok(Map.of("synced", true, "summary", sync.sync()));
+        Map<String, Object> resp = new LinkedHashMap<>();
+        resp.put("synced", true);
+        resp.put("summary", sync.sync());
+        DepartmentSyncService deptSync = deptSyncProvider.getIfAvailable();
+        if (deptSync != null) {
+            resp.put("departments", deptSync.sync());
+        }
+        return ResponseEntity.ok(resp);
     }
 }

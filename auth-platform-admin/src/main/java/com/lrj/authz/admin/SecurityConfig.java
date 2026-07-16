@@ -42,7 +42,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/admin/casdoor/webhook").permitAll()
                         // 写端点:需管理员
                         .requestMatchers(HttpMethod.POST,
-                                "/admin/grants", "/admin/grants/revoke", "/admin/casdoor/sync").hasAuthority("authz-admin")
+                                "/admin/grants", "/admin/grants/revoke",
+                                "/admin/casdoor/sync", "/admin/casdoor/sync-departments").hasAuthority("authz-admin")
                         // 读/调试端点:viewer 或 admin
                         .requestMatchers(HttpMethod.POST, "/admin/check", "/admin/expand").hasAnyAuthority("authz-admin", "authz-viewer")
                         .requestMatchers(HttpMethod.GET, "/admin/resources/**", "/admin/subjects/**", "/admin/schema",

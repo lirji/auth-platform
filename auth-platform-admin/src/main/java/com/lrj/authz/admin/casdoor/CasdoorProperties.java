@@ -2,6 +2,9 @@ package com.lrj.authz.admin.casdoor;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** Casdoor 同步配置 (authz.casdoor.*)。enabled=false 时不启用同步。 */
 @ConfigurationProperties(prefix = "authz.casdoor")
 public class CasdoorProperties {
@@ -11,6 +14,8 @@ public class CasdoorProperties {
     private String clientId = "";
     private String clientSecret = "";
     private String organization = "built-in";
+    /** 多 org 同步列表；空(默认)=只同步单个 {@link #organization}。组/部门 id 天然带 org 前缀,多 org 合并无碰撞。 */
+    private List<String> organizations = new ArrayList<>();
     /** SpiceDB subject id 取 Casdoor 用户的哪个字段: id(默认, =OIDC sub) 或 name。 */
     private String subjectField = "id";
     private boolean reconcileEnabled = false;
@@ -30,6 +35,13 @@ public class CasdoorProperties {
     public void setClientSecret(String clientSecret) { this.clientSecret = clientSecret; }
     public String getOrganization() { return organization; }
     public void setOrganization(String organization) { this.organization = organization; }
+    public List<String> getOrganizations() { return organizations; }
+    public void setOrganizations(List<String> organizations) { this.organizations = organizations; }
+
+    /** 生效的同步 org 列表：organizations 非空用之，否则回退单 organization。 */
+    public List<String> effectiveOrganizations() {
+        return organizations != null && !organizations.isEmpty() ? organizations : List.of(organization);
+    }
     public String getSubjectField() { return subjectField; }
     public void setSubjectField(String subjectField) { this.subjectField = subjectField; }
     public boolean isReconcileEnabled() { return reconcileEnabled; }

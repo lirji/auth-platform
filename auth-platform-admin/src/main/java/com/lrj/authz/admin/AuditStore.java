@@ -1,29 +1,20 @@
 package com.lrj.authz.admin;
 
-import org.springframework.stereotype.Component;
-
-import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
-/** 授权操作审计(内存环形缓冲,最近 CAP 条)。v2 可换 JDBC 持久化。 */
-@Component
-public class AuditStore {
+/**
+ * 授权操作审计端口。两个实现按 {@code authz.audit.persistence-enabled} 二选一装配（见 {@link AuditConfig}）：
+ * {@link InMemoryAuditStore}（默认，内存环形缓冲，重启即失）与 {@link JdbcAuditStore}（Postgres 持久化）。
+ */
+public interface AuditStore {
 
-    public record AuditRecord(String at, String actor, String action, String detail) {
+    /** 一条审计记录。{@code at} 为 ISO-8601 Instant 字符串（两实现返回形状一致，前端/API 不感知实现）。 */
+    record AuditRecord(String at, String actor, String action, String detail) {
     }
 
-    private static final int CAP = 500;
-    private final ConcurrentLinkedDeque<AuditRecord> ring = new ConcurrentLinkedDeque<>();
+    /** 记录一次授权操作（actor 为空归一为 "-"）。 */
+    void record(String actor, String action, String detail);
 
-    public void record(String actor, String action, String detail) {
-        ring.addFirst(new AuditRecord(Instant.now().toString(), actor == null ? "-" : actor, action, detail));
-        while (ring.size() > CAP) {
-            ring.pollLast();
-        }
-    }
-
-    public List<AuditRecord> recent(int limit) {
-        return ring.stream().limit(Math.max(1, limit)).toList();
-    }
+    /** 最近 limit 条（新→旧；limit<1 归一为 1）。 */
+    List<AuditRecord> recent(int limit);
 }

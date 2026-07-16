@@ -16,6 +16,8 @@ services:
       - "${SPICEDB_PG_PORT:-15432}:5432"
     volumes:
       - authz-pg-data:/var/lib/postgresql/data
+      # 首次初始化时建 authz_admin(审计持久化库); 存量卷需手动 createdb(见 postgres-init/*.sql 头注)
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-authz} -d spicedb"]
       interval: 5s

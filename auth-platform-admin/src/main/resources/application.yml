@@ -18,6 +18,13 @@ authz:
     issuer: ${CASDOOR_ISSUER:http://localhost:8000}
     client-id: ${CASDOOR_CLIENT_ID:}          # aud 校验(= console 的 Casdoor client_id);空则跳过
     webhook-secret: ${AUTHZ_WEBHOOK_SECRET:}  # webhook 共享密钥;空则不校验(仅本地)
+  audit:
+    # 审计持久化(默认关=内存 500 条,重启即失)。开启需先建库: docker exec authz-postgres createdb -U authz authz_admin
+    # (新起的 compose 卷会由 deploy/postgres-init/ 自动建;老卷需手动跑上面一条)。表 authz_audit 启动时幂等自建。
+    persistence-enabled: ${AUTHZ_AUDIT_PERSISTENCE_ENABLED:false}
+    jdbc-url: ${AUTHZ_AUDIT_JDBC_URL:jdbc:postgresql://localhost:15432/authz_admin}
+    username: ${AUTHZ_AUDIT_DB_USER:authz}
+    password: ${AUTHZ_AUDIT_DB_PASSWORD:authz_dev_pw}
 
 management:
   endpoints:
