@@ -80,9 +80,19 @@ if [ "${ENSURE_SHARED_APP}" = "1" ]; then
   fi
 fi
 
-echo "==> 1. org ${TENANT}"
-capi add-organization "{\"owner\":\"admin\",\"name\":\"${TENANT}\",\"displayName\":\"${TENANT}\",\"passwordType\":\"bcrypt\",\"passwordOptions\":[\"AtLeast6\"],\"defaultAvatar\":\"https://cdn.casbin.org/img/casbin.svg\",\"accountItems\":[{\"name\":\"Password\",\"visible\":true,\"viewRule\":\"Self\",\"modifyRule\":\"Self\"}]}" \
+echo "==> 1. org ${TENANT}（defaultApplication=${SHARED_APP}）"
+# defaultApplication 必设：Casdoor 控制台的 /login/<org> 页（未登录访问控制台按 lastLoginOrg 重定向、
+# 控制台登出回跳都会命中）靠 get-default-application 渲染登录表单；org 没设该字段且名下无自有 app
+# （shared app 归 built-in 所有，按 organization=<org> 兜底查询查不到）时接口报错 → 前端跳 /404。
+capi add-organization "{\"owner\":\"admin\",\"name\":\"${TENANT}\",\"displayName\":\"${TENANT}\",\"passwordType\":\"bcrypt\",\"passwordOptions\":[\"AtLeast6\"],\"defaultApplication\":\"${SHARED_APP}\",\"defaultAvatar\":\"https://cdn.casbin.org/img/casbin.svg\",\"accountItems\":[{\"name\":\"Password\",\"visible\":true,\"viewRule\":\"Self\",\"modifyRule\":\"Self\"}]}" \
   | jq -c '{status,msg}'
+# 幂等回填：org 已存在（add 报 already exists）但 defaultApplication 为空时补上，老租户重跑本脚本即自愈。
+ORG_JSON=$(curl -s "${CASDOOR}/api/get-organization?id=admin/${TENANT}" -H "Authorization: Bearer ${AT}" | jq -c '.data // empty')
+if [ -n "${ORG_JSON}" ] && [ "$(printf '%s' "${ORG_JSON}" | jq -r '.defaultApplication // ""')" = "" ]; then
+  echo "   org 已存在且 defaultApplication 为空，回填为 ${SHARED_APP}"
+  capi "update-organization?id=admin/${TENANT}" "$(printf '%s' "${ORG_JSON}" | jq -c --arg app "${SHARED_APP}" '.defaultApplication=$app')" \
+    | jq -c '{status,msg}'
+fi
 
 echo "==> 2. user ${USER}@${TENANT}（signupApplication=${SHARED_APP}）+ 设密码"
 capi add-user "{\"owner\":\"${TENANT}\",\"name\":\"${USER}\",\"type\":\"normal-user\",\"displayName\":\"${USER}\",\"email\":\"${USER}@${TENANT}.local\",\"phone\":\"\",\"password\":\"${PASSWORD}\",\"signupApplication\":\"${SHARED_APP}\",\"isAdmin\":false,\"isForbidden\":false,\"isDeleted\":false,\"properties\":{}}" \
