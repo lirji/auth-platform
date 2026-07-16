@@ -71,13 +71,14 @@ PostgreSQL（`spicedb` 库）。它是本平台的授权真相源。
 | `group` | 组（可嵌套：`member: user \| group#member`） | `membership = member` |
 | `organization` | 租户 / 公司 | `administrate = admin` |
 | `space` | 知识库（集合） | `manage/edit/comment/view`，含 `parent_org->administrate` |
-| `folder` | 文件夹（可嵌套） | `edit/view`，向上继承 `parent_folder->` 与 `parent_space->` |
-| `document` | 单篇文档 | `edit/comment/view`，含 `parent_folder->` / `parent_space->` 继承 |
+| `folder` | 文件夹（可嵌套） | `edit/view`，**向下继承** `parent_folder->` 与 `parent_space->` |
+| `department` | 部门（Casdoor 嵌套 group 同步，一人一部门） | `doc_reader = member + parent->doc_reader`、`doc_admin = admin + parent->doc_admin`（**沿部门树向上传播**：祖先部门能看后代文档） |
+| `document` | 单篇文档（**部门层级模型**，取代旧 D3） | `view = owner + viewer + public + home_dept->doc_reader`、`share = owner + home_dept->member + home_dept->doc_admin`、`edit = owner` |
 
 特性：
-- **公开链接**：`public_viewer: user:*` 通配主体（space 与 document 均支持）。
+- **部门层级隔离**：文档归属上传人部门（`home_dept`），本部门 + 所有上级部门自动可读，平级/下级/其他读不到；跨部门经单篇 `viewer` 分享。方向与 `space/folder` 的向下继承**相反**。完整规则见 [`../docs/authz-department-model.md`](../docs/authz-department-model.md)。
+- **公开文档 / 公开链接**：`document.public: user:*`（部门模型的公共文档，进 `view`）；`space.public_viewer: user:*`（公开链接）。`document` 上的旧 `public_viewer/commenter/editor/parent_space/parent_folder` 仅作兼容/回滚保留，**已不进 `view/edit`**。
 - **RBAC 作为特例**：把角色对应的 `group` 绑到 `space` 的对应 relation。
-- **层级继承**：如 `document.view = viewer + comment + public_viewer + parent_folder->view + parent_space->view`。
 
 ### his.zed —— HIS 数据权限模型（演示）
 

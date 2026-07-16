@@ -75,16 +75,17 @@
 
 | 组件 | 所在模块 | 作用 |
 |---|---|---|
-| `AuthzEngine` | protocol | 判权端口：check / checkBulk / lookupResources / lookupSubjects / writeRelationships / deleteRelationships |
+| `AuthzEngine` | protocol | 判权端口（9 个操作）：check / checkBulk / lookupResources / lookupSubjects / writeRelationships / deleteRelationships / readSchema / expand / readRelationships |
 | `Consistency` / `ZedTokenView` | protocol | 一致性水位三档 + ZedToken 视图 |
 | `ResourceRef` / `SubjectRef` / `RelationshipUpdate` / `RelationshipFilter` | protocol | 领域 DTO（record + `of(...)` 工厂） |
 | `SpiceDbAuthzEngine` | core | SpiceDB HTTP/JSON 适配器（端口的唯一落地实现） |
 | `AuthzController` / `AuthzDtos` | server | 判权 REST facade（`/v1/check` 等） |
-| `RemoteAuthzEngine` | sdk | 消费方 HTTP 客户端（→ server） |
+| `RemoteAuthzEngine` | sdk | 消费方 HTTP 客户端（→ server）；`requireAllowed`/`parseCheckBulk` 严格校验判权响应 |
 | `@CheckAccess` / `CheckAccessAspect` / `SubjectResolver` | sdk | 声明式强制权限（AOP） |
 | `AdminController` / `AdminDtos` | admin | 关系/授予管理 + 判权调试 API |
 | `SecurityConfig` / `AdminSecurityProperties` | admin | OAuth2 资源服务器（Casdoor JWT 校验） |
-| `casdoor/GroupSyncService` / `ReconcileJob` / `CasdoorClient` | admin | Casdoor 组 → SpiceDB 差量同步（TOUCH/DELETE，幂等）+ 定时 reconcile |
+| `casdoor/GroupSyncService` / `DepartmentSyncService` / `ReconcileJob` / `CasdoorClient` | admin | Casdoor 组/部门树 → SpiceDB 差量同步（`readRelationships` 直连元组比对 → TOUCH/DELETE，幂等，`deleteThreshold` 熔断）+ 定时 reconcile |
+| `casdoor/CasdoorGroupIds` / `CasdoorProperties` / `CasdoorConfig` | admin | 组/部门 id 租户前缀编码 `<org>_<group>`（防跨租户串权）+ Casdoor 同步开关（`department-sync-enabled` 门控 `DepartmentSyncService`） |
 
 ### 构建工具
 

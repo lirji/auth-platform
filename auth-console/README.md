@@ -48,7 +48,7 @@ pnpm build      # tsc 类型检查 + vite 打包 → dist/
 - ✅ **M5 概览 + schema 查看器**:概览(当前身份 + 授权组 + 快捷入口)+ schema 查看器(拉 `GET /admin/schema` → 客户端 `zedParser` 解析 → 类型卡片,含关系/权限;可切原始 .zed)。后端已加 `readSchema`(AuthzEngine 端口 + SpiceDB ReadSchema 透传)。
 - ✅ **M6 交付**:vite `manualChunks` 分包(react/antd/oidc/query 各自 chunk)+ `Dockerfile`(node build → nginx:8202)+ `nginx.conf`(SPA 回退 + 同源反代 /admin)。
 
-**验证**:构建通过(tsc+vite,分包生效);经 dev 代理 + 真实 Casdoor token 全 API 序列端到端(授予→判定→反查→撤销)通过;无 token 401 / authz-viewer 写 403;zedParser 对真实合并 schema 正确解析 9 个 definition。浏览器 SSO 登录待人工在 http://localhost:5273 实测(标准 oidc-client-ts 流程)。
+**验证**:构建通过(tsc+vite,分包生效);经 dev 代理 + 真实 Casdoor token 全 API 序列端到端(授予→判定→反查→撤销)通过;无 token 401 / authz-viewer 写 403;zedParser 对真实合并 schema 正确解析 10 个 definition（含新增 `department`）。浏览器 SSO 登录待人工在 http://localhost:5273 实测(标准 oidc-client-ts 流程)。
 
 ## 结构
 

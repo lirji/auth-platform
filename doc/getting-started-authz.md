@@ -47,9 +47,18 @@ organization  relation admin, member   （= 租户 / 公司）
 space         relation parent_org, owner, admin, editor, commenter, viewer
               permission manage = owner + admin + parent_org->administrate
               permission edit   = editor + manage        ← 权限是"算"出来的
-document      relation parent_space, owner, editor, viewer, ...
-              permission view = viewer + ... + parent_space->view   ← 沿边继承
+folder        relation parent_space, parent_folder, editor, viewer
+              permission edit = editor + parent_folder->edit + parent_space->edit  ← 沿边向下继承
+department    relation parent, member, admin              （部门树,由 Casdoor 嵌套 group 同步）
+              permission doc_reader = member + parent->doc_reader   ← 沿部门树向上传播
+document      relation home_dept, owner, viewer, public    （部门层级模型,取代旧 D3）
+              permission view = owner + viewer + public + home_dept->doc_reader
+              permission edit = owner                      ← 删除/覆盖仅上传人
 ```
+
+> **注意**：`document` 现走**部门层级隔离**（可读者 = 本部门 + 所有上级部门，`edit` 仅 owner），完整规则见
+> [`../docs/authz-department-model.md`](../docs/authz-department-model.md)。下面第 3 节用 `space`/`folder` 演示
+> ReBAC 的"组→角色→沿边继承"心法（folder 仍向下继承，机制最直观）；文档级共享则是往 `document#viewer` 接一条边。
 
 区分两个词，是理解全模型的关键：
 
@@ -78,8 +87,8 @@ document      relation parent_space, owner, editor, viewer, ...
 
 > `subjectRelation` 只有当主体是"某个组的全体成员"时才填（填 `"member"`）；指向单个用户时留空/`null`。
 
-下面链路照搬冒烟脚本 `deploy/spicedb-smoke.sh:23-35`，是官方认可的正确用法。
-目标：**让 bob 因为在研发组、研发组是知识库的编辑者，从而能编辑库里的文档——全程不给 bob 直接授文档权。**
+下面用 `space`/`folder` 的向下继承演示"组→角色→资源"的关系链（这套继承在当前 schema 里仍然成立）。
+目标：**让 bob 因为在研发组、研发组是知识库的编辑者，从而能编辑库里的文件夹——全程不给 bob 直接授权。**
 
 **① 设 alice 为组织 acme 的管理员**　边：`organization:acme#admin@user:alice`
 ```json
@@ -106,17 +115,17 @@ document      relation parent_space, owner, editor, viewer, ...
   "subjectType":"group", "subjectId":"research", "subjectRelation":"member" }
 ```
 
-**⑤ 文档挂到空间下**　边：`document:d_42#parent_space@space:kb_ml`
+**⑤ 文件夹挂到空间下**　边：`folder:f_42#parent_space@space:kb_ml`
 ```json
-{ "resourceType":"document", "resourceId":"d_42", "relation":"parent_space",
+{ "resourceType":"folder", "resourceId":"f_42", "relation":"parent_space",
   "subjectType":"space", "subjectId":"kb_ml", "subjectRelation":null }
 ```
 
-至此没给 bob 直接授过任何文档权限，但引擎会推导出这条链：
+至此没给 bob 直接授过任何文件夹权限，但引擎会推导出这条链：
 
 ```
 bob ∈ research#member  →  research 是 kb_ml 的 editor  →  kb_ml.edit
-      →  document:d_42 继承 parent_space->edit  →  bob 可编辑 d_42 ✅
+      →  folder:f_42 继承 parent_space->edit  →  bob 可编辑 f_42 ✅
 ```
 
 这就是 ReBAC 的威力，也是你要建立的"关系链"。
@@ -129,7 +138,7 @@ bob ∈ research#member  →  research 是 kb_ml 的 editor  →  kb_ml.edit
 ```json
 POST /admin/check
 { "subjectType":"user", "subjectId":"bob", "permission":"edit",
-  "resourceType":"document", "resourceId":"d_42" }
+  "resourceType":"folder", "resourceId":"f_42" }
 → { "allowed": true }
 ```
 
@@ -137,8 +146,8 @@ POST /admin/check
 
 | 接口 | 作用 |
 |---|---|
-| `GET /admin/resources/document/d_42/subjects?permission=view` | 谁能看这篇文档（反查主体） |
-| `GET /admin/subjects/user/bob/resources?permission=view&resourceType=document` | bob 能看哪些文档（反查资源） |
+| `GET /admin/resources/folder/f_42/subjects?permission=view` | 谁能看这个文件夹（反查主体） |
+| `GET /admin/subjects/user/bob/resources?permission=view&resourceType=folder` | bob 能看哪些文件夹（反查资源） |
 | `GET /admin/relationships?resourceType=space&resourceId=kb_ml` | kb_ml 现存哪些边 |
 | `POST /admin/expand` | 展开判定树,肉眼看权限怎么一层层推出来 |
 
@@ -149,7 +158,9 @@ docker compose up -d          # 起 postgres + spicedb + casdoor
 bash spicedb-smoke.sh         # 灌 schema + 写上面这套边 + 断言判定
 bash server-smoke.sh          # 经 REST(:8200) 复验同一条链路 ← 最贴近"用 API 赋权"
 ```
-`spicedb-smoke.sh:23-70` 就是上面五步 + 断言；`server-smoke.sh` 是走 HTTP 的版本，看一遍即全懂。
+`spicedb-smoke.sh:23-70` 是 space/组继承的断言；`server-smoke.sh` 是走 HTTP 的版本，看一遍即全懂。
+> ⚠️ `spicedb-smoke.sh` 里 `document` 相关的断言基于**部门模型前**的旧 `document`（parent_space/public_viewer 继承），
+> 尚未随 `knowledge.zed` 更新会失败；要验证当前的部门层级 `document` 模型，用 `TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh`。
 
 ---
 
