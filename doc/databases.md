@@ -1,7 +1,8 @@
 # 数据库与存储
 
-平台**无应用层 ORM/JPA/DB**——判权服务本身无状态，所有授权态都以**关系元组（relationship tuples）**的形式
-存在 SpiceDB 中。真正落到磁盘的只有一个关系库：**PostgreSQL**，它同时充当 SpiceDB 和 Casdoor 的后端存储。
+平台**无应用层 ORM/JPA**——判权服务本身无状态，所有授权态都以**关系元组（relationship tuples）**的形式
+存在 SpiceDB 中。真正落到磁盘的只有一个关系库：**PostgreSQL**，它同时充当 SpiceDB 和 Casdoor 的后端存储
+（外加一个可选的 admin 审计库 `authz_admin`，见下）。
 
 ## 一、PostgreSQL 16 —— 唯一的关系型数据库
 
@@ -21,6 +22,7 @@
 |---|---|---|
 | `spicedb` | SpiceDB datastore | compose 初始化时由 `POSTGRES_DB` 建好 |
 | `casdoor` | Casdoor 数据源 | Casdoor 连 `spicedb` 库引导后**自建并使用** `dbName=casdoor`（见 `deploy/casdoor/app.conf`） |
+| `authz_admin` | admin 审计持久化（`authz.audit.persistence-enabled=true` 时；默认关=内存审计） | 新卷由 `deploy/postgres-init/` 初始化脚本建；存量卷手动 `docker exec authz-postgres createdb -U authz authz_admin`。表 `authz_audit` 由 admin 启动时幂等自建 |
 
 **迁移**：SpiceDB 的 schema 迁移由 compose 中一次性服务 `spicedb-migrate` 执行
 `datastore migrate head` 完成（`serve` 前必须先跑）。**无 Flyway / 无 JPA / 无 Liquibase**。
@@ -55,7 +57,8 @@ PostgreSQL（`spicedb` 库）。它是本平台的授权真相源。
 | `FULLY_CONSISTENT` | 管理/调试；admin 读一律用它 |
 
 > **坑**：刚写入就读，必须带 ZedToken 或用 full，否则可能被量化快照漏读。
-> （README 提到的 “ZedToken 水位缓存” 目前**代码里未实现**。）
+> server 有 **ZedToken 水位缓存**（`ZedTokenWatermark`，默认开）：`at_least_as_fresh` 无 token 的请求
+> 自动代入本实例最近写水位，无水位回退 full。单实例内存态——多实例部署跨实例写后读仍须调用方自带 token。
 
 ## 三、数据/授权模型（`.zed` schema）
 
@@ -94,7 +97,11 @@ PostgreSQL（`spicedb` 库）。它是本平台的授权真相源。
 
 `deploy/casdoor/app.conf` 中 `redisEndpoint =` 为空，Casdoor **未连接 Redis**。当前部署无 Redis 组件。
 
-## 五、无应用层数据库
+## 五、应用层数据库（仅一个可选审计库）
 
-`server` 与 `admin` 两个 Spring Boot 服务**均无 JPA / MyBatis / 数据源配置**——它们是无状态的判权/管理
-facade，一切授权态读写都转发到 SpiceDB。因此本仓库没有 SQL 建表脚本、没有 ORM 实体。
+`server` 与 `admin` 两个 Spring Boot 服务**均无 JPA / MyBatis / ORM 实体**——它们是无状态的判权/管理
+facade，一切授权态读写都转发到 SpiceDB。唯一例外是 **admin 审计持久化**（`authz.audit.persistence-enabled`，
+默认关=内存 500 条）：开启后用专用 Hikari 小连接池（4 连接）连 `authz_admin` 库，`authz_audit` 表由
+`JdbcAuditStore` 启动时 `CREATE TABLE IF NOT EXISTS` 幂等自建（无 Flyway），DB 不可达则**启动失败**
+（fail-fast，审计拒绝静默降级），`retention-max-rows`（默认 10 万）写入后裁剪最旧。admin 主应用排除了
+`DataSourceAutoConfiguration`，不开审计时无任何数据源。

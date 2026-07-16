@@ -158,9 +158,9 @@ docker compose up -d          # 起 postgres + spicedb + casdoor
 bash spicedb-smoke.sh         # 灌 schema + 写上面这套边 + 断言判定
 bash server-smoke.sh          # 经 REST(:8200) 复验同一条链路 ← 最贴近"用 API 赋权"
 ```
-`spicedb-smoke.sh:23-70` 是 space/组继承的断言；`server-smoke.sh` 是走 HTTP 的版本，看一遍即全懂。
-> ⚠️ `spicedb-smoke.sh` 里 `document` 相关的断言基于**部门模型前**的旧 `document`（parent_space/public_viewer 继承），
-> 尚未随 `knowledge.zed` 更新会失败；要验证当前的部门层级 `document` 模型，用 `TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh`。
+`spicedb-smoke.sh` 覆盖两类继承的断言（space/folder 向下继承 + document 部门模型向上传播）；
+`server-smoke.sh` 是走 HTTP 的版本，看一遍即全懂。更完整的部门模型 seed/自校验：
+`TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh`。
 
 ---
 

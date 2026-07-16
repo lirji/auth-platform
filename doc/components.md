@@ -69,6 +69,8 @@
 | `spring-boot-starter-web` | 管理 REST API |
 | `spring-boot-starter-actuator` | health/info |
 | `spring-boot-starter-oauth2-resource-server` | 校验 Casdoor 签发的 JWT（JWKS / issuer / aud） |
+| `spring-boot-starter-jdbc` + `org.postgresql:postgresql`(runtime) | 审计持久化（`authz.audit.persistence-enabled` 门控；主应用排除 DataSourceAutoConfiguration） |
+| `com.h2database:h2`(test) | `JdbcAuditStoreTest` 内存库（PostgreSQL 兼容模式） |
 | `spring-boot-maven-plugin` | 可执行 jar / `spring-boot:run` |
 
 ### 关键类 / 组件（自定义代码）
@@ -83,6 +85,8 @@
 | `RemoteAuthzEngine` | sdk | 消费方 HTTP 客户端（→ server）；`requireAllowed`/`parseCheckBulk` 严格校验判权响应 |
 | `@CheckAccess` / `CheckAccessAspect` / `SubjectResolver` | sdk | 声明式强制权限（AOP） |
 | `AdminController` / `AdminDtos` | admin | 关系/授予管理 + 判权调试 API |
+| `AuditStore`(端口) / `InMemoryAuditStore` / `JdbcAuditStore` / `AuditConfig` | admin | 审计：默认内存环形缓冲；`authz.audit.persistence-enabled=true` 落 Postgres `authz_admin` 库（幂等建表 + retention 裁剪 + fail-fast） |
+| `ZedTokenWatermark` | server | ZedToken 水位缓存：`at_least_as_fresh` 无 token 自动代入最近写水位（默认开，单实例内存态） |
 | `SecurityConfig` / `AdminSecurityProperties` | admin | OAuth2 资源服务器（Casdoor JWT 校验） |
 | `casdoor/GroupSyncService` / `DepartmentSyncService` / `ReconcileJob` / `CasdoorClient` | admin | Casdoor 组/部门树 → SpiceDB 差量同步（`readRelationships` 直连元组比对 → TOUCH/DELETE，幂等，`deleteThreshold` 熔断）+ 定时 reconcile |
 | `casdoor/CasdoorGroupIds` / `CasdoorProperties` / `CasdoorConfig` | admin | 组/部门 id 租户前缀编码 `<org>_<group>`（防跨租户串权）+ Casdoor 同步开关（`department-sync-enabled` 门控 `DepartmentSyncService`） |
@@ -95,7 +99,10 @@
 | JDK | 21 | 编译/运行 |
 | spring-boot-maven-plugin | 随 Boot 3.3.5 | 打包 / 本地 run |
 
-> 无 lint/format/checkstyle/spotless；仓库无 `src/test`（事实验证靠 `deploy/*.sh` 冒烟脚本）。
+> 无 lint/format/checkstyle/spotless。JUnit 测试覆盖关键校验路径：sdk `RemoteAuthzEngineTest`、
+> admin `GroupSyncServiceTest`/`DepartmentSyncServiceTest`/`CasdoorGroupIdsTest`/`JdbcAuditStoreTest`、
+> server `AuthzServerSecurityFilterTest`/`AuthzControllerWatermarkTest`（共 38 测试）；
+> 端到端事实验证仍靠 `deploy/*.sh` 冒烟脚本。
 
 ---
 

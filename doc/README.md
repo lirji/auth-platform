@@ -14,7 +14,11 @@
 | [databases.md](./databases.md) | 数据库与存储：PostgreSQL、SpiceDB（关系元组存储）、数据模型（`.zed`）、一致性水位 |
 | [components.md](./components.md) | 组件清单：基础设施/中间件、后端 Java/Spring 模块与依赖、前端 React 依赖 |
 
-> 授权模型与身份接入的权威文档在仓库根 `docs/`：**[授权：部门层级知识隔离模型](../docs/authz-department-model.md)**（当前 `document` 模型，取代旧 D3）、**[Casdoor 统一登录平台接入手册](../docs/统一登录平台接入手册.md)**（SSO/OIDC 接入 + 多租户开通）。
+> 授权模型与接入的权威文档在仓库根 `docs/`：**[平台能力总览](../docs/平台能力总览.md)**（能力矩阵 + API 参考 + 边界）、
+> **[新项目接入指南](../docs/新项目接入指南.md)**（接入项目侧/平台侧双清单）、
+> **[授权：部门层级知识隔离模型](../docs/authz-department-model.md)**（当前 `document` 模型，取代旧 D3）、
+> **[Casdoor 统一登录平台接入手册](../docs/统一登录平台接入手册.md)**（SSO/OIDC 接入 + 多租户开通）、
+> **[性能与容量规划](../docs/性能与容量规划.md)**（高并发承载/瓶颈/扩容路线）。
 
 ## 全栈一览
 
