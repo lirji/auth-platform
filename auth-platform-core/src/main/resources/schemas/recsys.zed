@@ -1,0 +1,35 @@
+// recsys(搜推广)授权模型 —— 广告主管理面(recsys-advertiser)的 ReBAC。
+// ⚠️ 按 §B 每项目独立 SpiceDB:本文件写入 **recsys 专属实例**(dev :8544),
+//    与 knowledge.zed/his.zed(auth-platform dev :8543)互不合并、互不影响。
+//
+// 最小元组设计:广告/创意/竞价词的权限纯继承自 advertiser,不为每条广告写元组
+// (广告 CRUD 高频,逐条双写放大且无独立授权语义)。判权一律落在 advertiser:{id},
+// 服务端从 adId 反查 advertiser_id 再 check(广告主作用域查询单库命中,反查免费)。
+// 对象 id 约定:advertiser:<数值id>(recsys 单租户部署,无跨租户串权面;若未来多环境
+// 共库再加 <tenant>_ 前缀)。主体 id = Casdoor sub(UUID)。
+
+definition user {}
+
+definition group {
+    relation member: user | group#member
+    permission membership = member
+}
+
+// 平台级角色锚点,全局仅一个对象: platform:recsys
+definition platform {
+    relation admin: user | group#member      // 平台管理员:全量管理
+    relation operator: user | group#member   // 平台运营:创意人审 + 看全量报表
+    permission administrate = admin
+    permission review = operator + admin           // 创意审核(approve/reject)
+    permission view_reports = operator + admin     // 跨广告主报表
+}
+
+// 广告主账户 = 资源作用域(其下 ad/creative/bidword/report 全部继承)
+definition advertiser {
+    relation platform: platform
+    relation owner: user                     // 账户所有人
+    relation member: user | group#member     // 投放团队成员(优化师)
+    permission manage = owner + platform->administrate   // 账户管理:改状态/删除/成员
+    permission edit   = member + manage                  // 投放操作:建改广告/创意/出价/上下线
+    permission view   = edit + platform->view_reports    // 读:详情/报表
+}
