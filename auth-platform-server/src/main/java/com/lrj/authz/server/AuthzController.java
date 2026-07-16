@@ -13,16 +13,25 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/** 判权 REST 端点。SDK 的 RemoteAuthzEngine 调这里。 */
+/**
+ * 判权 REST 端点。SDK 的 RemoteAuthzEngine 调这里。
+ * ZedToken 水位：写/删推进 {@link ZedTokenWatermark}；at_least_as_fresh 无 token 的请求自动代入水位
+ * （原先这类请求会被 SpiceDB 拒绝），水位也没有时安全回退 full。开关 authz.server.zed-token-watermark-enabled。
+ */
 @RestController
 @RequestMapping("/v1")
 public class AuthzController {
 
     private final AuthzEngine engine;
+    private final ZedTokenWatermark watermark;
+    private final boolean watermarkEnabled;
     private final com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
-    public AuthzController(AuthzEngine engine) {
+    public AuthzController(AuthzEngine engine, ZedTokenWatermark watermark,
+                           @org.springframework.beans.factory.annotation.Value("${authz.server.zed-token-watermark-enabled:true}") boolean watermarkEnabled) {
         this.engine = engine;
+        this.watermark = watermark;
+        this.watermarkEnabled = watermarkEnabled;
     }
 
     @PostMapping("/check")
@@ -54,12 +63,16 @@ public class AuthzController {
 
     @PostMapping("/relationships")
     public TokenResponse write(@RequestBody WriteRequest req) {
-        return new TokenResponse(engine.writeRelationships(req.updates()).token());
+        String token = engine.writeRelationships(req.updates()).token();
+        watermark.advance(token);
+        return new TokenResponse(token);
     }
 
     @PostMapping("/relationships/delete")
     public TokenResponse delete(@RequestBody DeleteRequest req) {
-        return new TokenResponse(engine.deleteRelationships(req.filter()).token());
+        String token = engine.deleteRelationships(req.filter()).token();
+        watermark.advance(token);
+        return new TokenResponse(token);
     }
 
     @org.springframework.web.bind.annotation.GetMapping("/schema")
@@ -81,14 +94,23 @@ public class AuthzController {
         return new ReadRelationshipsResponse(engine.readRelationships(req.filter()));
     }
 
-    private static Consistency toConsistency(ConsistencyDto c) {
+    private Consistency toConsistency(ConsistencyDto c) {
         if (c == null || c.mode() == null || c.mode().isBlank()) {
             return Consistency.minimizeLatency();
         }
         return switch (c.mode().toLowerCase(Locale.ROOT)) {
             case "full", "fully_consistent" -> Consistency.fullyConsistent();
-            case "at_least_as_fresh" -> Consistency.atLeastAsFresh(c.zedToken());
+            case "at_least_as_fresh" -> atLeastAsFresh(c.zedToken());
             default -> Consistency.minimizeLatency();
         };
+    }
+
+    /** at_least_as_fresh：调用方带 token 优先；没带则用本实例写水位；水位也没有时安全回退 full（宁慢勿漏读）。 */
+    private Consistency atLeastAsFresh(String zedToken) {
+        if (zedToken != null && !zedToken.isBlank()) {
+            return Consistency.atLeastAsFresh(zedToken);
+        }
+        String wm = watermarkEnabled ? watermark.latest() : null;
+        return wm != null ? Consistency.atLeastAsFresh(wm) : Consistency.fullyConsistent();
     }
 }
