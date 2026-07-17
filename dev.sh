@@ -20,7 +20,15 @@
 #   --no-backend     跳过后端 server/admin
 #   --no-frontend    跳过前端 auth-console
 #   --skip-build     up 时跳过 mvn install (确定已构建过时提速)
+#   --insecure       server 关闭 /v1 service-credential 鉴权 (跑 deploy/*smoke.sh 免 token 时用)
 #   -f, --follow     up 完成后前台跟踪日志, Ctrl-C 一并停掉全部
+#
+# 后端 server 鉴权 (auth-platform-server 的 /v1/** 关口):
+#   默认开 (与 enforce 运行态一致); 用 --insecure 关。token 取环境变量 AUTHZ_SERVER_TOKEN,
+#   缺省一个 dev 值。可用环境变量覆盖:
+#     AUTHZ_SERVER_SECURITY_ENABLED=false ./dev.sh up   # 等价 --insecure
+#     AUTHZ_SERVER_TOKEN=my-svc-key ./dev.sh up          # 自定义 service token
+#   (admin :8201 的鉴权是 Casdoor OAuth,与这里无关,不受本开关影响。)
 #
 # 依赖: docker(compose v2), java21, mvnw, pnpm(或 npm), curl。注释一律中文。
 # =============================================================================
@@ -38,6 +46,12 @@ ADMIN_PORT="${ADMIN_PORT:-8201}"
 FRONTEND_PORT="${FRONTEND_PORT:-5273}"
 SPICEDB_HTTP_PORT="${SPICEDB_HTTP_PORT:-8543}"
 CASDOOR_PORT="${CASDOOR_PORT:-8000}"
+
+# ---- 后端 server 的 /v1 service-credential 鉴权 (仅 auth-platform-server) ----
+# 默认开 (enforce-like); --insecure 或 AUTHZ_SERVER_SECURITY_ENABLED=false 关。
+# token 缺省一个 dev 值 (application.yml 亦有 SPICEDB_KEY 等 dev 缺省, 同一约定)。
+AUTHZ_SERVER_SECURITY_ENABLED="${AUTHZ_SERVER_SECURITY_ENABLED:-true}"
+AUTHZ_SERVER_TOKEN="${AUTHZ_SERVER_TOKEN:-rag-svc-dev-key}"
 
 # ---- 开关 (被 flag 覆盖) ----
 DO_INFRA=1; DO_BACKEND=1; DO_FRONTEND=1; SKIP_BUILD=0; FOLLOW=0
@@ -133,6 +147,12 @@ build_backend(){
 
 start_backend(){
   build_backend
+  # 鉴权配置注入 spawn 的子进程环境 (server 读 authz.server.security.*; admin 无关会忽略)。
+  # 开鉴权但 token 空会让 server fail-fast 拒启动 —— 提前拦下, 给清晰提示。
+  if [[ "$AUTHZ_SERVER_SECURITY_ENABLED" == "true" && -z "$AUTHZ_SERVER_TOKEN" ]]; then
+    die "server 鉴权已开但 AUTHZ_SERVER_TOKEN 为空 —— server 会拒绝启动。请设 token 或用 --insecure。"
+  fi
+  export AUTHZ_SERVER_SECURITY_ENABLED AUTHZ_SERVER_TOKEN
   # install 后依赖已进本地仓库, spring-boot:run 无需 -am, 单模块编译即可
   spawn server "$SERVER_PORT" "$ROOT" ./mvnw -q -pl auth-platform-server spring-boot:run
   spawn admin  "$ADMIN_PORT"  "$ROOT" ./mvnw -q -pl auth-platform-admin  spring-boot:run
@@ -204,12 +224,19 @@ cmd_logs(){
 }
 
 print_summary(){
+  local sec tokmask
+  if [[ "$AUTHZ_SERVER_SECURITY_ENABLED" == "true" ]]; then
+    sec="${C_G}ON${C_0}"; tokmask="${C_D}(token: ${AUTHZ_SERVER_TOKEN:0:4}***)${C_0}"
+  else
+    sec="${C_Y}OFF${C_0}"; tokmask="${C_D}(--insecure; smoke 可直连)${C_0}"
+  fi
   cat <<EOF
 
 ${C_G}━━━━━━━━━━━━━━━━━━━━━ 环境就绪 ━━━━━━━━━━━━━━━━━━━━━${C_0}
   前端 auth-console   ${C_B}http://localhost:${FRONTEND_PORT}${C_0}
   后端 server         ${C_B}http://localhost:${SERVER_PORT}${C_0}   ${C_D}(/actuator/health)${C_0}
   后端 admin          ${C_B}http://localhost:${ADMIN_PORT}${C_0}   ${C_D}(/actuator/health)${C_0}
+  server /v1 鉴权     ${sec} ${tokmask}
   Casdoor 登录        ${C_B}http://localhost:${CASDOOR_PORT}${C_0}
   SpiceDB HTTP        ${C_B}http://localhost:${SPICEDB_HTTP_PORT}${C_0}
 
@@ -236,6 +263,7 @@ while [[ $# -gt 0 ]]; do
     --no-backend)  DO_BACKEND=0 ;;
     --no-frontend) DO_FRONTEND=0 ;;
     --skip-build)  SKIP_BUILD=1 ;;
+    --insecure)    AUTHZ_SERVER_SECURITY_ENABLED=false ;;
     -f|--follow)   FOLLOW=1 ;;
     *) die "未知参数: $1 (见 ./dev.sh help)" ;;
   esac
