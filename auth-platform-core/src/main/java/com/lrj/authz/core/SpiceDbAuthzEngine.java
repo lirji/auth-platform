@@ -119,9 +119,14 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         List<String> ids = new ArrayList<>();
         for (JsonNode msg : postStream("/v1/permissions/resources", body)) {
             JsonNode result = msg.path("result");
-            // LookupResources 用 LOOKUP_PERMISSIONSHIP_HAS_PERMISSION (带 LOOKUP_ 前缀), 故用 endsWith 兼容。
+            // 与 check/checkBulk 的 hasPermission 严格语义对称：缺/空 permissionship 是协议错误 → 抛（勿 fail-open）。
+            // LookupResources 用 LOOKUP_PERMISSIONSHIP_HAS_PERMISSION (带 LOOKUP_ 前缀), 故用 endsWith 兼容；
+            // CONDITIONAL/UNSPECIFIED 等非 HAS_PERMISSION 一律 fail-closed 排除（不纳入结果，等价于"无权限"）。
             String permissionship = result.path("permissionship").asText("");
-            if (permissionship.isEmpty() || permissionship.endsWith("HAS_PERMISSION")) {
+            if (permissionship.isEmpty()) {
+                throw new IllegalStateException("SpiceDB lookupResources 响应缺 permissionship —— 判权结果不可信");
+            }
+            if (permissionship.endsWith("HAS_PERMISSION")) {
                 JsonNode id = result.path("resourceObjectId");
                 if (!id.isMissingNode()) {
                     ids.add(id.asText());
@@ -162,7 +167,7 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
             jsonUpdates.add(upd);
         }
         JsonNode resp = post("/v1/relationships/write", Map.of("updates", jsonUpdates));
-        return new ZedTokenView(resp.path("writtenAt").path("token").asText(null));
+        return new ZedTokenView(requireToken(resp, "writtenAt", "write"));
     }
 
     @Override
@@ -176,7 +181,7 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
             f.put("optionalRelation", filter.relation());
         }
         JsonNode resp = post("/v1/relationships/delete", Map.of("relationshipFilter", f));
-        return new ZedTokenView(resp.path("deletedAt").path("token").asText(null));
+        return new ZedTokenView(requireToken(resp, "deletedAt", "delete"));
     }
 
     @Override
@@ -222,6 +227,19 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
                             subRel.isEmpty() ? null : subRel)));
         }
         return out;
+    }
+
+    /**
+     * 从写/删响应严格取 ZedToken：缺 {@code <field>.token}（空 2xx / 畸形 / 引擎未回水位）即抛协议异常。
+     * 不再静默返回 {@code ZedTokenView(null)} —— 否则上游拿不到水位却以为写成功，read-after-write 失效。
+     */
+    private static String requireToken(JsonNode resp, String field, String op) {
+        String token = resp.path(field).path("token").asText(null);
+        if (token == null || token.isBlank()) {
+            throw new IllegalStateException(
+                    "SpiceDB " + op + " 响应缺 " + field + ".token —— 写入结果不可信（无法保证 read-after-write）");
+        }
+        return token;
     }
 
     // --- JSON 构造 ---
@@ -278,8 +296,16 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         try (JsonParser p = mapper.getFactory().createParser(resp)) {
             Iterator<JsonNode> it = mapper.readValues(p, JsonNode.class);
             while (it.hasNext()) {
-                out.add(it.next());
+                JsonNode msg = it.next();
+                // 流中任一顶层 error（如中途 SpiceDB 内部错误）不能静默跳过 → 抛，避免把"可信的部分结果"返给上游。
+                if (msg.hasNonNull("error")) {
+                    throw new IllegalStateException("SpiceDB 流式响应含 error(code="
+                            + msg.path("error").path("code").asText("?") + ") —— 结果不可信");
+                }
+                out.add(msg);
             }
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Exception e) {
             throw new IllegalStateException("SpiceDB 流式响应解析失败: " + e.getMessage(), e);
         }

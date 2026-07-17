@@ -19,10 +19,17 @@ import java.util.List;
 /**
  * 授权管理 API (auth-console 后端)。
  * 授予/撤销关系元组, 反查主体/资源, 权限调试。读一律 full 一致性 (管理/调试要看最新)。
+ *
+ * <p><strong>两段审计（ADM01）</strong>：grant/revoke 对 SpiceDB 的数据面写与审计库是两个独立系统（无共享事务），
+ * 为杜绝"数据已变却无审计"，审计分两段：写前先落 {@code *.intent}，写成功落 {@code *.ok}，写失败落 {@code *.fail}。
+ * {@code intent} 故意<strong>不捕获</strong>——审计库不可用时直接失败、不写 SpiceDB（fail-closed，符合"审计是安全记录、
+ * 拒绝静默降级"）。{@code fail}/{@code ok} 收尾记录用 {@link #recordQuietly} best-effort（不掩盖原始写异常）。
  */
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminController.class);
 
     private final AuthzEngine engine;
     private final AuditStore audit;
@@ -33,24 +40,46 @@ public class AdminController {
         this.audit = audit;
     }
 
-    /** 授予一条关系 (TOUCH, 幂等)。 */
+    /** 授予一条关系 (TOUCH, 幂等)。两段审计见类注释。 */
     @PostMapping("/grants")
     public TokenResponse grant(@RequestBody GrantRequest req,
                                @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
-        String token = engine.writeRelationships(List.of(
-                RelationshipUpdate.touch(resource(req), req.relation(), subject(req)))).token();
-        audit.record(actor(jwt), "grant", tupleOf(req));
-        return new TokenResponse(token);
+        return writeWithAudit(actor(jwt), "grant", tupleOf(req),
+                RelationshipUpdate.touch(resource(req), req.relation(), subject(req)));
     }
 
-    /** 撤销一条关系 (DELETE 单条元组)。 */
+    /** 撤销一条关系 (DELETE 单条元组)。两段审计见类注释。 */
     @PostMapping("/grants/revoke")
     public TokenResponse revoke(@RequestBody GrantRequest req,
                                 @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
-        String token = engine.writeRelationships(List.of(
-                RelationshipUpdate.delete(resource(req), req.relation(), subject(req)))).token();
-        audit.record(actor(jwt), "revoke", tupleOf(req));
+        return writeWithAudit(actor(jwt), "revoke", tupleOf(req),
+                RelationshipUpdate.delete(resource(req), req.relation(), subject(req)));
+    }
+
+    /**
+     * 两段审计地执行一次单元组写：intent（不捕获，审计挂了则整体 fail-closed 不写）→ 写 SpiceDB →
+     * ok（成功）/ fail（失败，best-effort 后重抛原异常）。保证任何 SpiceDB 数据面变更前必有一条 intent 记录。
+     */
+    private TokenResponse writeWithAudit(String actor, String action, String tuple, RelationshipUpdate update) {
+        audit.record(actor, action + ".intent", tuple);
+        String token;
+        try {
+            token = engine.writeRelationships(List.of(update)).token();
+        } catch (RuntimeException e) {
+            recordQuietly(actor, action + ".fail", tuple);
+            throw e;
+        }
+        audit.record(actor, action + ".ok", tuple);
         return new TokenResponse(token);
+    }
+
+    /** 收尾审计（fail/补偿）best-effort：审计写失败不掩盖调用方的原始异常，只 ERROR 记账供运维告警。 */
+    private void recordQuietly(String actor, String action, String detail) {
+        try {
+            audit.record(actor, action, detail);
+        } catch (RuntimeException e) {
+            log.error("审计写失败(action={}, tuple={}): {}", action, detail, e.toString());
+        }
     }
 
     /** 谁对该资源拥有某权限 (反查主体)。 */

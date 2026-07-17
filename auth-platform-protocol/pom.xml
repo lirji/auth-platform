@@ -10,4 +10,13 @@
     </parent>
     <artifactId>auth-platform-protocol</artifactId>
     <description>跨上下文 DTO 契约 + AuthzEngine 端口 (纯 Java, 无 grpc/spring 依赖)</description>
+
+    <!-- 生产依赖仍为零（保持 protocol 纯 Java 运行时零依赖）；仅 test-scope 引入 JUnit5/AssertJ 用于值对象单测。 -->
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

@@ -43,8 +43,18 @@ public class AuthzController {
     @PostMapping("/check-bulk")
     public CheckBulkResponse checkBulk(@RequestBody CheckBulkRequest req) {
         Map<ResourceRef, Boolean> map = engine.checkBulk(req.subject(), req.permission(), req.resources(), toConsistency(req.consistency()));
+        // 引擎响应必须精确覆盖每个请求资源：缺项/ null 是端口协议故障，抛出让 SDK 层 fail-closed，
+        // 不再用 Boolean.TRUE.equals(null) 把漏项静默降级成 allowed=false（否则会把依赖故障伪装成 deny，
+        // 且 SDK 的严格校验因 server 已补齐每个资源而无法察觉）。
         List<ResourceAllowed> results = req.resources().stream()
-                .map(r -> new ResourceAllowed(r, Boolean.TRUE.equals(map.get(r))))
+                .map(r -> {
+                    Boolean allowed = map.get(r);
+                    if (allowed == null) {
+                        throw new IllegalStateException(
+                                "check-bulk 引擎响应缺资源 " + r.ref() + " —— 判权结果不可信");
+                    }
+                    return new ResourceAllowed(r, allowed);
+                })
                 .toList();
         return new CheckBulkResponse(results);
     }
