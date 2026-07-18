@@ -74,6 +74,6 @@ TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh
 
 - **contract 阶段**：稳定后停 `onDocumentCreated` 的 `parent_space` 兼容双写，并收窄 `document.viewer` 为 `user`、清理旧 relation。
 - **auth-console 控制台**：`lexicon.ts`/`SpacesPage.tsx` 仍硬编码 `public_viewer`/`edit`，兼容窗口需同步。
-- **多 org 同步**：`DepartmentSyncService` 当前单 org（`authz.casdoor.organization`）；多 org 分页/per-org 熔断为后续。
+- **多 org 同步**：已支持——`CasdoorClient` 按 `authz.casdoor.organizations` 列表（空回退单 `organization`）逐 org 拉取 group/role 合并，`DepartmentSyncService` 随之多 org 化（部门 id 带 `<org>_` 前缀无碰撞）。`delete-threshold` 仍为跨 org 累计的全局熔断，per-org 隔离熔断/分页为后续。
 - **集成/E2E**：真实 Casdoor(建部门 group + `<dept>-admin` role)→edge→knowledge→SpiceDB 全链路，需活栈。
 - **共享 dev SpiceDB 拆分**：当前 dev :8543 含他项目定义（EMR：dept/encounter/patient），按 §B 应给本项目独占实例。

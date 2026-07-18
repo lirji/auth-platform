@@ -99,9 +99,11 @@
 | JDK | 21 | 编译/运行 |
 | spring-boot-maven-plugin | 随 Boot 3.3.5 | 打包 / 本地 run |
 
-> 无 lint/format/checkstyle/spotless。JUnit 测试覆盖关键校验路径：sdk `RemoteAuthzEngineTest`、
-> admin `GroupSyncServiceTest`/`DepartmentSyncServiceTest`/`CasdoorGroupIdsTest`/`JdbcAuditStoreTest`、
-> server `AuthzServerSecurityFilterTest`/`AuthzControllerWatermarkTest`（共 38 测试）；
+> 无 lint/format/checkstyle/spotless。JUnit 测试覆盖关键校验路径：protocol/core/sdk/server/admin
+> **五模块 20 个测试类、117 个 `@Test`**（`./mvnw test` 全绿）——含 core `SpiceDbAuthzEngineTest`（严格校验/token/stream）、
+> sdk `RemoteAuthzEngine{,Http}Test`/`CheckAccessAspectTest`、server `AuthzController{Facade,Watermark}Test`/
+> `AuthzServerSecurityFilter{,Boundary}Test`/`ZedTokenWatermarkTest`、admin `AdminControllerTest`（ADM01 两段审计）/
+> `{Group,Department}SyncServiceTest`/`SyncServiceBoundaryTest`/`Casdoor*Test`/`{Jdbc,InMemory}AuditStoreTest`；
 > 端到端事实验证仍靠 `deploy/*.sh` 冒烟脚本。
 
 ---

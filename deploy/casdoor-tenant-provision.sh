@@ -93,6 +93,17 @@ if [ -n "${ORG_JSON}" ] && [ "$(printf '%s' "${ORG_JSON}" | jq -r '.defaultAppli
   capi "update-organization?id=admin/${TENANT}" "$(printf '%s' "${ORG_JSON}" | jq -c --arg app "${SHARED_APP}" '.defaultApplication=$app')" \
     | jq -c '{status,msg}'
 fi
+# navItems 继承：若 built-in org 裁剪过侧边栏菜单（casdoor-hide-business.sh），新租户 org 保持一致，
+# 避免每开一个租户又冒出「商业」等被隐藏的模块。built-in 未裁剪（navItems 空/all）则不动。
+BUILTIN_NAV=$(curl -s "${CASDOOR}/api/get-organization?id=admin/built-in" -H "Authorization: Bearer ${AT}" | jq -c '.data.navItems // empty')
+if [ -n "${BUILTIN_NAV}" ] && [ "${BUILTIN_NAV}" != "null" ] && [ "$(printf '%s' "${BUILTIN_NAV}" | jq -r 'index("all") // empty')" = "" ]; then
+  ORG_JSON=$(curl -s "${CASDOOR}/api/get-organization?id=admin/${TENANT}" -H "Authorization: Bearer ${AT}" | jq -c '.data // empty')
+  if [ -n "${ORG_JSON}" ] && [ "$(printf '%s' "${ORG_JSON}" | jq -c '.navItems')" != "${BUILTIN_NAV}" ]; then
+    echo "   org navItems 与 built-in 不一致，继承 built-in 的菜单裁剪"
+    capi "update-organization?id=admin/${TENANT}" "$(printf '%s' "${ORG_JSON}" | jq -c --argjson nav "${BUILTIN_NAV}" '.navItems=$nav')" \
+      | jq -c '{status,msg}'
+  fi
+fi
 
 echo "==> 2. user ${USER}@${TENANT}（signupApplication=${SHARED_APP}）+ 设密码"
 capi add-user "{\"owner\":\"${TENANT}\",\"name\":\"${USER}\",\"type\":\"normal-user\",\"displayName\":\"${USER}\",\"email\":\"${USER}@${TENANT}.local\",\"phone\":\"\",\"password\":\"${PASSWORD}\",\"signupApplication\":\"${SHARED_APP}\",\"isAdmin\":false,\"isForbidden\":false,\"isDeleted\":false,\"properties\":{}}" \

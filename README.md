@@ -19,14 +19,15 @@
 | 模块 | 角色 |
 |---|---|
 | `auth-platform-protocol` | 跨上下文 DTO 契约 + `AuthzEngine` 端口(9 个操作) |
-| `auth-platform-core` | `SpiceDbAuthzEngine` 适配器(SpiceDB HTTP/JSON,grpc-free)+ `schemas/*.zed`(knowledge/his) |
+| `auth-platform-core` | `SpiceDbAuthzEngine` 适配器(SpiceDB HTTP/JSON,grpc-free)+ `schemas/*.zed`(knowledge/his 合并;recsys 另库) |
 | `auth-platform-sdk` | Spring Boot Starter(消费方接入,`@CheckAccess` 切面,严格判权响应校验) |
 | `auth-platform-server` | 判权服务(REST facade:check/checkBulk/lookup;grpc-free) |
 | `auth-platform-admin` | 授权管理 + Casdoor 组/部门同步/reconcile + webhook + 审计 |
 | `auth-console/` | 管控台前端(React+Vite+TS+antd,前后端分离;M1-M6 **已落地**) |
 
-> ZedToken 水位缓存、审计持久化(Postgres)、部门同步端点、多 org 同步已落地(2026-07-16)。`server` 的 gRPC facade
-> 仍是规划项(刻意,见 `docs/性能与容量规划.md`)——`AuthzEngine` 端口保留正是为将来可另加 gRPC 适配器。
+> ZedToken 水位缓存、审计持久化(Postgres)、部门同步端点、多 org 同步已落地(2026-07-16);recsys 广告主作用域授权模型、
+> 全项目补测(20 测试类/117 测试)、ADM01 两段审计、fail-closed 响应校验收紧、企业 SSO 联邦接入指南已落地(2026-07-18)。
+> `server` 的 gRPC facade 仍是规划项(刻意,见 `docs/性能与容量规划.md`)——`AuthzEngine` 端口保留正是为将来可另加 gRPC 适配器。
 
 ## 文档导航
 
@@ -35,6 +36,7 @@
 | 平台有哪些能力/API 面/边界 | [`docs/平台能力总览.md`](docs/平台能力总览.md) |
 | **新项目接入要改什么（双侧清单）** | [`docs/新项目接入指南.md`](docs/新项目接入指南.md) |
 | 统一登录（SSO/OIDC）手把手 | [`docs/统一登录平台接入手册.md`](docs/统一登录平台接入手册.md) |
+| **企业 IdP 联邦（上游 SSO/OIDC/SAML 汇入 Casdoor）** | [`docs/企业SSO联邦接入指南.md`](docs/企业SSO联邦接入指南.md) |
 | 当前 `document` 部门层级授权模型 | [`docs/authz-department-model.md`](docs/authz-department-model.md) |
 | 高并发承载能力/瓶颈/扩容路线 | [`docs/性能与容量规划.md`](docs/性能与容量规划.md) |
 | ReBAC 建模入门(换脑子)/组件/存储 | [`doc/`](doc/README.md)(getting-started/components/databases) |
@@ -91,6 +93,9 @@ docker compose down --remove-orphans
 祖先部门自动可读;`share = owner + home_dept->member + home_dept->doc_admin`;`edit = owner`。旧的
 `parent_space/parent_folder/public_viewer` 仅作兼容保留。完整规则见 **[`docs/authz-department-model.md`](docs/authz-department-model.md)**。
 
+另有 `recsys.zed`(`platform/advertiser` 广告主作用域模型)——**不参与上面合并**,按「每项目独立 SpiceDB 实例」写入 recsys 专属实例(:8544);
+广告/创意/竞价词不进 SpiceDB(权限纯继承 advertiser,消费方反查 `advertiser_id` 再判)。见 [《平台能力总览》§7](docs/平台能力总览.md)。
+
 ## 验证
 
 `deploy/` 下的 bash 冒烟脚本(需 `curl` + `jq`):
@@ -104,7 +109,10 @@ TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh # 部门层级模型 seed 
 ```
 
 其它脚本:`casdoor-seed.sh`(role→scope)、`casdoor-tenant-provision.sh`(一键开租户,方案C Shared Application:
-不再每租户建 app,幂等确保 shared app + 只建 org/user,登录用派生 client_id `<base>-org-<tenant>`,可选写 SpiceDB 成员组)。
+不再每租户建 app,幂等确保 shared app + 只建 org/user,登录用派生 client_id `<base>-org-<tenant>`,可选写 SpiceDB 成员组;
+新租户 org 自动继承 built-in 的 navItems 菜单裁剪)、`casdoor-hide-business.sh`(把所有 org 侧边栏 navItems 设白名单、
+隐藏 Casdoor「商业」菜单,`RESTORE=1` 恢复)、`recsys-authz-fixture.sh`(recsys 广告主模型 seed/自校验,
+目标 recsys 专属 SpiceDB 实例 :8544,勿指到本项目 :8543)。
 
 ## 状态
 
@@ -114,7 +122,8 @@ TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh # 部门层级模型 seed 
 - ✅ **Phase 3 后端**:`admin`(:8201)授权管理 API(grant/revoke/lookup/check)+ Casdoor 组同步(差量增删)+ webhook + reconcile。**已加固(P0-A)**:OIDC resource-server 校验 Casdoor JWT + groups(shortName)→权限,写端点需 `authz-admin`/读端点 `authz-viewer`,webhook 共享密钥——全鉴权矩阵 curl 验证(无token 401 / admin 200 / viewer 写403读200 / webhook 密钥)。`auth-console` 前端 **M1-M6 已落地**(React+Vite+TS,`./dev.sh` 一键起前后端+基建)。
 - ✅ **Phase 4 his 样板**:`his.zed` 数据权限模型(本科室/科主任/主治跨科/作者)+ his-security 加 `@DataScope` 切面(默认关,`his.authz.enabled=true` 生效)。验证 `deploy/his-smoke.sh`(8 断言)+ `HisDataPermissionIntegrationTest`(端到端)。SSO 换 Casdoor = his 网关 idp/dual profile 的 issuer/jwk 配置切换(基础设施已具备)。
 - ✅ **Phase 5 部门层级隔离 + Casdoor 全面接入**(2026-07-15):`knowledge.zed` 新增 `department` + 重写 `document`(部门层级模型,取代旧 D3),见 `docs/authz-department-model.md`;`admin` 加 `DepartmentSyncService`(Casdoor 嵌套 group→SpiceDB `department`,`authz.casdoor.department-sync-enabled` 门控)+ 组/部门 id 租户前缀 `<org>_<group>`(`CasdoorGroupIds`)+ `readRelationships` 直连元组差量 + `deleteThreshold` 删除熔断;`sdk`/`core` 判权响应**严格校验**(`allowed` 布尔 + checkBulk 基数对齐,错误不再折成 deny,仍 fail-closed);Casdoor SSO 上手文档(`docs/统一登录平台接入手册.md`)+ 多租户开通脚本(`casdoor-tenant-provision.sh`)。默认全关(引入即安全)。
-- ✅ **Phase 6 边界项落地 + 性能硬化**(2026-07-16):**审计持久化**(admin `AuditStore` 抽端口,`authz.audit.persistence-enabled` 门控落 Postgres 独立库 `authz_admin`,幂等建表+retention 裁剪+DB 不可达 fail-fast,真实 PG 端到端验证含重启不丢);**ZedToken 水位缓存**(server `ZedTokenWatermark`:`at_least_as_fresh` 无 token 自动代入最近写水位,无水位回退 full,默认开可关);**部门同步 HTTP 端点**(`POST /admin/casdoor/sync-departments` + webhook 联动,401/409 矩阵验证);**多 org 同步**(`authz.casdoor.organizations` 列表);**HTTP 连接池**(sdk/core 换 JDK HttpClient 池化,core 补全超时);`spicedb-smoke.sh` 更新到部门模型断言(合并 schema 写入,live 全绿)。JUnit 38 测试全绿。容量分析见 `docs/性能与容量规划.md`。
+- ✅ **Phase 6 边界项落地 + 性能硬化**(2026-07-16):**审计持久化**(admin `AuditStore` 抽端口,`authz.audit.persistence-enabled` 门控落 Postgres 独立库 `authz_admin`,幂等建表+retention 裁剪+DB 不可达 fail-fast,真实 PG 端到端验证含重启不丢);**ZedToken 水位缓存**(server `ZedTokenWatermark`:`at_least_as_fresh` 无 token 自动代入最近写水位,无水位回退 full,默认开可关);**部门同步 HTTP 端点**(`POST /admin/casdoor/sync-departments` + webhook 联动,401/409 矩阵验证);**多 org 同步**(`authz.casdoor.organizations` 列表);**HTTP 连接池**(sdk/core 换 JDK HttpClient 池化,core 补全超时);`spicedb-smoke.sh` 更新到部门模型断言(合并 schema 写入,live 全绿)。容量分析见 `docs/性能与容量规划.md`。
+- ✅ **Phase 7 recsys 接入 + 全项目补测 + 硬化**(2026-07-18):**recsys 广告主作用域授权模型**(`schemas/recsys.zed`:`platform/advertiser`,最小元组——广告/创意/竞价词权限纯继承自 advertiser,写入 recsys 专属 SpiceDB 实例 :8544,不参与本项目合并;fixture `deploy/recsys-authz-fixture.sh`),首个按《新项目接入指南》落地的外部项目;**全项目补测**(protocol/core/sdk/server/admin 五模块 20 个测试类、117 个 `@Test`,`./mvnw test` 全绿);**fail-closed 响应校验再收紧**(core `SpiceDbAuthzEngine`:lookupResources 缺 permissionship / 写删缺 ZedToken / 流式 error 一律抛;server checkBulk 缺资源抛不再静默降级 deny);**ADM01 两段审计**(admin grant/revoke 写 SpiceDB 前先落 `*.intent`、成功 `*.ok`、失败 `*.fail`,intent 不捕获=审计不可用即 fail-closed 不写数据面);**企业 SSO 联邦接入指南**(上游 IdP/OIDC/SAML 汇入 Casdoor,`docs/企业SSO联邦接入指南.md`);Casdoor 控制台商业菜单隐藏脚本 + 开租继承 navItems。默认全关(引入即安全)。
 
 ## 关键风险备忘
 

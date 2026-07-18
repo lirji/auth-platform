@@ -63,8 +63,9 @@ PostgreSQL（`spicedb` 库）。它是本平台的授权真相源。
 ## 三、数据/授权模型（`.zed` schema）
 
 领域模型不是 SQL 表，而是 SpiceDB 的 `.zed` schema，位于
-`auth-platform-core/src/main/resources/schemas/`。两份 schema **合并为一份加载**（`his.zed` 复用
+`auth-platform-core/src/main/resources/schemas/`。本项目的 `knowledge.zed` + `his.zed` **合并为一份加载**（`his.zed` 复用
 `knowledge.zed` 里的 `user` 定义，不重复定义）。对象 id 约定带租户前缀 `<tenantId>_<docId>` 消歧。
+另有 `recsys.zed` **不参与本项目合并**——按「每项目独立 SpiceDB 实例」写入 recsys 专属实例（见下）。
 
 ### knowledge.zed —— 知识库授权模型
 
@@ -92,6 +93,16 @@ PostgreSQL（`spicedb` 库）。它是本平台的授权真相源。
 | `encounter` | 就诊 / 病历记录 | `view = author + dept->access + subject->care`；`edit = author + dept->head` |
 
 场景：只能看本科室 + 科主任看全科 + 主治医生跨科看自己患者 + 记录作者可见可改。
+
+### recsys.zed —— 广告主作用域模型（独立实例，不合并）
+
+| 定义 | 含义 | 关键权限 |
+|---|---|---|
+| `platform` | 平台职能锚点（全局仅 `platform:recsys`） | `administrate = admin`、`review = operator + admin`（创意审核）、`view_reports = operator + admin`（跨广告主报表） |
+| `advertiser` | 广告主账户 = 资源作用域 | `manage = owner + platform->administrate`、`edit = member + manage`、`view = edit + platform->view_reports` |
+
+- **最小元组设计**：广告/创意/竞价词**不写元组**，权限纯继承 `advertiser`；判权一律落在 `advertiser:<id>`，服务端从 `adId` 反查 `advertiser_id` 再 `check`（避免高频 CRUD 的写放大，无独立授权语义损失）。
+- **独立部署**：按 §B 写入 recsys 专属 SpiceDB 实例（dev :8544），与本项目 :8543 互不合并、互不影响。fixture：`deploy/recsys-authz-fixture.sh`。首个照《新项目接入指南》落地的外部项目。
 
 ## 四、Redis —— 引用但未启用
 
