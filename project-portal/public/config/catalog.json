@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "allowHttpLocalhost": true,
+  "updatedAt": "2026-07-22T02:43:53Z",
+  "projects": [
+    {
+      "id": "langchain4j",
+      "name": "LangChain4j 能力平台",
+      "summary": "对话、RAG、Agent 与多模态能力展示",
+      "category": "AI 平台",
+      "capabilities": ["LLM 对话", "混合 RAG", "Agent 编排", "多模态"],
+      "tags": ["LangChain4j", "RAG", "Agent"],
+      "icon": "ai",
+      "status": "available",
+      "launchUrl": "http://localhost:8093/login?redirect=%2F",
+      "openMode": "new-tab",
+      "order": 10
+    },
+    {
+      "id": "recsys",
+      "name": "推荐系统控制台",
+      "summary": "推荐、搜索广告、实验和离线评估",
+      "category": "数据智能",
+      "capabilities": ["多路召回", "排序重排", "广告竞价", "A/B 实验"],
+      "tags": ["Recsys", "Search", "Ads"],
+      "icon": "recommendation",
+      "status": "available",
+      "launchUrl": "http://localhost:5275/login?returnTo=%2Foverview",
+      "openMode": "new-tab",
+      "order": 20
+    },
+    {
+      "id": "drools",
+      "name": "规则引擎控制台",
+      "summary": "规则建模、活动决策与 Drools 教学演示",
+      "category": "规则与决策",
+      "capabilities": ["活动规则", "决策服务", "Drools 18 Steps"],
+      "tags": ["Drools", "Rules", "Decision"],
+      "icon": "rules",
+      "status": "available",
+      "launchUrl": "http://localhost:8095/ui/login?returnTo=%2Fhome",
+      "openMode": "new-tab",
+      "order": 30
+    }
+  ]
+}

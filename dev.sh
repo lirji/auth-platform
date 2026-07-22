@@ -5,7 +5,8 @@
 # 一条命令拉起完整开发环境, 依赖顺序:
 #   基建(docker compose: postgres + spicedb + casdoor)
 #     └─ 后端 server(:8200) / admin(:8201)   [Spring Boot]
-#          └─ 前端 auth-console(:5273)         [Vite dev]
+#          ├─ 前端 auth-console(:5273)         [Vite dev]
+#          └─ 公开门户 project-portal(:5274)   [Vite dev, 无登录依赖]
 #
 # 用法:
 #   ./dev.sh                 = ./dev.sh up   (一键启动全部)
@@ -13,12 +14,13 @@
 #   ./dev.sh down [flags]    停止全部 (含基建)
 #   ./dev.sh restart [flags] 先 down 再 up
 #   ./dev.sh status          查看各服务健康
-#   ./dev.sh logs [name]     跟踪日志 (name = server|admin|frontend, 缺省全部)
+#   ./dev.sh logs [name]     跟踪日志 (name = server|admin|frontend|portal, 缺省全部)
 #
 # flags (对 up/down/restart 生效):
 #   --no-infra       跳过 docker 基建 (基建已在别处跑时用)
 #   --no-backend     跳过后端 server/admin
 #   --no-frontend    跳过前端 auth-console
+#   --no-portal      跳过公开能力门户 project-portal
 #   --skip-build     up 时跳过 mvn install (确定已构建过时提速)
 #   --insecure       server 关闭 /v1 service-credential 鉴权 (跑 deploy/*smoke.sh 免 token 时用)
 #   -f, --follow     up 完成后前台跟踪日志, Ctrl-C 一并停掉全部
@@ -38,12 +40,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="$ROOT/logs"
 PID_DIR="$LOG_DIR/pids"
 FRONTEND_DIR="$ROOT/auth-console"
+PORTAL_DIR="$ROOT/project-portal"
 DEPLOY_DIR="$ROOT/deploy"
 
 # ---- 端口 (与 application.yml / docker-compose / vite.config 保持一致) ----
 SERVER_PORT="${SERVER_PORT:-8200}"
 ADMIN_PORT="${ADMIN_PORT:-8201}"
 FRONTEND_PORT="${FRONTEND_PORT:-5273}"
+PORTAL_PORT="${PORTAL_PORT:-5274}"
 SPICEDB_HTTP_PORT="${SPICEDB_HTTP_PORT:-8543}"
 CASDOOR_PORT="${CASDOOR_PORT:-8000}"
 
@@ -54,7 +58,7 @@ AUTHZ_SERVER_SECURITY_ENABLED="${AUTHZ_SERVER_SECURITY_ENABLED:-true}"
 AUTHZ_SERVER_TOKEN="${AUTHZ_SERVER_TOKEN:-rag-svc-dev-key}"
 
 # ---- 开关 (被 flag 覆盖) ----
-DO_INFRA=1; DO_BACKEND=1; DO_FRONTEND=1; SKIP_BUILD=0; FOLLOW=0
+DO_INFRA=1; DO_BACKEND=1; DO_FRONTEND=1; DO_PORTAL=1; SKIP_BUILD=0; FOLLOW=0
 
 # ---- 彩色输出 ----
 if [[ -t 1 ]]; then
@@ -93,7 +97,8 @@ wait_http(){ # url label timeout_sec
   local url="$1" label="$2" timeout="${3:-120}" i=0 code
   printf '%s' "    等待 ${label} "
   while (( i < timeout )); do
-    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$url" 2>/dev/null || echo 000)"
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$url" 2>/dev/null || true)"
+    [[ "$code" =~ ^[0-9]{3}$ ]] || code=000
     if [[ "$code" != 000 ]]; then printf ' %s(HTTP %s)%s\n' "$C_D" "$code" "$C_0"; return 0; fi
     printf '.'; sleep 1; i=$((i+1))
   done
@@ -173,6 +178,17 @@ start_frontend(){
     && ok "前端就绪" || warn "前端未就绪, 查 ${LOG_DIR}/frontend.log"
 }
 
+start_portal(){
+  pick_pm
+  if [[ ! -d "$PORTAL_DIR/node_modules" ]]; then
+    info "公开门户依赖缺失, 执行 ${PM} install"
+    ( cd "$PORTAL_DIR" && "$PM" install ) || die "公开门户依赖安装失败"
+  fi
+  spawn portal "$PORTAL_PORT" "$PORTAL_DIR" "$PORTAL_DIR/node_modules/.bin/vite" --port "$PORTAL_PORT"
+  wait_http "http://localhost:${PORTAL_PORT}/healthz" "project-portal(:${PORTAL_PORT})" 90 \
+    && ok "公开门户就绪" || warn "公开门户未就绪, 查 ${LOG_DIR}/portal.log"
+}
+
 # ============================ 子命令 ======================================
 
 cmd_up(){
@@ -181,16 +197,18 @@ cmd_up(){
   [[ "$DO_INFRA"    == 1 ]] && start_infra
   [[ "$DO_BACKEND"  == 1 ]] && start_backend
   [[ "$DO_FRONTEND" == 1 ]] && start_frontend
+  [[ "$DO_PORTAL"   == 1 ]] && start_portal
   print_summary
   if [[ "$FOLLOW" == 1 ]]; then
     info "跟踪日志中 — Ctrl-C 将停止全部服务"
     trap 'echo; cmd_down; exit 0' INT TERM
-    tail -n +1 -F "$LOG_DIR"/server.log "$LOG_DIR"/admin.log "$LOG_DIR"/frontend.log 2>/dev/null
+    tail -n +1 -F "$LOG_DIR"/server.log "$LOG_DIR"/admin.log "$LOG_DIR"/frontend.log "$LOG_DIR"/portal.log 2>/dev/null
   fi
 }
 
 cmd_down(){
-  info "停止应用进程 (前端 / admin / server)"
+  info "停止应用进程 (公开门户 / 前端 / admin / server)"
+  [[ "$DO_PORTAL"   == 1 ]] && stop_named portal "$PORTAL_PORT"
   [[ "$DO_FRONTEND" == 1 ]] && stop_named frontend "$FRONTEND_PORT"
   [[ "$DO_BACKEND"  == 1 ]] && { stop_named admin "$ADMIN_PORT"; stop_named server "$SERVER_PORT"; }
   if [[ "$DO_INFRA" == 1 ]]; then
@@ -203,11 +221,13 @@ cmd_down(){
 cmd_status(){
   printf '%s\n' "${C_B}服务状态${C_0}"
   _stat(){ # label url
-    local code; code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$2" 2>/dev/null || echo 000)"
+    local code; code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$2" 2>/dev/null || true)"
+    [[ "$code" =~ ^[0-9]{3}$ ]] || code=000
     if [[ "$code" == 000 ]]; then printf '  %-30s %s✘ down%s\n' "$1" "$C_R" "$C_0"
     else printf '  %-30s %s● up%s %s(%s)%s\n' "$1" "$C_G" "$C_0" "$C_D" "$code" "$C_0"; fi
   }
   _stat "前端 auth-console :$FRONTEND_PORT" "http://localhost:${FRONTEND_PORT}/"
+  _stat "公开门户 project-portal :$PORTAL_PORT" "http://localhost:${PORTAL_PORT}/healthz"
   _stat "后端 server :$SERVER_PORT"         "http://localhost:${SERVER_PORT}/actuator/health"
   _stat "后端 admin :$ADMIN_PORT"           "http://localhost:${ADMIN_PORT}/actuator/health"
   _stat "SpiceDB :$SPICEDB_HTTP_PORT"       "http://localhost:${SPICEDB_HTTP_PORT}/healthz"
@@ -217,9 +237,9 @@ cmd_status(){
 cmd_logs(){
   local name="${1:-}"
   case "$name" in
-    server|admin|frontend) tail -n 100 -F "$LOG_DIR/${name}.log" ;;
-    "") tail -n 40 -F "$LOG_DIR"/server.log "$LOG_DIR"/admin.log "$LOG_DIR"/frontend.log 2>/dev/null ;;
-    *) die "未知日志: $name (可选 server|admin|frontend)" ;;
+    server|admin|frontend|portal) tail -n 100 -F "$LOG_DIR/${name}.log" ;;
+    "") tail -n 40 -F "$LOG_DIR"/server.log "$LOG_DIR"/admin.log "$LOG_DIR"/frontend.log "$LOG_DIR"/portal.log 2>/dev/null ;;
+    *) die "未知日志: $name (可选 server|admin|frontend|portal)" ;;
   esac
 }
 
@@ -234,13 +254,14 @@ print_summary(){
 
 ${C_G}━━━━━━━━━━━━━━━━━━━━━ 环境就绪 ━━━━━━━━━━━━━━━━━━━━━${C_0}
   前端 auth-console   ${C_B}http://localhost:${FRONTEND_PORT}${C_0}
+  公开能力门户        ${C_B}http://localhost:${PORTAL_PORT}${C_0}   ${C_D}(无需登录)${C_0}
   后端 server         ${C_B}http://localhost:${SERVER_PORT}${C_0}   ${C_D}(/actuator/health)${C_0}
   后端 admin          ${C_B}http://localhost:${ADMIN_PORT}${C_0}   ${C_D}(/actuator/health)${C_0}
   server /v1 鉴权     ${sec} ${tokmask}
   Casdoor 登录        ${C_B}http://localhost:${CASDOOR_PORT}${C_0}
   SpiceDB HTTP        ${C_B}http://localhost:${SPICEDB_HTTP_PORT}${C_0}
 
-  日志   ${C_D}./dev.sh logs [server|admin|frontend]${C_0}
+  日志   ${C_D}./dev.sh logs [server|admin|frontend|portal]${C_0}
   状态   ${C_D}./dev.sh status${C_0}
   停止   ${C_D}./dev.sh down${C_0}
 ${C_G}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_0}
@@ -262,6 +283,7 @@ while [[ $# -gt 0 ]]; do
     --no-infra)    DO_INFRA=0 ;;
     --no-backend)  DO_BACKEND=0 ;;
     --no-frontend) DO_FRONTEND=0 ;;
+    --no-portal)   DO_PORTAL=0 ;;
     --skip-build)  SKIP_BUILD=1 ;;
     --insecure)    AUTHZ_SERVER_SECURITY_ENABLED=false ;;
     -f|--follow)   FOLLOW=1 ;;

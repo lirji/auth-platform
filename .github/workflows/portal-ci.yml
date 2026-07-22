@@ -1,0 +1,44 @@
+name: Project Portal CI
+
+on:
+  pull_request:
+    paths:
+      - 'project-portal/**'
+      - '.github/workflows/portal-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'project-portal/**'
+      - '.github/workflows/portal-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portal-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: project-portal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: project-portal/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:run
+      - run: pnpm typecheck
+      - run: pnpm build
+      - name: Build production image
+        working-directory: .
+        run: docker build -t project-portal:ci ./project-portal

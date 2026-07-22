@@ -24,6 +24,7 @@
 | `auth-platform-server` | 判权服务(REST facade:check/checkBulk/lookup;grpc-free) |
 | `auth-platform-admin` | 授权管理 + Casdoor 组/部门同步/reconcile + webhook + 审计 |
 | `auth-console/` | 管控台前端(React+Vite+TS+antd,前后端分离;M1-M6 **已落地**) |
+| `project-portal/` | 公开免登录的能力门户；运行时 catalog 导航到各项目自己的 Casdoor PKCE 登录入口 |
 
 > ZedToken 水位缓存、审计持久化(Postgres)、部门同步端点、多 org 同步已落地(2026-07-16);recsys 广告主作用域授权模型、
 > 全项目补测(20 测试类/117 测试)、ADM01 两段审计、fail-closed 响应校验收紧、企业 SSO 联邦接入指南已落地(2026-07-18)。
@@ -37,6 +38,7 @@
 | **新项目接入要改什么（双侧清单）** | [`docs/新项目接入指南.md`](docs/新项目接入指南.md) |
 | 统一登录（SSO/OIDC）手把手 | [`docs/统一登录平台接入手册.md`](docs/统一登录平台接入手册.md) |
 | **企业 IdP 联邦（上游 SSO/OIDC/SAML 汇入 Casdoor）** | [`docs/企业SSO联邦接入指南.md`](docs/企业SSO联邦接入指南.md) |
+| **公开能力门户：新增项目、生产域名与 SSO launch contract** | [`docs/公开能力门户接入指南.md`](docs/公开能力门户接入指南.md) |
 | 当前 `document` 部门层级授权模型 | [`docs/authz-department-model.md`](docs/authz-department-model.md) |
 | 高并发承载能力/瓶颈/扩容路线 | [`docs/性能与容量规划.md`](docs/性能与容量规划.md) |
 | ReBAC 建模入门(换脑子)/组件/存储 | [`doc/`](doc/README.md)(getting-started/components/databases) |
@@ -51,22 +53,25 @@
 | auth-platform-server | 8200 |
 | auth-platform-admin | 8201 |
 | auth-console | 5273(dev) / 8202(prod) |
+| project-portal | 5274(dev) / 8203(prod) |
 
 ## 一键启停(前后端 + 基建)
 
-`./dev.sh` 按依赖顺序拉起完整本地环境:基建(docker: postgres+spicedb+casdoor)→ 后端(server:8200 / admin:8201)→ 前端(auth-console:5273)。启动经健康检查逐层等待,幂等(端口已占的层自动跳过),后台进程日志落到 `logs/`。
+`./dev.sh` 按依赖顺序拉起完整本地环境:基建(docker: postgres+spicedb+casdoor)→ 后端(server:8200 / admin:8201)→ 前端(auth-console:5273)+公开门户(project-portal:5274)。门户没有登录或后端依赖；启动经健康检查逐层等待,幂等(端口已占的层自动跳过),后台进程日志落到 `logs/`。
 
 ```bash
 ./dev.sh                 # = up,一键启动全部
 ./dev.sh up --skip-build # 跳过 mvn install 提速(确定已构建过时)
 ./dev.sh up -f           # 启动后前台跟踪日志,Ctrl-C 一并停掉
 ./dev.sh status          # 各服务健康一览
-./dev.sh logs server     # 跟踪单个日志(server|admin|frontend)
+./dev.sh logs portal     # 跟踪单个日志(server|admin|frontend|portal)
 ./dev.sh down            # 停止全部(含基建)
 ./dev.sh restart         # down 再 up
 ```
 
-分层开关(对 up/down/restart 生效):`--no-infra`(基建在别处跑时)/ `--no-backend` / `--no-frontend`。依赖:docker(compose v2)、JDK21、pnpm(或 npm)、curl。详见 `./dev.sh help`。
+分层开关(对 up/down/restart 生效):`--no-infra`(基建在别处跑时)/ `--no-backend` / `--no-frontend` / `--no-portal`。只看门户可执行 `./dev.sh up --no-infra --no-backend --no-frontend`。依赖:docker(compose v2)、JDK21、pnpm(或 npm)、curl。详见 `./dev.sh help`。
+
+生产门户使用 `project-portal/Dockerfile`，建议映射到 `8203:80`，并将环境专属的公开 catalog 挂载为 `/usr/share/nginx/html/config/catalog.json:ro`；同一镜像无需因前端域名变化而重建。
 
 ## 起停基建
 
