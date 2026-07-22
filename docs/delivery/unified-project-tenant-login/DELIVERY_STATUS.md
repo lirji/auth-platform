@@ -7,7 +7,7 @@
 - 实施：Complete
 - Review：Pass（P0/P1 未关闭 0）
 - QA：Pass with browser-environment limitation
-- Release：本地 `8093` 与 `8095` 已重建并加载 Phase 2 产物
+- Release：auth-platform、recsys、drools-demo 功能提交均已通过独立分支 fast-forward 合入并推送远程 `main`；本地 `8093` 与 `8095` 已重建并加载 Phase 2 产物
 
 ## 进度
 
@@ -21,6 +21,8 @@
 - [x] 同步四仓文档和 CI 门禁。
 - [x] 完成完整测试、类型检查、生产构建、代码审查和运行态 HTTP 验证。
 - [x] 重建并启动 Drools `activity-frontend` 本地镜像。
+- [x] 推送 auth-platform、recsys、drools-demo 功能分支，并分别 fast-forward 合入远程 `main`。
+- [x] 通过独立文档分支记录三仓远程提交证据与最终范围边界。
 
 ## 验证摘要
 
@@ -29,6 +31,7 @@
 - Drools：62 tests、typecheck、production build 全通过；`8095` 健康容器已加载双栏品牌租户页。
 - LangChain4j：552 tests、typecheck、production build 全通过；`8093` 已加载租户 allowlist 拦截产物。
 - 运行态：门户目录为三条非 auto 入口；Recsys dev 实例为 OIDC 且加载新租户组件；Drools auth-config 返回 acme/beta 且已发布新静态 chunk；Casdoor 与三个目标 login URL 均返回 200。
+- 远程提交：auth-platform `66a54a8`、recsys `b590202d`、drools-demo `9fc8ab0` 均已进入各自远程 `main`；LangChain4j 不在本次三仓提交范围内。
 
 ## 环境限制
 

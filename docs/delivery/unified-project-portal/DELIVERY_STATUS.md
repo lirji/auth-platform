@@ -19,12 +19,14 @@
 - 复核三个目标当前行为：它们都会先停在自身登录页；若要一次点击后自动跳 Casdoor，必须由目标 origin 增加受控 auto-launch 分支，门户不能直接拼 authorize URL。
 - 完成 13 条可观察 AC、文件级变更、测试、CI、发布和回滚设计。
 - Gate A approved by user message “批准修订后的设计”; approved scope recorded in `DELIVERY_PLAN.md`.
-- 完成独立 React/Vite/TS 公开门户、运行时 catalog parser、搜索/分类/状态、nginx/Docker 和 13 项测试。
+- 完成独立 React/Vite/TS 公开门户、运行时 catalog parser、搜索/分类/状态、nginx/Docker 和 17 项测试。
 - 完成 LangChain4j、Recsys、Drools 三套目标-owned portal auto-login adapters 与组件/安全回归。
-- 三目标全量前端测试分别 544/49/58 项通过，类型检查和 production build 通过。
+- 最新全量验证为 LangChain4j 552、Recsys 54、Drools 62 项前端测试通过，类型检查和 production build 通过；Drools Maven 115 项测试通过（3 skipped）。
 - 完成同一 bundle 两套 catalog 容器 smoke、安全/缓存头、`dev.sh` 独立启停/端口覆盖验证。
 - 完成根/目标 README、公开接入指南、GitHub Actions、review/QA/delivery reports。
-- 用户后续要求“把项目都接进去”；本地 catalog 已将三项目全部切为 available，并以 `8093/5275/5173` 消除 Recsys/Drools `8095` 冲突。
+- 用户后续要求“把项目都接进去”；本地 catalog 已将三项目全部切为 available，最终入口为 `8093/5275/8095` 的项目租户页。
+- auth-platform `66a54a8`、recsys `b590202d`、drools-demo `9fc8ab0` 已通过功能分支 fast-forward 合入并推送各自远程 `main`。
+- LangChain4j 本地实现不在本次用户指定的三仓提交范围内，未随本次操作推送。
 
 ## Changed Files
 
@@ -48,18 +50,19 @@
 | Drools router/LoginView/auth client inspection | pass | 当前先到 `/ui/login`，选 client/button 后才 `beginLogin` |
 | deployment URL/base inspection | pass | LangChain4j root/configurable base；Recsys root；Drools `/ui/` |
 | worktree safety inspection | pass | LangChain4j/Drools 有用户部署改动；实施计划避免覆盖 |
-| CI provider inspection | pass | auth-platform remote GitHub，当前无 workflow |
+| CI provider inspection | pass | auth-platform 使用 GitHub Actions；`Project Portal CI` 已发布 |
 | `git diff --check` on planning artifacts | pass | 修订文档无 whitespace error |
-| portal frozen install/test/typecheck/build | pass | 13 tests; 38 modules built |
-| LangChain4j full frontend | pass | 65 files / 544 tests + type-check/build |
-| Recsys full frontend | pass | 8 files / 49 tests + typecheck/build |
-| Drools full frontend | pass | 13 files / 58 tests + typecheck/build |
+| portal frozen install/test/typecheck/build | pass | 17 tests; 38 modules built |
+| LangChain4j full frontend | pass | 552 tests + type-check/build；本次未提交该仓库 |
+| Recsys full frontend | pass | 54 tests + typecheck/build |
+| Drools full stack | pass | 前端 62 tests + typecheck/build；Maven 115 tests（3 skipped） |
 | nginx runtime catalog A/B | pass | same final bundle, domains changed without rebuild |
 | nginx health/cache/security headers | pass | 200; no-store/immutable; CSP/no-referrer/DENY/nosniff |
 | root `dev.sh` portal lifecycle | pass | independent start, `PORTAL_PORT=5275`, clean Ctrl-C stop |
 | browser viewport/keyboard | blocked | browser runtime returned no available instances |
 | real three-target OIDC loop | blocked | requires deployed target configs and test identities |
-| Docker multi-stage build | blocked locally | `node:22-alpine` missing; workflow will run in connected CI |
+| Docker multi-stage build | pass | `project-portal:tenant-login-submit` 构建成功 |
+| three-repository remote publication | pass | 三个功能分支均已推送并 fast-forward 合入远程 `main` |
 
 ## Decisions And Deviations
 
@@ -72,8 +75,7 @@
 ## Blockers And Residual Risks
 
 - No implementation blocker remains.
-- Release conditions: production launch URLs/tenant/client/auth modes, real browser viewport/keyboard QA, real Casdoor callback loops, first remote portal CI including Docker build.
-- Recsys/Drools current host `8095` conflict remains an operational input; guide requires overriding one port.
+- Release conditions: production launch URLs/tenant/client/auth modes, real browser viewport/keyboard QA, real Casdoor callback loops, and remote portal CI observation.
 - Existing user deployment changes in LangChain4j and Drools were preserved.
 
 ## Next Action

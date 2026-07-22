@@ -47,3 +47,15 @@
 ## 交付方法影响
 
 端到端交付流程要求把产品边界、技术安全条件、实现、代码审查、完整 QA、文档和 CI 一起收敛。因此本次不仅修改入口，还显式阻止了 Recsys 的“伪多租户”配置和 LangChain4j 的未知租户跳转，修复部署空值语义与 E2E 契约，并补上可重复的 catalog/tenant 回归门禁。
+
+## 远程提交记录（2026-07-22）
+
+| 仓库 | 功能分支 | 功能提交 | 远程 `main` 状态 |
+| --- | --- | --- | --- |
+| auth-platform | `codex/unified-tenant-login-20260722` | `66a54a8` | 已 fast-forward 合入并推送 |
+| recsys | `codex/unified-tenant-login-20260722` | `b590202d` | 已 fast-forward 合入并推送 |
+| drools-demo | `codex/unified-tenant-login-20260722` | `9fc8ab0` | 已 fast-forward 合入并推送 |
+
+- 三个功能分支均保留在远程，便于审计和后续创建 PR 记录。
+- 本次用户指定的提交范围仅为 auth-platform、recsys、drools-demo。LangChain4j 的本地实现和验证结果仍记录在本交付报告中，但未在本次操作中提交或推送其仓库。
+- 最终文档通过 `codex/unified-tenant-login-docs-20260722` 分支发布到 auth-platform `main`；最终提交哈希以远程仓库记录为准。
