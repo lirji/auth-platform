@@ -24,11 +24,23 @@ function RulesIcon(props: IconProps) {
   return <svg {...common} {...props}><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h5M8 16h3"/><path d="m15 15 1.5 1.5L20 13"/></svg>
 }
 
+function RiskIcon(props: IconProps) {
+  return <svg {...common} {...props}><path d="M12 3 4.5 6v5.5c0 4.4 3 7.8 7.5 9.5 4.5-1.7 7.5-5.1 7.5-9.5V6z"/><path d="m8 13 2.3-2.3 2.2 1.8L16 9"/></svg>
+}
+
 function DefaultIcon(props: IconProps) {
   return <svg {...common} {...props}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
 }
 
 export function ProjectIcon({ name }: { name: string }) {
-  const Icon = name === 'ai' ? AiIcon : name === 'recommendation' ? RecommendationIcon : name === 'rules' ? RulesIcon : DefaultIcon
+  const Icon = name === 'ai'
+    ? AiIcon
+    : name === 'recommendation'
+      ? RecommendationIcon
+      : name === 'rules'
+        ? RulesIcon
+        : name === 'risk'
+          ? RiskIcon
+          : DefaultIcon
   return <Icon width={28} height={28} />
 }

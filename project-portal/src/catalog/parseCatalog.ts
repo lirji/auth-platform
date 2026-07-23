@@ -32,7 +32,7 @@ function isLoopback(hostname: string): boolean {
   return host === 'localhost' || host === '::1' || /^127(?:\.\d{1,3}){3}$/.test(host)
 }
 
-function safeLaunchUrl(value: unknown, allowHttpLocalhost: boolean): URL | null {
+function safeProjectUrl(value: unknown, allowHttpLocalhost: boolean): URL | null {
   const raw = text(value, 2048)
   if (!raw) return null
   try {
@@ -97,13 +97,23 @@ function projectOf(
     return null
   }
 
-  const launch = raw.launchUrl === undefined ? null : safeLaunchUrl(raw.launchUrl, allowHttpLocalhost)
+  const launch = raw.launchUrl === undefined ? null : safeProjectUrl(raw.launchUrl, allowHttpLocalhost)
   if (status === 'available' && !launch) {
     issues.push(`项目 ${id} 缺少安全的 launchUrl`)
     return null
   }
   if (raw.launchUrl !== undefined && !launch) {
     issues.push(`项目 ${id} launchUrl 非法`)
+    return null
+  }
+
+  const health = raw.healthUrl === undefined ? null : safeProjectUrl(raw.healthUrl, allowHttpLocalhost)
+  if (raw.healthUrl !== undefined && !health) {
+    issues.push(`项目 ${id} healthUrl 非法`)
+    return null
+  }
+  if (health && (!launch || health.origin !== launch.origin)) {
+    issues.push(`项目 ${id} healthUrl 必须与 launchUrl 同源`)
     return null
   }
 
@@ -118,6 +128,7 @@ function projectOf(
     icon,
     status,
     launchUrl: launch?.toString(),
+    healthUrl: health?.toString(),
     displayHost: launch?.host,
     openMode,
     order: order as number,

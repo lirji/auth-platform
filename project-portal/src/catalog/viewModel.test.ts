@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import type { ProjectEntry } from './types.ts'
-import { filterProjects, projectLinkAttributes } from './viewModel.ts'
+import { filterProjects, projectLinkAttributes, projectPresentationStatus } from './viewModel.ts'
 
 const project = (overrides: Partial<ProjectEntry> = {}): ProjectEntry => ({
   id: 'ai',
@@ -39,5 +39,14 @@ describe('portal view model', () => {
   it('非 available 不生成链接', () => {
     assert.equal(projectLinkAttributes(project({ status: 'maintenance' })), null)
     assert.equal(projectLinkAttributes(project({ status: 'coming-soon', launchUrl: undefined })), null)
+  })
+
+  it('检测中或离线时禁用链接并映射展示状态', () => {
+    assert.equal(projectLinkAttributes(project(), 'checking'), null)
+    assert.equal(projectLinkAttributes(project(), 'offline'), null)
+    assert.equal(projectPresentationStatus(project(), 'checking'), 'checking')
+    assert.equal(projectPresentationStatus(project(), 'offline'), 'unavailable')
+    assert.equal(projectPresentationStatus(project(), 'online'), 'available')
+    assert.equal(projectPresentationStatus(project({ status: 'maintenance' }), 'online'), 'maintenance')
   })
 })

@@ -1,16 +1,21 @@
 import { useMemo, useState } from 'react'
 import { useCatalog } from './catalog/useCatalog'
+import { useProjectReachability } from './catalog/useProjectReachability'
 import { filterProjects } from './catalog/viewModel'
+import type { ProjectEntry } from './catalog/types'
 import { EmptyState, ErrorState, LoadingState } from './components/AsyncState'
 import { ProjectCard } from './components/ProjectCard'
 import { SearchFilters } from './components/SearchFilters'
+
+const EMPTY_PROJECTS: ProjectEntry[] = []
 
 export default function App() {
   const { state, retry } = useCatalog()
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('全部')
 
-  const projects = state.kind === 'ready' ? state.value.catalog.projects : []
+  const projects = state.kind === 'ready' ? state.value.catalog.projects : EMPTY_PROJECTS
+  const { reachability, refresh: refreshReachability, checking } = useProjectReachability(projects)
   const categories = useMemo(() => [...new Set(projects.map((project) => project.category))], [projects])
   const visible = useMemo(() => filterProjects(projects, query, category), [category, projects, query])
 
@@ -33,7 +38,7 @@ export default function App() {
         <section className="hero">
           <p className="eyebrow">UNIFIED CAPABILITY HUB</p>
           <h1>发现并进入<br /><span>正在提供的技术能力</span></h1>
-          <p className="hero-copy">统一查看 AI、推荐与规则平台。选择项目后，由目标系统通过 Casdoor 完成身份验证与权限校验。</p>
+          <p className="hero-copy">一站式浏览 AI、推荐、规则与智能风控能力。进入项目后，由各业务系统通过 Casdoor 完成统一身份认证与权限校验。</p>
           {state.kind === 'ready' && (
             <SearchFilters
               query={query}
@@ -51,7 +56,14 @@ export default function App() {
               <p className="eyebrow">PROJECTS</p>
               <h2 id="catalog-title">能力项目</h2>
             </div>
-            {state.kind === 'ready' && <span>{visible.length} / {projects.length} 个项目</span>}
+            {state.kind === 'ready' && (
+              <div className="section-meta">
+                <span>{visible.length} / {projects.length} 个项目</span>
+                <button type="button" onClick={() => void refreshReachability()} disabled={checking}>
+                  {checking ? '检测中…' : '刷新状态'}
+                </button>
+              </div>
+            )}
           </div>
 
           {state.kind === 'loading' && <LoadingState />}
@@ -60,7 +72,13 @@ export default function App() {
             <div className="catalog-warning" role="status">目录中有 {state.value.issues.length} 个无效配置，已安全忽略。</div>
           )}
           {state.kind === 'ready' && visible.length > 0 && (
-            <div className="project-grid">{visible.map((project) => <ProjectCard key={project.id} project={project} />)}</div>
+            <div className="project-grid">{visible.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                reachability={reachability[project.id] ?? (project.healthUrl ? 'checking' : 'unchecked')}
+              />
+            ))}</div>
           )}
           {state.kind === 'ready' && visible.length === 0 && (
             <EmptyState filtered={Boolean(query) || category !== '全部'} onClear={clearFilters} />

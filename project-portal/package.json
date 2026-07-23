@@ -12,8 +12,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b",
-    "test": "node --experimental-strip-types --test src/catalog/defaultCatalog.test.ts src/catalog/parseCatalog.test.ts src/catalog/viewModel.test.ts",
-    "test:run": "node --experimental-strip-types --test src/catalog/defaultCatalog.test.ts src/catalog/parseCatalog.test.ts src/catalog/viewModel.test.ts"
+    "test": "node --experimental-strip-types --test src/catalog/availability.test.ts src/catalog/defaultCatalog.test.ts src/catalog/parseCatalog.test.ts src/catalog/viewModel.test.ts",
+    "test:run": "node --experimental-strip-types --test src/catalog/availability.test.ts src/catalog/defaultCatalog.test.ts src/catalog/parseCatalog.test.ts src/catalog/viewModel.test.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

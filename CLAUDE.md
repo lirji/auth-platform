@@ -115,7 +115,8 @@ JUnit 测试只覆盖关键校验路径（严格响应校验/同步差量/id 编
 
 ```bash
 cd deploy
-docker compose up -d                    # 起全栈：postgres -> spicedb migrate -> spicedb serve + casdoor
+docker compose up -d --build            # 起容器栈：postgres -> spicedb migrate -> spicedb serve + casdoor + project-portal
+docker compose up -d --build project-portal # 只构建并启动公开门户(:5274)
 docker compose up -d spicedb            # 只起 SpiceDB（含依赖）
 docker compose down --remove-orphans    # 停并清理（防 docker-proxy 残留占端口）
 

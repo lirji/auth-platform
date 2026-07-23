@@ -19,7 +19,7 @@
 | 模块 | 角色 |
 |---|---|
 | `auth-platform-protocol` | 跨上下文 DTO 契约 + `AuthzEngine` 端口(9 个操作) |
-| `auth-platform-core` | `SpiceDbAuthzEngine` 适配器(SpiceDB HTTP/JSON,grpc-free)+ `schemas/*.zed`(knowledge/his 合并;recsys 另库) |
+| `auth-platform-core` | `SpiceDbAuthzEngine` 适配器(SpiceDB HTTP/JSON,grpc-free)+ `schemas/*.zed`(knowledge/his 合并；recsys/risk 各用专属实例) |
 | `auth-platform-sdk` | Spring Boot Starter(消费方接入,`@CheckAccess` 切面,严格判权响应校验) |
 | `auth-platform-server` | 判权服务(REST facade:check/checkBulk/lookup;grpc-free) |
 | `auth-platform-admin` | 授权管理 + Casdoor 组/部门同步/reconcile + webhook + 审计 |
@@ -73,20 +73,23 @@
 
 生产门户使用 `project-portal/Dockerfile`，建议映射到 `8203:80`，并将环境专属的公开 catalog 挂载为 `/usr/share/nginx/html/config/catalog.json:ro`；同一镜像无需因前端域名变化而重建。
 
-## 起停基建
+## Docker Compose（基建 + 公开门户）
 
-> 仅需基建(不起前后端)时用下面的原始 compose 命令;否则直接 `./dev.sh`。
+> Compose 默认启动基础设施和 Docker 版公开门户；后端与 auth-console 仍由 `./dev.sh` 启动。
 
 ```bash
 cd deploy
-# 起 SpiceDB 链路(postgres -> migrate -> serve)+ Casdoor
-docker compose up -d
+# 起 SpiceDB 链路(postgres -> migrate -> serve)+ Casdoor + project-portal(:5274)
+docker compose up -d --build
+# 只构建并启动公开门户
+docker compose up -d --build project-portal
 # 只起 SpiceDB
 docker compose up -d spicedb
 # 停并清理(防 docker-proxy 残留占端口)
 docker compose down --remove-orphans
 ```
 
+- 公开能力门户: http://localhost:5274
 - Casdoor: http://localhost:8000 (默认 admin/123,OIDC 发现 `/.well-known/openid-configuration`)
 - SpiceDB HTTP: http://localhost:8543 (Bearer `authz_dev_key`);gRPC localhost:50051
 
@@ -98,7 +101,7 @@ docker compose down --remove-orphans
 祖先部门自动可读;`share = owner + home_dept->member + home_dept->doc_admin`;`edit = owner`。旧的
 `parent_space/parent_folder/public_viewer` 仅作兼容保留。完整规则见 **[`docs/authz-department-model.md`](docs/authz-department-model.md)**。
 
-另有 `recsys.zed`(`platform/advertiser` 广告主作用域模型)——**不参与上面合并**,按「每项目独立 SpiceDB 实例」写入 recsys 专属实例(:8544);
+另有 `recsys.zed`（广告主作用域模型）和 `risk.zed`（案件 assignee 模型）——**不参与上面合并**，按「每项目独立 SpiceDB 实例」分别写入业务项目专属实例；risk 的幂等身份开通与强一致自检脚本是 `deploy/risk-platform-provision.sh`、`deploy/risk-authz-fixture.sh`。
 广告/创意/竞价词不进 SpiceDB(权限纯继承 advertiser,消费方反查 `advertiser_id` 再判)。见 [《平台能力总览》§7](docs/平台能力总览.md)。
 
 ## 验证

@@ -12,6 +12,7 @@ const project = (overrides: Record<string, unknown> = {}) => ({
   icon: 'ai',
   status: 'available',
   launchUrl: 'https://app.example.com/login?source=portal',
+  healthUrl: 'https://app.example.com/healthz',
   openMode: 'new-tab',
   order: 10,
   ...overrides,
@@ -26,6 +27,7 @@ describe('parseCatalog', () => {
     assert.deepEqual(result.issues, [])
     assert.deepEqual(result.catalog.projects.map((item) => item.id), ['a', 'b'])
     assert.equal(result.catalog.projects[0].displayHost, 'app.example.com')
+    assert.equal(result.catalog.projects[0].healthUrl, 'https://app.example.com/healthz')
   })
 
   for (const launchUrl of ['javascript:alert(1)', 'data:text/html,bad', 'http://example.com/login', 'https://user:pass@example.com/login']) {
@@ -37,10 +39,19 @@ describe('parseCatalog', () => {
   }
 
   it('只在运行时显式允许时接受 loopback HTTP', () => {
-    const denied = parseCatalog({ schemaVersion: 1, projects: [project({ launchUrl: 'http://localhost:8093/login' })] })
-    const allowed = parseCatalog({ schemaVersion: 1, allowHttpLocalhost: true, projects: [project({ launchUrl: 'http://127.0.0.1:8093/login' })] })
+    const denied = parseCatalog({ schemaVersion: 1, projects: [project({ launchUrl: 'http://localhost:8093/login', healthUrl: 'http://localhost:8093/' })] })
+    const allowed = parseCatalog({ schemaVersion: 1, allowHttpLocalhost: true, projects: [project({ launchUrl: 'http://127.0.0.1:8093/login', healthUrl: 'http://127.0.0.1:8093/' })] })
     assert.equal(denied.catalog.projects.length, 0)
     assert.equal(allowed.catalog.projects.length, 1)
+  })
+
+  it('healthUrl 必须安全且与 launchUrl 同源', () => {
+    const unsafe = parseCatalog({ schemaVersion: 1, projects: [project({ healthUrl: 'javascript:alert(1)' })] })
+    const crossOrigin = parseCatalog({ schemaVersion: 1, projects: [project({ healthUrl: 'https://health.example.net/' })] })
+    assert.deepEqual(unsafe.catalog.projects, [])
+    assert.match(unsafe.issues[0], /healthUrl/)
+    assert.deepEqual(crossOrigin.catalog.projects, [])
+    assert.match(crossOrigin.issues[0], /同源/)
   })
 
   it('忽略 disabled，拒绝重复 id，并保留其它合法项目', () => {
@@ -62,7 +73,7 @@ describe('parseCatalog', () => {
   })
 
   it('maintenance 可无链接，但有链接时仍必须安全', () => {
-    const result = parseCatalog({ schemaVersion: 1, projects: [project({ status: 'maintenance', launchUrl: undefined })] })
+    const result = parseCatalog({ schemaVersion: 1, projects: [project({ status: 'maintenance', launchUrl: undefined, healthUrl: undefined })] })
     assert.equal(result.catalog.projects[0].launchUrl, undefined)
   })
 
