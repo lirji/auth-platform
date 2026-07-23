@@ -1,0 +1,14 @@
+// risk-platform 授权模型 —— 风控管理面的案件归属判权。
+// ⚠️ 按“每项目独立 SpiceDB”原则，本文件只写入 risk 专属实例（dev 默认 :8545），
+//    不与 knowledge/his(:8543) 或 recsys(:8544) schema 合并。
+//
+// 粗粒度 API 权限仍由统一 Casdoor token 的 permissions[].name 表达并在 risk 后端本地校验；
+// 这里只有必须依赖具体资源归属的能力，避免把规则/模型业务状态机复制进授权图。
+// 对象 id 固定带租户前缀 risk-platform_<caseId>，主体 id = Casdoor sub(UUID)。
+
+definition user {}
+
+definition risk_case {
+    relation assignee: user
+    permission work = assignee
+}

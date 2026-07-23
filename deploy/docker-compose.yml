@@ -1,5 +1,5 @@
-# 内部统一权限平台 — 基建 (Phase 0)
-# Casdoor(身份/SSO) + SpiceDB(ReBAC 授权) + Postgres(SpiceDB & Casdoor datastore)
+# 内部统一权限平台 — 基建 (Phase 0) + 公开能力门户
+# Casdoor(身份/SSO) + SpiceDB(ReBAC 授权) + Postgres(SpiceDB & Casdoor datastore) + project-portal
 # 端口全部变量化，避开现有项目占用(8080-8092 / 9000-9008 / 5432 / 6379 等)。
 # 起前建议: docker compose -p auth-platform down --remove-orphans
 name: auth-platform
@@ -64,6 +64,18 @@ services:
     depends_on:
       authz-postgres:
         condition: service_healthy
+
+  # 公开免登录门户；运行时 catalog 以只读挂载覆盖镜像内默认值，修改目录无需重建镜像。
+  project-portal:
+    build:
+      context: ../project-portal
+      dockerfile: Dockerfile
+    image: auth-platform/project-portal:local
+    container_name: auth-project-portal
+    ports:
+      - "127.0.0.1:${PORTAL_PORT:-5274}:80"
+    volumes:
+      - ../project-portal/public/config/catalog.json:/usr/share/nginx/html/config/catalog.json:ro
 
 volumes:
   authz-pg-data:

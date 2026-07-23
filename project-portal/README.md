@@ -11,7 +11,9 @@ corepack pnpm test:run
 corepack pnpm build
 ```
 
-本地默认目录在 `public/config/catalog.json`。当前入口使用 LangChain4j `8093`、Recsys Vite `5275`、Drools Docker 网关 `8095/ui/`；更换启动端口时必须同步 catalog。
+本地默认目录在 `public/config/catalog.json`。当前入口使用 LangChain4j `8093`、Recsys Vite `5275`、Drools Docker 网关 `8095/ui/`、Risk Console `15173`；更换启动端口时必须同步 catalog。
+
+每个配置为 `available` 的项目可设置与 `launchUrl` 同源的 `healthUrl`。门户会用不携带凭据的跨域请求检测目标是否可达：检测中暂时禁用入口，连接失败显示“当前不可用”，每 30 秒及页面重新可见时自动复检；未配置 `healthUrl` 时仍按静态状态展示。
 
 ## 运行时目录
 

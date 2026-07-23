@@ -1,4 +1,4 @@
-import type { ProjectEntry } from './types'
+import type { ProjectEntry, ProjectPresentationStatus, ProjectReachability } from './types'
 
 function normalize(value: string) {
   return value.trim().toLocaleLowerCase('zh-CN')
@@ -27,8 +27,21 @@ export interface ProjectLinkAttributes {
   ariaLabel: string
 }
 
-export function projectLinkAttributes(project: ProjectEntry): ProjectLinkAttributes | null {
-  if (project.status !== 'available' || !project.launchUrl) return null
+export function projectPresentationStatus(
+  project: ProjectEntry,
+  reachability: ProjectReachability = 'unchecked',
+): ProjectPresentationStatus {
+  if (project.status !== 'available') return project.status
+  if (reachability === 'checking') return 'checking'
+  if (reachability === 'offline') return 'unavailable'
+  return 'available'
+}
+
+export function projectLinkAttributes(
+  project: ProjectEntry,
+  reachability: ProjectReachability = 'unchecked',
+): ProjectLinkAttributes | null {
+  if (project.status !== 'available' || !project.launchUrl || reachability === 'checking' || reachability === 'offline') return null
   const newTab = project.openMode === 'new-tab'
   return {
     href: project.launchUrl,

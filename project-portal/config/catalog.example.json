@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-07-22T02:43:53Z",
+  "updatedAt": "2026-07-22T14:56:00Z",
   "projects": [
     {
       "id": "langchain4j",
@@ -12,6 +12,7 @@
       "icon": "ai",
       "status": "available",
       "launchUrl": "https://ai.example.com/login?redirect=%2F",
+      "healthUrl": "https://ai.example.com/healthz",
       "openMode": "new-tab",
       "order": 10
     },
@@ -25,6 +26,7 @@
       "icon": "recommendation",
       "status": "available",
       "launchUrl": "https://recsys.example.com/login?returnTo=%2Foverview",
+      "healthUrl": "https://recsys.example.com/healthz",
       "openMode": "new-tab",
       "order": 20
     },
@@ -38,8 +40,23 @@
       "icon": "rules",
       "status": "available",
       "launchUrl": "https://rules.example.com/ui/login?returnTo=%2Fhome",
+      "healthUrl": "https://rules.example.com/healthz",
       "openMode": "new-tab",
       "order": 30
+    },
+    {
+      "id": "risk",
+      "name": "智能风控决策平台",
+      "summary": "统一管理实时风险识别、策略模型、案件处置与客户风险洞察",
+      "category": "智能风控",
+      "capabilities": ["实时风险识别", "策略与模型运营", "风险案件处置", "客户画像与评级"],
+      "tags": ["Risk", "Fraud", "Decision"],
+      "icon": "risk",
+      "status": "available",
+      "launchUrl": "https://risk.example.com/login?returnTo=%2Fdashboard",
+      "healthUrl": "https://risk.example.com/healthz",
+      "openMode": "new-tab",
+      "order": 40
     }
   ]
 }

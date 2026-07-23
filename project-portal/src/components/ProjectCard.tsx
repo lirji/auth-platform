@@ -1,15 +1,18 @@
-import type { ProjectEntry, ProjectStatus } from '../catalog/types'
-import { projectLinkAttributes } from '../catalog/viewModel'
+import type { ProjectEntry, ProjectPresentationStatus, ProjectReachability } from '../catalog/types'
+import { projectLinkAttributes, projectPresentationStatus } from '../catalog/viewModel'
 import { ProjectIcon } from './icons'
 
-const STATUS_LABEL: Record<ProjectStatus, string> = {
+const STATUS_LABEL: Record<ProjectPresentationStatus, string> = {
   available: '可用',
+  checking: '检测中',
+  unavailable: '当前不可用',
   maintenance: '维护中',
   'coming-soon': '即将开放',
 }
 
-export function ProjectCard({ project }: { project: ProjectEntry }) {
-  const link = projectLinkAttributes(project)
+export function ProjectCard({ project, reachability }: { project: ProjectEntry; reachability: ProjectReachability }) {
+  const presentationStatus = projectPresentationStatus(project, reachability)
+  const link = projectLinkAttributes(project, reachability)
   const action = link ? (
     <a
       className="project-action"
@@ -22,15 +25,15 @@ export function ProjectCard({ project }: { project: ProjectEntry }) {
     </a>
   ) : (
     <span className="project-action project-action--disabled" aria-disabled="true">
-      {STATUS_LABEL[project.status]}
+      {STATUS_LABEL[presentationStatus]}
     </span>
   )
 
   return (
-    <article className={`project-card project-card--${project.status}`}>
+    <article className={`project-card project-card--${presentationStatus}`}>
       <div className="project-card__top">
         <span className="project-icon"><ProjectIcon name={project.icon} /></span>
-        <span className={`status status--${project.status}`}>{STATUS_LABEL[project.status]}</span>
+        <span className={`status status--${presentationStatus}`} aria-live="polite">{STATUS_LABEL[presentationStatus]}</span>
       </div>
       <div>
         <p className="project-category">{project.category}</p>
@@ -52,7 +55,13 @@ export function ProjectCard({ project }: { project: ProjectEntry }) {
         </div>
         {action}
       </div>
-      <p className="auth-hint">进入后由目标项目通过 Casdoor 统一登录</p>
+      <p className="auth-hint">
+        {presentationStatus === 'checking'
+          ? '正在检测目标项目是否可访问'
+          : presentationStatus === 'unavailable'
+            ? '目标项目当前无法访问，将自动重新检测'
+            : '进入后由目标项目通过 Casdoor 统一登录'}
+      </p>
     </article>
   )
 }

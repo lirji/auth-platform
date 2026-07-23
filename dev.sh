@@ -119,15 +119,22 @@ spawn(){
 # 停止 spawn 出来的进程 (PID + 其子进程), 再按端口兜底清理
 stop_named(){ # name port
   local name="$1" port="$2"
-  local pidf="$PID_DIR/${name}.pid" pid=""
-  [[ -f "$pidf" ]] && pid="$(cat "$pidf" 2>/dev/null)"
+  local pidf="$PID_DIR/${name}.pid" pid="" managed=0
+  if [[ -f "$pidf" ]]; then
+    managed=1
+    pid="$(cat "$pidf" 2>/dev/null)"
+  fi
   if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
     info "停止 ${name} (pid ${pid})"
     pkill -TERM -P "$pid" 2>/dev/null || true   # 先杀子进程 (maven 派生的 JVM)
     kill -TERM "$pid" 2>/dev/null || true
   fi
-  kill_port "$port"                              # 兜底: 清掉仍占端口的残留
-  rm -f "$pidf"
+  if [[ "$managed" == 1 ]]; then
+    kill_port "$port"                            # 仅清理 dev.sh 启动进程的残留
+    rm -f "$pidf"
+  elif port_in_use "$port"; then
+    warn "${name} (:${port}) 不是 dev.sh 管理的进程，跳过按端口停止"
+  fi
 }
 
 # ============================ 各层启动 ======================================
@@ -135,7 +142,9 @@ stop_named(){ # name port
 start_infra(){
   need docker
   info "基建: docker compose up -d (postgres + spicedb + casdoor)"
-  ( cd "$DEPLOY_DIR" && docker compose up -d ) || die "docker compose 启动失败"
+  # 显式选择基建服务，保留 dev.sh 的 Vite 门户开发模式；直接 compose up 才启动门户容器。
+  ( cd "$DEPLOY_DIR" && docker compose up -d authz-postgres spicedb-migrate spicedb casdoor ) \
+    || die "docker compose 启动失败"
   wait_http "http://localhost:${SPICEDB_HTTP_PORT}/healthz" "SpiceDB(:${SPICEDB_HTTP_PORT})" 90 \
     && ok "SpiceDB 就绪" || warn "SpiceDB 健康检查超时 (查 docker logs authz-spicedb)"
   wait_http "http://localhost:${CASDOOR_PORT}/" "Casdoor(:${CASDOOR_PORT})" 120 \
