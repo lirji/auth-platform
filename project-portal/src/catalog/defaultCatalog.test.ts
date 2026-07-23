@@ -39,4 +39,20 @@ describe('项目目录登录契约', () => {
       }
     })
   }
+
+  it('本地 Docker 入口与统一端口及专用健康路径一致', () => {
+    const local = catalogs[0].catalog
+    assert.deepEqual(
+      Object.fromEntries(local.projects.map(({ id, launchUrl }) => [id, new URL(launchUrl).host])),
+      {
+        langchain4j: 'localhost:8093',
+        recsys: 'localhost:9095',
+        drools: 'localhost:8095',
+        risk: 'localhost:15173',
+      },
+    )
+    for (const entry of local.projects) {
+      assert.equal(new URL(entry.healthUrl).pathname, '/healthz', `${entry.id} 必须使用专用健康端点`)
+    }
+  })
 })

@@ -50,8 +50,8 @@ export function ProjectCard({ project, reachability }: { project: ProjectEntry; 
       )}
       <div className="project-card__footer">
         <div>
-          <span className="target-label">目标域名</span>
-          <span className="target-host">{project.displayHost ?? '待配置'}</span>
+          <span className="target-label">访问地址</span>
+          <span className="target-host" title={project.launchUrl}>{project.displayHost ?? '待配置'}</span>
         </div>
         {action}
       </div>

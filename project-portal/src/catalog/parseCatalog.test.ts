@@ -43,6 +43,7 @@ describe('parseCatalog', () => {
     const allowed = parseCatalog({ schemaVersion: 1, allowHttpLocalhost: true, projects: [project({ launchUrl: 'http://127.0.0.1:8093/login', healthUrl: 'http://127.0.0.1:8093/' })] })
     assert.equal(denied.catalog.projects.length, 0)
     assert.equal(allowed.catalog.projects.length, 1)
+    assert.equal(allowed.catalog.projects[0].displayHost, '127.0.0.1:8093')
   })
 
   it('healthUrl 必须安全且与 launchUrl 同源', () => {

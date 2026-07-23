@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "allowHttpLocalhost": true,
-  "updatedAt": "2026-07-22T15:04:00Z",
+  "updatedAt": "2026-07-23T00:40:00Z",
   "projects": [
     {
       "id": "langchain4j",
@@ -13,7 +13,7 @@
       "icon": "ai",
       "status": "available",
       "launchUrl": "http://localhost:8093/login?redirect=%2F",
-      "healthUrl": "http://localhost:8093/",
+      "healthUrl": "http://localhost:8093/healthz",
       "openMode": "new-tab",
       "order": 10
     },
@@ -26,8 +26,8 @@
       "tags": ["Recsys", "Search", "Ads"],
       "icon": "recommendation",
       "status": "available",
-      "launchUrl": "http://localhost:5275/login?returnTo=%2Foverview",
-      "healthUrl": "http://localhost:5275/",
+      "launchUrl": "http://localhost:9095/login?returnTo=%2Foverview",
+      "healthUrl": "http://localhost:9095/healthz",
       "openMode": "new-tab",
       "order": 20
     },
@@ -41,7 +41,7 @@
       "icon": "rules",
       "status": "available",
       "launchUrl": "http://localhost:8095/ui/login?returnTo=%2Fhome",
-      "healthUrl": "http://localhost:8095/",
+      "healthUrl": "http://localhost:8095/healthz",
       "openMode": "new-tab",
       "order": 30
     },

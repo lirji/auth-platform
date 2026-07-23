@@ -21,19 +21,25 @@ const project = (overrides: Partial<ProjectEntry> = {}): ProjectEntry => ({
 })
 
 describe('project reachability', () => {
-  it('使用无凭据 no-cors 请求探测目标', async () => {
+  it('使用无凭据 CORS 请求探测目标并检查 2xx', async () => {
     let requestedUrl = ''
     let requestedInit: RequestInit | undefined
     const result = await probeProjectReachability(project(), async (url, init) => {
       requestedUrl = url
       requestedInit = init
+      return { ok: true }
     })
 
     assert.equal(result, 'online')
     assert.equal(requestedUrl, 'https://ai.example.com/healthz')
-    assert.equal(requestedInit?.mode, 'no-cors')
+    assert.equal(requestedInit?.mode, 'cors')
     assert.equal(requestedInit?.credentials, 'omit')
     assert.equal(requestedInit?.cache, 'no-store')
+  })
+
+  it('非 2xx 响应判为离线', async () => {
+    const result = await probeProjectReachability(project(), async () => ({ ok: false }))
+    assert.equal(result, 'offline')
   })
 
   it('网络错误和超时判为离线', async () => {
@@ -50,7 +56,10 @@ describe('project reachability', () => {
 
   it('未配置探测地址或配置不可用时不发请求', async () => {
     let calls = 0
-    const request = async () => { calls += 1 }
+    const request = async () => {
+      calls += 1
+      return { ok: true }
+    }
     assert.equal(await probeProjectReachability(project({ healthUrl: undefined }), request), 'unchecked')
     assert.equal(await probeProjectReachability(project({ status: 'maintenance' }), request), 'unchecked')
     assert.equal(calls, 0)
