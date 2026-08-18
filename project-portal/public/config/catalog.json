@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "allowHttpLocalhost": true,
-  "updatedAt": "2026-07-23T00:40:00Z",
+  "updatedAt": "2026-08-18T04:00:00Z",
   "projects": [
     {
       "id": "langchain4j",
@@ -12,8 +12,8 @@
       "tags": ["LangChain4j", "RAG", "Agent"],
       "icon": "ai",
       "status": "available",
-      "launchUrl": "http://localhost:8093/login?redirect=%2F",
-      "healthUrl": "http://localhost:8093/healthz",
+      "launchUrl": "http://localhost:5173/login?redirect=%2F",
+      "healthUrl": "http://localhost:5173/healthz",
       "openMode": "new-tab",
       "order": 10
     },
@@ -34,9 +34,9 @@
     {
       "id": "drools",
       "name": "规则引擎控制台",
-      "summary": "规则建模、活动决策与 Drools 教学演示",
+      "summary": "规则建模、活动配置与实时决策服务",
       "category": "规则与决策",
-      "capabilities": ["活动规则", "决策服务", "Drools 18 Steps"],
+      "capabilities": ["活动规则", "决策服务", "运营控制台"],
       "tags": ["Drools", "Rules", "Decision"],
       "icon": "rules",
       "status": "available",
@@ -58,6 +58,32 @@
       "healthUrl": "http://localhost:15173/healthz",
       "openMode": "new-tab",
       "order": 40
+    },
+    {
+      "id": "workflow",
+      "name": "流程审批中台",
+      "summary": "统一承载人工审批、流程编排、任务办理与运行运维",
+      "category": "流程与协作",
+      "capabilities": ["待办审批", "流程轨迹", "流程运维", "BPMN 设计"],
+      "tags": ["Flowable", "BPMN", "Workflow"],
+      "icon": "workflow",
+      "status": "available",
+      "launchUrl": "http://localhost:8302/login",
+      "healthUrl": "http://localhost:8302/healthz",
+      "openMode": "new-tab",
+      "order": 50
+    },
+    {
+      "id": "reconciliation",
+      "name": "自动对账平台",
+      "summary": "面向营销、支付与账务场景的可插拔自动对账平台",
+      "category": "财务与对账",
+      "capabilities": ["三方对账", "差异定位", "守恒校验", "批次重跑"],
+      "tags": ["Reconciliation", "Spring Batch", "Matching"],
+      "icon": "reconciliation",
+      "status": "coming-soon",
+      "openMode": "new-tab",
+      "order": 60
     }
   ]
 }

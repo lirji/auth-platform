@@ -38,7 +38,7 @@ export default function App() {
         <section className="hero">
           <p className="eyebrow">UNIFIED CAPABILITY HUB</p>
           <h1>发现并进入<br /><span>正在提供的技术能力</span></h1>
-          <p className="hero-copy">一站式浏览 AI、推荐、规则与智能风控能力。进入项目后，由各业务系统通过 Casdoor 完成统一身份认证与权限校验。</p>
+          <p className="hero-copy">一站式浏览 AI、推荐、规则、流程、风控与对账能力。进入项目后，由各业务系统通过 Casdoor 完成统一身份认证与权限校验。</p>
           {state.kind === 'ready' && (
             <SearchFilters
               query={query}

@@ -60,7 +60,11 @@ export function ProjectCard({ project, reachability }: { project: ProjectEntry; 
           ? '正在检测目标项目是否可访问'
           : presentationStatus === 'unavailable'
             ? '目标项目当前无法访问，将自动重新检测'
-            : '进入后由目标项目通过 Casdoor 统一登录'}
+            : presentationStatus === 'coming-soon'
+              ? '项目正在建设，开放后可从门户进入'
+              : presentationStatus === 'maintenance'
+                ? '项目正在维护，恢复后可从门户进入'
+                : '进入后由目标项目通过 Casdoor 统一登录'}
       </p>
     </article>
   )
