@@ -5,6 +5,8 @@ on:
     paths:
       - 'auth-platform-*/**'
       - 'deploy/risk-*.sh'
+      - 'deploy/recon-platform-provision.sh'
+      - 'deploy/benefit-platform-provision.sh'
       - 'pom.xml'
       - 'mvnw'
       - '.mvn/**'
@@ -14,6 +16,8 @@ on:
     paths:
       - 'auth-platform-*/**'
       - 'deploy/risk-*.sh'
+      - 'deploy/recon-platform-provision.sh'
+      - 'deploy/benefit-platform-provision.sh'
       - 'pom.xml'
       - 'mvnw'
       - '.mvn/**'
@@ -39,8 +43,9 @@ jobs:
           java-version: '21'
           cache: maven
       - run: ./mvnw -B verify
-      - name: Validate risk onboarding assets
+      - name: Validate onboarding scripts
         run: |
-          bash -n deploy/risk-platform-provision.sh deploy/risk-authz-fixture.sh
+          bash -n deploy/risk-platform-provision.sh deploy/risk-authz-fixture.sh \
+            deploy/recon-platform-provision.sh deploy/benefit-platform-provision.sh
           grep -q 'definition risk_case' auth-platform-core/src/main/resources/schemas/risk.zed
           grep -q 'permission work = assignee' auth-platform-core/src/main/resources/schemas/risk.zed

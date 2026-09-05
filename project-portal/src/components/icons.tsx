@@ -36,6 +36,14 @@ function ReconciliationIcon(props: IconProps) {
   return <svg {...common} {...props}><path d="M4 7h12M4 12h9M4 17h7"/><path d="m17 15 2 2 3-4"/><path d="M4 4h16v16H4z"/></svg>
 }
 
+function BenefitIcon(props: IconProps) {
+  return <svg {...common} {...props}><path d="M4 11h16v9H4z"/><path d="M4 11V8h16v3"/><path d="M12 8v12"/><path d="M12 8c-2-3-5-3-5 0 2.5 0 5 0 5 0"/><path d="M12 8c2-3 5-3 5 0-2.5 0-5 0-5 0"/></svg>
+}
+
+function MarketingIcon(props: IconProps) {
+  return <svg {...common} {...props}><path d="M4 9v6l12 4V5z"/><path d="M16 8.5c2 1 3.5 2.2 3.5 3.5s-1.5 2.5-3.5 3.5"/><path d="M9 12h.01"/></svg>
+}
+
 function DefaultIcon(props: IconProps) {
   return <svg {...common} {...props}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
 }
@@ -53,6 +61,10 @@ export function ProjectIcon({ name }: { name: string }) {
             ? WorkflowIcon
             : name === 'reconciliation'
               ? ReconciliationIcon
-              : DefaultIcon
+              : name === 'benefit'
+                ? BenefitIcon
+                : name === 'marketing'
+                  ? MarketingIcon
+                  : DefaultIcon
   return <Icon width={28} height={28} />
 }

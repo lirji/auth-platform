@@ -53,18 +53,30 @@
 | auth-platform-server | 8200 |
 | auth-platform-admin | 8201 |
 | auth-console | 5273(dev) / 8202(prod) |
-| project-portal | 5274(dev) / 8203(prod) |
+| project-portal | 5274(Docker 本地) / 8203(prod) |
 
 ## 一键启停(前后端 + 基建)
 
-`./dev.sh` 按依赖顺序拉起完整本地环境:基建(docker: postgres+spicedb+casdoor)→ 后端(server:8200 / admin:8201)→ 前端(auth-console:5273)+公开门户(project-portal:5274)。门户没有登录或后端依赖；启动经健康检查逐层等待,幂等(端口已占的层自动跳过),后台进程日志落到 `logs/`。
+`./dev.sh` 按依赖顺序拉起完整本地环境：Docker Compose（postgres+spicedb+casdoor+project-portal:5274）→ 后端（server:8200 / admin:8201）→ 前端（auth-console:5273）。公开门户没有登录或后端依赖，并固定由 `auth-project-portal` 容器运行；启动经健康检查逐层等待，幂等（已运行的层自动复用），宿主机后台进程日志落到 `logs/`。
+
+统一门户及八个业务项目的浏览器入口端口只在 `deploy/platform-ports.env` 维护。修改后执行 `./deploy/platform-ports.sh sync`，会同步运行时 catalog 并校验九个 Compose 映射；不要再直接修改 `project-portal/public/config/catalog.json` 中的端口。
+完整约定见 [`docs/统一门户端口注册表.md`](docs/统一门户端口注册表.md)。
+
+```bash
+./deploy/platform-ports.sh show                 # 查看中央分配
+./deploy/platform-ports.sh sync                 # 修改注册表后同步 catalog + 全量校验
+./deploy/platform-ports.sh check                # 只校验，不写文件
+./deploy/platform-compose.sh risk --profile apps up -d   # 任一项目均可显式带中央端口启动
+```
+
+`./dev.sh up` 启动门户前也会自动同步。各业务仓库的一键启动脚本在同级目录布局下自动加载该注册表；独立 checkout 则保留当前默认端口以兼容各自 CI。
 
 ```bash
 ./dev.sh                 # = up,一键启动全部
 ./dev.sh up --skip-build # 跳过 mvn install 提速(确定已构建过时)
 ./dev.sh up -f           # 启动后前台跟踪日志,Ctrl-C 一并停掉
 ./dev.sh status          # 各服务健康一览
-./dev.sh logs portal     # 跟踪单个日志(server|admin|frontend|portal)
+./dev.sh logs portal     # 跟踪门户容器日志；其他名称跟踪宿主机进程日志
 ./dev.sh down            # 停止全部(含基建)
 ./dev.sh restart         # down 再 up
 ```
@@ -80,9 +92,9 @@
 ```bash
 cd deploy
 # 起 SpiceDB 链路(postgres -> migrate -> serve)+ Casdoor + project-portal(:5274)
-docker compose up -d --build
+docker compose --env-file platform-ports.env up -d --build
 # 只构建并启动公开门户
-docker compose up -d --build project-portal
+docker compose --env-file platform-ports.env up -d --build project-portal
 # 只起 SpiceDB
 docker compose up -d spicedb
 # 停并清理(防 docker-proxy 残留占端口)
@@ -120,7 +132,8 @@ TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh # 部门层级模型 seed 
 不再每租户建 app,幂等确保 shared app + 只建 org/user,登录用派生 client_id `<base>-org-<tenant>`,可选写 SpiceDB 成员组;
 新租户 org 自动继承 built-in 的 navItems 菜单裁剪)、`casdoor-hide-business.sh`(把所有 org 侧边栏 navItems 设白名单、
 隐藏 Casdoor「商业」菜单,`RESTORE=1` 恢复)、`recsys-authz-fixture.sh`(recsys 广告主模型 seed/自校验,
-目标 recsys 专属 SpiceDB 实例 :8544,勿指到本项目 :8543)。
+目标 recsys 专属 SpiceDB 实例 :8544,勿指到本项目 :8543)、`risk-platform-provision.sh`(risk 身份+权限)、
+`recon-platform-provision.sh`(对账身份+权限,无 SpiceDB)、`benefit-platform-provision.sh`(权益发放中台身份+scope,无 SpiceDB)。
 
 ## 状态
 

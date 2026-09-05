@@ -37,6 +37,10 @@
 # 注：echo/heredoc 里凡 ${VAR} 紧邻中文全角括号一律用花括号，避免 set -u 把全角字节并进变量名误判 unbound。
 set -uo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=load-platform-ports.sh
+. "${SCRIPT_DIR}/load-platform-ports.sh"
+
 TENANT="${TENANT:?需要 TENANT（= Casdoor org 名）}"
 USER="${USER:?需要 USER}"
 PASSWORD="${PASSWORD:?需要 PASSWORD}"
@@ -52,7 +56,7 @@ SPICEDB_KEY="${SPICEDB_KEY:-authz_dev_key}"
 SHARED_APP="${SHARED_APP:-rag-shared}"
 SHARED_CID="${SHARED_CLIENT_ID:-ragshared0client00000001}"
 SHARED_CSEC="${SHARED_CLIENT_SECRET:-ragshared0secret000000000000000001}"
-SHARED_REDIRECT_URIS="${SHARED_REDIRECT_URIS:-http://localhost:8093/callback,http://localhost:8093/login,http://localhost:8093/oidc-silent,http://localhost:5173/callback,http://localhost:5173/login,http://localhost:5173/oidc-silent,http://localhost:5273/callback,http://localhost:5273/login,http://localhost:5273/oidc-silent}"
+SHARED_REDIRECT_URIS="${SHARED_REDIRECT_URIS:-http://localhost:${LANGCHAIN4J_UI_PORT}/callback,http://localhost:${LANGCHAIN4J_UI_PORT}/login,http://localhost:${LANGCHAIN4J_UI_PORT}/oidc-silent,http://localhost:5173/callback,http://localhost:5173/login,http://localhost:5173/oidc-silent,http://localhost:5273/callback,http://localhost:5273/login,http://localhost:5273/oidc-silent}"
 # 该租户实际登录/取 token 用的派生 client_id（同一 shared secret）。
 CID="${SHARED_CID}-org-${TENANT}"
 

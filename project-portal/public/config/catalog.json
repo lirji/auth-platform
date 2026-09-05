@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "allowHttpLocalhost": true,
-  "updatedAt": "2026-08-18T04:00:00Z",
+  "updatedAt": "2026-09-04T08:50:00Z",
   "projects": [
     {
       "id": "langchain4j",
@@ -12,8 +12,8 @@
       "tags": ["LangChain4j", "RAG", "Agent"],
       "icon": "ai",
       "status": "available",
-      "launchUrl": "http://localhost:5173/login?redirect=%2F",
-      "healthUrl": "http://localhost:5173/healthz",
+      "launchUrl": "http://localhost:8093/login?redirect=%2F",
+      "healthUrl": "http://localhost:8093/healthz",
       "openMode": "new-tab",
       "order": 10
     },
@@ -81,9 +81,39 @@
       "capabilities": ["三方对账", "差异定位", "守恒校验", "批次重跑"],
       "tags": ["Reconciliation", "Spring Batch", "Matching"],
       "icon": "reconciliation",
-      "status": "coming-soon",
+      "status": "available",
+      "launchUrl": "http://localhost:8088/",
+      "healthUrl": "http://localhost:8088/healthz",
       "openMode": "new-tab",
       "order": 60
+    },
+    {
+      "id": "benefit",
+      "name": "权益发放中台",
+      "summary": "统一承载现金红包、优惠券、服务券、兑换码、实物及组合奖品发放",
+      "category": "营销与履约",
+      "capabilities": ["组合发放", "库存预占", "渠道履约", "受控补发"],
+      "tags": ["Benefit", "Fulfillment", "Kafka"],
+      "icon": "benefit",
+      "status": "available",
+      "launchUrl": "http://localhost:8083/login?returnTo=%2Fdashboard",
+      "healthUrl": "http://localhost:8083/healthz",
+      "openMode": "new-tab",
+      "order": 70
+    },
+    {
+      "id": "marketing",
+      "name": "营销低代码平台",
+      "summary": "活动、规则、受众、旅程与发布回滚的低代码运营工作台",
+      "category": "营销与履约",
+      "capabilities": ["低代码画布", "规则与定价", "受众旅程", "发布回滚"],
+      "tags": ["Marketing", "Low-code", "Drools"],
+      "icon": "marketing",
+      "status": "available",
+      "launchUrl": "http://localhost:8084/login?returnTo=%2F",
+      "healthUrl": "http://localhost:8084/healthz",
+      "openMode": "new-tab",
+      "order": 80
     }
   ]
 }

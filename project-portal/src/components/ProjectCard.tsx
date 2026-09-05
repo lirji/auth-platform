@@ -64,7 +64,7 @@ export function ProjectCard({ project, reachability }: { project: ProjectEntry; 
               ? '项目正在建设，开放后可从门户进入'
               : presentationStatus === 'maintenance'
                 ? '项目正在维护，恢复后可从门户进入'
-                : '进入后由目标项目通过 Casdoor 统一登录'}
+                : '登录与业务权限由目标项目独立管理'}
       </p>
     </article>
   )

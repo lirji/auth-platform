@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-18T04:00:00Z",
+  "updatedAt": "2026-09-04T08:50:00Z",
   "projects": [
     {
       "id": "langchain4j",
@@ -83,6 +83,30 @@
       "status": "coming-soon",
       "openMode": "new-tab",
       "order": 60
+    },
+    {
+      "id": "benefit",
+      "name": "权益发放中台",
+      "summary": "统一承载现金红包、优惠券、服务券、兑换码、实物及组合奖品发放",
+      "category": "营销与履约",
+      "capabilities": ["组合发放", "库存预占", "渠道履约", "受控补发"],
+      "tags": ["Benefit", "Fulfillment", "Kafka"],
+      "icon": "benefit",
+      "status": "coming-soon",
+      "openMode": "new-tab",
+      "order": 70
+    },
+    {
+      "id": "marketing",
+      "name": "营销低代码平台",
+      "summary": "活动、规则、受众、旅程与发布回滚的低代码运营工作台",
+      "category": "营销与履约",
+      "capabilities": ["低代码画布", "规则与定价", "受众旅程", "发布回滚"],
+      "tags": ["Marketing", "Low-code", "Drools"],
+      "icon": "marketing",
+      "status": "coming-soon",
+      "openMode": "new-tab",
+      "order": 80
     }
   ]
 }

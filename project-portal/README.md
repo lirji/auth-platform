@@ -1,6 +1,6 @@
 # project-portal
 
-公开、免登录的统一能力门户。页面只读取同源 `/config/catalog.json`，不会请求 Casdoor、auth-platform-admin 或目标项目 API；点击项目后先进入目标项目自己的租户选择页，再由目标项目建立 PKCE 并跳转 Casdoor。
+公开、免登录的统一能力门户。页面只读取同源 `/config/catalog.json`，不会请求 Casdoor、auth-platform-admin 或目标项目业务 API；点击项目后直接进入目标项目，由目标项目独立管理登录与业务权限。
 
 ## 开发与验证
 
@@ -11,7 +11,7 @@ corepack pnpm test:run
 corepack pnpm build
 ```
 
-本地默认目录在 `public/config/catalog.json`。当前 Docker 入口使用 LangChain4j `8093`、Recsys Console `9095`、Drools 网关 `8095/ui/`、Risk Console `15173`；更换启动端口时必须同步 catalog。
+本地默认目录在 `public/config/catalog.json`。所有本地入口端口以 `../deploy/platform-ports.env` 为唯一来源；修改注册表后运行 `../deploy/platform-ports.sh sync` 自动更新 catalog 并校验各项目 Compose，禁止手工维护两份端口。自动对账平台当前按项目计划先开放独立管理台，待后续接入 Casdoor 鉴权。权益发放中台与营销低代码平台本地入口指向 `/login`；OIDC 分别只接受组织 `benefit-center`、`marketing-platform`；默认 Compose 仍可走本地开发模式。
 
 每个配置为 `available` 的项目可设置与 `launchUrl` 同源的专用 `healthUrl`。健康端点必须允许门户跨域 GET（本地约定 `Access-Control-Allow-Origin: *`）；门户不携带凭据，仅把 2xx 响应视为可用。检测中暂时禁用入口，非 2xx、超时或网络/CORS 失败显示“当前不可用”，每 30 秒及页面重新可见时自动复检；未配置 `healthUrl` 时仍按静态状态展示。
 
@@ -33,6 +33,6 @@ catalog 是匿名公开内容，不得写入 token、client secret、内部 serv
 ## 发布约束
 
 - 生产 launch URL 只允许 HTTPS；`allowHttpLocalhost` 只用于本地 loopback 开发。
-- launch URL 指向目标项目自己的 `/login` 租户选择页，可携带经过消毒的站内 `returnTo`/`redirect`，不能直接指向 Casdoor authorize endpoint。
-- `available` 才能点击；尚未完成目标 OIDC/auth 配置的项目保持 `maintenance`。
+- 已接入鉴权的 launch URL 指向目标项目自己的 `/login` 租户选择页，可携带经过消毒的站内 `returnTo`/`redirect`，不能直接指向 Casdoor authorize endpoint；尚未接入鉴权的本地项目可直接指向应用入口。
+- `available` 才能点击；生产项目尚未完成目标 OIDC/auth 配置时保持 `maintenance`。
 - nginx 对 catalog 禁止缓存，对带 hash 的 assets 使用 immutable 缓存，并设置 CSP、`Referrer-Policy: no-referrer` 和防 framing 安全头。

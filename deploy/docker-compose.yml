@@ -73,7 +73,7 @@ services:
     image: auth-platform/project-portal:local
     container_name: auth-project-portal
     ports:
-      - "127.0.0.1:${PORTAL_PORT:-5274}:80"
+      - "127.0.0.1:${AUTH_PORTAL_UI_PORT:-5274}:80"
     volumes:
       - ../project-portal/public/config/catalog.json:/usr/share/nginx/html/config/catalog.json:ro
 

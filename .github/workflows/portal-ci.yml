@@ -4,11 +4,25 @@ on:
   pull_request:
     paths:
       - 'project-portal/**'
+      - 'deploy/load-platform-ports.sh'
+      - 'deploy/platform-compose.sh'
+      - 'deploy/platform-ports.env'
+      - 'deploy/platform-ports.sh'
+      - 'deploy/sync-platform-catalog.mjs'
+      - 'deploy/verify-compose-port.mjs'
+      - 'deploy/docker-compose.yml'
       - '.github/workflows/portal-ci.yml'
   push:
     branches: [main]
     paths:
       - 'project-portal/**'
+      - 'deploy/load-platform-ports.sh'
+      - 'deploy/platform-compose.sh'
+      - 'deploy/platform-ports.env'
+      - 'deploy/platform-ports.sh'
+      - 'deploy/sync-platform-catalog.mjs'
+      - 'deploy/verify-compose-port.mjs'
+      - 'deploy/docker-compose.yml'
       - '.github/workflows/portal-ci.yml'
   workflow_dispatch:
 
@@ -36,6 +50,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: project-portal/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+      - run: node ../deploy/sync-platform-catalog.mjs --check
       - run: pnpm test:run
       - run: pnpm typecheck
       - run: pnpm build

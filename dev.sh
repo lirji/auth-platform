@@ -3,10 +3,9 @@
 # dev.sh — 统一权限平台 本地全栈「一键启停」脚本
 # -----------------------------------------------------------------------------
 # 一条命令拉起完整开发环境, 依赖顺序:
-#   基建(docker compose: postgres + spicedb + casdoor)
+#   Docker Compose: postgres + spicedb + casdoor + project-portal(:5274)
 #     └─ 后端 server(:8200) / admin(:8201)   [Spring Boot]
-#          ├─ 前端 auth-console(:5273)         [Vite dev]
-#          └─ 公开门户 project-portal(:5274)   [Vite dev, 无登录依赖]
+#          └─ 前端 auth-console(:5273)         [Vite dev]
 #
 # 用法:
 #   ./dev.sh                 = ./dev.sh up   (一键启动全部)
@@ -40,14 +39,17 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="$ROOT/logs"
 PID_DIR="$LOG_DIR/pids"
 FRONTEND_DIR="$ROOT/auth-console"
-PORTAL_DIR="$ROOT/project-portal"
 DEPLOY_DIR="$ROOT/deploy"
+
+# 统一门户入口端口只能来自中央注册表；调用方同名环境变量不会覆盖注册表。
+# shellcheck source=deploy/load-platform-ports.sh
+. "$DEPLOY_DIR/load-platform-ports.sh"
 
 # ---- 端口 (与 application.yml / docker-compose / vite.config 保持一致) ----
 SERVER_PORT="${SERVER_PORT:-8200}"
 ADMIN_PORT="${ADMIN_PORT:-8201}"
 FRONTEND_PORT="${FRONTEND_PORT:-5273}"
-PORTAL_PORT="${PORTAL_PORT:-5274}"
+PORTAL_PORT="$AUTH_PORTAL_UI_PORT"
 SPICEDB_HTTP_PORT="${SPICEDB_HTTP_PORT:-8543}"
 CASDOOR_PORT="${CASDOOR_PORT:-8000}"
 
@@ -142,7 +144,7 @@ stop_named(){ # name port
 start_infra(){
   need docker
   info "基建: docker compose up -d (postgres + spicedb + casdoor)"
-  # 显式选择基建服务，保留 dev.sh 的 Vite 门户开发模式；直接 compose up 才启动门户容器。
+  # 门户由 start_portal 通过同一 Compose 项目启动，以便 --no-portal 可独立控制。
   ( cd "$DEPLOY_DIR" && docker compose up -d authz-postgres spicedb-migrate spicedb casdoor ) \
     || die "docker compose 启动失败"
   wait_http "http://localhost:${SPICEDB_HTTP_PORT}/healthz" "SpiceDB(:${SPICEDB_HTTP_PORT})" 90 \
@@ -188,14 +190,28 @@ start_frontend(){
 }
 
 start_portal(){
-  pick_pm
-  if [[ ! -d "$PORTAL_DIR/node_modules" ]]; then
-    info "公开门户依赖缺失, 执行 ${PM} install"
-    ( cd "$PORTAL_DIR" && "$PM" install ) || die "公开门户依赖安装失败"
+  need docker
+  need node
+  node "$DEPLOY_DIR/sync-platform-catalog.mjs" \
+    || die "中央端口注册表同步 catalog 失败"
+  # 兼容旧版 dev.sh 留下的宿主机 Vite 进程，避免它占用容器映射端口。
+  if [[ -f "$PID_DIR/portal.pid" ]]; then
+    stop_named portal "$PORTAL_PORT"
   fi
-  spawn portal "$PORTAL_PORT" "$PORTAL_DIR" "$PORTAL_DIR/node_modules/.bin/vite" --port "$PORTAL_PORT"
+  info "启动公开门户 Docker 容器 auth-project-portal (:${PORTAL_PORT})"
+  ( cd "$DEPLOY_DIR" && AUTH_PORTAL_UI_PORT="$PORTAL_PORT" docker compose up -d --build project-portal ) \
+    || die "project-portal Docker 容器启动失败"
   wait_http "http://localhost:${PORTAL_PORT}/healthz" "project-portal(:${PORTAL_PORT})" 90 \
-    && ok "公开门户就绪" || warn "公开门户未就绪, 查 ${LOG_DIR}/portal.log"
+    && ok "公开门户容器就绪" || warn "公开门户未就绪, 查 docker logs auth-project-portal"
+}
+
+stop_portal(){
+  # 兼容旧版 dev.sh 管理的宿主机 Vite 门户。
+  [[ -f "$PID_DIR/portal.pid" ]] && stop_named portal "$PORTAL_PORT"
+  need docker
+  info "停止公开门户 Docker 容器"
+  ( cd "$DEPLOY_DIR" && AUTH_PORTAL_UI_PORT="$PORTAL_PORT" docker compose stop project-portal ) \
+    || warn "project-portal Docker 容器停止失败"
 }
 
 # ============================ 子命令 ======================================
@@ -204,20 +220,21 @@ cmd_up(){
   need curl
   mkdir -p "$PID_DIR"
   [[ "$DO_INFRA"    == 1 ]] && start_infra
+  [[ "$DO_PORTAL"   == 1 ]] && start_portal
   [[ "$DO_BACKEND"  == 1 ]] && start_backend
   [[ "$DO_FRONTEND" == 1 ]] && start_frontend
-  [[ "$DO_PORTAL"   == 1 ]] && start_portal
   print_summary
   if [[ "$FOLLOW" == 1 ]]; then
     info "跟踪日志中 — Ctrl-C 将停止全部服务"
     trap 'echo; cmd_down; exit 0' INT TERM
-    tail -n +1 -F "$LOG_DIR"/server.log "$LOG_DIR"/admin.log "$LOG_DIR"/frontend.log "$LOG_DIR"/portal.log 2>/dev/null
+    ( cd "$DEPLOY_DIR" && docker compose logs --tail=40 project-portal 2>/dev/null )
+    tail -n +1 -F "$LOG_DIR"/server.log "$LOG_DIR"/admin.log "$LOG_DIR"/frontend.log 2>/dev/null
   fi
 }
 
 cmd_down(){
   info "停止应用进程 (公开门户 / 前端 / admin / server)"
-  [[ "$DO_PORTAL"   == 1 ]] && stop_named portal "$PORTAL_PORT"
+  [[ "$DO_PORTAL"   == 1 ]] && stop_portal
   [[ "$DO_FRONTEND" == 1 ]] && stop_named frontend "$FRONTEND_PORT"
   [[ "$DO_BACKEND"  == 1 ]] && { stop_named admin "$ADMIN_PORT"; stop_named server "$SERVER_PORT"; }
   if [[ "$DO_INFRA" == 1 ]]; then
@@ -246,8 +263,12 @@ cmd_status(){
 cmd_logs(){
   local name="${1:-}"
   case "$name" in
-    server|admin|frontend|portal) tail -n 100 -F "$LOG_DIR/${name}.log" ;;
-    "") tail -n 40 -F "$LOG_DIR"/server.log "$LOG_DIR"/admin.log "$LOG_DIR"/frontend.log "$LOG_DIR"/portal.log 2>/dev/null ;;
+    portal) ( cd "$DEPLOY_DIR" && docker compose logs --tail=100 -f project-portal ) ;;
+    server|admin|frontend) tail -n 100 -F "$LOG_DIR/${name}.log" ;;
+    "")
+      ( cd "$DEPLOY_DIR" && docker compose logs --tail=40 project-portal 2>/dev/null )
+      tail -n 40 -F "$LOG_DIR"/server.log "$LOG_DIR"/admin.log "$LOG_DIR"/frontend.log 2>/dev/null
+      ;;
     *) die "未知日志: $name (可选 server|admin|frontend|portal)" ;;
   esac
 }
