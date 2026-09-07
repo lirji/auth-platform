@@ -95,7 +95,7 @@ describe('项目目录入口契约', () => {
 
     const recon = local.projects.find(({ id }) => id === 'reconciliation')
     assert.equal(recon?.status, 'available')
-    assert.equal(recon?.launchUrl, `http://localhost:${ports.RECON_UI_PORT}/`)
+    assert.equal(recon?.launchUrl, `http://localhost:${ports.RECON_UI_PORT}/login`)
     assert.equal(recon?.healthUrl, `http://localhost:${ports.RECON_UI_PORT}/healthz`)
 
     const benefit = local.projects.find(({ id }) => id === 'benefit')

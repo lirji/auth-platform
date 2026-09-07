@@ -7,7 +7,9 @@
 # 用法：
 #   BENEFIT_USER=benefit-e2e-admin PASSWORD='本地强口令' bash deploy/benefit-platform-provision.sh
 # 可选：CASDOOR_URL、CASDOOR_ADMIN、CASDOOR_ADMIN_PW、AUTHZ_POSTGRES_CONTAINER、
-#       SHARED_APP、SHARED_CLIENT_ID、SHARED_CLIENT_SECRET、REDIRECT_URIS。
+#       SHARED_APP、SHARED_CLIENT_ID、SHARED_CLIENT_SECRET、REDIRECT_URIS、
+#       BENEFIT_BUSINESS_TENANT（货主业务租户，默认 dev-tenant）。
+# 登录组织固定为 benefit-center；货主必须通过 properties.tenant_id 单独表达，不能回退到 owner。
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,6 +17,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "${SCRIPT_DIR}/load-platform-ports.sh"
 
 TENANT="benefit-center"
+BUSINESS_TENANT="${BENEFIT_BUSINESS_TENANT:-dev-tenant}"
 USER_NAME="${BENEFIT_USER:?需要 BENEFIT_USER（例如 benefit-e2e-admin）}"
 PASSWORD_VALUE="${PASSWORD:?需要 PASSWORD（不会写入仓库或日志）}"
 CASDOOR="${CASDOOR_URL:-http://localhost:8000}"
@@ -86,13 +89,21 @@ fi
 echo "==> 3. 开通用户 ${USER_NAME}@${TENANT}"
 USER_JSON="$(api_get "get-user?id=${TENANT}/${USER_NAME}" | jq -c '.data // empty')"
 if [ -z "${USER_JSON}" ]; then
-  api_post add-user "$(jq -nc --arg tenant "${TENANT}" --arg user "${USER_NAME}" --arg password "${PASSWORD_VALUE}" --arg app "${SHARED_APP}" '{owner:$tenant,name:$user,type:"normal-user",displayName:$user,email:($user+"@benefit-center.local"),phone:"",password:$password,signupApplication:$app,isAdmin:false,isForbidden:false,isDeleted:false,properties:{}}')"
+  api_post add-user "$(jq -nc --arg tenant "${TENANT}" --arg businessTenant "${BUSINESS_TENANT}" --arg user "${USER_NAME}" --arg password "${PASSWORD_VALUE}" --arg app "${SHARED_APP}" '{owner:$tenant,name:$user,type:"normal-user",displayName:$user,email:($user+"@benefit-center.local"),phone:"",password:$password,signupApplication:$app,isAdmin:false,isForbidden:false,isDeleted:false,properties:{tenant_id:$businessTenant}}')"
 fi
 curl -sf -X POST "${CASDOOR}/api/set-password" -H "Authorization: Bearer ${ADMIN_TOKEN}" \
   --data-urlencode "userOwner=${TENANT}" --data-urlencode "userName=${USER_NAME}" \
   --data-urlencode 'oldPassword=' --data-urlencode "newPassword=${PASSWORD_VALUE}" >/dev/null
 
 USER_JSON="$(api_get "get-user?id=${TENANT}/${USER_NAME}" | jq -c '.data // empty')"
+# 已存在的用户也必须幂等校准货主属性；owner 继续只表示登录组织。
+USER_UPDATED="$(printf '%s' "${USER_JSON}" | jq -c --arg businessTenant "${BUSINESS_TENANT}" \
+  '.properties = ((.properties // {}) + {tenant_id:$businessTenant})')"
+api_post "update-user?id=${TENANT}/${USER_NAME}" "${USER_UPDATED}"
+USER_JSON="$(api_get "get-user?id=${TENANT}/${USER_NAME}" | jq -c '.data // empty')"
+printf '%s' "${USER_JSON}" | jq -e --arg tenant "${TENANT}" --arg businessTenant "${BUSINESS_TENANT}" '
+  .owner == $tenant
+  and .properties.tenant_id == $businessTenant' >/dev/null
 SUBJECT="$(printf '%s' "${USER_JSON}" | jq -r '.id // empty')"
 [ -n "${SUBJECT}" ] || { echo "无法读取新用户 sub" >&2; exit 1; }
 USER_REF="${TENANT}/${USER_NAME}"
@@ -144,8 +155,9 @@ PAYLOAD="$(printf '%s' "${TOKEN}" | cut -d. -f2 | tr '_-' '/+')"
 PADDING=$(( (4-${#PAYLOAD}%4)%4 ))
 CLAIMS="$(printf '%s%*s' "${PAYLOAD}" "${PADDING}" '' | tr ' ' '=' | base64 -d 2>/dev/null)"
 
-printf '%s' "${CLAIMS}" | jq -e --arg tenant "${TENANT}" --arg cid "${CLIENT_ID}" --arg sub "${SUBJECT}" '
+printf '%s' "${CLAIMS}" | jq -e --arg tenant "${TENANT}" --arg businessTenant "${BUSINESS_TENANT}" --arg cid "${CLIENT_ID}" --arg sub "${SUBJECT}" '
   .owner == $tenant
+  and .properties.tenant_id == $businessTenant
   and .sub == $sub
   and ((.aud | if type=="array" then . else [.] end) | index($cid) != null)
   and ((.permissions // []) | map(if type=="object" then .name else . end) | index("benefit.admin") != null)
@@ -154,7 +166,7 @@ printf '%s' "${CLAIMS}" | jq -e --arg tenant "${TENANT}" --arg cid "${CLIENT_ID}
 PERMISSION_COUNT="$(printf '%s' "${CLAIMS}" | jq '(.permissions // []) | length')"
 JWKS_URI="${CASDOOR}/.well-known/jwks"
 echo "✅ benefit-center 统一身份开通并验证完成"
-echo "   tenant=${TENANT} user=${USER_NAME} sub=${SUBJECT} client_id=${CLIENT_ID} permissions=${PERMISSION_COUNT}"
+echo "   login_org=${TENANT} business_tenant=${BUSINESS_TENANT} user=${USER_NAME} sub=${SUBJECT} client_id=${CLIENT_ID} permissions=${PERMISSION_COUNT}"
 echo ""
 echo "   后端 JWT 模式 env（填入 benefit-center 部署；容器内 JWKS 改 host.docker.internal）："
 echo "     BENEFIT_SECURITY_DEV_MODE=false"

@@ -7,7 +7,8 @@
 # 用法：
 #   MARKETING_USER=marketing-e2e-admin PASSWORD='本地强口令' bash deploy/marketing-platform-provision.sh
 # 可选：CASDOOR_URL、CASDOOR_ADMIN、CASDOOR_ADMIN_PW、AUTHZ_POSTGRES_CONTAINER、
-#       SHARED_APP、SHARED_CLIENT_ID、SHARED_CLIENT_SECRET、REDIRECT_URIS。
+#       SHARED_APP、SHARED_CLIENT_ID、SHARED_CLIENT_SECRET、REDIRECT_URIS、
+#       MARKETING_BUSINESS_TENANT（货主业务租户，默认 retail-cn）。
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,6 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "${SCRIPT_DIR}/load-platform-ports.sh"
 
 TENANT="marketing-platform"
+BUSINESS_TENANT="${MARKETING_BUSINESS_TENANT:-retail-cn}"
 USER_NAME="${MARKETING_USER:?需要 MARKETING_USER（例如 marketing-e2e-admin）}"
 PASSWORD_VALUE="${PASSWORD:?需要 PASSWORD（不会写入仓库或日志）}"
 CASDOOR="${CASDOOR_URL:-http://localhost:8000}"
@@ -85,12 +87,17 @@ fi
 echo "==> 3. 开通用户 ${USER_NAME}@${TENANT}"
 USER_JSON="$(api_get "get-user?id=${TENANT}/${USER_NAME}" | jq -c '.data // empty')"
 if [ -z "${USER_JSON}" ]; then
-  api_post add-user "$(jq -nc --arg tenant "${TENANT}" --arg user "${USER_NAME}" --arg password "${PASSWORD_VALUE}" --arg app "${SHARED_APP}" '{owner:$tenant,name:$user,type:"normal-user",displayName:$user,email:($user+"@marketing-platform.local"),phone:"",password:$password,signupApplication:$app,isAdmin:false,isForbidden:false,isDeleted:false,properties:{}}')"
+  api_post add-user "$(jq -nc --arg tenant "${TENANT}" --arg businessTenant "${BUSINESS_TENANT}" --arg user "${USER_NAME}" --arg password "${PASSWORD_VALUE}" --arg app "${SHARED_APP}" '{owner:$tenant,name:$user,type:"normal-user",displayName:$user,email:($user+"@marketing-platform.local"),phone:"",password:$password,signupApplication:$app,isAdmin:false,isForbidden:false,isDeleted:false,properties:{tenant_id:$businessTenant}}')"
 fi
 curl -sf -X POST "${CASDOOR}/api/set-password" -H "Authorization: Bearer ${ADMIN_TOKEN}" \
   --data-urlencode "userOwner=${TENANT}" --data-urlencode "userName=${USER_NAME}" \
   --data-urlencode 'oldPassword=' --data-urlencode "newPassword=${PASSWORD_VALUE}" >/dev/null
 
+USER_JSON="$(api_get "get-user?id=${TENANT}/${USER_NAME}" | jq -c '.data // empty')"
+# Casdoor owner 只表示登录组织；货主业务租户写入受管理员控制的用户属性，由服务端归一化为 tenant_id。
+USER_UPDATED="$(printf '%s' "${USER_JSON}" | jq -c --arg businessTenant "${BUSINESS_TENANT}" \
+  '.properties = ((.properties // {}) + {tenant_id:$businessTenant})')"
+api_post "update-user?id=${TENANT}/${USER_NAME}" "${USER_UPDATED}"
 USER_JSON="$(api_get "get-user?id=${TENANT}/${USER_NAME}" | jq -c '.data // empty')"
 SUBJECT="$(printf '%s' "${USER_JSON}" | jq -r '.id // empty')"
 [ -n "${SUBJECT}" ] || { echo "无法读取新用户 sub" >&2; exit 1; }
@@ -170,8 +177,9 @@ PAYLOAD="$(printf '%s' "${TOKEN}" | cut -d. -f2 | tr '_-' '/+')"
 PADDING=$(( (4-${#PAYLOAD}%4)%4 ))
 CLAIMS="$(printf '%s%*s' "${PAYLOAD}" "${PADDING}" '' | tr ' ' '=' | base64 -d 2>/dev/null)"
 
-printf '%s' "${CLAIMS}" | jq -e --arg tenant "${TENANT}" --arg cid "${CLIENT_ID}" --arg sub "${SUBJECT}" '
+printf '%s' "${CLAIMS}" | jq -e --arg tenant "${TENANT}" --arg businessTenant "${BUSINESS_TENANT}" --arg cid "${CLIENT_ID}" --arg sub "${SUBJECT}" '
   .owner == $tenant
+  and .properties.tenant_id == $businessTenant
   and .sub == $sub
   and ((.aud | if type=="array" then . else [.] end) | index($cid) != null)
   and ((.permissions // []) | map(if type=="object" then .name else . end) | index("marketing.admin") != null)
@@ -180,7 +188,7 @@ printf '%s' "${CLAIMS}" | jq -e --arg tenant "${TENANT}" --arg cid "${CLIENT_ID}
 PERMISSION_COUNT="$(printf '%s' "${CLAIMS}" | jq '(.permissions // []) | length')"
 JWKS_URI="${CASDOOR}/.well-known/jwks"
 echo "✅ marketing-platform 统一身份开通并验证完成"
-echo "   tenant=${TENANT} user=${USER_NAME} sub=${SUBJECT} client_id=${CLIENT_ID} permissions=${PERMISSION_COUNT}"
+echo "   login_org=${TENANT} business_tenant=${BUSINESS_TENANT} user=${USER_NAME} sub=${SUBJECT} client_id=${CLIENT_ID} permissions=${PERMISSION_COUNT}"
 echo ""
 echo "   后端 JWT 模式 env（填入 marketing-lowcode-platform 部署；容器内 issuer 改 host.docker.internal）："
 echo "     MARKETING_SECURITY_MODE=OIDC"

@@ -17,6 +17,9 @@ export interface ProjectEntry {
   displayHost?: string
   openMode: OpenMode
   order: number
+  loginOrgHint?: string
+  ownerTenantHint?: string
+  roleInChain?: string
 }
 
 export interface Catalog {

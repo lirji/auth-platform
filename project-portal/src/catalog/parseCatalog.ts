@@ -117,6 +117,10 @@ function projectOf(
     return null
   }
 
+  const loginOrgHint = optionalHint(raw.loginOrgHint, 80)
+  const ownerTenantHint = optionalHint(raw.ownerTenantHint, 80)
+  const roleInChain = optionalHint(raw.roleInChain, 40)
+
   seenIds.add(id)
   return {
     id,
@@ -132,7 +136,15 @@ function projectOf(
     displayHost: launch?.host,
     openMode,
     order: order as number,
+    loginOrgHint,
+    ownerTenantHint,
+    roleInChain,
   }
+}
+
+function optionalHint(value: unknown, max: number): string | undefined {
+  if (value === undefined) return undefined
+  return text(value, max) ?? undefined
 }
 
 export function parseCatalog(value: unknown): ParsedCatalog {

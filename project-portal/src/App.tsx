@@ -38,7 +38,7 @@ export default function App() {
         <section className="hero">
           <p className="eyebrow">UNIFIED CAPABILITY HUB</p>
           <h1>发现并进入<br /><span>正在提供的技术能力</span></h1>
-          <p className="hero-copy">一站式浏览 AI、推荐、规则、流程、风控、对账与权益能力。进入项目后，登录与业务权限由各业务系统按接入进度独立管理。</p>
+          <p className="hero-copy">一站式浏览 AI、推荐、规则、流程、风控、对账与权益能力。各台登录组织不同，不要填成同一个。创建活动只能使用同一业务租户（货主）已投放的商品。</p>
           {state.kind === 'ready' && (
             <SearchFilters
               query={query}
@@ -88,7 +88,9 @@ export default function App() {
 
       <footer>
         <span>能力门户仅提供项目导航</span>
-        <span>登录与业务权限由各目标项目独立管理</span>
+        <span>登录组织各台独立；货主业务租户必须一致</span>
+        <a href="http://127.0.0.1:3001" target="_blank" rel="noopener noreferrer">Grafana Tempo :3001</a>
+        <span>密码见营销 .env 的 GRAFANA_ADMIN_PASSWORD</span>
       </footer>
     </div>
   )

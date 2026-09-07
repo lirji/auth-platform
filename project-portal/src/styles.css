@@ -98,6 +98,10 @@ main { max-width: 1240px; margin: 0 auto; padding: 42px 28px 72px; }
 .project-action:hover { background: var(--primary-dark); box-shadow: 0 6px 16px rgba(49,94,251,.2); }
 .project-action:focus-visible { outline: 3px solid rgba(49,94,251,.32); outline-offset: 3px; }
 .project-action--disabled { color: #8e98a9; background: #eef1f5; cursor: not-allowed; }
+.federation-hints { display: grid; gap: 6px; margin: 0; }
+.federation-hints div { display: grid; gap: 2px; }
+.federation-hints dt { color: #8a94a6; font-size: 10px; font-weight: 700; }
+.federation-hints dd { margin: 0; color: #4b5568; font-size: 12px; }
 .auth-hint { margin: -8px 0 0; color: #98a2b3; font-size: 11px; }
 .catalog-warning { margin-bottom: 16px; padding: 11px 14px; border: 1px solid #f3d7a6; border-radius: 10px; color: #80520f; background: #fff8e9; font-size: 13px; }
 

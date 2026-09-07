@@ -30,6 +30,21 @@ describe('parseCatalog', () => {
     assert.equal(result.catalog.projects[0].healthUrl, 'https://app.example.com/healthz')
   })
 
+  it('保留非密钥的联邦提示且不写进 launchUrl', () => {
+    const result = parseCatalog({
+      schemaVersion: 1,
+      projects: [project({
+        loginOrgHint: 'marketing-platform',
+        ownerTenantHint: '与权益同一货主',
+        roleInChain: '编排活动',
+      })],
+    })
+    assert.equal(result.catalog.projects[0].loginOrgHint, 'marketing-platform')
+    assert.equal(result.catalog.projects[0].ownerTenantHint, '与权益同一货主')
+    assert.equal(result.catalog.projects[0].roleInChain, '编排活动')
+    assert.equal(new URL(result.catalog.projects[0].launchUrl!).searchParams.has('tenant'), false)
+  })
+
   for (const launchUrl of ['javascript:alert(1)', 'data:text/html,bad', 'http://example.com/login', 'https://user:pass@example.com/login']) {
     it(`拒绝危险链接 ${launchUrl}`, () => {
       const result = parseCatalog({ schemaVersion: 1, projects: [project({ launchUrl })] })

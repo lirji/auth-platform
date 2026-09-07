@@ -55,6 +55,13 @@ export function ProjectCard({ project, reachability }: { project: ProjectEntry; 
         </div>
         {action}
       </div>
+      {(project.roleInChain || project.loginOrgHint || project.ownerTenantHint) && presentationStatus === 'available' && (
+        <dl className="federation-hints">
+          {project.roleInChain && <div><dt>在链路中</dt><dd>{project.roleInChain}</dd></div>}
+          {project.loginOrgHint && <div><dt>登录组织</dt><dd>{project.loginOrgHint}</dd></div>}
+          {project.ownerTenantHint && <div><dt>货主租户</dt><dd>{project.ownerTenantHint}</dd></div>}
+        </dl>
+      )}
       <p className="auth-hint">
         {presentationStatus === 'checking'
           ? '正在检测目标项目是否可访问'
@@ -64,7 +71,7 @@ export function ProjectCard({ project, reachability }: { project: ProjectEntry; 
               ? '项目正在建设，开放后可从门户进入'
               : presentationStatus === 'maintenance'
                 ? '项目正在维护，恢复后可从门户进入'
-                : '登录与业务权限由目标项目独立管理'}
+                : '登录组织各台不同；创建活动只能看见同一货主已投放的商品'}
       </p>
     </article>
   )

@@ -16,6 +16,9 @@ export function filterProjects(projects: ProjectEntry[], query: string, category
       ...project.capabilities,
       ...project.tags,
       project.displayHost ?? '',
+      project.loginOrgHint ?? '',
+      project.ownerTenantHint ?? '',
+      project.roleInChain ?? '',
     ].join(' ')).includes(needle)
   })
 }
