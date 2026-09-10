@@ -133,7 +133,7 @@ TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh # 部门层级模型 seed 
 新租户 org 自动继承 built-in 的 navItems 菜单裁剪)、`casdoor-hide-business.sh`(把所有 org 侧边栏 navItems 设白名单、
 隐藏 Casdoor「商业」菜单,`RESTORE=1` 恢复)、`recsys-authz-fixture.sh`(recsys 广告主模型 seed/自校验,
 目标 recsys 专属 SpiceDB 实例 :8544,勿指到本项目 :8543)、`risk-platform-provision.sh`(risk 身份+权限)、
-`recon-platform-provision.sh`(对账身份+权限,无 SpiceDB)、`benefit-platform-provision.sh`(权益发放中台身份+scope,无 SpiceDB)。
+`recon-platform-provision.sh`(对账身份+权限,无 SpiceDB)、`benefit-platform-provision.sh`(权益发放中台身份+scope,无 SpiceDB)、`wms-platform-provision.py`(WMS 身份+仓范围 scope,无 SpiceDB；凭据写入调用方 `WMS_IAM_CREDENTIALS`)。
 
 ## 状态
 
