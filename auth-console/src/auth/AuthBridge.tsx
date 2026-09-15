@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useAuthStore } from '../store/authStore'
-import { groupsFromToken } from './oidcConfig'
+import { groupsFromToken, ownerFromToken } from './oidcConfig'
 
 /** 把 react-oidc-context 的会话态同步进 authStore 镜像(供 UI/守卫同步读取)。 */
 export default function AuthBridge() {
@@ -21,6 +21,7 @@ export default function AuthBridge() {
           (profile.name as string | undefined) ??
           profile.sub,
         authorities: groupsFromToken(auth.user.access_token),
+        owner: ownerFromToken(auth.user.access_token),
       })
     } else {
       clear()

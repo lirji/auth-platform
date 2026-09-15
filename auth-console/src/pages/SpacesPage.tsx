@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, App, Button, Card, Col, Input, Popconfirm, Row, Space, Switch, Tag, Tree, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useParams } from 'react-router-dom'
 import { PageHeader } from '../components/layout/PageHeader'
 import { ObjectTypeSelect, PermissionSelect } from '../components/domain/selects'
 import { RefBadge, TupleText } from '../components/domain/RefBadge'
@@ -13,6 +13,7 @@ import { listRelationships, type Relationship } from '../api/authz'
 import { humanizeError, useCheck, useExpand, useGrant, useLookupResources, useRevoke } from '../hooks/useAuthz'
 import { expandToTree } from '../domain/expandTree'
 import { isAdmin, useAuthStore } from '../store/authStore'
+import { wsQueryKey } from '../workspace/keys'
 
 // 结构关系(所属组织/空间/文件夹)不是"成员角色",排除出成员管理。
 const STRUCTURAL = new Set(['parent_org', 'parent_space', 'parent_folder'])
@@ -33,6 +34,7 @@ const hasPublicLink = (t: ObjectType) => relationsFor(t).includes('public_viewer
 export default function SpacesPage() {
   const { message } = App.useApp()
   const qc = useQueryClient()
+  const { workspaceId = '' } = useParams()
   const [params, setParams] = useSearchParams()
 
   const typeParam = params.get('type')
@@ -44,7 +46,7 @@ export default function SpacesPage() {
   const myId = useAuthStore((s) => s.userId)
   const canWrite = isAdmin(authorities)
 
-  const relKey = ['relationships', resourceType, resourceId] as const
+  const relKey = wsQueryKey(workspaceId, 'relationships', resourceType, resourceId)
   const rels = useQuery({
     queryKey: relKey,
     queryFn: () => listRelationships(resourceType, resourceId),

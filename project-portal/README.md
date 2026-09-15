@@ -11,9 +11,11 @@ corepack pnpm test:run
 corepack pnpm build
 ```
 
-本地默认目录在 `public/config/catalog.json`。所有本地入口端口以 `../deploy/platform-ports.env` 为唯一来源；修改注册表后运行 `../deploy/platform-ports.sh sync` 自动更新 catalog 并校验各项目 Compose，禁止手工维护两份端口。自动对账平台当前按项目计划先开放独立管理台，待后续接入 Casdoor 鉴权。权益发放中台与营销低代码平台本地入口指向 `/login`；OIDC 分别只接受组织 `benefit-center`、`marketing-platform`；默认 Compose 仍可走本地开发模式。
+本地默认目录在 `public/config/catalog.json`。所有本地入口端口以 `../deploy/platform-ports.env` 为唯一来源；修改注册表后运行 `../deploy/platform-ports.sh sync` 自动更新 catalog 并校验各项目 Compose，禁止手工维护两份端口。登录组织、账号与业务租户见 [`../docs/本地Casdoor账号.md`](../docs/本地Casdoor账号.md)。对账 / 权益 / 营销 / 风控 / 流程走 Casdoor 组织名；统一权限平台、交易中心、WMS 与 OA 为独立应用。授权管控台由 Vite `:5273` 提供；交易中心运营台由 Vite `:4180` 提供；WMS 走 Docker 控制台 `:18180`；OA 走 Docker 控制台 `:8404/login`。
 
 每个配置为 `available` 的项目可设置与 `launchUrl` 同源的专用 `healthUrl`。健康端点必须允许门户跨域 GET（本地约定 `Access-Control-Allow-Origin: *`）；门户不携带凭据，仅把 2xx 响应视为可用。检测中暂时禁用入口，非 2xx、超时或网络/CORS 失败显示“当前不可用”，每 30 秒及页面重新可见时自动复检；未配置 `healthUrl` 时仍按静态状态展示。
+
+卡片左上角手柄可拖动调整本机显示顺序（也可用方向键），保存在浏览器 `localStorage`，不写回 `catalog.json`。点「恢复默认顺序」即回到目录里的 `order` 字段。
 
 ## 运行时目录
 

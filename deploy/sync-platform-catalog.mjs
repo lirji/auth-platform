@@ -13,6 +13,7 @@ const catalogFile = process.env.PLATFORM_CATALOG_FILE
 const checkOnly = process.argv.includes('--check')
 
 const bindings = [
+  ['auth-platform', 'AUTH_CONSOLE_UI_PORT'],
   ['langchain4j', 'LANGCHAIN4J_UI_PORT'],
   ['recsys', 'RECSYS_UI_PORT'],
   ['drools', 'DROOLS_UI_PORT'],
@@ -21,6 +22,9 @@ const bindings = [
   ['reconciliation', 'RECON_UI_PORT'],
   ['benefit', 'BENEFIT_UI_PORT'],
   ['marketing', 'MARKETING_UI_PORT'],
+  ['transaction-center', 'TRADE_UI_PORT'],
+  ['wms', 'WMS_UI_PORT'],
+  ['oa', 'OA_UI_PORT'],
 ]
 
 function fail(message) {

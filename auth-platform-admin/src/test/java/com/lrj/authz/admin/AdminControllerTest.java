@@ -2,6 +2,7 @@ package com.lrj.authz.admin;
 
 import com.lrj.authz.admin.AdminDtos.CheckRequest;
 import com.lrj.authz.admin.AdminDtos.GrantRequest;
+import com.lrj.authz.admin.workspace.WorkspaceRegistry;
 import com.lrj.authz.protocol.AuthzEngine;
 import com.lrj.authz.protocol.Consistency;
 import com.lrj.authz.protocol.Relationship;
@@ -177,6 +178,30 @@ class AdminControllerTest {
         assertThat(controller.auditLog(7)).containsExactly(record);
         verify(engine).readRelationships(filter);
         verify(audit).recent(7);
+    }
+
+    @Test
+    void auditLogKeepsOnlyCurrentWorkspaceRecords() {
+        AuthzEngine engine = mock(AuthzEngine.class);
+        InMemoryAuditStore store = new InMemoryAuditStore(20);
+        WorkspaceRegistry registry = mock(WorkspaceRegistry.class);
+        when(registry.currentId()).thenReturn("recsys");
+        when(engine.writeRelationships(anyList())).thenReturn(new ZedTokenView("zed-ws"));
+        Jwt jwt = mock(Jwt.class);
+        when(jwt.getClaimAsString("name")).thenReturn("ops");
+
+        AdminController controller = new AdminController(engine, store, registry);
+        controller.grant(USERSET, jwt);
+
+        when(registry.currentId()).thenReturn("knowledge");
+        assertThat(controller.auditLog(10)).isEmpty();
+
+        when(registry.currentId()).thenReturn("recsys");
+        assertThat(controller.auditLog(10))
+                .extracting(AuditStore.AuditRecord::action, AuditStore.AuditRecord::detail)
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple("grant.ok", "document:d1#viewer@group:acme_eng#member"),
+                        org.assertj.core.groups.Tuple.tuple("grant.intent", "document:d1#viewer@group:acme_eng#member"));
     }
 
     @Test

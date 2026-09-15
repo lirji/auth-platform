@@ -1,16 +1,20 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, Card, Col, Row, Segmented } from 'antd'
+import { useParams } from 'react-router-dom'
 import { apiClient } from '../api/client'
 import { parseZed } from '../domain/zedParser'
 import { PageHeader } from '../components/layout/PageHeader'
 import { EmptyState, ErrorState, PageSkeleton } from '../components/common/AsyncState'
 import { SchemaTypeCard } from '../components/domain/SchemaTypeCard'
+import { wsQueryKey } from '../workspace/keys'
+import { humanizeError } from '../hooks/useAuthz'
 
 export default function SchemaViewerPage() {
+  const { workspaceId = '' } = useParams()
   const [view, setView] = useState<'cards' | 'raw'>('cards')
   const q = useQuery({
-    queryKey: ['schema'],
+    queryKey: wsQueryKey(workspaceId, 'schema'),
     queryFn: () => apiClient.get<{ schema: string }>('/admin/schema').then((r) => r.data.schema),
   })
   const defs = useMemo(() => (q.data ? parseZed(q.data) : []), [q.data])
@@ -34,7 +38,7 @@ export default function SchemaViewerPage() {
       {q.isLoading ? (
         <PageSkeleton />
       ) : q.isError ? (
-        <ErrorState message="需登录且 admin 已提供 GET /admin/schema" onRetry={() => q.refetch()} />
+        <ErrorState message={humanizeError(q.error)} onRetry={() => q.refetch()} />
       ) : view === 'raw' ? (
         <Card>
           <pre className="mono" style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: 13 }}>

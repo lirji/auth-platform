@@ -14,6 +14,7 @@ ORG = 'wms-platform'
 APP = 'wms-platform'
 CLIENT = 'wms-platform'
 ENTERPRISE = 'ENT-DEMO'
+UI_PORT = os.environ.get('WMS_UI_PORT', '18180')
 
 
 def request(path, data=None, token=None, form=False):
@@ -31,15 +32,24 @@ def request(path, data=None, token=None, form=False):
     return result
 
 
-def builtin_secret():
+def builtin_app():
+    """按应用名读取 built-in client，避免 Casdoor 重建后旧 client_id 失效。"""
+    env_cid = os.environ.get('CASDOOR_BUILTIN_CLIENT_ID', '').strip()
     env_secret = os.environ.get('CASDOOR_BUILTIN_CLIENT_SECRET', '').strip()
-    if env_secret:
-        return env_secret
     container = os.environ.get('AUTHZ_POSTGRES_CONTAINER', 'authz-postgres')
-    return subprocess.check_output(
+    client_id = env_cid or os.environ.get('BUILTIN_CID', '').strip()
+    if not client_id:
+        client_id = subprocess.check_output(
+            ['docker', 'exec', container, 'psql', '-U', 'authz', '-d', 'spicedb', '-Atc',
+             "select client_id from application where name='app-built-in' and owner='admin'"],
+            text=True).strip()
+    secret = env_secret or subprocess.check_output(
         ['docker', 'exec', container, 'psql', '-U', 'authz', '-d', 'spicedb', '-Atc',
-         "select client_secret from application where name='app-built-in' and owner='admin'"],
+         f"select client_secret from application where client_id='{client_id}'"],
         text=True).strip()
+    if not client_id or not secret:
+        raise RuntimeError('无法读取 Casdoor built-in 应用凭据')
+    return client_id, secret
 
 
 def main():
@@ -61,12 +71,12 @@ def main():
         fd = os.open(credential_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, 'w') as stream:
             json.dump(credentials, stream)
-    secret = builtin_secret()
+    builtin_cid, secret = builtin_app()
     admin = request('login/oauth/access_token', {
         'grant_type': 'password',
         'username': os.environ.get('CASDOOR_ADMIN', 'admin'),
         'password': os.environ.get('CASDOOR_ADMIN_PW', '123'),
-        'client_id': os.environ.get('CASDOOR_BUILTIN_CLIENT_ID', 'ea46d9a8033b0be2d8ed'),
+        'client_id': builtin_cid,
         'client_secret': secret,
         'scope': 'openid',
     }, form=True)['access_token']
@@ -98,6 +108,11 @@ def main():
     if existing and (existing.get('organization') != ORG or existing.get('clientId') != CLIENT):
         raise RuntimeError('同名应用配置冲突，请人工核对')
     redirects = ['http://127.0.0.1:18190/auth/callback', 'http://localhost:18190/auth/callback']
+    extra_ports = {UI_PORT, '18180'}
+    for host in ['localhost', '127.0.0.1']:
+        for port in sorted(extra_ports, key=int):
+            redirects.append(f'http://{host}:{port}/callback')
+            redirects.append(f'http://{host}:{port}/login')
     ensure('application', 'admin', APP, {
         'displayName': 'WMS 资源服务器',
         'organization': ORG,

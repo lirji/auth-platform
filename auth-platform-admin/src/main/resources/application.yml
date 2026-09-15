@@ -25,6 +25,28 @@ authz:
     jdbc-url: ${AUTHZ_AUDIT_JDBC_URL:jdbc:postgresql://localhost:15432/authz_admin}
     username: ${AUTHZ_AUDIT_DB_USER:authz}
     password: ${AUTHZ_AUDIT_DB_PASSWORD:authz_dev_pw}
+  # 授权工作区：每个项目一份 SpiceDB。built-in/authz-admin 可切换全部；其它身份只进 JWT owner 命中的组织。
+  workspaces:
+    - id: knowledge
+      name: 知识库与 HIS
+      organization: built-in
+      organizations: [acme, globex]
+      home: spaces
+      features: [grants, playground, schema, spaces, sync, audit]
+    - id: recsys
+      name: 推荐系统
+      organization: recsys
+      home: grants
+      features: [grants, playground, schema, audit]
+      endpoint: ${RECSYS_SPICEDB_HTTP:http://localhost:8544}
+      token: ${RECSYS_SPICEDB_KEY:recsys_dev_key}
+    - id: risk
+      name: 智能风控
+      organization: risk-platform
+      home: grants
+      features: [grants, playground, schema, audit]
+      endpoint: ${RISK_SPICEDB_HTTP:http://localhost:8545}
+      token: ${RISK_SPICEDB_KEY:risk_dev_key}
 
 management:
   endpoints:

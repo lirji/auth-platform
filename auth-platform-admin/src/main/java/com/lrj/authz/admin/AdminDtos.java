@@ -31,4 +31,11 @@ public final class AdminDtos {
 
     public record ResourcesResponse(List<String> resourceIds) {
     }
+
+    public record WorkspaceView(String id, String name, String organization, String home,
+                                List<String> features, String endpoint) {
+    }
+
+    public record WorkspacesResponse(List<WorkspaceView> workspaces) {
+    }
 }

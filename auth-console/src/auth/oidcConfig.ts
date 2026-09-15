@@ -18,22 +18,30 @@ export const oidcSettings: UserManagerSettings = {
 // 供 axios 等命令式读取当前 token 的独立实例(不自动续期,避免与 AuthProvider 双续期);共享同一 sessionStorage。
 export const userManager = new UserManager({ ...oidcSettings, automaticSilentRenew: false })
 
+/** 从 access_token 解出 Casdoor 组织 owner。 */
+export function ownerFromToken(accessToken?: string): string {
+  const payload = tokenPayload(accessToken)
+  return typeof payload?.owner === 'string' ? payload.owner : ''
+}
+
 /** 从 access_token 解出归一化(shortName)后的 groups。 */
 export function groupsFromToken(accessToken?: string): string[] {
-  if (!accessToken) return []
+  const payload = tokenPayload(accessToken)
+  if (!Array.isArray(payload?.groups)) return []
+  return payload.groups.map((s: unknown) => {
+    const str = String(s)
+    const i = str.lastIndexOf('/')
+    return i >= 0 ? str.slice(i + 1) : str
+  })
+}
+
+function tokenPayload(accessToken?: string): { owner?: unknown; groups?: unknown } | null {
+  if (!accessToken) return null
   try {
     let b64 = accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
     b64 += '='.repeat((4 - (b64.length % 4)) % 4)
-    const payload = JSON.parse(atob(b64)) as { groups?: unknown }
-    if (Array.isArray(payload.groups)) {
-      return payload.groups.map((s: unknown) => {
-        const str = String(s)
-        const i = str.lastIndexOf('/')
-        return i >= 0 ? str.slice(i + 1) : str
-      })
-    }
+    return JSON.parse(atob(b64)) as { owner?: unknown; groups?: unknown }
   } catch {
-    // ignore
+    return null
   }
-  return []
 }

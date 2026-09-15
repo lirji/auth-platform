@@ -35,10 +35,10 @@ describe('项目目录入口契约', () => {
   }))
 
   for (const { label, catalog } of catalogs) {
-    it(`${label}包含八个正式项目，已开放项目都有安全入口`, () => {
+    it(`${label}包含十二个正式项目，已开放项目都有安全入口`, () => {
       assert.deepEqual(
         catalog.projects.map(({ id }) => id),
-        ['langchain4j', 'recsys', 'drools', 'risk', 'workflow', 'reconciliation', 'benefit', 'marketing'],
+        ['auth-platform', 'langchain4j', 'recsys', 'drools', 'risk', 'workflow', 'reconciliation', 'benefit', 'marketing', 'transaction-center', 'wms', 'oa'],
       )
 
       for (const project of catalog.projects.filter(({ status }) => status === 'available')) {
@@ -77,6 +77,7 @@ describe('项目目录入口契约', () => {
     assert.deepEqual(
       localHosts,
       {
+        'auth-platform': `localhost:${ports.AUTH_CONSOLE_UI_PORT}`,
         langchain4j: `localhost:${ports.LANGCHAIN4J_UI_PORT}`,
         recsys: `localhost:${ports.RECSYS_UI_PORT}`,
         drools: `localhost:${ports.DROOLS_UI_PORT}`,
@@ -85,6 +86,9 @@ describe('项目目录入口契约', () => {
         reconciliation: `localhost:${ports.RECON_UI_PORT}`,
         benefit: `localhost:${ports.BENEFIT_UI_PORT}`,
         marketing: `localhost:${ports.MARKETING_UI_PORT}`,
+        'transaction-center': `localhost:${ports.TRADE_UI_PORT}`,
+        wms: `localhost:${ports.WMS_UI_PORT}`,
+        oa: `localhost:${ports.OA_UI_PORT}`,
       },
     )
     for (const entry of local.projects) {
@@ -92,6 +96,11 @@ describe('项目目录入口契约', () => {
         assert.equal(new URL(entry.healthUrl).pathname, '/healthz', `${entry.id} 必须使用专用健康端点`)
       }
     }
+
+    const iam = local.projects.find(({ id }) => id === 'auth-platform')
+    assert.equal(iam?.status, 'available')
+    assert.equal(iam?.launchUrl, `http://localhost:${ports.AUTH_CONSOLE_UI_PORT}/login?returnTo=%2F`)
+    assert.equal(iam?.healthUrl, `http://localhost:${ports.AUTH_CONSOLE_UI_PORT}/healthz`)
 
     const recon = local.projects.find(({ id }) => id === 'reconciliation')
     assert.equal(recon?.status, 'available')
@@ -107,10 +116,30 @@ describe('项目目录入口契约', () => {
     assert.equal(marketing?.status, 'available')
     assert.equal(marketing?.launchUrl, `http://localhost:${ports.MARKETING_UI_PORT}/login?returnTo=%2F`)
     assert.equal(marketing?.healthUrl, `http://localhost:${ports.MARKETING_UI_PORT}/healthz`)
+
+    const trade = local.projects.find(({ id }) => id === 'transaction-center')
+    assert.equal(trade?.status, 'available')
+    assert.equal(trade?.launchUrl, `http://localhost:${ports.TRADE_UI_PORT}/login?returnTo=%2F`)
+    assert.equal(trade?.healthUrl, `http://localhost:${ports.TRADE_UI_PORT}/healthz`)
+
+    const wms = local.projects.find(({ id }) => id === 'wms')
+    assert.equal(wms?.status, 'available')
+    assert.equal(wms?.launchUrl, `http://localhost:${ports.WMS_UI_PORT}/login?returnTo=%2F`)
+    assert.equal(wms?.healthUrl, `http://localhost:${ports.WMS_UI_PORT}/healthz`)
+
+    const oa = local.projects.find(({ id }) => id === 'oa')
+    assert.equal(oa?.status, 'available')
+    assert.equal(oa?.launchUrl, `http://localhost:${ports.OA_UI_PORT}/login?returnTo=%2F`)
+    assert.equal(oa?.healthUrl, `http://localhost:${ports.OA_UI_PORT}/healthz`)
   })
 
   it('生产示例在正式域名与鉴权未配置前保持未开放', () => {
     const production = catalogs[1].catalog
+    const iam = production.projects.find(({ id }) => id === 'auth-platform')
+    assert.equal(iam?.status, 'available')
+    assert.equal(iam?.launchUrl, 'https://auth.example.com/login?returnTo=%2F')
+    assert.equal(iam?.healthUrl, 'https://auth.example.com/healthz')
+
     const recon = production.projects.find(({ id }) => id === 'reconciliation')
     assert.equal(recon?.status, 'coming-soon')
     assert.equal(recon?.launchUrl, undefined)
@@ -125,5 +154,20 @@ describe('项目目录入口契约', () => {
     assert.equal(marketing?.status, 'coming-soon')
     assert.equal(marketing?.launchUrl, undefined)
     assert.equal(marketing?.healthUrl, undefined)
+
+    const trade = production.projects.find(({ id }) => id === 'transaction-center')
+    assert.equal(trade?.status, 'coming-soon')
+    assert.equal(trade?.launchUrl, undefined)
+    assert.equal(trade?.healthUrl, undefined)
+
+    const wms = production.projects.find(({ id }) => id === 'wms')
+    assert.equal(wms?.status, 'coming-soon')
+    assert.equal(wms?.launchUrl, undefined)
+    assert.equal(wms?.healthUrl, undefined)
+
+    const oa = production.projects.find(({ id }) => id === 'oa')
+    assert.equal(oa?.status, 'coming-soon')
+    assert.equal(oa?.launchUrl, undefined)
+    assert.equal(oa?.healthUrl, undefined)
   })
 })

@@ -48,7 +48,7 @@ DEPLOY_DIR="$ROOT/deploy"
 # ---- 端口 (与 application.yml / docker-compose / vite.config 保持一致) ----
 SERVER_PORT="${SERVER_PORT:-8200}"
 ADMIN_PORT="${ADMIN_PORT:-8201}"
-FRONTEND_PORT="${FRONTEND_PORT:-5273}"
+FRONTEND_PORT="${AUTH_CONSOLE_UI_PORT}"
 PORTAL_PORT="$AUTH_PORTAL_UI_PORT"
 SPICEDB_HTTP_PORT="${SPICEDB_HTTP_PORT:-8543}"
 CASDOOR_PORT="${CASDOOR_PORT:-8000}"
@@ -184,8 +184,9 @@ start_frontend(){
     info "前端依赖缺失, 执行 ${PM} install"
     ( cd "$FRONTEND_DIR" && "$PM" install ) || die "前端依赖安装失败"
   fi
+  export AUTH_CONSOLE_UI_PORT="$FRONTEND_PORT"
   spawn frontend "$FRONTEND_PORT" "$FRONTEND_DIR" "$PM" run dev
-  wait_http "http://localhost:${FRONTEND_PORT}/" "auth-console(:${FRONTEND_PORT})" 90 \
+  wait_http "http://localhost:${FRONTEND_PORT}/healthz" "auth-console(:${FRONTEND_PORT})" 90 \
     && ok "前端就绪" || warn "前端未就绪, 查 ${LOG_DIR}/frontend.log"
 }
 

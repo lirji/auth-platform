@@ -2,6 +2,7 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import type { User } from 'oidc-client-ts'
 import { config } from '../config'
 import { userManager } from '../auth/oidcConfig'
+import { activeWorkspace } from '../workspace/session'
 
 /** 空 baseURL → 相对路径 → dev vite proxy / prod nginx 同源反代到 admin:8201。 */
 export const apiClient = axios.create({
@@ -14,6 +15,10 @@ apiClient.interceptors.request.use(async (cfg) => {
   const user = await userManager.getUser()
   if (user && !user.expired && user.access_token) {
     cfg.headers.Authorization = `Bearer ${user.access_token}`
+  }
+  const url = cfg.url ?? ''
+  if (!url.includes('/admin/workspaces') && !url.includes('/admin/casdoor')) {
+    cfg.headers['X-Authz-Workspace'] = activeWorkspace()
   }
   return cfg
 })

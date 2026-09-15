@@ -28,7 +28,7 @@ pnpm dev        # http://localhost:5273  (/admin 同源反代到 auth-platform-a
 pnpm build      # tsc 类型检查 + vite 打包 → dist/
 ```
 
-前置:`auth-platform-admin`(:8201)在跑;后续鉴权(M2)需 Casdoor(:8000)+ 在 Casdoor 建 `auth-console` 应用并把 `VITE_CASDOOR_CLIENT_ID` 填进 `.env.local`。
+前置:`auth-platform-admin`(:8201)在跑;Casdoor(:8000) 用 `bash deploy/auth-console-provision.sh` 开通独立应用 `auth-console`（client_id 写入 `.env.local`）。能力门户入口为 `/login?returnTo=%2F`，健康检查 `/healthz`。登录后 `built-in/admin`（组 `authz-admin`）会看到知识库 / 推荐系统 / 智能风控三个工作区；点进后 URL 为 `/w/{id}/...`，请求头 `X-Authz-Workspace` 指向对应 SpiceDB。详见 [`docs/design/auth-workspaces.md`](../docs/design/auth-workspaces.md)。
 
 ## 配置(`.env.local`,见 `.env.example`)
 
@@ -73,7 +73,7 @@ src/
     layout/                     AppLayout(壳层+响应式 Drawer)/ PageHeader
     common/AsyncState.tsx       PageSkeleton / ErrorState / EmptyState
     domain/                     SemanticTag(关系vs权限)/ AllowDenyResult / SchemaTypeCard / RefBadge / selects / SpaceMemberCard
-  pages/*.tsx                   7 业务页 + CallbackPage
+  pages/*.tsx                   登录后工作区选择 + /w/:id 下业务页 + CallbackPage
   main.tsx                      ConfigProvider(theme) + QueryClient + RouterProvider
 ```
 
