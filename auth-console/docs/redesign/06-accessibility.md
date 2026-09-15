@@ -6,7 +6,7 @@
 
 | 元素 | 处理 | 文件 |
 |---|---|---|
-| Overview 任务卡 | `role="button"` + `tabIndex={0}` + `onKeyDown`(Enter/Space → 跳转,`preventDefault`) | `OverviewPage.tsx` |
+| Overview 任务卡 | `role="button"` + `tabIndex={0}` + `onKeyDown`(Enter/Space → 跳转,`preventDefault`) | `WorkspaceOverview.tsx` / `WorkspaceHome.tsx` |
 | Header 折叠/汉堡按钮 | 换成 antd `Button`(原生可聚焦) | `AppLayout.tsx` |
 | 账户下拉触发器 | `Dropdown` 触发器用可聚焦 `Button` 包裹(非裸 `<span>`) | `AppLayout.tsx` |
 

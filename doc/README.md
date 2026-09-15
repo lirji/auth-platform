@@ -43,7 +43,7 @@
 | 8200 | auth-platform-server | 判权 REST facade |
 | 8201 | auth-platform-admin | 授权管理 API / auth-console 后端 |
 | 8202 | auth-console (nginx) | 生产前端托管 |
-| 5273 | auth-console (vite dev) | 开发前端 |
+| 5273 | auth-console (vite dev) | 开发前端；中央注册表 `AUTH_CONSOLE_UI_PORT`；门户卡片入口 |
 
 > **grpc-free 约束**：全程用 SpiceDB 的 HTTP/JSON API（Spring `RestClient`），刻意避开 grpc/protobuf
 > 依赖冲突。50051 端口暴露仅为兼容，代码不走 gRPC。

@@ -46,7 +46,7 @@ public class SecurityConfig {
                                 "/admin/casdoor/sync", "/admin/casdoor/sync-departments").hasAuthority("authz-admin")
                         // 读/调试端点:viewer 或 admin
                         .requestMatchers(HttpMethod.POST, "/admin/check", "/admin/expand").hasAnyAuthority("authz-admin", "authz-viewer")
-                        .requestMatchers(HttpMethod.GET, "/admin/resources/**", "/admin/subjects/**", "/admin/schema",
+                        .requestMatchers(HttpMethod.GET, "/admin/workspaces", "/admin/resources/**", "/admin/subjects/**", "/admin/schema",
                                 "/admin/relationships", "/admin/audit")
                         .hasAnyAuthority("authz-admin", "authz-viewer")
                         .anyRequest().authenticated())

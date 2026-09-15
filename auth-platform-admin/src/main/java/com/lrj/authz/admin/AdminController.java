@@ -1,11 +1,13 @@
 package com.lrj.authz.admin;
 
 import com.lrj.authz.admin.AdminDtos.*;
+import com.lrj.authz.admin.workspace.WorkspaceRegistry;
 import com.lrj.authz.protocol.AuthzEngine;
 import com.lrj.authz.protocol.Consistency;
 import com.lrj.authz.protocol.RelationshipUpdate;
 import com.lrj.authz.protocol.ResourceRef;
 import com.lrj.authz.protocol.SubjectRef;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,11 +35,19 @@ public class AdminController {
 
     private final AuthzEngine engine;
     private final AuditStore audit;
+    private final WorkspaceRegistry workspaces;
     private final com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
+    /** 单测入口：不按工作区隔离审计。 */
     public AdminController(AuthzEngine engine, AuditStore audit) {
+        this(engine, audit, null);
+    }
+
+    @Autowired
+    public AdminController(AuthzEngine engine, AuditStore audit, WorkspaceRegistry workspaces) {
         this.engine = engine;
         this.audit = audit;
+        this.workspaces = workspaces;
     }
 
     /** 授予一条关系 (TOUCH, 幂等)。两段审计见类注释。 */
@@ -61,15 +71,16 @@ public class AdminController {
      * ok（成功）/ fail（失败，best-effort 后重抛原异常）。保证任何 SpiceDB 数据面变更前必有一条 intent 记录。
      */
     private TokenResponse writeWithAudit(String actor, String action, String tuple, RelationshipUpdate update) {
-        audit.record(actor, action + ".intent", tuple);
+        String detail = scopedDetail(tuple);
+        audit.record(actor, action + ".intent", detail);
         String token;
         try {
             token = engine.writeRelationships(List.of(update)).token();
         } catch (RuntimeException e) {
-            recordQuietly(actor, action + ".fail", tuple);
+            recordQuietly(actor, action + ".fail", detail);
             throw e;
         }
-        audit.record(actor, action + ".ok", tuple);
+        audit.record(actor, action + ".ok", detail);
         return new TokenResponse(token);
     }
 
@@ -139,10 +150,27 @@ public class AdminController {
         return engine.readRelationships(com.lrj.authz.protocol.RelationshipFilter.of(resourceType, resourceId, relation));
     }
 
-    /** 审计日志(内存最近记录)。 */
+    /** 审计日志。带工作区时只返回当前 SpiceDB 工作区写入的记录，避免跨项目串看授予细节。 */
     @GetMapping("/audit")
     public java.util.List<AuditStore.AuditRecord> auditLog(@RequestParam(defaultValue = "100") int limit) {
-        return audit.recent(limit);
+        int cap = Math.max(1, limit);
+        if (workspaces == null) {
+            return audit.recent(cap);
+        }
+        String prefix = workspacePrefix();
+        return audit.recent(Math.min(500, Math.max(cap * 8, cap))).stream()
+                .filter(r -> r.detail() != null && r.detail().startsWith(prefix))
+                .map(r -> new AuditStore.AuditRecord(r.at(), r.actor(), r.action(), r.detail().substring(prefix.length())))
+                .limit(cap)
+                .toList();
+    }
+
+    private String scopedDetail(String tuple) {
+        return workspaces == null ? tuple : workspacePrefix() + tuple;
+    }
+
+    private String workspacePrefix() {
+        return "[" + workspaces.currentId() + "] ";
     }
 
     private static String actor(org.springframework.security.oauth2.jwt.Jwt jwt) {

@@ -46,3 +46,62 @@ pnpm-debug.log*
 # ---- 操作系统 ----
 .DS_Store
 Thumbs.db
+
+# 操作系统与编辑器临时文件
+._*
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# Java / Maven 本地构建与诊断产物
+*.hprof
+*.jfr
+.jqwik-database
+.flattened-pom.xml
+pom.xml.versionsBackup
+pom.xml.releaseBackup
+pom.xml.next
+release.properties
+hs_err_pid*
+replay_pid*
+
+# Python 开通脚本本地缓存
+**/__pycache__/
+*.py[cod]
+
+# 日志与本地运行临时文件
+*.log.*
+*.pid
+*.pid.lock
+*.tmp
+/tmp/
+/temp/
+
+# 本机 Agent 配置与会话状态（共享配置保留）
+.claude/settings.local.json
+/CODEX_PROGRESS.md
+/.codex/tasks/
+
+# Node / Vite 依赖、构建缓存与测试报告
+dist/
+.pnpm-store/
+.vite/
+.vite-temp/
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+coverage/
+.nyc_output/
+playwright-report/
+blob-report/
+test-results/
+
+# 本地环境配置不入库，配置示例与模板保留
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+!.env.*.example
+!.env.*.sample
+!.env.*.template

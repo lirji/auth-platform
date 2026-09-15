@@ -5,6 +5,7 @@ interface AuthState {
   status: 'loading' | 'authed' | 'anon'
   userId?: string
   username?: string
+  owner?: string
   authorities: string[]
   set: (p: Partial<AuthState>) => void
   clear: () => void
@@ -14,7 +15,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   status: 'loading',
   authorities: [],
   set: (p) => set(p),
-  clear: () => set({ status: 'anon', userId: undefined, username: undefined, authorities: [] }),
+  clear: () => set({ status: 'anon', userId: undefined, username: undefined, owner: undefined, authorities: [] }),
 }))
 
 export const isAdmin = (a: string[]): boolean => a.includes('authz-admin')

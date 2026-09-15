@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { App, Button, Card, Col, Input, List, Popconfirm, Row, Segmented, Space, Switch, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useParams } from 'react-router-dom'
 import { ObjectTypeSelect, RelationSelect } from '../components/domain/selects'
 import { TupleText } from '../components/domain/RefBadge'
 import { PageHeader } from '../components/layout/PageHeader'
@@ -9,8 +10,10 @@ import { colors } from '../theme/colors'
 import type { ObjectType } from '../domain/lexicon'
 import { listRelationships } from '../api/authz'
 import { humanizeError, useGrant, useRevoke } from '../hooks/useAuthz'
+import { wsQueryKey } from '../workspace/keys'
 
 export default function GrantsPage() {
+  const { workspaceId = '' } = useParams()
   const { message } = App.useApp()
   const qc = useQueryClient()
   const [mode, setMode] = useState<'grant' | 'revoke'>('grant')
@@ -28,7 +31,7 @@ export default function GrantsPage() {
   const isGroupSubject = subjectType === 'group' || subjectType === 'organization'
   const subjectRelation = isGroupSubject && userset ? 'member' : undefined
 
-  const relKey = ['relationships', resourceType, resourceId] as const
+  const relKey = wsQueryKey(workspaceId, 'relationships', resourceType, resourceId)
   const rels = useQuery({ queryKey: relKey, queryFn: () => listRelationships(resourceType, resourceId), enabled: !!resourceId })
 
   const tuple = useMemo(() => {

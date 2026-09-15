@@ -44,6 +44,22 @@ function MarketingIcon(props: IconProps) {
   return <svg {...common} {...props}><path d="M4 9v6l12 4V5z"/><path d="M16 8.5c2 1 3.5 2.2 3.5 3.5s-1.5 2.5-3.5 3.5"/><path d="M9 12h.01"/></svg>
 }
 
+function TradeIcon(props: IconProps) {
+  return <svg {...common} {...props}><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/><path d="M8 12h8M8 16h5"/></svg>
+}
+
+function WarehouseIcon(props: IconProps) {
+  return <svg {...common} {...props}><path d="M3 10 12 4l9 6v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 20v-6h6v6"/><path d="M4 10h16"/></svg>
+}
+
+function IamIcon(props: IconProps) {
+  return <svg {...common} {...props}><path d="M12 3 4.5 6v5.5c0 4.4 3 7.8 7.5 9.5 4.5-1.7 7.5-5.1 7.5-9.5V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16c.8-1.6 2-2.4 3.5-2.4s2.7.8 3.5 2.4"/></svg>
+}
+
+function OaIcon(props: IconProps) {
+  return <svg {...common} {...props}><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/><path d="M16 16.5v3l2-1.2 2 1.2v-3"/></svg>
+}
+
 function DefaultIcon(props: IconProps) {
   return <svg {...common} {...props}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
 }
@@ -65,6 +81,14 @@ export function ProjectIcon({ name }: { name: string }) {
                 ? BenefitIcon
                 : name === 'marketing'
                   ? MarketingIcon
-                  : DefaultIcon
+                  : name === 'trade'
+                    ? TradeIcon
+                    : name === 'warehouse'
+                      ? WarehouseIcon
+                      : name === 'iam'
+                        ? IamIcon
+                        : name === 'oa'
+                          ? OaIcon
+                          : DefaultIcon
   return <Icon width={28} height={28} />
 }

@@ -27,7 +27,7 @@
 #   SHARED_CLIENT_ID  base client_id，默认 ragshared0client00000001（须 = edge CASDOOR_AUDIENCES 的 base、前端 VITE_CASDOOR_CLIENT_ID）
 #   SHARED_CLIENT_SECRET  默认 ragshared0secret000000000000000001（所有 <base>-org-<tenant> 共用此 secret）
 #   SHARED_REDIRECT_URIS  逗号分隔的回调白名单，默认覆盖 :8093(nginx) + :5173/:5273(vite dev) 的 callback/login/oidc-silent
-#   CASDOOR_URL(默认 http://localhost:8000) BUILTIN_CID(默认 ea46d9a8033b0be2d8ed，用于取 admin token)
+#   CASDOOR_URL(默认 http://localhost:8000) BUILTIN_CID(可选；默认按应用名 app-built-in 现查，Casdoor 重建后 client_id 会变)
 #   CASDOOR_ADMIN/CASDOOR_ADMIN_PW(默认 admin/123)
 #   SPICEDB_HTTP(默认 http://localhost:8543) SPICEDB_KEY(默认 authz_dev_key)
 #
@@ -49,7 +49,6 @@ DEFAULT_SPACE="${DEFAULT_SPACE:-default}"
 WIRE_SPICEDB="${WIRE_SPICEDB:-0}"
 ENSURE_SHARED_APP="${ENSURE_SHARED_APP:-1}"
 CASDOOR="${CASDOOR_URL:-http://localhost:8000}"
-BUILTIN_CID="${BUILTIN_CID:-ea46d9a8033b0be2d8ed}"
 ADMIN="${CASDOOR_ADMIN:-admin}"; ADMIN_PW="${CASDOOR_ADMIN_PW:-123}"
 SPICEDB_HTTP="${SPICEDB_HTTP:-http://localhost:8543}"
 SPICEDB_KEY="${SPICEDB_KEY:-authz_dev_key}"
@@ -62,9 +61,11 @@ CID="${SHARED_CID}-org-${TENANT}"
 
 command -v jq >/dev/null || { echo "需要 jq" >&2; exit 1; }
 
-# built-in app 的 secret 不入库，现查 Postgres 取 admin token
-BSEC=$(docker exec authz-postgres psql -U authz -d spicedb -tAc \
-  "select client_secret from application where client_id='${BUILTIN_CID}'" 2>/dev/null | tr -d '[:space:]')
+# shellcheck source=casdoor-builtin-app.sh
+. "${SCRIPT_DIR}/casdoor-builtin-app.sh"
+casdoor_load_builtin_app "${AUTHZ_POSTGRES_CONTAINER:-authz-postgres}"
+casdoor_ensure_builtin_password_grant
+BSEC="${BUILTIN_SECRET}"
 AT=$(curl -s -X POST "${CASDOOR}/api/login/oauth/access_token" -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=password&username=${ADMIN}&password=${ADMIN_PW}&client_id=${BUILTIN_CID}&client_secret=${BSEC}&scope=openid" \
   | jq -r '.access_token // empty')

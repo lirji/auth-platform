@@ -5,21 +5,22 @@
 
 | 路由 | 文件 | 分组 | 定位 |
 |---|---|---|---|
-| `/` | `OverviewPage.tsx` | 工作台 | 身份 + 两大核心入口 |
-| `/grants` | `GrantsPage.tsx` | **核心操作** | 授予/撤销关系元组 |
-| `/playground` | `PlaygroundPage.tsx` | **核心操作** | 实时判定 + 反查 + 判定路径 |
-| `/schema` | `SchemaViewerPage.tsx` | 资源与模型 | `.zed` 授权模型可视化 |
-| `/spaces` | `SpacesPage.tsx` | 资源与模型 | 占位(规划中) |
-| `/sync` | `IdentitySyncPage.tsx` | 系统治理 | Casdoor → SpiceDB 组同步 |
-| `/audit` | `AuditPage.tsx` | 系统治理 | 操作审计表 |
+| `/` | `WorkspaceHome.tsx` | 工作台 | 登录后按身份选择授权工作区 |
+| `/w/:id` | `WorkspaceOverview.tsx` | 工作台 | 当前项目内的授权入口 |
+| `/w/:id/grants` | `GrantsPage.tsx` | **核心操作** | 授予/撤销关系元组 |
+| `/w/:id/playground` | `PlaygroundPage.tsx` | **核心操作** | 实时判定 + 反查 + 判定路径 |
+| `/w/:id/schema` | `SchemaViewerPage.tsx` | 资源与模型 | `.zed` 授权模型可视化 |
+| `/w/:id/spaces` | `SpacesPage.tsx` | 资源与模型 | 空间/知识库成员 |
+| `/w/:id/sync` | `IdentitySyncPage.tsx` | 系统治理 | Casdoor → 默认 SpiceDB 组同步 |
+| `/w/:id/audit` | `AuditPage.tsx` | 系统治理 | 当前工作区操作审计 |
 
 ---
 
-## ① 概览 Overview
+## ① 工作区选择 / 项目概览
 
-- 顶部两张 `TaskCard`(授予管理 / 权限调试器),`Row` 栅格 `xs=24 md=12`,`hoverable` + 键盘可达(见 [06](./06-accessibility.md))。
-- 「当前身份」`Card` + `Descriptions`(`column={{xs:1, md:3}}`):用户 / 用户 id(sub,等宽)/ 授权组 `Tag`。
-- viewer(非 admin)显示 `Alert info` 说明只读边界;底部 `Alert warning` 标注「规模统计暂无(SpiceDB 无 count-all,后端待补聚合端点)」——**如实标注,不臆造假数字**。
+- `/` `WorkspaceHome`：可见工作区多于一个时展示卡片选择（键盘可达）；仅一个则直进该项目 `home`。
+- `/w/:id` `WorkspaceOverview`：当前项目名称 + 该工作区开放的授予/调试入口卡。
+- 工作区内侧栏按 `features` 过滤；顶部可切换工作区。
 
 ## ② 授予管理 Grants(核心)
 

@@ -1,14 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
 import { Button, Card, Table, Tag } from 'antd'
 import { ReloadOutlined } from '@ant-design/icons'
+import { useParams } from 'react-router-dom'
 import { PageHeader } from '../components/layout/PageHeader'
 import { ErrorState } from '../components/common/AsyncState'
 import { audit, type AuditRecord } from '../api/authz'
+import { wsQueryKey } from '../workspace/keys'
 
 const actionColor = (a: string) => (a === 'grant' ? 'green' : a === 'revoke' ? 'red' : 'blue')
 
 export default function AuditPage() {
-  const q = useQuery({ queryKey: ['audit'], queryFn: () => audit(200) })
+  const { workspaceId = '' } = useParams()
+  const q = useQuery({ queryKey: wsQueryKey(workspaceId, 'audit'), queryFn: () => audit(200) })
 
   return (
     <>

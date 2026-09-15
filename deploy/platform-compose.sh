@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 用中央端口注册表调用任一统一门户项目的 Docker Compose。
-# 用法: ./deploy/platform-compose.sh <auth|langchain4j|recsys|drools|risk|workflow|recon|benefit|marketing> <compose 参数...>
+# 用法: ./deploy/platform-compose.sh <auth|langchain4j|recsys|drools|risk|workflow|recon|benefit|marketing|wms|oa> <compose 参数...>
 
 set -euo pipefail
 
@@ -69,6 +69,36 @@ case "${PROJECT}" in
       )@infra-redis7:6379"
       export DEV_INFRA_REDIS_URL
     fi
+    ;;
+  wms)
+    PROJECT_DIR="${WORKSPACE_DIR}/wms-platform"
+    COMPOSE_FILE="${PROJECT_DIR}/compose.yaml"
+    if [[ -f "${PROJECT_DIR}/.env" ]]; then
+      LOCAL_ENV="${PROJECT_DIR}/.env"
+    else
+      for ARG in "$@"; do
+        if [[ "${ARG}" == config ]]; then
+          LOCAL_ENV="${PROJECT_DIR}/.env.example"
+          break
+        fi
+      done
+    fi
+    export WMS_CONSOLE_HOST_PORT="${WMS_UI_PORT}"
+    ;;
+  oa)
+    PROJECT_DIR="${WORKSPACE_DIR}/oa-platform/deploy"
+    COMPOSE_FILE="${PROJECT_DIR}/docker-compose.yml"
+    if [[ -f "${PROJECT_DIR}/.env" ]]; then
+      LOCAL_ENV="${PROJECT_DIR}/.env"
+    else
+      for ARG in "$@"; do
+        if [[ "${ARG}" == config ]]; then
+          LOCAL_ENV="${PROJECT_DIR}/.env.example"
+          break
+        fi
+      done
+    fi
+    export OA_CONSOLE_PORT="${OA_UI_PORT}"
     ;;
   *) echo "未知项目: ${PROJECT}" >&2; exit 2 ;;
 esac

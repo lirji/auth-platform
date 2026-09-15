@@ -1,6 +1,7 @@
 package com.lrj.authz.admin.casdoor;
 
 import com.lrj.authz.protocol.AuthzEngine;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -20,14 +21,18 @@ public class CasdoorConfig {
     }
 
     @Bean
-    public GroupSyncService groupSyncService(CasdoorClient client, AuthzEngine engine, CasdoorProperties props) {
+    public GroupSyncService groupSyncService(CasdoorClient client,
+                                             @Qualifier("defaultAuthzEngine") AuthzEngine engine,
+                                             CasdoorProperties props) {
         return new GroupSyncService(client, engine, props.getDeleteThreshold());
     }
 
     /** 部门树同步（部门层级授权模型）；仅 authz.casdoor.department-sync-enabled=true 时装配。 */
     @Bean
     @ConditionalOnProperty(prefix = "authz.casdoor", name = "department-sync-enabled", havingValue = "true")
-    public DepartmentSyncService departmentSyncService(CasdoorClient client, AuthzEngine engine, CasdoorProperties props) {
+    public DepartmentSyncService departmentSyncService(CasdoorClient client,
+                                                       @Qualifier("defaultAuthzEngine") AuthzEngine engine,
+                                                       CasdoorProperties props) {
         return new DepartmentSyncService(client, engine, props.getDeleteThreshold());
     }
 }

@@ -52,14 +52,16 @@
 | SpiceDB Postgres | 15432 |
 | auth-platform-server | 8200 |
 | auth-platform-admin | 8201 |
-| auth-console | 5273(dev) / 8202(prod) |
+| auth-console | 5273(dev，`AUTH_CONSOLE_UI_PORT`) / 8202(prod) |
 | project-portal | 5274(Docker 本地) / 8203(prod) |
+
+本地能力门户各项目登录组织、账号与业务租户见 [`docs/本地Casdoor账号.md`](docs/本地Casdoor账号.md)。Docker 卷重建后执行 `bash deploy/portal-casdoor-restore.sh`。
 
 ## 一键启停(前后端 + 基建)
 
-`./dev.sh` 按依赖顺序拉起完整本地环境：Docker Compose（postgres+spicedb+casdoor+project-portal:5274）→ 后端（server:8200 / admin:8201）→ 前端（auth-console:5273）。公开门户没有登录或后端依赖，并固定由 `auth-project-portal` 容器运行；启动经健康检查逐层等待，幂等（已运行的层自动复用），宿主机后台进程日志落到 `logs/`。
+`./dev.sh` 按依赖顺序拉起完整本地环境：Docker Compose（postgres+spicedb+casdoor+project-portal:5274）→ 后端（server:8200 / admin:8201）→ 前端（auth-console，端口见 `AUTH_CONSOLE_UI_PORT`）。公开门户没有登录或后端依赖，并固定由 `auth-project-portal` 容器运行；启动经健康检查逐层等待，幂等（已运行的层自动复用），宿主机后台进程日志落到 `logs/`。授权管控台已作为门户卡片 `auth-platform` 开放，入口 `/login`。登录后按 Casdoor 组织进入不同授权工作区（`/w/{id}`），不是跳进 Recsys/风控自己的业务台。
 
-统一门户及八个业务项目的浏览器入口端口只在 `deploy/platform-ports.env` 维护。修改后执行 `./deploy/platform-ports.sh sync`，会同步运行时 catalog 并校验九个 Compose 映射；不要再直接修改 `project-portal/public/config/catalog.json` 中的端口。
+统一门户及十二个项目的浏览器入口端口只在 `deploy/platform-ports.env` 维护。修改后执行 `./deploy/platform-ports.sh sync`，会同步运行时 catalog 并校验十一个 Compose 映射；不要再直接修改 `project-portal/public/config/catalog.json` 中的端口。授权管控台端口 `AUTH_CONSOLE_UI_PORT=5273` 与交易中心运营台端口 `TRADE_UI_PORT=4180` 由 Vite 提供，不在 Compose 校验内；WMS 仓储管理台端口 `WMS_UI_PORT=18180` 对应 `wms-platform` Docker 控制台 `WMS_CONSOLE_HOST_PORT`；OA 协同办公平台端口 `OA_UI_PORT=8404` 对应 `oa-platform` Docker 控制台 `OA_CONSOLE_PORT`，门户入口直接进工作台。
 完整约定见 [`docs/统一门户端口注册表.md`](docs/统一门户端口注册表.md)。
 
 ```bash
@@ -149,3 +151,23 @@ TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh # 部门层级模型 seed 
 ## 关键风险备忘
 
 ✅ 已消除:原担心 authzed-java gRPC 与 langchain4j 根 pom(`grpc 1.59.1 / protobuf 3.25.8`)冲突。**决策改用 SpiceDB HTTP/JSON API(Spring RestClient)实现 SpiceDbAuthzEngine**,core/sdk/server 全程 grpc-free。knowledge-service 加 `auth-platform-sdk` 依赖后经 `-am` 构建验证:无 io.grpc 引入,161 测试通过。`AuthzEngine` 端口保留,未来要极致性能可另加 gRPC 适配器。
+
+## 授权管控台门户接入
+
+`deploy/auth-console-provision.sh` 幂等开通独立应用 `auth-console`，OAuth client_id 为 `auth-console`。把 `built-in/admin` 加入组 `authz-admin`，并把 client_id 写入 `auth-console/.env.local`（0600，不进仓库）。门户卡片 id=`auth-platform`，入口 `http://localhost:${AUTH_CONSOLE_UI_PORT}/login`。登录后进入工作区选择页，再进 `/w/{knowledge|recsys|risk}/...` 操作对应 SpiceDB（见 [授权工作区](docs/design/auth-workspaces.md)）。
+
+## 交易中心本地接入
+
+`deploy/transaction-center-provision.py` 幂等开通独立应用 `transaction-center-console`，OAuth client_id为 `transaction-center`。JWT-Custom将permissionNames映射为scope数组、properties.tenant_id映射为顶层租户文本；不改变现有共享应用。脚本先安装 `deploy/transaction-center-tenant-guard.sql`，阻止本地Casdoor个人资料API修改交易用户租户绑定；作用域仅限transaction-center组织。
+
+从交易中心目录执行 `TRADE_IAM_CREDENTIALS="$PWD/deploy/.env.casdoor.json" python3 ../auth-platform/deploy/transaction-center-provision.py`。凭据文件0600，首次随机生成、重复执行不重置密码。完整配置、演示数据库及验收见 [交易中心接入说明](../transaction-center/docs/CASDOOR_LOCAL_SETUP.md)。
+
+## WMS 本地接入
+
+`deploy/wms-platform-provision.py` 幂等开通独立应用 `wms-platform`，OAuth client_id 为 `wms-platform`。JWT-Custom 将 `properties.enterprise_id` / `properties.warehouses` 映射为顶层声明；演示企业 `ENT-DEMO`，运营账号 `wms-ops` 可见 `WH-A,WH-B`。凭据写入调用方指定的 0600 文件，不进仓库。
+
+从 WMS 目录执行 `WMS_IAM_CREDENTIALS="$PWD/deploy/.env.casdoor.json" python3 ../auth-platform/deploy/wms-platform-provision.py`。控制台 `.env` 使用 issuer `http://localhost:8000` 与 client_id `wms-platform`，门户入口为 Docker 控制台 `:18180/login`；本地 Vite `:4181` 仅作开发，不进能力页。
+
+## OA 本地接入
+
+能力门户卡片 `oa` 指向 Docker 控制台 `:8404/login`。本地走 Casdoor 组织 `built-in`、应用 `oa-platform`、`aud=oa-platform-local`，账号 `admin` / `123`。`OA_UI_PORT` 对应 `oa-platform` 的 `OA_CONSOLE_PORT`；生产示例保持 `coming-soon`。本地 Vite `:5473` 仅作开发，不进能力页。

@@ -10,6 +10,7 @@ sync_catalog(){ node "${SCRIPT_DIR}/sync-platform-catalog.mjs" "$@"; }
 
 show_ports(){
   printf '%-18s %s\n' 'auth portal' "${AUTH_PORTAL_UI_PORT}"
+  printf '%-18s %s\n' 'auth-console' "${AUTH_CONSOLE_UI_PORT}"
   printf '%-18s %s\n' 'langchain4j' "${LANGCHAIN4J_UI_PORT}"
   printf '%-18s %s\n' 'recsys' "${RECSYS_UI_PORT}"
   printf '%-18s %s\n' 'drools' "${DROOLS_UI_PORT}"
@@ -18,6 +19,9 @@ show_ports(){
   printf '%-18s %s\n' 'reconciliation' "${RECON_UI_PORT}"
   printf '%-18s %s\n' 'benefit' "${BENEFIT_UI_PORT}"
   printf '%-18s %s\n' 'marketing' "${MARKETING_UI_PORT}"
+  printf '%-18s %s\n' 'trade' "${TRADE_UI_PORT}"
+  printf '%-18s %s\n' 'wms' "${WMS_UI_PORT}"
+  printf '%-18s %s\n' 'oa' "${OA_UI_PORT}"
 }
 
 verify_compose(){
@@ -37,7 +41,9 @@ check_all(){
   verify_compose recon console 8088 "${RECON_UI_PORT}"
   verify_compose benefit console 8083 "${BENEFIT_UI_PORT}"
   verify_compose marketing console 8080 "${MARKETING_UI_PORT}"
-  echo '中央端口注册表、门户 catalog 与 9 个 Compose 映射一致'
+  verify_compose wms console 80 "${WMS_UI_PORT}"
+  verify_compose oa oa-console 8404 "${OA_UI_PORT}"
+  echo '中央端口注册表、门户 catalog 与 11 个 Compose 映射一致；授权管控台为 Vite :AUTH_CONSOLE_UI_PORT，交易中心运营台为 Vite :TRADE_UI_PORT，均不在 Compose 校验内'
 }
 
 case "${1:-show}" in

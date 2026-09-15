@@ -1,3 +1,4 @@
+import type { DragEvent, KeyboardEvent } from 'react'
 import type { ProjectEntry, ProjectPresentationStatus, ProjectReachability } from '../catalog/types'
 import { projectLinkAttributes, projectPresentationStatus } from '../catalog/viewModel'
 import { ProjectIcon } from './icons'
@@ -10,7 +11,29 @@ const STATUS_LABEL: Record<ProjectPresentationStatus, string> = {
   'coming-soon': '即将开放',
 }
 
-export function ProjectCard({ project, reachability }: { project: ProjectEntry; reachability: ProjectReachability }) {
+const DRAG_TYPE = 'text/plain'
+
+export function ProjectCard({
+  project,
+  reachability,
+  dragging,
+  dropTarget,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  onMoveBy,
+}: {
+  project: ProjectEntry
+  reachability: ProjectReachability
+  dragging: boolean
+  dropTarget: boolean
+  onDragStart: () => void
+  onDragOver: () => void
+  onDrop: (fromId: string) => void
+  onDragEnd: () => void
+  onMoveBy: (delta: number) => void
+}) {
   const presentationStatus = projectPresentationStatus(project, reachability)
   const link = projectLinkAttributes(project, reachability)
   const action = link ? (
@@ -29,10 +52,66 @@ export function ProjectCard({ project, reachability }: { project: ProjectEntry; 
     </span>
   )
 
+  const startDrag = (event: DragEvent<HTMLButtonElement>) => {
+    event.dataTransfer.setData(DRAG_TYPE, project.id)
+    event.dataTransfer.effectAllowed = 'move'
+    const card = event.currentTarget.closest('.project-card')
+    if (card instanceof HTMLElement) {
+      try {
+        event.dataTransfer.setDragImage(card, 48, 32)
+      } catch {
+        // 部分浏览器不允许自定义拖影
+      }
+    }
+    onDragStart()
+  }
+
+  const over = (event: DragEvent<HTMLElement>) => {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+    onDragOver()
+  }
+
+  const drop = (event: DragEvent<HTMLElement>) => {
+    event.preventDefault()
+    const fromId = event.dataTransfer.getData(DRAG_TYPE)
+    if (fromId) onDrop(fromId)
+  }
+
+  const onHandleKey = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      onMoveBy(-1)
+    }
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault()
+      onMoveBy(1)
+    }
+  }
+
   return (
-    <article className={`project-card project-card--${presentationStatus}`}>
+    <article
+      className={`project-card project-card--${presentationStatus}${dragging ? ' project-card--dragging' : ''}${dropTarget ? ' project-card--drop-target' : ''}`}
+      onDragOver={over}
+      onDrop={drop}
+      onDragEnd={onDragEnd}
+    >
       <div className="project-card__top">
-        <span className="project-icon"><ProjectIcon name={project.icon} /></span>
+        <div className="project-card__top-start">
+          <button
+            type="button"
+            className="drag-handle"
+            draggable
+            aria-label={`调整 ${project.name} 的显示顺序`}
+            aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight"
+            title="拖动或用方向键调整顺序"
+            onDragStart={startDrag}
+            onKeyDown={onHandleKey}
+          >
+            <span aria-hidden="true">⋮⋮</span>
+          </button>
+          <span className="project-icon"><ProjectIcon name={project.icon} /></span>
+        </div>
         <span className={`status status--${presentationStatus}`} aria-live="polite">{STATUS_LABEL[presentationStatus]}</span>
       </div>
       <div>
@@ -71,7 +150,11 @@ export function ProjectCard({ project, reachability }: { project: ProjectEntry; 
               ? '项目正在建设，开放后可从门户进入'
               : presentationStatus === 'maintenance'
                 ? '项目正在维护，恢复后可从门户进入'
-                : '登录组织各台不同；创建活动只能看见同一货主已投放的商品'}
+                : project.ownerTenantHint
+                  ? '登录组织各台不同；创建活动只能看见同一货主已投放的商品'
+                  : project.loginOrgHint
+                    ? '进入后在目标项目登录页选择组织'
+                    : '点击进入即可使用，无需登录'}
       </p>
     </article>
   )

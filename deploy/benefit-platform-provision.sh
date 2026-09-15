@@ -24,7 +24,6 @@ CASDOOR="${CASDOOR_URL:-http://localhost:8000}"
 ADMIN="${CASDOOR_ADMIN:-admin}"
 ADMIN_PW="${CASDOOR_ADMIN_PW:-123}"
 POSTGRES_CONTAINER="${AUTHZ_POSTGRES_CONTAINER:-authz-postgres}"
-BUILTIN_CID="${BUILTIN_CID:-ea46d9a8033b0be2d8ed}"
 SHARED_APP="${SHARED_APP:-rag-shared}"
 SHARED_CID="${SHARED_CLIENT_ID:-ragshared0client00000001}"
 SHARED_CSEC="${SHARED_CLIENT_SECRET:-ragshared0secret000000000000000001}"
@@ -36,9 +35,10 @@ for command_name in curl jq docker; do
   command -v "${command_name}" >/dev/null || { echo "缺少命令：${command_name}" >&2; exit 1; }
 done
 
-BUILTIN_SECRET="$(docker exec "${POSTGRES_CONTAINER}" psql -U authz -d spicedb -tAc \
-  "select client_secret from application where client_id='${BUILTIN_CID}'" 2>/dev/null | tr -d '[:space:]')"
-[ -n "${BUILTIN_SECRET}" ] || { echo "无法读取 built-in client secret" >&2; exit 1; }
+# shellcheck source=casdoor-builtin-app.sh
+. "${SCRIPT_DIR}/casdoor-builtin-app.sh"
+casdoor_load_builtin_app "${POSTGRES_CONTAINER}"
+casdoor_ensure_builtin_password_grant
 
 ADMIN_TOKEN="$(curl -sf -X POST "${CASDOOR}/api/login/oauth/access_token" \
   -H 'Content-Type: application/x-www-form-urlencoded' \

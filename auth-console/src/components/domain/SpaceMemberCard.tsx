@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { App, Button, Card, Input, List, Popconfirm, Space, Tooltip, Typography } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
+import { useParams } from 'react-router-dom'
 import { RelationTag } from './SemanticTag'
 import { RefBadge } from './RefBadge'
 import { ObjectTypeSelect } from './selects'
 import { OBJECT_TYPES, type ObjectType } from '../../domain/lexicon'
 import type { Relationship } from '../../api/authz'
 import { humanizeError, useGrant, useRevoke } from '../../hooks/useAuthz'
+import { wsQueryKey } from '../../workspace/keys'
 
 // 该角色允许的主体类型:owner 只能 user;其余成员关系 user | group#member。
 // ObjectTypeSelect 只吃黑名单 exclude,这里把白名单反转成 exclude。
@@ -37,6 +39,7 @@ export function SpaceMemberCard({
 }) {
   const { message } = App.useApp()
   const qc = useQueryClient()
+  const { workspaceId = '' } = useParams()
   const grant = useGrant()
   const revoke = useRevoke()
 
@@ -44,7 +47,7 @@ export function SpaceMemberCard({
   const [subjectType, setSubjectType] = useState<ObjectType>('user')
   const [subjectId, setSubjectId] = useState('')
 
-  const afterWrite = () => qc.invalidateQueries({ queryKey: ['relationships', resourceType, resourceId] })
+  const afterWrite = () => qc.invalidateQueries({ queryKey: wsQueryKey(workspaceId, 'relationships', resourceType, resourceId) })
 
   const add = () => {
     const id = subjectId.trim()

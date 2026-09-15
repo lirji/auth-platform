@@ -1,8 +1,23 @@
 {
   "schemaVersion": 1,
   "allowHttpLocalhost": true,
-  "updatedAt": "2026-09-04T08:50:00Z",
+  "updatedAt": "2026-09-15T01:10:00Z",
   "projects": [
+    {
+      "id": "auth-platform",
+      "name": "统一权限平台",
+      "summary": "Casdoor SSO、SpiceDB ReBAC 判权、授权授予与组/部门同步",
+      "category": "身份与授权",
+      "capabilities": ["统一登录", "ReBAC 判权", "授予管理", "组/部门同步"],
+      "tags": ["IAM", "Casdoor", "SpiceDB"],
+      "icon": "iam",
+      "status": "available",
+      "loginOrgHint": "OIDC 组织 built-in；需组 authz-admin",
+      "launchUrl": "http://localhost:5273/login?returnTo=%2F",
+      "healthUrl": "http://localhost:5273/healthz",
+      "openMode": "new-tab",
+      "order": 5
+    },
     {
       "id": "langchain4j",
       "name": "LangChain4j 能力平台",
@@ -15,6 +30,7 @@
       "launchUrl": "http://localhost:8093/login?redirect=%2F",
       "healthUrl": "http://localhost:8093/healthz",
       "openMode": "new-tab",
+      "loginOrgHint": "acme（allowlist；备用 globex）",
       "order": 10
     },
     {
@@ -29,6 +45,7 @@
       "launchUrl": "http://localhost:9095/login?returnTo=%2Foverview",
       "healthUrl": "http://localhost:9095/healthz",
       "openMode": "new-tab",
+      "loginOrgHint": "recsys",
       "order": 20
     },
     {
@@ -43,6 +60,7 @@
       "launchUrl": "http://localhost:8095/ui/login?returnTo=%2Fhome",
       "healthUrl": "http://localhost:8095/healthz",
       "openMode": "new-tab",
+      "loginOrgHint": "acme / beta",
       "order": 30
     },
     {
@@ -72,7 +90,7 @@
       "icon": "workflow",
       "status": "available",
       "roleInChain": "审批",
-      "loginOrgHint": "流程台按流程种类，SKU 不是默认 HIS",
+      "loginOrgHint": "OIDC 组织 workflow-platform；SKU 租户 benefit-center，审方 his",
       "ownerTenantHint": "SKU 上线用货主业务租户",
       "launchUrl": "http://localhost:8302/login",
       "healthUrl": "http://localhost:8302/healthz",
@@ -129,6 +147,55 @@
       "healthUrl": "http://localhost:8084/healthz",
       "openMode": "new-tab",
       "order": 80
+    },
+    {
+      "id": "transaction-center",
+      "name": "交易中心运营台",
+      "summary": "会员、商品、库存、退款履约与支付渠道的后台运营台，不是会员商城",
+      "category": "交易与履约",
+      "capabilities": ["会员与商品", "仓库库存", "退款履约", "渠道对账"],
+      "tags": ["Trade", "Order", "Payment"],
+      "icon": "trade",
+      "status": "available",
+      "roleInChain": "下单履约",
+      "loginOrgHint": "OIDC 组织 transaction-center",
+      "ownerTenantHint": "JWT tenant_id 为正整数；演示种子 900001",
+      "launchUrl": "http://localhost:4180/login?returnTo=%2F",
+      "healthUrl": "http://localhost:4180/healthz",
+      "openMode": "new-tab",
+      "order": 90
+    },
+    {
+      "id": "wms",
+      "name": "WMS 仓储管理台",
+      "summary": "入库、出库、库存、跨仓履约与 PDA 作业的仓储运营台",
+      "category": "仓储与履约",
+      "capabilities": ["入库收货", "库存台账", "跨仓履约", "PDA 作业"],
+      "tags": ["WMS", "Inventory", "Fulfillment"],
+      "icon": "warehouse",
+      "status": "available",
+      "roleInChain": "仓储",
+      "loginOrgHint": "OIDC 组织 wms-platform",
+      "ownerTenantHint": "企业 enterprise_id 来自令牌；演示种子 ENT-DEMO",
+      "launchUrl": "http://localhost:18180/login?returnTo=%2F",
+      "healthUrl": "http://localhost:18180/healthz",
+      "openMode": "new-tab",
+      "order": 100
+    },
+    {
+      "id": "oa",
+      "name": "OA 协同办公平台",
+      "summary": "组织、权限、审批、考勤、文档与行政的万人协同办公",
+      "category": "协同办公",
+      "capabilities": ["组织与权限", "审批待办", "考勤打卡", "文档行政"],
+      "tags": ["OA", "Org", "Approval"],
+      "icon": "oa",
+      "status": "available",
+      "loginOrgHint": "OIDC 组织 built-in；应用 oa-platform",
+      "launchUrl": "http://localhost:8404/login?returnTo=%2F",
+      "healthUrl": "http://localhost:8404/healthz",
+      "openMode": "new-tab",
+      "order": 110
     }
   ]
 }
