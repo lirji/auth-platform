@@ -1,0 +1,26 @@
+{
+  "phase": "P3-04c",
+  "result": "PASS",
+  "runtime": "SpiceDB 1.56.2 / PostgreSQL 16.15 / Java 21",
+  "cases": [
+    {
+      "scenario": "SIGSTOP_REVOKE_SIGCONT",
+      "stale_remote_code": 9,
+      "real_lease_wait_ms": 14988,
+      "result": "PASS",
+      "stale_remote_status": 400,
+      "old_pid": 67324,
+      "new_pid": 67382
+    },
+    {
+      "real_lease_wait_ms": 14812,
+      "killed_pid": 67259,
+      "receipt_count": 1,
+      "operation_count": 1,
+      "killed_exit": 137,
+      "recovery_pid": 67320,
+      "scenario": "SIGKILL_AFTER_REMOTE_COMMIT",
+      "result": "PASS"
+    }
+  ]
+}
