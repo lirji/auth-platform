@@ -1,6 +1,6 @@
 {
   "schema_version": "oa-auth-project-execution-plan/1",
-  "plan_status": "P2_LOCAL_COMPLETE_CI_PENDING",
+  "plan_status": "P2_COMPLETE_PAUSED",
   "scope": "Complete P2 including P2-05a, validate and deliver main, then pause before P3.",
   "source_task_count": 58,
   "task_count": 63,
@@ -69,7 +69,7 @@
     "P7-07",
     "P7-08"
   ],
-  "next_design_task": "P3-01 (paused; requires new user instruction)",
+  "next_design_task": "P3-01",
   "production_authorized": false,
   "tasks": [
     {

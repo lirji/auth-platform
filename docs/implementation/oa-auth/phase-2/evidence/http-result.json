@@ -1,0 +1,138 @@
+[
+  {
+    "check": "unauthenticated management denied",
+    "result": "PASS"
+  },
+  {
+    "check": "member is not manager",
+    "result": "PASS"
+  },
+  {
+    "check": "wrong audience denied",
+    "result": "PASS"
+  },
+  {
+    "check": "forged principal rejected",
+    "result": "PASS"
+  },
+  {
+    "check": "fixed role created",
+    "result": "PASS"
+  },
+  {
+    "check": "role command replay",
+    "result": "PASS"
+  },
+  {
+    "check": "same command changed body",
+    "result": "PASS"
+  },
+  {
+    "check": "cross environment denied",
+    "result": "PASS"
+  },
+  {
+    "check": "self grant denied",
+    "result": "PASS"
+  },
+  {
+    "check": "unsupported scope denied",
+    "result": "PASS"
+  },
+  {
+    "check": "grant accepted pending graph",
+    "result": "PASS"
+  },
+  {
+    "check": "grant replay unique",
+    "result": "PASS"
+  },
+  {
+    "check": "management state from database",
+    "result": "PASS"
+  },
+  {
+    "check": "member cannot enumerate state",
+    "result": "PASS"
+  },
+  {
+    "check": "revoke accepted without graph",
+    "result": "PASS"
+  },
+  {
+    "check": "revoke replay",
+    "result": "PASS"
+  },
+  {
+    "check": "no grant is explicit deny",
+    "result": "PASS"
+  },
+  {
+    "check": "principal injection rejected",
+    "result": "PASS"
+  },
+  {
+    "check": "wrong service rejected",
+    "result": "PASS"
+  },
+  {
+    "check": "wrong user audience rejected",
+    "result": "PASS"
+  },
+  {
+    "check": "foreign tenant rejected",
+    "result": "PASS"
+  },
+  {
+    "check": "wrong generation rejected",
+    "result": "PASS"
+  },
+  {
+    "check": "new grant pending",
+    "result": "PASS"
+  },
+  {
+    "check": "pending partition unavailable",
+    "result": "PASS"
+  },
+  {
+    "check": "real graph and SQL allow",
+    "result": "PASS"
+  },
+  {
+    "check": "current member menu uses real graph",
+    "result": "PASS"
+  },
+  {
+    "check": "manager authority grants no business menu",
+    "result": "PASS"
+  },
+  {
+    "check": "bulk real decisions",
+    "result": "PASS"
+  },
+  {
+    "check": "duplicate batch rejected",
+    "result": "PASS"
+  },
+  {
+    "check": "revoke active grant",
+    "result": "PASS"
+  },
+  {
+    "check": "revoked pending cleanup unavailable",
+    "result": "PASS"
+  },
+  {
+    "check": "revoked graph denies",
+    "result": "PASS"
+  },
+  {
+    "check": "revoked member menu hidden",
+    "result": "PASS"
+  },
+  {
+    "check": "prepare next slice grant",
+    "result": "PASS"
+  }
+]

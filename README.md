@@ -177,4 +177,4 @@ TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh # 部门层级模型 seed 
 
 ## 企业 IAM 分阶段建设
 
-P1已完成，P2应用RBAC与首个商城读取链路已完成本地验收，Git/CI见[阶段报告](docs/implementation/oa-auth/phase-2/P2_DELIVERY_RESULT.md)。当前进度以[PROGRESS_STATE](docs/design/oa-auth-unification/PROGRESS_STATE.md)为准；P2交付后暂停，不自动进入P3。控制台最小入口为`/governance`，运行条件见[契约](docs/design/oa-auth-unification/CONTRACTS_P2_PRESENTATION.md)。
+P1已完成，P2应用RBAC与首个商城读取链路全部完成，两仓CI已通过，交付证据见[阶段报告](docs/implementation/oa-auth/phase-2/P2_DELIVERY_RESULT.md)。当前进度以[PROGRESS_STATE](docs/design/oa-auth-unification/PROGRESS_STATE.md)为准；P2交付后暂停，不自动进入P3。控制台最小入口为`/governance`，运行条件见[契约](docs/design/oa-auth-unification/CONTRACTS_P2_PRESENTATION.md)。

@@ -1,0 +1,472 @@
+{
+  "protocol": "code-hygiene-gate/v1",
+  "finalStatus": "IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS",
+  "checks": [
+    {
+      "checkId": "FORMAT",
+      "status": "SKIPPED",
+      "skipReason": "TOOL_NOT_AVAILABLE",
+      "summary": "no canonical formatter; surrounding-style checks passed"
+    },
+    {
+      "checkId": "STATIC_ANALYSIS",
+      "status": "SKIPPED",
+      "skipReason": "NOT_APPLICABLE",
+      "summary": "no static analysis configured in repository"
+    },
+    {
+      "checkId": "CODE_HYGIENE",
+      "status": "PASS",
+      "skipReason": null,
+      "summary": "no blocking findings"
+    },
+    {
+      "checkId": "REPO_CONVENTION",
+      "status": "PASS",
+      "skipReason": null,
+      "summary": "no blocking findings"
+    },
+    {
+      "checkId": "DIFF_HYGIENE",
+      "status": "PASS",
+      "skipReason": null,
+      "summary": "no blocking findings"
+    },
+    {
+      "checkId": "COMPILE",
+      "status": "PASS",
+      "skipReason": null,
+      "summary": "caller-executed command"
+    },
+    {
+      "checkId": "UNIT_TEST",
+      "status": "PASS",
+      "skipReason": null,
+      "summary": "caller-executed command"
+    }
+  ],
+  "limitations": [
+    {
+      "code": "FORMAT_TOOL_NOT_AVAILABLE",
+      "check": "FORMAT"
+    }
+  ],
+  "findings": [
+    {
+      "findingId": "HF-001",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/ProjectionCli.java",
+      "line": 22,
+      "excerpt": "}catch(Exception e){LOG.error(\"PROJECTION_UNAVAILABLE\");System.exit(3);}",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-002",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessManagement.java",
+      "line": 7,
+      "excerpt": "import org.springframework.transaction.support.TransactionTemplate;",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-003",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessManagement.java",
+      "line": 16,
+      "excerpt": "private final IdentityGovernance identity;private final TransactionTemplate tx;",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-004",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessManagement.java",
+      "line": 18,
+      "excerpt": "public AccessManagement(AccessMapper mapper,CatalogMapper catalog,IdentityMapper commands,IdentityGovernance identity,TransactionTemplate tx){this.mapper=mapper",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-005",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessValues.java",
+      "line": 26,
+      "excerpt": "public static String json(List<String> values){try{return JSON.writeValueAsString(capabilities(values));}catch(Exception e){throw new GovernanceException(INVALI",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-006",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessValues.java",
+      "line": 28,
+      "excerpt": "public static List<String> read(String json){try{return capabilities(Arrays.asList(JSON.readValue(json,String[].class)));}catch(Exception e){throw new Governanc",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-007",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ApplicationCatalog.java",
+      "line": 8,
+      "excerpt": "import org.springframework.transaction.support.TransactionTemplate;",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-008",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ApplicationCatalog.java",
+      "line": 19,
+      "excerpt": "private final TransactionTemplate transaction;",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-009",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ApplicationCatalog.java",
+      "line": 21,
+      "excerpt": "public ApplicationCatalog(CatalogMapper mapper, IdentityMapper identities, IdentityGovernance identity, TransactionTemplate transaction) {",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-010",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/CatalogManifest.java",
+      "line": 28,
+      "excerpt": "} catch (Exception failure) { throw invalid(); }",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-011",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/CatalogManifest.java",
+      "line": 81,
+      "excerpt": "catch (Exception failure) { throw invalid(); }",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-012",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/GrantProjection.java",
+      "line": 18,
+      "excerpt": "AccessValues.partition(p);if(limit<1||limit>50)throw new GovernanceException(INVALID_ARGUMENT);",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    },
+    {
+      "findingId": "HF-013",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/GrantProjection.java",
+      "line": 7,
+      "excerpt": "import org.springframework.transaction.support.TransactionTemplate;",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-014",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/GrantProjection.java",
+      "line": 13,
+      "excerpt": "private final DataSource dataSource;private final AccessMapper access;private final ProjectionMapper mapper;private final TransactionTemplate tx;private final A",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-015",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/GrantProjection.java",
+      "line": 15,
+      "excerpt": "public GrantProjection(DataSource dataSource,AccessMapper access,ProjectionMapper mapper,TransactionTemplate tx,AuthzEngine graph){this.dataSource=dataSource;th",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-016",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/AccessBootstrapCli.java",
+      "line": 26,
+      "excerpt": "catch(Exception e){error.println(\"DEPENDENCY_UNAVAILABLE\");return 3;}",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-017",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/CatalogCli.java",
+      "line": 45,
+      "excerpt": "catch(Exception failure) { error.println(GovernanceException.Code.DEPENDENCY_UNAVAILABLE.value());return 3; }",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-018",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/GovernanceRuntime.java",
+      "line": 32,
+      "excerpt": "private TransactionTemplate transaction;",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-019",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ProjectionLock.java",
+      "line": 24,
+      "excerpt": "} catch (Exception failure) {",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-020",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ProjectionLock.java",
+      "line": 27,
+      "excerpt": "catch (Exception cleanup) { failure.addSuppressed(cleanup); }",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-021",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ProjectionLock.java",
+      "line": 41,
+      "excerpt": "} catch (Exception unlock) {",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-022",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ProjectionLock.java",
+      "line": 44,
+      "excerpt": "catch (Exception abort) { failure.addSuppressed(abort); }",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-023",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ProjectionLock.java",
+      "line": 47,
+      "excerpt": "catch (Exception cleanup) {",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-024",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/web/AccessWeb.java",
+      "line": 18,
+      "excerpt": "public static <T>T read(InputStream input,Class<T> type){try{byte[] bytes=input.readNBytes(16385);if(bytes.length>16384)throw invalid();T value=JSON.readValue(b",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-025",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/web/AccessWeb.java",
+      "line": 20,
+      "excerpt": "public static Instant instant(String value){try{if(value==null||!value.endsWith(\"Z\"))throw invalid();return Instant.parse(value);}catch(Exception e){throw inval",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-026",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-sdk/src/main/java/com/lrj/authz/sdk/CentralAccessClient.java",
+      "line": 65,
+      "excerpt": "catch(Exception failure){throw unavailable();}",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-027",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "deploy/governance-access-smoke.py",
+      "line": 39,
+      "excerpt": "with urllib.request.urlopen(req, timeout=10) as r:",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    },
+    {
+      "findingId": "HF-028",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "deploy/governance-access-smoke.py",
+      "line": 44,
+      "excerpt": "with urllib.request.urlopen(req, timeout=10) as r:",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    },
+    {
+      "findingId": "HF-029",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "deploy/governance-access-smoke.py",
+      "line": 63,
+      "excerpt": "'org.springframework.boot.loader.launch.PropertiesLauncher',*map(str,args)],stdout=out,stderr=subprocess.STDOUT,timeout=30)",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    },
+    {
+      "findingId": "HF-030",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "deploy/governance-access-smoke.py",
+      "line": 112,
+      "excerpt": "'valid_to':(now+timedelta(minutes=30)).isoformat().replace('+00:00','Z')}",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    },
+    {
+      "findingId": "HF-031",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "deploy/governance-ui-smoke.py",
+      "line": 34,
+      "excerpt": "subprocess.run(['node','deploy/governance-ui-smoke.mjs'],env=env,check=True,timeout=180)",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    },
+    {
+      "findingId": "HF-032",
+      "ruleId": "HYG-SIMILAR-ENUM",
+      "check": "REPO_CONVENTION",
+      "area": "enum",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/domain/AccessModels.java",
+      "line": 16,
+      "excerpt": "GrantState",
+      "message": "GrantState overlaps existing Status (.local/p0-baselines/commerce/payment/src/main/java/com/lrj/commerce/payment/charge/api/PaymentApi.java)"
+    }
+  ],
+  "report": [
+    {
+      "area": "Repository conventions",
+      "status": "PASS"
+    },
+    {
+      "area": "Formatting",
+      "status": "SKIPPED:TOOL_NOT_AVAILABLE"
+    },
+    {
+      "area": "Error-code governance",
+      "status": "PASS"
+    },
+    {
+      "area": "Enum/domain modeling",
+      "status": "PASS_WITH_ADVISORY"
+    },
+    {
+      "area": "Magic value inspection",
+      "status": "PASS_WITH_ADVISORY"
+    },
+    {
+      "area": "Exception handling",
+      "status": "PASS_WITH_ADVISORY"
+    },
+    {
+      "area": "Validation",
+      "status": "NOT_AUTOMATED"
+    },
+    {
+      "area": "Logging",
+      "status": "PASS"
+    },
+    {
+      "area": "Transaction review",
+      "status": "REVIEW_REQUIRED"
+    },
+    {
+      "area": "Static analysis",
+      "status": "N/A"
+    },
+    {
+      "area": "Compilation",
+      "status": "PASS"
+    },
+    {
+      "area": "Tests",
+      "status": "PASS"
+    },
+    {
+      "area": "Diff hygiene",
+      "status": "PASS"
+    }
+  ],
+  "canonicalCommands": {
+    "FORMAT": {
+      "status": "NO_FORMATTER",
+      "limitation": "FORMAT_TOOL_NOT_AVAILABLE",
+      "resolutionLevel": "SURROUNDING_SOURCE_STYLE"
+    },
+    "STATIC_ANALYSIS": {
+      "status": "NOT_CONFIGURED"
+    }
+  }
+}

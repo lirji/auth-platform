@@ -1,0 +1,26 @@
+[
+  {
+    "check": "empty query validation",
+    "result": "PASS"
+  },
+  {
+    "check": "real menu allows; ordinary member management denied",
+    "result": "PASS"
+  },
+  {
+    "check": "changing partition clears old menu",
+    "result": "PASS"
+  },
+  {
+    "check": "pending graph displays pending and menu unavailable",
+    "result": "PASS"
+  },
+  {
+    "check": "graph confirmation reflected by real state refresh",
+    "result": "PASS"
+  },
+  {
+    "check": "revoked menu hidden and direct backend call independently denies",
+    "result": "PASS"
+  }
+]

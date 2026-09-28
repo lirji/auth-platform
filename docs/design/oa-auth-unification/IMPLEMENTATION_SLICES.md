@@ -72,7 +72,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 
 ## 当前下一片
 
-P1-00—P1-07 全部 DONE，汇总见 phase-1/P1-07_TEST_RESULT.md。两仓正常 Git 交付、main CI 和最终目录审计已完成，P1历史停止点已由本轮P2授权解除；P2实施中，P3—P7未获本轮执行授权。
+P1-00—P1-07 全部 DONE，汇总见 phase-1/P1-07_TEST_RESULT.md。两仓正常 Git 交付、main CI 和最终目录审计已完成，P1历史停止点已由本轮P2授权解除；P2全部DONE且两仓CI通过，按用户要求暂停；P3—P7未获本轮执行授权。
 P2 交接见 phase-1/P2_HANDOFF.md；共享 Casdoor 升级仍 HOLD，不把 P1 后端验收等同正式登录切换。
 
 ## 依赖与外部条件

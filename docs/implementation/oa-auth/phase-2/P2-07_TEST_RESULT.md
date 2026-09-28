@@ -7,3 +7,5 @@ PASS。auth-console构建/类型检查成功；菜单父节点权限2项单测�
 证据 `.local/governance/p2/access-37bd71ee6522/ui/result.json`，截图同目录：member-1440、member-390-forbidden、manager-pending-1440、manager-active-1440、manager-390、member-revoked-390。已实际查看前四类中的桌面成员、桌面待生效管理、窄屏管理与窄屏403截图：遵循既有主题、长标识正常换行/表格横向滚动、表单与错误反馈无重叠，状态有文本。无新弹层/详情/写入表单；菜单链接是已登记应用入口。
 
 生产同源反代治理路径通过nginx -t。正式OIDC注册与共享IdP升级保持P1限制；本轮页面验收覆盖真实会话后的治理交互，不将隔离Token夹具当成生产SSO上线证明。
+
+可审查截图与无凭据检查结果已纳入[evidence](evidence/)；最后UI变更仅将HTTP数字替换为Axios枚举，视觉与数据流程不变。

@@ -11,3 +11,5 @@ GET `/v1/operations/stores` 只在 `commerce.iam.store-read.enabled=true` 后使
 依赖源码固定于 scripts/auth-sdk-source.ref，构建与商城使用相同Maven本地仓库。保持旧AuthzEngine/AOP二进制兼容，新增中央客户端独立Jackson2。完整回归结果见最终P2交付报告。
 
 P2只认证单投影执行者、直接成员与当前企业全部范围；不宣称P3细粒度范围、生产迁移、共享Casdoor升级或正式登录切换完成。
+
+最终SDK ac4c5b2（响应体总超时修复）在商城重新安装/打包，真实13项复跑通过；完整商城verify377项通过。最终证据见[evidence/commerce-result.json](evidence/commerce-result.json)，商城详细记录位于commerce对应phase-2目录。

@@ -1,6 +1,6 @@
 # P2 应用RBAC交付结果
 
-P2-01—P2-08（含P2-05a）本地实现与验收完成。当前正在正常合并推送两仓并观察CI；最终Git/CI记录在本报告末尾更新。P3暂停，未执行生产部署。
+P2-01—P2-08（含P2-05a）全部完成，已正常合并推送两仓main，两仓最终CI均SUCCESS。按用户要求在P2结束后暂停，P3未启动；未执行生产部署。
 
 ## 验收矩阵
 
@@ -22,3 +22,16 @@ P2-01—P2-08（含P2-05a）本地实现与验收完成。当前正在正常合�
 授权范围：单投影执行者、直接成员、TENANT_ALL、首个内部只读门店入口。多实例/严格远端栅栏/细范围留P3；完整门户P5、迁移P6、生产P7均未执行。共享Casdoor升级HOLD保持，不能声明生产就绪。
 
 恢复资料：[P3_HANDOFF](P3_HANDOFF.md)。用户要求本轮到此暂停，不能自动进入P3。
+
+
+## Git与CI
+
+- auth程序/构建版本ac4c5b2288d7ff7f9fd8d4392233b827ac2336ab已正常合并推送main；[CI 36406366862](https://github.com/lirji/auth-platform/actions/runs/36406366862) SUCCESS，包含P1回归、P2 PG/图/HTTP、Boot4和控制台构建。后续提交仅同步文档与验收截图，程序/构建树不变。
+- commerce最终main d7c9e3c65c1e11bf53a91df577076a3e7b345fae；[CI 36406684487](https://github.com/lirji/commerce-platform/actions/runs/36406684487) SUCCESS（构建、全量MySQL回归、依赖审计、打包启动及真实浏览器验收通过）。
+- 原任务分支feat/oa-auth-p2-rbac与feat/oa-auth-p2-commerce按完整逻辑提交并快进合并；未强推、重写历史或部署。被新提交取代的旧CI取消，不作为通过证据。
+
+## 工作目录与保留资源
+
+本轮复用两个原项目目录，没有新建worktree。commerce已有的auth .local/p0-baselines/commerce detached工作树是P0历史证据，保留不清理。OA用户已有CODEX_PROGRESS、身份治理进度/部署报告及tmp内容未修改。
+
+target、node_modules、dist、__pycache__为可重新生成的缓存/产物，可在后续明确清理时移除；本轮未删除。auth .local/governance/p2与commerce .local/oa-auth-p2含0600私密配置、隔离数据库定位和完整日志，继续保留；已将无凭据检查结果及实际查看的6张截图纳入[evidence](evidence/)。图18543与IdP18090隔离容器保留以便复验，业务/管理/Vite临时验收进程已停止，未改变共享8543/8000。

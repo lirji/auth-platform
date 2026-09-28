@@ -1,0 +1,54 @@
+[
+  {
+    "check": "central allow still requires local mapping",
+    "result": "PASS"
+  },
+  {
+    "check": "real user SQL graph SDK business read",
+    "result": "PASS"
+  },
+  {
+    "check": "stable bounded pagination",
+    "result": "PASS"
+  },
+  {
+    "check": "missing credentials denied",
+    "result": "PASS"
+  },
+  {
+    "check": "legacy admin cannot bypass central route",
+    "result": "PASS"
+  },
+  {
+    "check": "business token has no legacy admin rights",
+    "result": "PASS"
+  },
+  {
+    "check": "legacy admin route retained",
+    "result": "PASS"
+  },
+  {
+    "check": "local disabled binding denies immediately",
+    "result": "PASS"
+  },
+  {
+    "check": "old generation cannot reuse new binding",
+    "result": "PASS"
+  },
+  {
+    "check": "central revoke accepted",
+    "result": "PASS"
+  },
+  {
+    "check": "pending revoke never allows business read",
+    "result": "PASS"
+  },
+  {
+    "check": "revoke denies real business read",
+    "result": "PASS"
+  },
+  {
+    "check": "central outage fails closed",
+    "result": "PASS"
+  }
+]
