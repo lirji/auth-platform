@@ -10,7 +10,7 @@ P0/P1全部完成，证据见 docs/implementation/oa-auth/phase-1/P1_DELIVERY_RE
 
 ## 未完成
 
-P2-01 DONE（phase-2/P2-01_TEST_RESULT）；P2-02 DONE（phase-2/P2-02_TEST_RESULT）；P2-03 DONE（phase-2/P2-03_TEST_RESULT）；P2-04 DONE（phase-2/P2-04_TEST_RESULT）；P2-05a DONE（phase-2/P2-05a_TEST_RESULT）；P2-05 DONE（phase-2/P2-05_TEST_RESULT）；P2-06 IN_PROGRESS，其余P2 TODO。P3—P7仍TODO且未获本轮授权。
+P2-01 DONE（phase-2/P2-01_TEST_RESULT）；P2-02 DONE（phase-2/P2-02_TEST_RESULT）；P2-03 DONE（phase-2/P2-03_TEST_RESULT）；P2-04 DONE（phase-2/P2-04_TEST_RESULT）；P2-05a DONE（phase-2/P2-05a_TEST_RESULT）；P2-05 DONE（phase-2/P2-05_TEST_RESULT）；P2-06 DONE（真实业务13项）；P2-07 DONE（HTTP34项、页面6组）；P2-08 IN_PROGRESS（总验收/交付）。P3—P7仍TODO且未获本轮授权。
 
 ## 当前限制
 
@@ -18,4 +18,4 @@ P2-01 DONE（phase-2/P2-01_TEST_RESULT）；P2-02 DONE（phase-2/P2-02_TEST_RESU
 
 ## 下一步
 
-实施P2-06商城只读路径，commerce任务分支feat/oa-auth-p2-commerce，按既有依赖连续推进各片；无需再确认阶段继续。唯一当前执行摘要见auth根CODEX_PROGRESS.md。
+收口P2-08与两仓Git/CI，commerce任务分支feat/oa-auth-p2-commerce；无需再确认阶段继续。唯一当前执行摘要见auth根CODEX_PROGRESS.md。

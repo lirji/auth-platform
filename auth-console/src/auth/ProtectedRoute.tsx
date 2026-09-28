@@ -13,7 +13,7 @@ const centered: React.CSSProperties = {
 }
 
 /** 路由守卫:未登录→跳 Casdoor;已登录但非 authz-viewer/admin→403。 */
-export default function ProtectedRoute({ children }: { children: ReactNode }) {
+export default function ProtectedRoute({ children, requireWorkspaceGroups = true }: { children: ReactNode; requireWorkspaceGroups?: boolean }) {
   const auth = useAuth()
   const location = useLocation()
   const authorities = useAuthStore((s) => s.authorities)
@@ -48,7 +48,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
       </div>
     )
   }
-  if (!canRead(authorities)) {
+  if (requireWorkspaceGroups && !canRead(authorities)) {
     return (
       <Result
         status="403"

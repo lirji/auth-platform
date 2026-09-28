@@ -14,6 +14,7 @@ import SchemaViewerPage from '../pages/SchemaViewerPage'
 import SpacesPage from '../pages/SpacesPage'
 import IdentitySyncPage from '../pages/IdentitySyncPage'
 import AuditPage from '../pages/AuditPage'
+import GovernancePage from '../pages/GovernancePage'
 
 function guarded(feature: string, page: ReactNode) {
   return <FeatureGuard feature={feature}>{page}</FeatureGuard>
@@ -33,6 +34,7 @@ const workspacePages = [
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/callback', element: <CallbackPage /> },
+  { path: '/governance', element: <ProtectedRoute requireWorkspaceGroups={false}><GovernancePage /></ProtectedRoute> },
   {
     path: '/',
     element: (

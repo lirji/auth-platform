@@ -9,7 +9,6 @@ import os
 from pathlib import Path
 import secrets
 import subprocess
-import time
 import urllib.parse
 import urllib.request
 import uuid
@@ -65,7 +64,7 @@ def main():
         if result.returncode:raise RuntimeError('controlled CLI failed: '+name)
     tenant=str(uuid.uuid4()); app='commerce'; env='p2-'+secrets.token_hex(4)
     members={}
-    for kind in ['internal','external']:
+    for kind,is_owner in [('internal',True),('external',False)]:
         # 每个源身份固定principal，多次验收仅新增隔离企业成员。
         principal=str(uuid.uuid5(uuid.NAMESPACE_URL,'p2:'+fixture['users'][kind]['id']))
         member=str(uuid.uuid4());members[kind]=member
@@ -73,7 +72,7 @@ def main():
             'principal.id':principal,'issuer':h.ISSUER,'subject':fixture['users'][kind]['id'],'membership.id':member,
             'valid.from':'2020-01-01T00:00:00Z','source.system':'p2-fixture','source.tenant.ref':tenant,'source.subject.ref':kind}
         path=run/(kind+'.properties');h.private(path,h.props(values));cli('GovernanceCli',['bootstrap',root.parent/'database.properties',path])
-        if kind=='internal':owner=principal
+        if is_owner:owner=principal
     catalog={'catalog.application':app,'catalog.owner-principal':owner,'catalog.entry-origin':'http://127.0.0.1:8601',
         'catalog.operator':'p2-fixture','catalog.command':str(uuid.uuid4()),'catalog.owner-issuer':h.ISSUER,'catalog.owner-subject':fixture['users']['internal']['id']}
     h.private(run/'catalog.properties',db+h.props(catalog));cli('CatalogCli',['register',run/'catalog.properties','configured'])
@@ -89,8 +88,9 @@ def main():
     client=fixture['clients']['management']
     authority={'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':client['name'],'client.id':client['name'],
         'client.secret':client['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
-    h.private(run/'admin.properties',db+h.props(authority))
-    h.start(jar,18102,run/'admin.log',config=run/'admin.properties',access=True)
+    graph=h.read_private(root/'graph/graph.properties') if args.with_checks else ''
+    h.private(run/'admin.properties',db+graph+h.props(authority))
+    h.start(jar,18102,run/'admin.log',config=run/'admin.properties',access=True,presentation=args.with_checks)
     admin=[('Authorization','Bearer '+tokens['management']['access_token'])]
     other_token=token(h.ISSUER,fixture,'management','external')
     other=[('Authorization','Bearer '+other_token)]
@@ -150,6 +150,9 @@ def main():
         check_call('pending partition unavailable',status=503,code='DEPENDENCY_UNAVAILABLE')
         cli('ProjectionCli',[run/'projection.properties'])
         assert check_call('real graph and SQL allow')['decision']=='ALLOW'
+        menu=h.expect('current member menu uses real graph',18102,'/api/governance/v1/me/access?'+query,other)
+        assert menu['capability_hints']==['commerce.store.read'] and menu['menus'][0]['href']=='http://127.0.0.1:8601/stores'
+        assert h.expect('manager authority grants no business menu',18102,'/api/governance/v1/me/access?'+query,admin)['menus']==[]
         batch={'checks':[check,{**check,'request_id':str(uuid.uuid4()),'capability':'commerce.store.manage'}]}
         decisions=check_call('bulk real decisions',batch,bulk=True)['results'];assert [d['decision'] for d in decisions]==['ALLOW','DENY']
         check_call('duplicate batch rejected',{'checks':[check,check]},400,'INVALID_ARGUMENT',bulk=True)
@@ -157,6 +160,7 @@ def main():
         check_call('revoked pending cleanup unavailable',status=503,code='DEPENDENCY_UNAVAILABLE')
         cli('ProjectionCli',[run/'projection.properties'])
         assert check_call('revoked graph denies')['decision']=='DENY'
+        assert h.expect('revoked member menu hidden',18102,'/api/governance/v1/me/access?'+query,other)['menus']==[]
         # 独立来源留给后续商城/页面验收，不复活已撤销来源。
         active=call('prepare next slice grant','/grants',{**body,'command_id':str(uuid.uuid4()),'source_id':'next-slice'},status=202)
         cli('ProjectionCli',[run/'projection.properties'])

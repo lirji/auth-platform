@@ -115,6 +115,7 @@ export default function AppLayout() {
               menu={{
                 items: [
                   { key: 'home', label: '全部工作区', onClick: () => navigate('/') },
+                  { key: 'governance', label: '企业应用权限', onClick: () => navigate('/governance') },
                   { key: 'logout', icon: <LogoutOutlined />, label: '退出登录' },
                 ],
                 onClick: ({ key }) => {

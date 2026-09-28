@@ -37,6 +37,10 @@ export default defineConfig(({ mode }) => {
       host: true,
       port: Number(process.env.AUTH_CONSOLE_UI_PORT || 5273),
       proxy: {
+        '/api/governance': {
+          target: env.VITE_GOVERNANCE_TARGET || 'http://localhost:8201',
+          changeOrigin: true,
+        },
         '/admin': {
           target: env.VITE_ADMIN_TARGET || 'http://localhost:8201',
           changeOrigin: true,

@@ -17,7 +17,7 @@ apiClient.interceptors.request.use(async (cfg) => {
     cfg.headers.Authorization = `Bearer ${user.access_token}`
   }
   const url = cfg.url ?? ''
-  if (!url.includes('/admin/workspaces') && !url.includes('/admin/casdoor')) {
+  if (!url.startsWith('/api/governance/') && !url.includes('/admin/workspaces') && !url.includes('/admin/casdoor')) {
     cfg.headers['X-Authz-Workspace'] = activeWorkspace()
   }
   return cfg

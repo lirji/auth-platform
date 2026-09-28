@@ -139,6 +139,11 @@ public final class GovernanceRuntime implements AutoCloseable {
 
     IdentityMapper mapper() { return mapper; }
 
+    /** 本人菜单与业务判权共用SQL/图资格，不能靠前端角色集合推断。 */
+    public com.lrj.authz.governance.application.AccessPresentation presentation(com.lrj.authz.protocol.AuthzEngine graph) {
+        return new com.lrj.authz.governance.application.AccessPresentation(identity, catalogMapper, authorization(graph));
+    }
+
     /** 所属进程停止或 CLI 退出时释放连接池，不清理数据库。 */
     @Override public void close() { dataSource.close(); }
 }
