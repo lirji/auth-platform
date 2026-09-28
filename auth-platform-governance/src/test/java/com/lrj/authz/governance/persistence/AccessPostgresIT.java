@@ -87,5 +87,33 @@ class AccessPostgresIT {
         assertThatThrownBy(()->runtime.access().state(login(f.owner),f.p,null,null)).hasMessage("MEMBERSHIP_UNAVAILABLE");
         assertThatThrownBy(()->grant(f,id(),"suspended")).hasMessage("MEMBERSHIP_UNAVAILABLE");
     }
+    @Test void scopedSnapshotIsFixedAndCommandCannotChangeScope(){
+        var f=fixture();String command=id();Instant from=Instant.now(),to=from.plusSeconds(60);
+        var rule=new com.lrj.authz.protocol.ScopeDtos.Rule(1,"store",List.of(new com.lrj.authz.protocol.ScopeDtos.Clause(com.lrj.authz.protocol.ScopeDtos.Kind.SPECIFIED_STORES,List.of("S001"),false)));
+        var first=runtime.access().grantScoped(login(f.owner),f.p,command,f.member.membershipId(),1,f.role.id(),rule,"scoped",from,to);
+        assertThat(first.scope()).isEqualTo("SCOPED");
+        var replay=runtime.access().grantScoped(login(f.owner),f.p,command,f.member.membershipId(),1,f.role.id(),rule,"scoped",from,to);
+        assertThat(replay.id()).isEqualTo(first.id());
+        assertThat(ScopeRules.decode(jdbc.queryForObject("select rule_json from auth_governance.grant_scope where grant_id=?",String.class,first.id()))).isEqualTo(rule);
+        var changed=new com.lrj.authz.protocol.ScopeDtos.Rule(1,"store",List.of(new com.lrj.authz.protocol.ScopeDtos.Clause(com.lrj.authz.protocol.ScopeDtos.Kind.TENANT_ALL,List.of(),false)));
+        assertThatThrownBy(()->runtime.access().grantScoped(login(f.owner),f.p,command,f.member.membershipId(),1,f.role.id(),changed,"scoped",from,to)).hasMessage("COMMAND_CONFLICT");
+        assertThatThrownBy(()->jdbc.update("update auth_governance.grant_scope set rule_json='{}' where grant_id=?",first.id())).isInstanceOf(org.springframework.dao.DataAccessException.class);
+        assertThatThrownBy(()->jdbc.update("delete from auth_governance.grant_scope where grant_id=?",first.id())).isInstanceOf(org.springframework.dao.DataAccessException.class);
+    }
+    @Test void databaseRejectsScopedGrantWithoutSnapshotAndCrossPartitionSnapshot(){
+        var f=fixture();var g=grant(f,id(),"missing-scope");var other=fixture();
+        assertThatThrownBy(()->jdbc.update("update auth_governance.access_grant set scope='SCOPED' where id=?",g.id())).isInstanceOf(org.springframework.dao.DataAccessException.class);
+        assertThatThrownBy(()->jdbc.update("insert into auth_governance.grant_scope(grant_id,tenant_id,application_id,environment,scope_version,resource_type,rule_json,content_hash) values(?,?,?,'test',1,'store','{}',?)",g.id(),other.p.tenantId(),f.p.applicationId(),"a".repeat(64))).isInstanceOf(org.springframework.dao.DataAccessException.class);
+    }
+    @Test void scopedAuditFailureRollsBackSnapshotGrantAndIntent(){
+        var f=fixture();String constraint="test_scope_"+id().replace("-","");
+        var rule=new com.lrj.authz.protocol.ScopeDtos.Rule(1,"store",List.of(new com.lrj.authz.protocol.ScopeDtos.Clause(com.lrj.authz.protocol.ScopeDtos.Kind.SPECIFIED_STORES,List.of("S001"),false)));
+        jdbc.execute("alter table auth_governance.audit_event add constraint "+constraint+" check (tenant_id <> '"+f.p.tenantId()+"' or operation <> 'CREATE_GRANT')");
+        try{
+            assertThatThrownBy(()->runtime.access().grantScoped(login(f.owner),f.p,id(),f.member.membershipId(),1,f.role.id(),rule,"fail-scope",Instant.now(),Instant.now().plusSeconds(60))).isInstanceOf(RuntimeException.class);
+            assertThat(jdbc.queryForObject("select count(*) from auth_governance.grant_scope where tenant_id=?",Integer.class,f.p.tenantId())).isZero();
+            assertThat(runtime.access().state(login(f.owner),f.p,null,null).grants()).isEmpty();
+        }finally{jdbc.execute("alter table auth_governance.audit_event drop constraint "+constraint);}
+    }
     private record Fixture(BootstrapCommand owner,BootstrapCommand member,Partition p,RoleVersion role){}
 }

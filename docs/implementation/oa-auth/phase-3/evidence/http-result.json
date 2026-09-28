@@ -1,0 +1,194 @@
+[
+  {
+    "check": "explicit strict cutover",
+    "result": "PASS"
+  },
+  {
+    "check": "create store role",
+    "result": "PASS"
+  },
+  {
+    "check": "create product role",
+    "result": "PASS"
+  },
+  {
+    "check": "grant stores-two",
+    "result": "PASS"
+  },
+  {
+    "check": "grant products-and",
+    "result": "PASS"
+  },
+  {
+    "check": "strict old P2 endpoint refuses downgrade",
+    "result": "PASS"
+  },
+  {
+    "check": "central plan still requires local bridge",
+    "result": "PASS"
+  },
+  {
+    "check": "store SQL range and total",
+    "result": "PASS"
+  },
+  {
+    "check": "bound cursor returns only second store",
+    "result": "PASS"
+  },
+  {
+    "check": "product AND scope before SQL count",
+    "result": "PASS"
+  },
+  {
+    "check": "search cannot expose hidden totals",
+    "result": "PASS"
+  },
+  {
+    "check": "trusted product details allowed",
+    "result": "PASS"
+  },
+  {
+    "check": "same store does not bypass explicit product constraint",
+    "result": "PASS"
+  },
+  {
+    "check": "wrong store blocks explicit product id",
+    "result": "PASS"
+  },
+  {
+    "check": "foreign resource id does not leak",
+    "result": "PASS"
+  },
+  {
+    "check": "P2 store route now uses scoped SQL",
+    "result": "PASS"
+  },
+  {
+    "check": "raw old resource cursor rejected",
+    "result": "PASS"
+  },
+  {
+    "check": "legacy admin cannot enter scoped route",
+    "result": "PASS"
+  },
+  {
+    "check": "user token cannot enter legacy admin",
+    "result": "PASS"
+  },
+  {
+    "check": "strict menu hints use real grants",
+    "result": "PASS"
+  },
+  {
+    "check": "browser identity injection rejected",
+    "result": "PASS"
+  },
+  {
+    "check": "wrong service credential rejected",
+    "result": "PASS"
+  },
+  {
+    "check": "wrong user audience rejected",
+    "result": "PASS"
+  },
+  {
+    "check": "resource Owner cannot substitute tenant",
+    "result": "PASS"
+  },
+  {
+    "check": "submit export while currently allowed",
+    "result": "PASS"
+  },
+  {
+    "check": "strict revoke is accepted not completed",
+    "result": "PASS"
+  },
+  {
+    "check": "second auth node blocks old graph immediately",
+    "result": "PASS"
+  },
+  {
+    "check": "queued export cannot start during revoke",
+    "result": "PASS"
+  },
+  {
+    "check": "query real completed revocation receipt",
+    "result": "PASS"
+  },
+  {
+    "check": "new request denies on node 18111",
+    "result": "PASS"
+  },
+  {
+    "check": "new request denies on node 18113",
+    "result": "PASS"
+  },
+  {
+    "check": "business read denied after receipt",
+    "result": "PASS"
+  },
+  {
+    "check": "grant export-all",
+    "result": "PASS"
+  },
+  {
+    "check": "old cursor invalid after new policy",
+    "result": "PASS"
+  },
+  {
+    "check": "queued old task cannot adopt new policy",
+    "result": "PASS"
+  },
+  {
+    "check": "submit fresh bounded export",
+    "result": "PASS"
+  },
+  {
+    "check": "start with current scope",
+    "result": "PASS"
+  },
+  {
+    "check": "first batch commits fifty rows",
+    "result": "PASS"
+  },
+  {
+    "check": "same batch command replay does not duplicate",
+    "result": "PASS"
+  },
+  {
+    "check": "new process resumes persisted checkpoint",
+    "result": "PASS"
+  },
+  {
+    "check": "download rechecks all authorized rows",
+    "result": "PASS"
+  },
+  {
+    "check": "real commerce process kill recovery old=80049 new=80114",
+    "result": "PASS"
+  },
+  {
+    "check": "fixed sample dual-node and business latency baseline",
+    "result": "PASS"
+  },
+  {
+    "check": "revoke broad source",
+    "result": "PASS"
+  },
+  {
+    "check": "completed download denied while projection pending",
+    "result": "PASS"
+  },
+  {
+    "check": "completed download denied after revocation",
+    "result": "PASS"
+  },
+  {
+    "check": "product source remains independent",
+    "result": "PASS"
+  },
+  {
+    "check": "auth outage does not fall back to legacy ACL",
+    "result": "PASS"
+  }
+]

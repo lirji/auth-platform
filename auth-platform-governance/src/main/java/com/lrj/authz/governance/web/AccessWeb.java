@@ -21,7 +21,7 @@ public final class AccessWeb {
     /** 领域权限字符串投影成公开数组。 */
     public static RoleView role(RoleVersion r){return new RoleView(r.id(),r.roleCode(),r.version(),AccessValues.read(r.capabilitiesJson()));}
     /** 水位只在平台内部使用，不将其误作授权票据发给浏览器。 */
-    public static GrantView grant(Grant g){return new GrantView(g.id(),g.membershipId(),g.generation(),g.roleId(),g.scope(),g.sourceType(),g.sourceId(),g.validFrom().toString(),g.validTo().toString(),g.state().code(),g.version());}
+    public static GrantView grant(Grant g){return new GrantView(g.id(),g.membershipId(),g.generation(),g.roleId(),g.scope(),g.sourceType(),g.sourceId(),g.validFrom().toString(),g.validTo().toString(),g.state().code(),g.version(),g.groupId());}
     /** 稳定有界公开查询结果。 */
     public static StateView state(State s){return new StateView(s.roles().stream().map(AccessWeb::role).toList(),s.grants().stream().map(AccessWeb::grant).toList(),s.nextRoleCursor(),s.nextGrantCursor());}
     private static GovernanceException invalid(){return new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);}

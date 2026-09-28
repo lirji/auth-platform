@@ -124,6 +124,15 @@ jobs:
         env:
           GOVERNANCE_TEST_CONFIG: ${{ github.workspace }}/.local/governance/database.properties
           GOVERNANCE_GRAPH_CONFIG: ${{ github.workspace }}/.local/governance/p2/graph/graph.properties
+      - name: Prepare P3 CAS graph on its own persistent database
+        run: |
+          GOV_TEST_NETWORK="$(docker inspect --format '{{range $key, $value := .NetworkSettings.Networks}}{{print $key}}{{end}}' '${{ job.services.postgres.id }}')"
+          python3 deploy/governance-graph-isolation.py --phase p3 --postgres-container '${{ job.services.postgres.id }}' --port 5432 --postgres-host postgres --network "$GOV_TEST_NETWORK"
+      - name: Verify P3 remote CAS and recovery protocol
+        run: ./mvnw -B -pl auth-platform-governance -am -Pgovernance-projection-it verify
+        env:
+          GOVERNANCE_TEST_CONFIG: ${{ github.workspace }}/.local/governance/database.properties
+          GOVERNANCE_P3_GRAPH_CONFIG: ${{ github.workspace }}/.local/governance/p3/graph/graph.properties
       - name: Verify application RBAC and own menus through real HTTP
         run: |
           python3 deploy/governance-casdoor-fixture.py --base http://localhost:18090 --phase tokens --directory .local/governance/p2/identity --management-config .local/governance/casdoor-isolated/management-client.json

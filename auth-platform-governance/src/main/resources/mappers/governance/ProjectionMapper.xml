@@ -16,7 +16,7 @@
  next_attempt_at=clock_timestamp() + make_interval(secs => least(60,power(2,attempts+1)::integer))
  WHERE grant_id=#{id} AND grant_version=#{version} AND completed=false AND attempts &lt; 5</update>
  <select id="eligible" resultType="com.lrj.authz.governance.domain.AccessModels$Grant">
- SELECT g.id,g.tenant_id,g.application_id,g.environment,g.membership_id,g.generation,g.role_id,g.scope,g.source_type,g.source_id,g.valid_from,g.valid_to,g.state,g.version,g.zed_token
+ SELECT g.id,g.tenant_id,g.application_id,g.environment,g.membership_id,g.generation,g.role_id,g.scope,g.source_type,g.source_id,g.valid_from,g.valid_to,g.state,g.version,g.zed_token,g.group_id
  FROM auth_governance.access_grant g JOIN auth_governance.tenant_application a ON a.tenant_id=g.tenant_id AND a.application_id=g.application_id AND a.environment=g.environment
  JOIN auth_governance.membership m ON m.id=g.membership_id AND m.tenant_id=g.tenant_id AND m.generation=g.generation
  JOIN auth_governance.principal u ON u.id=m.principal_id JOIN auth_governance.tenant t ON t.id=m.tenant_id

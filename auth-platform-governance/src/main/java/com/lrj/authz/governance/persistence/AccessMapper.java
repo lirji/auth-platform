@@ -10,6 +10,8 @@ public interface AccessMapper {
     int registerPartition(@Param("p") Partition p,@Param("operator") String operator);
     /** 锁分区串行管理变更，避免授权数量限制和并发命令穿透。 */
     Boolean lockPartition(@Param("p") Partition p);
+    /** 已接管分区不能继续走P2单写者或无栅栏读取。 */
+    boolean strict(@Param("p") Partition p);
     /** 逐请求确认应用开通。 */
     Boolean enabled(@Param("p") Partition p);
     /** 创建固定管理上限，冲突由应用层判断。 */
@@ -24,6 +26,10 @@ public interface AccessMapper {
     RoleVersion roleByCode(@Param("p") Partition p,@Param("code") String code,@Param("version") long version);
     /** 创建授权路径，来源唯一。 */
     int insertGrant(@Param("g") Grant g,@Param("actor") String actor);
+    /** 固定范围与Grant同事务插入，分区外键负责最终完整性。 */
+    int insertScope(@Param("g") Grant g,@Param("resource") String resource,@Param("json") String json,@Param("hash") String hash);
+    /** 只读取当前分区的固定规则，缺失不能回退全范围。 */
+    String scope(@Param("p") Partition p,@Param("id") String id);
     /** 管理状态查询限定完整分区。 */
     Grant grant(@Param("p") Partition p,@Param("id") String id);
     /** 撤销立即改变资格；状态/版本条件防并发重写。 */

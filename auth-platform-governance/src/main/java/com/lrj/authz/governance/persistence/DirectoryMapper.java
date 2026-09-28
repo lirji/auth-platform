@@ -8,6 +8,8 @@ import java.util.List;
 
 /** 目录来源、去重、投影及检查点 SQL 的唯一入口，所有语句在 XML。 */
 public interface DirectoryMapper {
+    /** 来源锁与完整运维权限核对后更新，触发器同事务推进租户目录epoch。 */
+    int configureClock(@Param("source") String source, @Param("zone") String zone);
     /** 初次来源必须固定映射，冲突不覆盖。 */
     int insertSource(DirectoryAuthority authority);
     /** 锁定来源串行化其所有消费与检查点，禁止并行跨事件拼接事实。 */

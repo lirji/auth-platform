@@ -120,4 +120,5 @@
             occurrences = auth_governance.directory_conflict.occurrences + 1
     </insert>
     <update id="quarantine">UPDATE auth_governance.directory_source SET quarantined = true WHERE id = #{source}</update>
+  <update id="configureClock">UPDATE auth_governance.directory_source SET business_zone=#{zone} WHERE id=#{source} AND NOT quarantined</update>
 </mapper>

@@ -1,0 +1,59 @@
+# P3 持久化栅栏与投影契约
+
+## P3-03：切换与主库快照
+
+授权沿P3原方案。新增policy_partition仅由受控Runtime启用，按tenant/app/env唯一；directory_fence按tenant唯一。旧分区不自动接管，启用后不能退回无栅栏模式。启用命令具备管理委派、幂等及审计。默认入口仍关闭。
+
+政策epoch只在安全事实变更时增加：Grant创建/撤销version、应用准入、应用清单版本（含紧急能力停用后的扩展）、管理委派。目录epoch覆盖主体/成员/企业状态与代际、目录记录和来源状态。更新与epoch增加在同一PG事务，由所有既有写路径共用的数据库触发器保障。投影回执PENDING→ACTIVE不增加desired，以免自我触发无限投影。租户级目录栅栏有意保守阻断所有关联应用。
+
+desired/applied均为非负bigint；状态READY/UPDATING/BLOCKED显式编码。READY要求两版本相等且存在图水位。BLOCKED不会被普通业务变更自动清除。ZedToken仅当作不透明字符串保存，不做大小比较。P3-03不伪造图确认；真实READY仅由后续CAS执行器产生。
+
+A和C各在独立 `REQUIRES_NEW + REPEATABLE_READ` 短事务（5秒）读取主库，不跨图调用保留数据库事务。每份快照覆盖：Principal/成员/企业状态和版本、成员generation及期限、准入、当前清单、policy和directory READY/epoch/watermark、同一快照内候选Grant。C必须重新进入事务，不能复用调用方旧事务快照。过时身份、栅栏未就绪、两次快照不同返回AUTHZ_STATE_NOT_READY（503），没有有限重试后的宽松放行。
+
+原P2读取和投影在升级版本发现严格分区时拒绝执行，避免绕过CAS；新图使用独立P3定义，旧P2迟到写不能改变P3关系。切换前必须将试点受保护入口全部路由至升级节点；旧二进制不具备这一检查，禁止把仍在旧进程服务的入口标记切换成功。回滚应关闭受保护入口，不能重新开旧判权。仅隔离试点启用，不动共享图或生产。
+
+## P3-04a/b/c：后续约束
+
+每批ProjectionOperation固定不可变payload/content_hash/expected_marker/new_marker，不复用operation UUID。WriteRelationships的前置条件和关系/marker切换同一远端事务。初始化MUST_NOT_MATCH，后续MUST_MATCH精确旧marker；多个/未知marker隔离。SQL租约不授予换marker重试旧payload的权利。
+
+租约领取和operation规划在PG短事务，远程调用在事务外；失租进程不能确认READY。恢复先完全一致读取marker，图已提交时补receipt/token；新目标仍未收敛则继续UPDATING。多个批次全部核对后，仅desired=target时CAS到READY。图响应未知保持处理中，不能回滚权威管理状态。
+
+## P3-05/06：后续读写语义
+
+严格批量响应校验请求关联、基数、逐项状态及错误；Conditional/缺项/重复/超时拒绝。对policy和directory两个水位分别执行同一批检查，交集才允许；不取字符串max。撤权受理与完成分开，完成必须有receipt且当前栅栏已覆盖对应操作。P3-06补能力紧急停用、组资格变化和到期行为。P3-07必须保存真实进程kill/双执行器晚到结果，不用当前PG单测替代。
+
+## P3-04b 实施细化（同一已批准算法）
+
+projection_stream按policy或directory的真实FK二选一登记，保存固定fence_id、最后确认marker/批号、当前目标与扫描游标、有界失败重试，以及worker_id/lease_generation/lease_until。每次领取生成新代际，使用数据库时间；本地租约15秒，每次调用一个批次，进程入口最多30秒。不在网络期间持有SQL事务。
+
+projection_operation固定operation UUID、fence、target_epoch、单调batch_no、expected_marker、规范化payload/hash、末游标和是否最后一批；PENDING/APPLIED/SUPERSEDED/QUARANTINED为稳定状态。每分区只允许一个PENDING；同分区target+batch唯一。payload/expected/new marker等语义字段由数据库不可变触发器保护，只有状态/尝试信息可更新。没有「读新marker后改旧operation」入口。
+
+规划按当前权威Grant（包括已撤销来源）稳定id扫描，51条探测是否还有下一批，实际每批最多50条；新epoch从头重新扫描，不静默丢掉尾部。关系与marker同一次CAS写，所有批次确认之前保持UPDATING。目录当前直接成员阶段使用独立空关系marker批次，P3-06组关系变化复用该分区和批次协议。
+
+每步先读取远端marker：等于最后确认值才能规划/重发固定operation；若指向同分区已持久化且比已确认更新、expected与最后确认一致的operation，先恢复其receipt，不重发payload。未知、回退或多marker立即BLOCKED。恢复确认需要当前有效租约，旧执行者不能提交READY。新desired覆盖旧PENDING时标SUPERSEDED并创建新operation；迟到旧CAS至多在新CAS之前完成，后续新worker必须重新读权威状态和恢复已知operation，不能换expected复用旧内容。
+
+receipt按operation唯一，保存graph_marker、content_hash、opaque zed_token和confirmed_at。末批确认仅在desired仍等于operation.target_epoch且非BLOCKED时READY；并发管理更新保留UPDATING。PENDING→ACTIVE仅匹配当前Grant version，不恢复REVOKED。每步失败保留操作，指数退避带抖动，上限60秒/最多5次后BLOCKED；协议/未知marker直接隔离。受控审计重试由P3-06管理接口补齐。
+
+运行历史不自动删除。当前marker引用的operation、所有非终态和幂等记录必须保留；本隔离验证阶段保留全部证据。生产保留/归档期限需沿P7运营策略确认，不能编造法规保留期。这里不引入新的定时调度或消息中间件。
+
+## P3-05 实施细化
+
+StrictGraphReader只检查gov_access_grant#eligible，主体固定gov_membership:{membership_id}_g{generation}。最多100个唯一Grant；逐项校验回显resource、permission、subject、基数与唯一性。只接受明确HAS_PERMISSION/NO_PERMISSION；Conditional、缺项、重复、错关联、逐项error和不支持的caveat统一AUTHZ_PROTOCOL_INVALID。不同水位不能合并为字符串最大值，policyToken与directoryToken各跑同一批，完整结果取交集。
+
+ReliableAuthorization在ReadFence的A/C新事务内使用一条SQL连接Grant、固定RoleVersion、固定ScopeRule及当前成员，避免N+1。C除了栅栏、身份、目录版本，还核对仍有效的完整候选集合；时间边界导致候选变化时拒绝本次不稳定结果。读取仅使用持久化Token，Runtime重建或不同实例不依赖本地内存。一个请求预算8秒，超过预算没有ALLOW；图每次调用仍受已验证的body总超时保护。
+
+内部Evaluation含decisionId、当前Stamp、完整Grant alternatives和validUntil=min(数据库当前时间+30秒,匹配Grant到期时间)。它是本次请求的后端结果，不是可缓存或浏览器可提交的授权凭据。P3-02将它接到ScopePlan/可信资源Owner接口，每次业务请求重新取得与验证；长任务各检查点重新检查。当前仍不引入跨请求ALLOW缓存。
+
+## P3-06 实施细化
+
+组织组仅来自P1已消费的OA直接组织与PRIMARY/CONCURRENT任职；DOTTED、领导标志和汇报线不推导业务权限。组可以先于ORG事实登记占位，但只有已收到ACTIVE组织事实才允许授予。来源business_zone必须由0600目录来源配置对应的受控运维CLI显式设置为与OA生产进程一致的IANA时区；未配置拒绝组授权，不默认使用数据库或服务器时区。日期遵循左闭右开，每次主库A/C均核对；组ScopePlan期限不跨来源午夜。
+
+V12以directory_entry事务触发器维护组织组及当前成员代际/任职日期；旧组及旧代际边保留墓碑用于可靠DELETE。每事件最多100任职，目录worker每批50边，策略worker投影Grant→group#member，目录worker投影group→当前membership代际。两者仍独立marker与持久水位；两个atLeastAsFresh快照可能短暂保守DENY，不能提升为ALLOW，实测追平时间在P3-07记录。来源变更与目录epoch原子推进。退组/离职/迁移不能使用旧SQL资格，重新入组只能使用仍有效的独立Grant，不能恢复REVOKED来源。
+
+GROUP Grant使用独立group_id与租户复合外键，成员为空、generation=0表示组受益方，不能伪造成直接成员；DIRECT保持原约束。组Grant只允许已切换严格分区，仍校验管理能力上限、期限、同Grant固定范围、幂等和审计，拒绝管理者向自己当前所在组授予。每组最多100活跃Grant，总候选超过100时失败关闭。
+
+POST /api/governance/v1/access/group-grants返回202；GET /access/groups按末项UUID分页。DirectoryImportCli clock以完整来源权限设置时区，配置新增directory.business-zone和directory.command-id；不提供应用管理员HTTP时区入口。POST /access/enable-strict只切换已升级受保护路由；POST /access/retry-strict按POLICY/DIRECTORY清除耗尽次数并审计，活动租约不能强行替换，未知marker仍会再次BLOCKED。管理HTTP接口沿用P2已验证管理Token和完整tenant/application/environment委派校验。
+
+POST /access/strict-revoke返回202及PROCESSING/BLOCKED/COMPLETED回执；GET /access/revocation-receipt重新检查当前管理范围。只有同Grant当前版本存在真实projection_receipt关联，策略applied覆盖操作target_epoch且策略/目录都READY才COMPLETED。旧/access/revoke继续只表示SQL撤销，不能展示为全局完成。
+
+POST /catalog/capability-state仅应用拥有者可执行，需capability、disabled、expected_version、reason及command_id；独立乐观版本、不可变命令审计与所有应用策略分区epoch同事务。初始不存在记录等于版本0/未停用；同命令同内容返回原结果，改体冲突。紧急停用不修改历史RoleVersion，P2/P3读取都重新检查开关；恢复也必须显式新命令，不能由清单发布自动开启。

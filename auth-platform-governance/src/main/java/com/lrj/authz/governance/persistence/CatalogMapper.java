@@ -5,6 +5,8 @@ import org.apache.ibatis.annotations.Param;
 
 /** 目录SQL集中在XML，应用锁串行化同一应用的发布。 */
 public interface CatalogMapper {
+    /** 当前能力紧急停用时不再接受任何来源。 */
+    boolean disabled(@Param("id") String id,@Param("cap") String capability);
     /** 应用冲突不覆盖原拥有者。 */
     int register(@Param("app") Application app, @Param("operator") String operator);
     /** 只读当前登记事实。 */

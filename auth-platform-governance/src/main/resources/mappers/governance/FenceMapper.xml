@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrj.authz.governance.persistence.FenceMapper">
+ <insert id="enable">INSERT INTO auth_governance.policy_partition(tenant_id,application_id,environment,created_by)
+ VALUES(#{p.tenantId},#{p.applicationId},#{p.environment},#{actor}) ON CONFLICT DO NOTHING</insert>
+ <select id="policy" resultType="com.lrj.authz.governance.domain.FenceModels$Fence">
+ SELECT id,desired_epoch,applied_epoch,state,zed_token FROM auth_governance.policy_partition
+ WHERE tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment}
+ </select>
+ <select id="directory" resultType="com.lrj.authz.governance.domain.FenceModels$Fence">
+ SELECT id,desired_epoch,applied_epoch,state,zed_token FROM auth_governance.directory_fence WHERE tenant_id=#{tenant}
+ </select>
+ <select id="stamp" resultType="com.lrj.authz.governance.domain.FenceModels$Stamp">
+ SELECT u.id AS principal_id,m.id AS membership_id,m.generation,m.version AS membership_version,
+ u.version AS principal_version,t.version AS tenant_version,app.manifest_version,
+ p.tenant_id,p.application_id,p.environment,p.id AS policy_id,p.applied_epoch AS policy_epoch,p.zed_token AS policy_token,
+ d.id AS directory_id,d.applied_epoch AS directory_epoch,d.zed_token AS directory_token
+ FROM auth_governance.policy_partition p JOIN auth_governance.directory_fence d ON d.tenant_id=p.tenant_id
+ JOIN auth_governance.tenant_application a ON a.tenant_id=p.tenant_id AND a.application_id=p.application_id AND a.environment=p.environment
+ JOIN auth_governance.application_catalog app ON app.application_id=p.application_id
+ JOIN auth_governance.membership m ON m.tenant_id=p.tenant_id
+ JOIN auth_governance.principal u ON u.id=m.principal_id JOIN auth_governance.tenant t ON t.id=m.tenant_id
+ WHERE p.tenant_id=#{c.tenantId} AND p.application_id=#{c.applicationId} AND p.environment=#{c.environment}
+ AND m.id=#{c.membershipId} AND u.id=#{c.principalId} AND m.generation=#{c.membershipGeneration}
+ AND m.status='ACTIVE' AND u.status='ACTIVE' AND u.kind='HUMAN' AND t.status='ACTIVE' AND a.enabled=true
+ AND m.valid_from &lt;=clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to &gt;clock_timestamp())
+ AND p.state='READY' AND p.desired_epoch=p.applied_epoch AND p.zed_token IS NOT NULL
+ AND d.state='READY' AND d.desired_epoch=d.applied_epoch AND d.zed_token IS NOT NULL
+ AND NOT EXISTS(SELECT 1 FROM auth_governance.directory_source src WHERE src.tenant_id=p.tenant_id AND src.quarantined=true)
+ </select>
+</mapper>
