@@ -92,5 +92,5 @@ jobs:
         env:
           GOVERNANCE_TEST_CONFIG: ${{ github.workspace }}/.local/governance/database.properties
           GOVERNANCE_IDENTITY_FIXTURE: ${{ github.workspace }}/.local/governance/casdoor-isolated
-      - name: Verify governance HTTP boundaries (P1-03)
-        run: python3 deploy/governance-context-smoke.py --postgres-container '${{ job.services.postgres.id }}'
+      - name: Verify governance HTTP boundaries and controlled suspension (P1-03/06)
+        run: python3 deploy/governance-context-smoke.py

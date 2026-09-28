@@ -1,0 +1,57 @@
+{
+  "slice_id": "P1-06",
+  "overall": "PASS",
+  "gate": "PASS",
+  "source_fingerprint": "0d61fdd0d711550c013ab879bbf2b9b1c599c3377c280a33a64585d1617e15bc",
+  "unit_tests": 170,
+  "postgres_tests": 20,
+  "http_check_count": 30,
+  "checks": [
+    {
+      "acceptance": "controlled suspension rejects old valid JWT",
+      "method": "30 real HTTP checks, real LifecycleCli including replay",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "tenant scope, global suspension, idempotence, conflicting payloads, stale version concurrency, atomic audit failure",
+      "method": "20 PostgreSQL integration tests",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "operator/scope cannot be forged by command file; private config and bounded inputs",
+      "method": "LifecycleCommandTest plus real CLI HTTP tests",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "schema expansion keeps old application reads and suspension",
+      "method": "P1-03 saved JAR with V3 governance database",
+      "result": "PASS",
+      "evidence": {
+        "result": "PASS",
+        "old_application": "P1-03 server JAR from 3634a2b source",
+        "old_jar_sha256": "345b8e44619157c7c9b76092c573ae49e5368a24cf95058de0f20bcac4455093",
+        "database_schema": "V3",
+        "old_read_preserves_suspension": true,
+        "http_checks": 30
+      }
+    },
+    {
+      "acceptance": "code hygiene, transaction boundary, secret and diff review",
+      "method": "hygiene-final.json; source review and git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "limits": [
+    "FORMAT_TOOL_NOT_AVAILABLE",
+    "STATIC_ANALYSIS_NOT_CONFIGURED",
+    "NO_DIRECTORY_SOURCE_DELIVERY_YET",
+    "NO_PRODUCTION_DEPLOYMENT"
+  ],
+  "logs": [
+    ".local/governance/p1-06/final-verify-v3.log",
+    ".local/governance/p1-06/http-smoke-final.log",
+    ".local/governance/p1-06/compatibility-result.json",
+    ".local/governance/p1-06/hygiene-final.json"
+  ],
+  "delivery_gate": "PENDING_EXACT_CI"
+}

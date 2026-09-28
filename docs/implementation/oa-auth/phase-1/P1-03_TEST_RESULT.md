@@ -9,3 +9,5 @@ Review: admin prefix uses mandatory stateless identity filter; internal service 
 Hygiene: IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS (no canonical formatter); standalone static analysis N/A. No UI change, browser visual checks N/A. Shared IdP upgrade remains HOLD due to redirect_uri; no production rollout/capacity claim. Initial test/tool failures and remediation are retained in IMPLEMENTATION_EVIDENCE.
 
 Delivery requires exact SHA remote CI; local slice validation does not assert remote CI success.
+
+Delivery: exact SHA `3634a2b`, [CI 36389104153](https://github.com/lirji/auth-platform/actions/runs/36389104153) SUCCESS; fast-forward merged and pushed to main.

@@ -19,7 +19,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 | P1-03 | 实现Membership上下文解析 | P1-02 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 请求体伪造主体、跨租户选择无效 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P1-04 | 接入唯一目录源与幂等检查点 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 重复、乱序、全量不完整不误删 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P1-05 | 实现外部邀请和生命周期 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 并发接受唯一、外部成员无内部默认访问 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
-| P1-06 | 接入停用状态与审计 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 旧JWT不能绕过当前成员停用 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
+| P1-06 | 接入停用状态与审计 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 旧JWT不能绕过当前成员停用 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P1-07 | 输出真实集成测试与P2交接 | P1-04, P1-05, P1-06 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 不以Mock代替真实身份源验证 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P2-01 | 应用／能力／菜单清单解析与预览 | P1-03 | IAM／应用 Owner；auth: governance（候选）, admin, core, sdk, auth-console、commerce: StoreAccessController/Service | 外部应用不能覆盖trade能力 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P2-02 | RoleVersion与AccessGrant模型 | P2-01, P1-06 | IAM／应用 Owner；auth: governance（候选）, admin, core, sdk, auth-console、commerce: StoreAccessController/Service | 唯一约束、版本不变、来源保留 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
@@ -72,7 +72,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 
 ## 当前下一片
 
-P1-00/01/02 已完成，验收见 phase-1。P1-03 本地验收 DONE、远程交付待 CI：默认关闭的本人/内部双身份成员上下文；使用隔离固定发行方，不接管共享旧 IdP。共享 Casdoor 升级 Gate HOLD，额外 redirect_uri 缺陷必须整改。
+P1-00/01/02 已完成，验收见 phase-1。P1-03 已验收并交付 main：默认关闭的本人/内部双身份成员上下文；使用隔离固定发行方，不接管共享旧 IdP。共享 Casdoor 升级 Gate HOLD，额外 redirect_uri 缺陷必须整改。
 
 ## 依赖与外部条件
 
@@ -93,3 +93,5 @@ P1-00/01/02 已完成，验收见 phase-1。P1-03 本地验收 DONE、远程交�
 P1-01 首次需要隔离 auth 治理数据库及迁移装配，由 runtime-and-deploy 按冻结技术维护必要运行说明；P2-04首次需要隔离治理图；P4-02首次需要真实OA跨进程环境。不能为片表完整新增默认MQ、缓存或新BFF服务。部署执行不由本计划或Git授权自动产生。
 
 本表状态由 update-progress-docs 更新，验收语义由契约和设计Owner维护，不为通过而删掉真实组件要求。
+
+P1-06 受控停用本地验收 DONE（170 单测、20 PG、30 HTTP；旧 JAR/V3 读取兼容 PASS），远程交付待精确 CI。下一片 P1-04 目录接入；未改变原节点依赖。

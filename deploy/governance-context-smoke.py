@@ -122,7 +122,6 @@ def props(values):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--directory', default='.local/governance')
-    parser.add_argument('--postgres-container', default='dev-infra-postgres16-1')
     args = parser.parse_args()
     root = Path(args.directory).resolve()
     database = json.loads(read_private(root / 'database.json'))
@@ -210,17 +209,23 @@ def main():
     expect('duplicate tenant field', SERVER_PORT, internal, headers, ('{"tenant_id":"' + tenant + '","tenant_id":"' + tenant + '"}').encode(), 400, 'INVALID_ARGUMENT')
     expect('oversized body', SERVER_PORT, internal, headers, b' ' * 4097, 400, 'INVALID_ARGUMENT')
     expect('repeated user header', SERVER_PORT, internal, headers + [headers[1]], body, 401, 'INVALID_CREDENTIAL')
-    # 仅修改本次随机新建成员；不更改 P1-02 固定绑定或任何共享业务事实。
-    sql = "UPDATE auth_governance.membership SET status='SUSPENDED',version=version+1 WHERE id='%s' AND tenant_id='%s' AND version=1 RETURNING id;" % (member, tenant)
-    result = subprocess.run(['docker', 'exec', '-i', args.postgres_container, 'sh', '-c',
-                             'exec psql -U "$POSTGRES_USER" -d ' + database['database'] + ' -At -v ON_ERROR_STOP=1'],
-                            input=sql, text=True, capture_output=True, timeout=10)
-    if result.returncode or member not in result.stdout:
-        raise RuntimeError('owned membership suspension failed')
+    # 通过真实受控命令停用本次成员；不用直接 SQL 绕过版本、操作者与审计用例。
+    private(run / 'lifecycle.properties', db_props + props({'lifecycle.operator-ref': 'p106-http-smoke', 'lifecycle.scope': tenant}))
+    private(run / 'suspend.properties', props({'command.id': str(uuid.uuid4()), 'target.id': member,
+                                             'expected.version': 1, 'reason': 'isolated HTTP suspension verification'}))
+    with os.fdopen(os.open(run / 'suspend.log', os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), 'w') as output:
+        for attempt in range(2):
+            result = subprocess.run(['java', '-Dloader.main=com.lrj.authz.governance.cli.LifecycleCli', '-cp', str(jars['server']),
+                                     'org.springframework.boot.loader.launch.PropertiesLauncher', 'suspend-member',
+                                     str(run / 'lifecycle.properties'), str(run / 'suspend.properties')],
+                                    stdout=output, stderr=subprocess.STDOUT, timeout=30)
+            if result.returncode:
+                raise RuntimeError('owned controlled suspension or replay failed')
+    CHECKS.append({'check': 'controlled CLI suspension and idempotent replay', 'result': 'PASS'})
     expect('old valid JWT rejected after suspension', SERVER_PORT, internal, headers, body, 403, 'MEMBERSHIP_UNAVAILABLE')
     result = expect('me excludes suspended membership', ADMIN_PORT, me, admin)
     assert member not in [item['membership_id'] for item in result['memberships']]
-    facts = {'slice': 'P1-03', 'result': 'PASS', 'checks': CHECKS, 'shared_modified': False, 'evidence_directory': str(run)}
+    facts = {'slices': ['P1-03', 'P1-06'], 'result': 'PASS', 'checks': CHECKS, 'shared_modified': False, 'evidence_directory': str(run)}
     (run / 'result.json').write_text(json.dumps(facts, indent=2) + '\n')
     print(json.dumps(facts, indent=2))
 

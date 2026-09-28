@@ -95,4 +95,19 @@
             updated_at = CURRENT_TIMESTAMP
         WHERE id = #{id} AND version = #{expectedVersion} AND status = #{oldStatus}
     </update>
+    <update id="suspendMember">
+        UPDATE auth_governance.membership SET status = 'SUSPENDED', version = version + 1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id} AND tenant_id = #{tenantId} AND version = #{expectedVersion} AND status = 'ACTIVE'
+    </update>
+    <update id="suspendPrincipal">
+        UPDATE auth_governance.principal SET status = 'SUSPENDED', version = version + 1
+        WHERE id = #{id} AND version = #{expectedVersion} AND status = 'ACTIVE'
+    </update>
+    <insert id="appendLifecycleAudit">
+        INSERT INTO auth_governance.audit_event(id, operator_ref, tenant_id, operation, target_id,
+            target_version, command_id, reason, previous_status, resulting_status, previous_version)
+        VALUES (#{id}, #{operatorRef}, #{tenantId}, #{operation}, #{targetId}, #{targetVersion}, #{commandId},
+            #{reason}, #{previousStatus}, #{resultingStatus}, #{previousVersion})
+    </insert>
 </mapper>

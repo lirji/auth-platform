@@ -332,7 +332,9 @@
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "evidence_ref": "../../implementation/oa-auth/phase-1/P1-03_TEST_RESULT.md",
-      "delivery_gate": "PENDING_EXACT_CI"
+      "delivery_gate": "PASS",
+      "ci_run": "36389104153",
+      "commit": "3634a2b"
     },
     {
       "id": "P1-04",
@@ -401,10 +403,13 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
+      "status": "DONE",
       "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "delivery_gate": "PENDING_EXACT_CI",
+      "contract_ref": "CONTRACTS_P1_LIFECYCLE.md",
+      "evidence_ref": "../../implementation/oa-auth/phase-1/P1-06_TEST_RESULT.md"
     },
     {
       "id": "P1-07",

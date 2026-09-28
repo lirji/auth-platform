@@ -1,6 +1,7 @@
 package com.lrj.authz.governance.persistence;
 
 import com.lrj.authz.governance.application.IdentityGovernance;
+import com.lrj.authz.governance.application.LifecycleGovernance;
 import com.lrj.authz.governance.domain.IdentityModels.*;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -17,11 +18,13 @@ public final class GovernanceRuntime implements AutoCloseable {
     private final HikariDataSource dataSource;
     private final IdentityMapper mapper;
     private final IdentityGovernance identity;
+    private final LifecycleGovernance lifecycle;
 
-    private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity) {
+    private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle) {
         this.dataSource = dataSource;
         this.mapper = mapper;
         this.identity = identity;
+        this.lifecycle = lifecycle;
     }
 
     /** 显式 migration owner 才能迁移；读取实例必须通过已存在序列的 validate。 */
@@ -68,7 +71,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             IdentityMapper mapper = session.getMapper(IdentityMapper.class);
             TransactionTemplate transaction = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
             transaction.setTimeout(5);
-            return new GovernanceRuntime(dataSource, mapper, new IdentityGovernance(mapper, transaction));
+            return new GovernanceRuntime(dataSource, mapper, new IdentityGovernance(mapper, transaction), new LifecycleGovernance(mapper, transaction));
         } catch (Exception failure) {
             dataSource.close();
             throw new IllegalStateException("治理库装配失败，拒绝启用新路径", failure);
@@ -77,6 +80,9 @@ public final class GovernanceRuntime implements AutoCloseable {
 
     /** 唯一应用入口，读取与写入共享同一专用治理数据源。 */
     public IdentityGovernance identity() { return identity; }
+
+    /** 受控操作适配器使用停用用例，不能由本人只读 HTTP 接口直接暴露。 */
+    public LifecycleGovernance lifecycle() { return lifecycle; }
 
     IdentityMapper mapper() { return mapper; }
 

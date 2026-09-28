@@ -54,6 +54,18 @@ public interface IdentityMapper {
                                    @Param("oldStatus") MemberStatus oldStatus,
                                    @Param("newStatus") MemberStatus newStatus);
 
+    /** 企业和版本一起进入 CAS 条件，防止跨企业停用或旧版本覆盖。 */
+    int suspendMember(@Param("id") String id, @Param("tenantId") String tenantId, @Param("expectedVersion") long expectedVersion);
+    /** 全局主体停用不改各企业成员记录；入口必须先具备全局范围。 */
+    int suspendPrincipal(@Param("id") String id, @Param("expectedVersion") long expectedVersion);
+    /** 生命周期审计必须完整记录原因与前后状态/版本，不能复用缺少原因的旧写入。 */
+    int appendLifecycleAudit(@Param("id") String id, @Param("operatorRef") String operatorRef,
+                             @Param("tenantId") String tenantId, @Param("operation") String operation,
+                             @Param("targetId") String targetId, @Param("targetVersion") long targetVersion,
+                             @Param("commandId") String commandId, @Param("reason") String reason,
+                             @Param("previousStatus") String previousStatus, @Param("resultingStatus") String resultingStatus,
+                             @Param("previousVersion") long previousVersion);
+
     /** 命令结果是引用，重放读取当前事实而非过期授权快照。 */
     record CommandRow(String payloadHash, String resultRef, boolean completed) {}
 }

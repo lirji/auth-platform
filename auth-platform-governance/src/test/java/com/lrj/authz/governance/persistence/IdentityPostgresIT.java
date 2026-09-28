@@ -1,6 +1,7 @@
 package com.lrj.authz.governance.persistence;
 
 import com.lrj.authz.governance.application.BootstrapCommand;
+import com.lrj.authz.governance.application.LifecycleCommand;
 import com.lrj.authz.governance.application.GovernanceException;
 import com.lrj.authz.governance.cli.GovernanceCli;
 import com.lrj.authz.governance.domain.IdentityModels.*;
@@ -230,6 +231,101 @@ class IdentityPostgresIT {
         expectCode(() -> runtime.identity().contextForLogin(c.issuer(), c.subject(), c.tenantId(), null), GovernanceException.Code.MEMBERSHIP_UNAVAILABLE);
         jdbc.update("UPDATE auth_governance.membership SET valid_to=NULL,valid_from=now()+interval '1 hour' WHERE id=?", c.membershipId());
         expectCode(() -> runtime.identity().contextForLogin(c.issuer(), c.subject(), c.tenantId(), null), GovernanceException.Code.MEMBERSHIP_UNAVAILABLE);
+    }
+
+    @Test void lifecycleSuspensionIsIdempotentAuditedAndCannotAffectOtherTenant() {
+        var c = fixture(); runtime.identity().bootstrapEmployee(c);
+        var other = new BootstrapCommand(id(), c.operatorRef(), id(), "other-" + id(), c.principalId(),
+                c.issuer(), c.subject(), id(), c.validFrom(), null, "fixture", id(), id());
+        runtime.identity().bootstrapEmployee(other);
+        var command = suspension(c, c.tenantId(), c.membershipId(), LifecycleCommand.Operation.SUSPEND_MEMBER);
+        var result = runtime.lifecycle().suspend(command);
+        assertThat(runtime.lifecycle().suspend(command)).isEqualTo(result);
+        assertThat(result.status()).isEqualTo("SUSPENDED");
+        assertThat(result.version()).isEqualTo(2);
+        assertThat(runtime.mapper().membership(c.membershipId()).generation()).isEqualTo(1);
+        assertThat(runtime.identity().membershipsForLogin(c.issuer(), c.subject())).extracting("id").containsExactly(other.membershipId());
+        var audit = jdbc.queryForMap("SELECT reason,previous_status,resulting_status,previous_version,target_version FROM auth_governance.audit_event WHERE command_id=?", command.commandId());
+        assertThat(audit).containsEntry("reason", command.reason()).containsEntry("previous_status", "ACTIVE")
+                .containsEntry("resulting_status", "SUSPENDED").containsEntry("previous_version", 1L).containsEntry("target_version", 2L);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM auth_governance.audit_event WHERE command_id=?", Integer.class, command.commandId())).isEqualTo(1);
+        var conflict = new LifecycleCommand(command.commandId(), command.operatorRef(), command.scope(), command.operation(), command.targetId(), 1, "different reason");
+        expectCode(() -> runtime.lifecycle().suspend(conflict), GovernanceException.Code.COMMAND_CONFLICT);
+        var cross = suspension(c, c.tenantId(), other.membershipId(), LifecycleCommand.Operation.SUSPEND_MEMBER);
+        expectCode(() -> runtime.lifecycle().suspend(cross), GovernanceException.Code.MEMBERSHIP_UNAVAILABLE);
+        assertThat(runtime.mapper().membership(other.membershipId()).status()).isEqualTo(MemberStatus.ACTIVE);
+    }
+
+    @Test void globalSuspensionLeavesMembershipRecordsButRejectsAllTenants() {
+        var c = fixture(); runtime.identity().bootstrapEmployee(c);
+        var other = new BootstrapCommand(id(), c.operatorRef(), id(), "global-other-" + id(), c.principalId(),
+                c.issuer(), c.subject(), id(), c.validFrom(), null, "fixture", id(), id());
+        runtime.identity().bootstrapEmployee(other);
+        var command = suspension(c, LifecycleCommand.GLOBAL_SCOPE, c.principalId(), LifecycleCommand.Operation.SUSPEND_PRINCIPAL);
+        assertThat(runtime.lifecycle().suspend(command).version()).isEqualTo(2);
+        assertThat(runtime.lifecycle().suspend(command).status()).isEqualTo("SUSPENDED");
+        assertThat(runtime.mapper().membership(c.membershipId()).status()).isEqualTo(MemberStatus.ACTIVE);
+        assertThat(runtime.mapper().membership(other.membershipId()).status()).isEqualTo(MemberStatus.ACTIVE);
+        for (var tenant : List.of(c.tenantId(), other.tenantId())) {
+            expectCode(() -> runtime.identity().contextForLogin(c.issuer(), c.subject(), tenant, null), GovernanceException.Code.MEMBERSHIP_UNAVAILABLE);
+        }
+    }
+
+    @Test void concurrentDifferentCommandsCanConsumeVersionOnlyOnce() throws Exception {
+        var c = fixture(); runtime.identity().bootstrapEmployee(c);
+        var first = suspension(c, c.tenantId(), c.membershipId(), LifecycleCommand.Operation.SUSPEND_MEMBER);
+        var second = suspension(c, c.tenantId(), c.membershipId(), LifecycleCommand.Operation.SUSPEND_MEMBER);
+        var start = new java.util.concurrent.CyclicBarrier(2);
+        try (var threads = Executors.newFixedThreadPool(2)) {
+            List<Callable<Boolean>> work = List.of(() -> runSuspension(start, first), () -> runSuspension(start, second));
+            var results = threads.invokeAll(work);
+            assertThat(results.get(0).get() ^ results.get(1).get()).isTrue();
+        }
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM auth_governance.audit_event WHERE target_id=? AND operation='SUSPEND_MEMBERSHIP'", Integer.class, c.membershipId())).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM auth_governance.command_record WHERE operator_ref=? AND operation='SUSPEND_MEMBERSHIP'", Integer.class, c.operatorRef())).isEqualTo(1);
+    }
+
+    @Test void concurrentSameLifecycleCommandReturnsSingleReceipt() throws Exception {
+        var c = fixture(); runtime.identity().bootstrapEmployee(c);
+        var command = suspension(c, c.tenantId(), c.membershipId(), LifecycleCommand.Operation.SUSPEND_MEMBER);
+        try (var threads = Executors.newFixedThreadPool(3)) {
+            Callable<Long> work = () -> runtime.lifecycle().suspend(command).version();
+            for (var result : threads.invokeAll(List.of(work, work, work))) { assertThat(result.get()).isEqualTo(2L); }
+        }
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM auth_governance.audit_event WHERE command_id=?", Integer.class, command.commandId())).isEqualTo(1);
+    }
+
+    @Test void lifecycleAuditFailureRollsBackStatusVersionAndCommand() {
+        var c = fixture(); runtime.identity().bootstrapEmployee(c);
+        var command = suspension(c, c.tenantId(), c.membershipId(), LifecycleCommand.Operation.SUSPEND_MEMBER);
+        String function = "lifecycle_fail_" + UUID.randomUUID().toString().replace("-", "");
+        jdbc.execute("CREATE FUNCTION auth_governance." + function + "() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'isolated lifecycle audit failure'; END $$");
+        jdbc.execute("CREATE TRIGGER " + function + " BEFORE INSERT ON auth_governance.audit_event FOR EACH ROW "
+                + "WHEN (NEW.command_id = '" + command.commandId() + "') EXECUTE FUNCTION auth_governance." + function + "()");
+        assertThatThrownBy(() -> runtime.lifecycle().suspend(command)).isInstanceOf(RuntimeException.class).hasStackTraceContaining("isolated lifecycle audit failure");
+        assertThat(runtime.mapper().membership(c.membershipId()).status()).isEqualTo(MemberStatus.ACTIVE);
+        assertThat(runtime.mapper().membership(c.membershipId()).version()).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM auth_governance.command_record WHERE command_id=?", Integer.class, command.commandId())).isZero();
+    }
+
+    @Test void lifecycleRejectsStaleVersionAndIncompleteAuditDetails() {
+        var c = fixture(); runtime.identity().bootstrapEmployee(c);
+        var stale = new LifecycleCommand(id(), c.operatorRef(), c.tenantId(), LifecycleCommand.Operation.SUSPEND_MEMBER, c.membershipId(), 2, "stale command");
+        expectCode(() -> runtime.lifecycle().suspend(stale), GovernanceException.Code.VERSION_CONFLICT);
+        assertThatThrownBy(() -> jdbc.update("INSERT INTO auth_governance.audit_event(id,operator_ref,tenant_id,operation,target_id,target_version,command_id,reason) VALUES (?,?,?,?,?,1,?,?)", id(), c.operatorRef(), c.tenantId(), "SUSPEND_MEMBERSHIP", c.membershipId(), id(), "incomplete"))
+                .isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> jdbc.update("INSERT INTO auth_governance.audit_event(id,operator_ref,tenant_id,operation,target_id,target_version,command_id) VALUES (?,?,?,?,?,1,?)", id(), c.operatorRef(), c.tenantId(), "SUSPEND_MEMBERSHIP", c.membershipId(), id()))
+                .isInstanceOf(RuntimeException.class);
+        assertThat(runtime.mapper().membership(c.membershipId()).status()).isEqualTo(MemberStatus.ACTIVE);
+    }
+
+    private boolean runSuspension(java.util.concurrent.CyclicBarrier start, LifecycleCommand command) throws Exception {
+        start.await(3, java.util.concurrent.TimeUnit.SECONDS);
+        try { runtime.lifecycle().suspend(command); return true; }
+        catch (GovernanceException failure) { assertThat(failure.code()).isEqualTo(GovernanceException.Code.VERSION_CONFLICT); return false; }
+    }
+    private static LifecycleCommand suspension(BootstrapCommand c, String scope, String target, LifecycleCommand.Operation operation) {
+        return new LifecycleCommand(id(), c.operatorRef(), scope, operation, target, 1, "isolated controlled suspension");
     }
 
     private int auditCount(BootstrapCommand c) { return jdbc.queryForObject("SELECT count(*) FROM auth_governance.audit_event WHERE command_id=? AND operator_ref=?", Integer.class, c.commandId(), c.operatorRef()); }

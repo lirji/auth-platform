@@ -1,0 +1,19 @@
+{
+  "slice_id": "P1-06",
+  "base": "3634a2b5ed28b254ecc5ba1d1b7bc4cc51ac4182",
+  "source_files": {
+    ".github/workflows/authz-ci.yml": "7c97cf04088d0958c07d39f9f11dacb2f48bf37f623f67a5430d2ebc615c4b0b",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/LifecycleCommand.java": "ccb9c45e8a4da001621cafd8ff2f35f382005f14f10dfd1b2a2ded01b4869e25",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/LifecycleGovernance.java": "ae3264663fbefa2573bfbed31892bce3b9dc4db3b6a2ef8c5adb5c84a75257c3",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/LifecycleCli.java": "63deca9c2824ca2896df679e6ffe3e52c6e866b8583c18f4afc902bedcbc38db",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/GovernanceRuntime.java": "ce3d9dcfe0259534692c2cf3662c619652b2aece20bcdbe688898ef345906857",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/IdentityMapper.java": "5d4c92c1fe3f0b9e8170cf5592511cc9f9545d918e091321a78b291de003b479",
+    "auth-platform-governance/src/main/resources/db/governance/migration/V2__lifecycle_audit_details.sql": "4eaef14e745ff33e68d4e2cefef1176bd939589743f8bc3b47baf44bb3e41682",
+    "auth-platform-governance/src/main/resources/db/governance/migration/V3__require_lifecycle_audit_details.sql": "c5ee49af140999d07f49210d5fb0a0db85fb1155cd86c46d39cd539dc776f636",
+    "auth-platform-governance/src/main/resources/mappers/governance/IdentityMapper.xml": "f7b2fac4550eacb3cfd084bd7ba1a0dcc4f2c064e9431e12e76d171c81164d58",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/application/LifecycleCommandTest.java": "2bce71c984c9c59151a53803602f92fb0ba7549b98b1e3ca9fe732eda1986929",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/IdentityPostgresIT.java": "5efdec39be1c8e00574ec682fc028895cba62eba44938eac49697edeb0333d3d",
+    "deploy/governance-context-smoke.py": "15371ec065b3ccdd0a61d3cd399e53d01c91e7f25ebbc8d92708d9d6a10ae0bc"
+  },
+  "source_fingerprint": "0d61fdd0d711550c013ab879bbf2b9b1c599c3377c280a33a64585d1617e15bc"
+}
