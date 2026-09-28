@@ -2,28 +2,28 @@
 
 ## 当前状态
 
-最新指令已授权在已交付计划上继续实施。P0 基线已交付；P1-00 契约/技术装配 DONE；P1-01 已实现/验证 DONE，P1-02 READY；仅隔离测试数据写入。此文件为当前唯一状态摘要，历史准备事实仍保留在 phase-0。
+已授权连续实施。P0、P1-00/01/02 DONE；P1-03 READY。P1-02 只在隔离环境验证，HTTP 新路径尚未启用；共享 IdP 升级 HOLD。单执行者，复用已有任务工作树。
 
 ## 已完成
 
-- P0：12 个源文件、63 节点 DAG、三个仓库源码/运行基线；auth 124、OA 149 项单测 PASS，commerce 编译 PASS。
-- P1-00：[CONTRACTS_P1.md](CONTRACTS_P1.md) 冻结身份、成员、旧 ID 映射、受控初始化、Token/S2S 边界和错误；TECH_SELECTION 冻结最小 Mapper/Flyway 装配。
-- 当前独立分支 feat/oa-auth-p1-identity，隔离工作树 auth-platform-p1-identity，基线 f18e05e；原 OA/commerce 脏文件保留。
-
-- P1-01：[真实验证](../../implementation/oa-auth/phase-1/P1-01_TEST_RESULT.md) PASS；126 单测、11 PG 集成、CLI 初始化/重放/查询、版本 CAS 与审计失败回滚。新增库/迁移和 CI profile，旧服务未接管。
+- P0：源文件/63 节点 DAG/三仓基线与源码证据，历史事实保留 phase-0。
+- P1-00：CONTRACTS_P1 与 TECH_SELECTION 冻结，3d404c3。
+- P1-01：治理库/身份成员绑定/命令幂等/事务审计/CLI，e5ff625 已正常合并推送 main；精确 CI 36384588723 SUCCESS。
+- P1-02：[Token/身份独立验证](../../implementation/oa-auth/phase-1/P1-02_TEST_RESULT.md) PASS：149 单测、11 PG、5 Casdoor、1 legacy IT；错误用途/签名/时间/受众、实时状态、依赖故障与容量上限。源码和升级门禁有独立证据；当前交付待 Git 事实确认。
+- Q-DIR 用户已确认：OA 员工和组织目录为唯一事实来源；P1-04 来源/租户映射准备在 phase-1，尚未接管正式目录。
 
 ## 未完成和限制
 
-- P1-02 真实 Token 用途、签名/issuer/audience/期限和 P1-03 双身份入口尚未实现。
-- P1-02 READY，P1-03 和后续产品片 TODO；不将契约冻结视为实际认证/授权能力已通过。
-- Q-DIR：唯一正式员工目录源待确认，仅阻塞正式 P1-04；Q-EXT：外部真实资源/场景待确认，仅阻塞对应外部业务接入。
-- commerce 现有定向测试在 P0 上游空测试门禁失败，行为验证 NOT_RUN。
-- 审计归档期限、正式管理策略、实际容量和生产部署未决；不自动发明正式 SLA/角色上限。
+- P1-03 本人/内部双身份上下文、P1-04/05/06 和 P2—P7 尚未实施或未验收，按稳定 DAG 连续推进。
+- 共享 Casdoor 实测 v4.3.0，Access==ID，禁止用于新治理入口。隔离 v4.11.0 解决用途混用，但码交换不拒绝错误 redirect_uri；[升级方案](../../implementation/oa-auth/phase-1/CASDOOR_COMPATIBILITY_UPGRADE.md) Gate HOLD。未升级共享实例、未演练旧库迁移、未验证浏览器完整登录。
+- 正式只读版本证明/最小权限凭据仍需落实；隔离 built-in 运维客户端不发给 SDK/浏览器。
+- Q-EXT 外部真实业务资源/场景未确认，只阻塞对应试点；归档期限、正式运维和容量/生产目标待确认。
+- Hygiene 为 IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS：无仓库 formatter；没有独立静态分析器，N/A。
 
-## 授权
+## 授权与保留
 
-用户“开始执行后续任务”已授权连续实现当前依赖满足的片；AGENTS.md 第 8 条授权验证后正常提交/合并/推送 main。默认关闭新功能，隔离测试使用本任务命名空间。无生产部署、清库、强推、覆盖其他任务或修改公共技能授权。单执行者。
+用户已授权继续实现，AGENTS 第8条授权验证后正常任务提交/合并/推送 main；无强推/生产部署/共享 IdP 替换/清库授权。第9条允许复用已有 auth-platform-p1-identity 工作树，不按阶段再建目录。原 OA/commerce 改动保留，源方案未改。
 
 ## 下一步
 
-交付 P1-01 的完整逻辑提交；继续 P1-02 安装版 Casdoor Access Token 适配与负例，随后 P1-03 双身份成员上下文。每片由 Claude backend-implementation 实施、implementation-validation 独立判定、update-progress-docs 同步、task-git-delivery 交付。
+按 task-git-delivery 交付 P1-02 并观察精确 SHA CI，随后 P1-03：本人列表、固定服务身份/独立用户 Token、当前数据库成员与代际/版本、严格 DTO/错误/default-off 装配。通过实施/独立验证/进度同步后继续 P1-04 等依赖满足的片，不等待反复继续。

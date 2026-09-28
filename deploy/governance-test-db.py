@@ -32,7 +32,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--directory', default='.local/governance')
     parser.add_argument('--container', default='dev-infra-postgres16-1')
+    parser.add_argument('--port', type=int, default=45432)
     args = parser.parse_args()
+    if not 1 <= args.port <= 65535:
+        raise RuntimeError('测试端口无效')
     directory = Path(args.directory).resolve()
     directory.mkdir(parents=True, exist_ok=True, mode=0o700)
     directory.chmod(0o700)
@@ -60,7 +63,7 @@ def main():
     if not owner:
         sql(args.container, 'CREATE DATABASE %s OWNER %s;' % (name, username))
     config = directory / 'database.properties'
-    content = 'jdbc.url=jdbc:postgresql://127.0.0.1:45432/%s\njdbc.username=%s\njdbc.password=%s\n' % (name, username, password)
+    content = 'jdbc.url=jdbc:postgresql://127.0.0.1:%s/%s\njdbc.username=%s\njdbc.password=%s\n' % (args.port, name, username, password)
     if not config.exists():
         private_file(config, content)
     elif config.is_symlink() or config.stat().st_mode & 0o777 != 0o600 or config.read_text() != content:

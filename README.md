@@ -4,7 +4,7 @@
 
 完整设计见 `~/.claude/plans/mock-velvet-mist.md`。
 
-OA、Auth 与业务项目的统一权限改造见 [整体改造计划](docs/design/oa-auth-unification/README.md)。P1 已落地独立治理库、受控身份/成员初始化与读取，使用真实 PostgreSQL 验证；认证和业务授权仍按后续切片接入。当前能力和运行方式见 [治理身份模块](auth-platform-governance/README.md)。
+OA、Auth 与业务项目的统一权限改造见 [整体改造计划](docs/design/oa-auth-unification/README.md)。P1 已落地独立治理库、受控身份/成员初始化与读取，以及固定发行方 Access Token/登录身份适配，使用真实 PostgreSQL 和隔离 Casdoor 验证；HTTP 双身份和业务授权仍按后续切片接入。共享 Casdoor 升级尚未执行，兼容发现及门禁见 [升级方案](docs/implementation/oa-auth/phase-1/CASDOOR_COMPATIBILITY_UPGRADE.md)。当前能力和运行方式见 [治理身份模块](auth-platform-governance/README.md)。
 
 ## 架构一览
 

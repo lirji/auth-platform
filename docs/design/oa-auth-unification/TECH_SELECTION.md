@@ -24,7 +24,7 @@ Complexity Budget：本轮新增复杂度集中于一份治理关系模型、可
 - **V-GRAPH**：当前 core 无写前置条件。按官方字段扩展 HTTP 适配，在 v1.56.2 独立测试目标验证 MUST_MATCH/MUST_NOT_MATCH、原子 marker 迁移、超时未知结果和 token 记录；不能只测 Mock JSON。[官方 API](https://raw.githubusercontent.com/authzed/api/main/authzed/api/v1/permission_service.proto)
 - **V-APPROVAL**：先验证 OA 普通限时角色与 JIT 的区别，再验证真实 OA 流程启动／查询／回调；本地审批单测不能替代 auth-OA 跨进程闭环。
 
-版本记录以 pom、实际容器版本和镜像摘要为准。Casdoor 当前只有镜像摘要和 Discovery 证据，语义版本 UNKNOWN；不能把 `latest` 或历史文档里的 v3.115.0 写成实际安装版。
+版本记录以 pom、实际容器版本和镜像摘要为准。P0 的 Casdoor 语义版本曾为 UNKNOWN；P1-02 通过管理 API 实测共享实例 v4.3.0，隔离候选 v4.11.0。不能把 `latest` 或历史文档里的 v3.115.0 写成实际安装版。
 
 ## P1-00 精确装配
 
@@ -33,3 +33,10 @@ Complexity Budget：本轮新增复杂度集中于一份治理关系模型、可
 - 首片是库+受控 CLI；专用池最大 8、连接等待 3 秒、SQL statement/lock timeout、事务超时 5 秒（可受控配置，不承诺性能 SLA）。migration 固定 auth_governance schema，validateOnMigrate=true、baselineOnMigrate=false、cleanDisabled=true，显式 migrate owner，禁止自动接管非空旧库。
 - 真实本地测试复用 dev-infra-postgres16-1（实测 16.15），创建唯一 auth_gov_p1_test_ 前缀库及非超级用户角色；私密配置只存在忽略路径。CI 复用现有 verify job 并提供隔离 PostgreSQL 16 service。
 - 审计/命令记录初版保留，不在请求线程清理；正式归档期限需 Q-GOV/合规确认。未经确认不启动自动删除；上线前须完成增长容量和归档治理。
+
+## P1-02 认证技术装配
+
+- 复用 Boot 3.3.5 BOM 的 Spring Security OAuth2 JOSE 6.3.4、Jackson 2.17.2、Spring Web 6.1.14；不升级框架。Nimbus JWKS 缓存只存公钥；身份/用途/状态实时校验。旧 OAuth Token 兼容性不放宽新契约。
+- 固定隔离候选 `casbin/casdoor@sha256:138b5e46d49ad678ea2d53487fa74f8aae6e3ee3a670fc1b62ebe981c2a9d964`，实际版本 v4.11.0；不依赖不存在的 Docker `v4.11.0` tag，不重新拉取/覆盖共享 latest 标签。专用 PostgreSQL 库、回环 18090、1 CPU/768 MiB，复用 dev_infra。用户仅授权隔离验证与升级准备。
+- 发行方精确版本探针和 introspection 使用分开的后端凭据；默认关闭。隔离 built-in 探针凭据权限较高，正式最小权限凭据仍是上线条件；不扩展组织客户端全局权限来使测试通过。
+- 已验证 Token 用途修复，额外 redirect_uri 负例 FAIL；共享替换 Gate HOLD，未实施升级。完整范围、代码流与未验证旧库升级见兼容方案；不能将 Token 验证通过写成全部登录能力通过。[官方 v4.11.0](https://github.com/casdoor/casdoor/releases/tag/v4.11.0)、[用途修复提交](https://github.com/casdoor/casdoor/commit/f8eb7273a8ec16bf6caa2d09c8e8068d578288b0)

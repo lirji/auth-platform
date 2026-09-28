@@ -1,0 +1,72 @@
+{
+  "slice_id": "P1-02",
+  "overall": "PASS",
+  "gate": "PASS",
+  "scope": "Token validation and explicit identity binding only",
+  "source_fingerprint": "0d93a6a2abd70ebbb055da15c5a1d4eeeb163226bfbf6f52b5eb9fde50ac4190",
+  "checks": [
+    {
+      "acceptance": "错误签名、算法、issuer/aud、ID Token、过期/未来 nbf、缺失身份时间声明",
+      "method": "CasdoorAccessTokenVerifierTest: 23 executed cases",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "实时用途 introspection、版本降级/未知、依赖超时/畸形/超大/重定向、并发上限",
+      "method": "本机 HTTP + RSA 单测",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "真实固定 IdP Token 与显式 LoginIdentity 绑定、未知外部不建主体、停用成员不续用",
+      "method": "CasdoorIdentityIT on v4.11.0 + PostgreSQL 16.15: 5 tests",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "实测旧版 v4.3.0 且 Access==ID 时禁止启用 verifier",
+      "method": "CasdoorLegacyIT: 1 test (local legacy profile only)",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "保留数据库约束/幂等/审计事务与旧接口回归",
+      "method": "全 reactor governance-it: 149 unit + 11 PG tests",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "代码质量/改动范围/秘密保护",
+      "method": "hygiene-final.json; git diff --check; private fixtures excluded",
+      "result": "PASS"
+    }
+  ],
+  "unit_tests": 149,
+  "postgres_integration_tests": 11,
+  "casdoor_integration_tests": 5,
+  "legacy_integration_tests": 1,
+  "failures_outside_slice": [
+    {
+      "id": "IDP-REDIRECT-01",
+      "gate": "SHARED_IDP_UPGRADE",
+      "status": "HOLD",
+      "reason": "v4.11.0 ignores mismatched redirect_uri in code exchange"
+    }
+  ],
+  "limits": [
+    "FORMAT_TOOL_NOT_AVAILABLE",
+    "No static analyzer configured; N/A",
+    "Remote CI current commit not yet submitted",
+    "No shared/production IdP upgrade or old database migration",
+    "Version probe uses isolated builtin M2M; formal least privilege unresolved"
+  ],
+  "logs": [
+    ".local/governance/p1-02/final-verify.log",
+    ".local/governance/p1-02/final-identity-it.log",
+    ".local/governance/p1-02/legacy-it.log",
+    ".local/governance/p1-02/hygiene-final.json",
+    ".local/governance/p1-02/full-code-flow.log"
+  ],
+  "supplemental_checks": [
+    {
+      "acceptance": "完整登录升级 redirect_uri 负例（属于升级 Gate，非 P1-02 Token 适配验收）",
+      "method": "code-flow-probe.json independent fresh codes",
+      "result": "FAIL"
+    }
+  ]
+}

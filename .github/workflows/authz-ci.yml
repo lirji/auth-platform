@@ -8,6 +8,7 @@ on:
       - 'deploy/recon-platform-provision.sh'
       - 'deploy/benefit-platform-provision.sh'
       - 'deploy/governance-test-db.py'
+      - 'deploy/governance-casdoor-*.py'
       - 'pom.xml'
       - 'mvnw'
       - '.mvn/**'
@@ -20,6 +21,7 @@ on:
       - 'deploy/recon-platform-provision.sh'
       - 'deploy/benefit-platform-provision.sh'
       - 'deploy/governance-test-db.py'
+      - 'deploy/governance-casdoor-*.py'
       - 'pom.xml'
       - 'mvnw'
       - '.mvn/**'
@@ -73,3 +75,18 @@ jobs:
             deploy/recon-platform-provision.sh deploy/benefit-platform-provision.sh
           grep -q 'definition risk_case' auth-platform-core/src/main/resources/schemas/risk.zed
           grep -q 'permission work = assignee' auth-platform-core/src/main/resources/schemas/risk.zed
+      - name: Prepare pinned isolated identity provider
+        run: |
+          python3 deploy/governance-test-db.py --container '${{ job.services.postgres.id }}' --port 5432
+          docker pull casbin/casdoor@sha256:138b5e46d49ad678ea2d53487fa74f8aae6e3ee3a670fc1b62ebe981c2a9d964
+          GOV_TEST_NETWORK="$(docker inspect --format '{{range $key, $value := .NetworkSettings.Networks}}{{print $key}}{{end}}' '${{ job.services.postgres.id }}')"
+          python3 deploy/governance-casdoor-isolation.py \
+            --postgres-container '${{ job.services.postgres.id }}' --postgres-host postgres --network "$GOV_TEST_NETWORK"
+          python3 deploy/governance-casdoor-fixture.py --base http://localhost:18090 --phase tokens \
+            --directory .local/governance/casdoor-isolated \
+            --management-config .local/governance/casdoor-isolated/management-client.json
+      - name: Verify real identity binding (P1-02 only)
+        run: ./mvnw -B -pl auth-platform-governance -am -Pgovernance-identity-it verify
+        env:
+          GOVERNANCE_TEST_CONFIG: ${{ github.workspace }}/.local/governance/database.properties
+          GOVERNANCE_IDENTITY_FIXTURE: ${{ github.workspace }}/.local/governance/casdoor-isolated

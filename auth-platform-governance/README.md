@@ -13,7 +13,15 @@ GOVERNANCE_TEST_CONFIG="$PWD/.local/governance/database.properties" ./mvnw -B -P
 
 工具创建唯一 `auth_gov_p1_test_` 库和非超级用户 Owner；检查点/配置 0600、目录 0700，只操作本任务命名空间。重跑不重置角色密码、不接管其他 Owner、不删除夹具。仅用于本机测试；现有 `dev.sh` 不会因此迁移或启用治理。CI 在一次性 PostgreSQL 16 service 中执行同一 profile，缺配置失败，不能以 skipped 当集成 PASS。
 
-普通 `./mvnw verify` 仍可无数据库运行单测；它不等于上述集成验收。P1-01 已验证真实迁移、约束、并发幂等、版本 CAS、旧 ID 保留和审计失败全事务回滚；当前 Token/S2S 尚待 P1-02/03。
+普通 `./mvnw verify` 仍可无数据库运行单测；它不等于上述集成验收。P1-01 已验证真实迁移、约束、并发幂等、版本 CAS、旧 ID 保留和审计失败全事务回滚；P1-02 已实现固定 Casdoor Access Token 和 LoginIdentity 适配，HTTP/S2S 接入仍待 P1-03。
+
+## 固定发行方验证
+
+`CasdoorAccessTokenVerifier` 仅接受实测 v4.11.0 的 RS256 Access Token；验证原始身份/时间、issuer、非空固定 audience、tokenType、实时 introspection，并在启用和每次请求检查发行方版本。凭据/ID Token/错误应用/过期一律拒绝，发行方或公钥不可用返回依赖错误，不缓存 active=true。`AuthenticatedIdentityReader` 只找显式绑定并读取当前成员，不自动开户或赋予业务角色。
+
+隔离候选、复现命令、私密连接引用和完整升级门禁见 [Casdoor 兼容升级方案](../docs/implementation/oa-auth/phase-1/CASDOOR_COMPATIBILITY_UPGRADE.md)。`governance-identity-it` 必须同时显式设置 `GOVERNANCE_TEST_CONFIG` 和 `GOVERNANCE_IDENTITY_FIXTURE`；`governance-legacy-it` 显式设置 `GOVERNANCE_LEGACY_FIXTURE` 只读验证旧版拒绝。普通 PG profile 不隐式启动 IdP。
+
+共享 v4.3.0 不能满足 Token 用途校验；隔离 v4.11.0 虽修复用途混用，但额外 redirect_uri 负例失败。尚未替换共享 IdP，不能将本模块验收或 CI Token 测试写成完整登录升级通过。`TokenAuthority` 的应用客户端和版本探针客户端分开；配置 `issuer/jwks.uri/audience/client.id/client.secret/version-probe.client.id/version-probe.client.secret` 仅进入后端私密配置，打印已脱敏。
 
 ## 受控初始化与读取
 

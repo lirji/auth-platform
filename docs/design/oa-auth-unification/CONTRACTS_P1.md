@@ -38,9 +38,17 @@ CLI 只输出非秘密的成员引用/类型/状态/代际；以参数选择 boo
 
 客户端沿用现有 SPA 授权码+S256 PKCE，state/nonce/精确 redirect 边界在真实认证夹具与所属前端片验证。P1 不增加 Token 签发服务或默认 BFF。签名 JWT 不代表当前成员有效；停用后旧 Token 仍须被当前治理状态拒绝。
 
+### P1-02 固定发行方适配细化（用户已选择隔离版本验证）
+
+本片只完成后端 Token 验证和 LoginIdentity 绑定消费。运行版 v4.3.0 的 Access/ID Token 相同，禁止接入新治理入口。固定候选 v4.11.0 已实测 `tokenType=access-token/id-token` 且 Access hint introspection 区分用途；只接受这个已验证的版本。启用时和每次认证均用 `/api/get-version-info` 确认精确版本，未知、降级或读失败为 503。版本声明不是独立证明，仍必须同时满足 RS256、原始 sub/iat/exp、当前期限、issuer/aud、access-token 用途及实时 introspection 一致性。
+
+配置区分 introspection 应用客户端和版本探针客户端，二者均只在后端私密配置。v4.11.0 的组织客户端读取全局版本被拒绝，隔离夹具用其自身 built-in 运维客户端只读探针；这不是业务管理员授权。正式运行前必须明确最小权限探针凭据或受控版本证明方案，不把隔离 built-in secret 发给浏览器、SDK 或业务系统。默认超时 connect/read 各 2 秒、每个 verifier 并发 8、Token 32 KiB、JSON 64 KiB；超限或依赖不可用拒绝，不自动重试，不缓存 active=true。网络 read timeout 是单次读取空闲上限，尚无整条请求延迟承诺。
+
+v4.11.0 额外码流测试发现不匹配 redirect_uri 仍可兑换 Token，属于登录升级 Gate FAIL；Token 适配验收通过不等于该版本可直接替换共享 IdP。该缺陷和 state/回调浏览器验证进入兼容升级方案与 P5 登录验收，必须解决后才可切换。详见 [兼容验证与升级计划](../../implementation/oa-auth/phase-1/CASDOOR_COMPATIBILITY_UPGRADE.md)。
+
 ## 后续片与未决业务边界
 
-P1-04 唯一正式目录源仍待 Q-DIR；不能默认为 OA 是全部员工权威。事件必须有 source/event_id/aggregate/version/hash，重复与冲突分开，旧事件不能复活成员，未证明完整的快照不删人。
+用户已确认 Q-DIR：OA 员工和组织目录为正式员工/部门/离职唯一事实来源；来源编码与租户映射仍须受控注册。事件必须有 source/event_id/aggregate/version/hash，重复与冲突分开，旧事件不能复活成员，未证明完整的快照不删人。
 
 P1-05 邀请绑定精确 issuer/sub；目标成员 PARTNER/GUEST、同租户有效 EMPLOYEE sponsor、有效期。高熵单次 token 只存 SHA-256，接受 CAS+唯一约束，同目标重复返回同一成员；无内部默认角色/应用。具体邀请人管理权和页面在该片先冻结，不能套用 isAdmin。
 
