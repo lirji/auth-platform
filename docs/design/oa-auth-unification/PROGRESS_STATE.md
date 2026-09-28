@@ -1,9 +1,20 @@
 # 企业 IAM 当前进度
 
-P0/P1已完成。P2全部9节点（含P2-05a）DONE，auth与commerce已正常合并推送main，最终CI均SUCCESS。详见[阶段交付报告](../../implementation/oa-auth/phase-2/P2_DELIVERY_RESULT.md)。原63节点DAG保持原依赖。
+## 任务目标
 
-已完成应用清单、固定角色、受控授权、单执行者投影、SDK/Boot4、真实商城读取以及菜单/授权状态页面。真实验收、复核和截图见phase-2报告及evidence；SDK另补响应体总超时和取消，真实失败用例修复后通过。
+用户已新授权「做P3」。完成P3全部10节点并正常合并推送main后暂停，不进入P4或生产部署；原63节点DAG不变。
 
-**当前停止点：P2完成后暂停。** P3—P7仍TODO，不得自动执行；P3-01只是下一候选节点，须用户新授权。恢复先读根CODEX_PROGRESS.md与[交接](../../implementation/oa-auth/phase-2/P3_HANDOFF.md)。
+## 当前状态
 
-范围限制保持：单投影执行者、直接成员/TENANT_ALL，无跨请求ALLOW缓存；多实例、远端CAS与细范围未认证。共享Casdoor升级原HOLD保留，未生产部署，OA用户文件未动。两仓无本任务未提交代码；原隔离资源与私密配置保留，不自动清理。
+P0/P1/P2已交付；P3执行中。P3-01 DONE，证据见phase-3/P3-01_TEST_RESULT.md。当前P3-03 IN_PROGRESS；它与P3-02都已满足原前置依赖，先完成版本栅栏以支撑ScopePlan。其余P3节点TODO。
+
+## 已完成
+
+- P2交付见phase-2/P2_DELIVERY_RESULT.md，基线auth3e49644、commerce d7c9e3c。
+- P3-01：固定范围快照、受控管理入口、同Grant语义和store字段绑定；4个新规则单测及61个PG集成用例通过。
+
+## 未完成与下一步
+
+P3-03主库A/C新快照、策略/目录栅栏；随后P3-04a/b/c和05/06完成投影/读路径，P3-02完成ScopePlan与真实业务列表/导出，P3-07集中故障及性能验证。每片保持原DAG依赖，不把未验证结果写DONE。
+
+两仓原目录任务分支已创建。OA用户修改未动，共享Casdoor升级HOLD保留。仅使用隔离测试资源，无生产部署；仓库无Java formatter/静态分析器的现有限制保留。

@@ -41,6 +41,12 @@ public class GovernanceAccessController {
         CreateGrant r=AccessWeb.read(request.getInputStream(),CreateGrant.class);
         return ResponseEntity.accepted().body(GovernanceWeb.body(AccessWeb.grant(access.grant(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),r.memberId(),r.memberGeneration(),r.roleId(),r.scope(),r.sourceId(),AccessWeb.instant(r.validFrom()),AccessWeb.instant(r.validTo())))));
     }
+    /** 细范围不能走旧字符串入口；固定快照与Grant、审计和投影意图原子保存。 */
+    @PostMapping(value="/access/scoped-grants",consumes="application/json")
+    public ResponseEntity<JsonNode> scopedGrant(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{
+        var r=AccessWeb.read(request.getInputStream(),com.lrj.authz.protocol.ScopeDtos.CreateScopedGrant.class);
+        return ResponseEntity.accepted().body(GovernanceWeb.body(AccessWeb.grant(access.grantScoped(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),r.memberId(),r.memberGeneration(),r.roleId(),r.scopeRule(),r.sourceId(),AccessWeb.instant(r.validFrom()),AccessWeb.instant(r.validTo())))));
+    }
     /** 撤销先去掉SQL资格，即便图暂时不可用也不能继续ALLOW。 */
     @PostMapping(value="/access/revoke",consumes="application/json")
     public JsonNode revoke(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{

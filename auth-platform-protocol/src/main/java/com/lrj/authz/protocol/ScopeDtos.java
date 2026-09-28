@@ -1,0 +1,35 @@
+package com.lrj.authz.protocol;
+
+import java.util.List;
+
+/** 有限范围协议只描述业务约束，不允许调用方传SQL、脚本或字段名称。 */
+public final class ScopeDtos {
+    private ScopeDtos() {}
+    /** 已绑定的门店资源类型，与应用清单及业务Owner字段一致。 */
+    public static final String STORE_RESOURCE_TYPE = "store";
+
+    /** 显式编码不使用ordinal；未注册业务字段的类型不能执行。 */
+    public enum Kind {
+        TENANT_ALL, SELF, DEPARTMENT, DEPARTMENT_TREE,
+        SPECIFIED_STORES, SPECIFIED_SUPPLIERS, SPECIFIED_RESOURCES
+    }
+
+    /** 一条路径内各条件取交集；部门子树显式声明是否包含根。 */
+    public record Clause(Kind kind, List<String> values, boolean includeRoot) {}
+
+    /** 创建后固定，不随角色升级或目录变动改写历史内容。 */
+    public record Rule(long version, String resourceType, List<Clause> clauses) {}
+
+    /** 同一条完整Grant的范围；不能将其能力拆出后与其他范围组合。 */
+    public record Alternative(String grantId, long scopeVersion, List<Clause> clauses) {}
+
+    /** 可信资源Owner读取的事实，浏览器同名字段不得直接转发。 */
+    public record Facts(String tenantId, String resourceType, String resourceId, long resourceVersion,
+                        String ownerPrincipalId, String departmentId, List<String> departmentAncestors,
+                        String storeId, String supplierId) {}
+
+    /** 新管理入口复用现有委派，主体与操作者仍来自认证边界。 */
+    public record CreateScopedGrant(String tenantId, String applicationId, String environment,
+                                    String commandId, String memberId, long memberGeneration,
+                                    String roleId, Rule scopeRule, String sourceId, String validFrom, String validTo) {}
+}

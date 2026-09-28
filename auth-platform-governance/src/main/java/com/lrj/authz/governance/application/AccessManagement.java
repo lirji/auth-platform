@@ -52,20 +52,38 @@ public final class AccessManagement {
     }
     /** 完整授权路径与待投影意图同事务；不可用成员/自授予/超范围全部拒绝。 */
     public Grant grant(VerifiedLogin login,Partition p,String command,String member,long generation,String roleId,String scope,String source,Instant from,Instant to){
+        if(!"TENANT_ALL".equals(scope))throw new GovernanceException(INVALID_ARGUMENT);
+        return grantFixed(login,p,command,member,generation,roleId,scope,null,source,from,to);
+    }
+    /** 新范围入口只接收固定类型快照，继续复用管理上限、来源唯一与审计事务。 */
+    public Grant grantScoped(VerifiedLogin login,Partition p,String command,String member,long generation,String roleId,
+                             com.lrj.authz.protocol.ScopeDtos.Rule rule,String source,Instant from,Instant to){
+        return grantFixed(login,p,command,member,generation,roleId,"SCOPED",ScopeRules.validated(rule),source,from,to);
+    }
+    private Grant grantFixed(VerifiedLogin login,Partition p,String command,String member,long generation,String roleId,String scope,
+                              com.lrj.authz.protocol.ScopeDtos.Rule rule,String source,Instant from,Instant to){
         BootstrapCommand.uuid(member);BootstrapCommand.uuid(roleId);BootstrapCommand.bounded(source,100);
-        if(generation<1||!"TENANT_ALL".equals(scope)||from==null||to==null||!to.isAfter(from))throw new GovernanceException(INVALID_ARGUMENT);
+        if(generation<1||from==null||to==null||!to.isAfter(from))throw new GovernanceException(INVALID_ARGUMENT);
         return tx.execute(status->{
             Manager manager=manager(login,p,true);
             if(manager.context().membershipId().equals(member))throw new GovernanceException(ACCESS_DENIED);
             RoleVersion role=mapper.role(p,roleId);if(role==null)throw new GovernanceException(ACCESS_DENIED);
             requireCeiling(manager.delegation(),AccessValues.read(role.capabilitiesJson()));
-            String hash=AccessValues.hash(p,member,generation,roleId,scope,source,from,to);
+            String ruleJson=rule==null?null:ScopeRules.encode(rule);
+            if(rule!=null){
+                var app=catalog.application(p.applicationId());
+                var definitions=CatalogManifest.read(catalog.snapshot(p.applicationId(),app.manifestVersion()).manifestJson()).capabilities();
+                if(AccessValues.read(role.capabilitiesJson()).stream().anyMatch(cap->definitions.stream().noneMatch(c->c.code().equals(cap)&&c.resourceType().equals(rule.resourceType()))))throw new GovernanceException(SCOPE_UNSUPPORTED);
+            }
+            String hash=rule==null?AccessValues.hash(p,member,generation,roleId,scope,source,from,to)
+                    :AccessValues.hash(p,member,generation,roleId,scope,ruleJson,source,from,to);
             String result=command(manager.context(),p,"CREATE_GRANT",command,hash,()->{
                 if(!mapper.memberActive(p,member,generation))throw new GovernanceException(MEMBERSHIP_UNAVAILABLE);
                 if(!to.isAfter(mapper.now())||Duration.between(from,to).compareTo(Duration.ofSeconds(manager.delegation().maxDurationSeconds()))>0)throw new GovernanceException(ACCESS_DENIED);
                 if(mapper.liveCount(p,member,generation)>=100)throw new GovernanceException(INVALID_ARGUMENT);
                 Grant g=new Grant(id(),p.tenantId(),p.applicationId(),p.environment(),member,generation,roleId,scope,"DIRECT",source,from,to,GrantState.PENDING,1,null);
                 if(mapper.insertGrant(g,manager.context().membershipId())!=1)throw new GovernanceException(BINDING_CONFLICT);
+                if(rule!=null)one(mapper.insertScope(g,rule.resourceType(),ruleJson,AccessValues.hash(ruleJson)));
                 one(mapper.enqueue(g.id(),1,"UPSERT"));audit(manager,p,"CREATE_GRANT",g.id(),1,command);return g.id();
             });
             return mapper.grant(p,result);

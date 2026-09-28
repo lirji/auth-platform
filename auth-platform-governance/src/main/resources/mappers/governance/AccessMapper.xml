@@ -17,6 +17,9 @@
  <select id="roleByCode" resultType="com.lrj.authz.governance.domain.AccessModels$RoleVersion">SELECT <include refid="roleColumns"/> FROM auth_governance.role_version WHERE <include refid="partition"/> AND role_code=#{code} AND version=#{version}</select>
  <insert id="insertGrant">INSERT INTO auth_governance.access_grant(id,tenant_id,application_id,environment,membership_id,generation,role_id,scope,source_type,source_id,valid_from,valid_to,state,version,created_by)
  VALUES(#{g.id},#{g.tenantId},#{g.applicationId},#{g.environment},#{g.membershipId},#{g.generation},#{g.roleId},#{g.scope},#{g.sourceType},#{g.sourceId},#{g.validFrom},#{g.validTo},#{g.state},#{g.version},#{actor}) ON CONFLICT DO NOTHING</insert>
+ <insert id="insertScope">INSERT INTO auth_governance.grant_scope(grant_id,tenant_id,application_id,environment,scope_version,resource_type,rule_json,content_hash)
+ VALUES(#{g.id},#{g.tenantId},#{g.applicationId},#{g.environment},1,#{resource},#{json},#{hash})</insert>
+ <select id="scope" resultType="string">SELECT rule_json FROM auth_governance.grant_scope WHERE <include refid="partition"/> AND grant_id=#{id}</select>
  <select id="grant" resultType="com.lrj.authz.governance.domain.AccessModels$Grant">SELECT <include refid="grantColumns"/> FROM auth_governance.access_grant WHERE <include refid="partition"/> AND id=#{id}</select>
  <update id="revoke">UPDATE auth_governance.access_grant SET state='REVOKED',version=version+1,updated_at=clock_timestamp() WHERE <include refid="partition"/> AND id=#{id} AND version=#{version} AND state IN ('PENDING','ACTIVE')</update>
  <insert id="enqueue">INSERT INTO auth_governance.grant_projection(grant_id,grant_version,operation) VALUES(#{id},#{version},#{operation})</insert>

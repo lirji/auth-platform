@@ -24,6 +24,10 @@ public interface AccessMapper {
     RoleVersion roleByCode(@Param("p") Partition p,@Param("code") String code,@Param("version") long version);
     /** 创建授权路径，来源唯一。 */
     int insertGrant(@Param("g") Grant g,@Param("actor") String actor);
+    /** 固定范围与Grant同事务插入，分区外键负责最终完整性。 */
+    int insertScope(@Param("g") Grant g,@Param("resource") String resource,@Param("json") String json,@Param("hash") String hash);
+    /** 只读取当前分区的固定规则，缺失不能回退全范围。 */
+    String scope(@Param("p") Partition p,@Param("id") String id);
     /** 管理状态查询限定完整分区。 */
     Grant grant(@Param("p") Partition p,@Param("id") String id);
     /** 撤销立即改变资格；状态/版本条件防并发重写。 */

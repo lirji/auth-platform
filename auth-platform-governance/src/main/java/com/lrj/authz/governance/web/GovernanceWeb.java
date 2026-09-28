@@ -81,7 +81,7 @@ public final class GovernanceWeb {
         GovernanceException.Code code = failure instanceof GovernanceException governance ? governance.code()
                 : failure instanceof IllegalArgumentException || failure instanceof IOException ? INVALID_ARGUMENT : DEPENDENCY_UNAVAILABLE;
         int status = switch (code) {
-            case INVALID_ARGUMENT -> 400;
+            case INVALID_ARGUMENT, SCOPE_UNSUPPORTED -> 400;
             case INVALID_CREDENTIAL -> 401;
             case ACCESS_DENIED, IDENTITY_NOT_BOUND, MEMBERSHIP_UNAVAILABLE, GENERATION_MISMATCH -> 403;
             case BINDING_CONFLICT, COMMAND_CONFLICT, VERSION_CONFLICT -> 409;
