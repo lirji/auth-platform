@@ -23,3 +23,7 @@
 - 创建Grant返回202，状态以响应为准；撤销返回当前记录，REVOKED不冒充图清理完成。
 
 公开DTO由protocol声明；外部时间字符串为ISO-8601 UTC，领域/SQL使用Instant。前端不传principal、不传任意SQL或图关系。
+
+## 有界失败恢复
+
+POST `/api/governance/v1/access/retry-projection` 与撤销请求字段相同，但只重置当前Grant版本已失败5次、仍未完成的投影意图。当前分区管理委派、能力上限、expected_version、command_id幂等与审计全部保留；不改授权状态、不写图确认。非耗尽/已完成/旧版本409。修复依赖后调用，再运行单执行者ProjectionCli；CLI仍有pending时非零退出。已被撤销新版本取代的旧耗尽意图由drain安全跳过，不导致分区永久阻塞。

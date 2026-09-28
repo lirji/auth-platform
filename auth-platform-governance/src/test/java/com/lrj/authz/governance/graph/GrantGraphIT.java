@@ -90,5 +90,23 @@ class GrantGraphIT {
         var third=fixture();runtime.projector(graph).drain(third.p,50);
         jdbc.update("update auth_governance.tenant_application set enabled=false where tenant_id=?",third.p.tenantId());assertThat(allowed(third)).isFalse();
     }
+    @Test void exhaustedProjectionRequiresAuditedManagerRetry(){
+        var f=fixture();
+        jdbc.update("update auth_governance.grant_projection set attempts=5,last_error='DEPENDENCY_UNAVAILABLE' where grant_id=?",f.grant.id());
+        assertThat(runtime.projector(graph).drain(f.p,50).pending()).isEqualTo(1);
+        assertThatThrownBy(()->runtime.access().retryProjection(login(f.member),f.p,id(),f.grant.id(),1)).hasMessage("ACCESS_DENIED");
+        String command=id();
+        runtime.access().retryProjection(login(f.owner),f.p,command,f.grant.id(),1);
+        runtime.access().retryProjection(login(f.owner),f.p,command,f.grant.id(),1);
+        assertThat(runtime.projector(graph).drain(f.p,50).pending()).isZero();assertThat(allowed(f)).isTrue();
+        assertThatThrownBy(()->runtime.access().retryProjection(login(f.owner),f.p,id(),f.grant.id(),1)).hasMessage("VERSION_CONFLICT");
+    }
+    @Test void revokedGrantDiscardsExhaustedOldIntentWithoutReactivating(){
+        var f=fixture();
+        jdbc.update("update auth_governance.grant_projection set attempts=5,last_error='DEPENDENCY_UNAVAILABLE' where grant_id=?",f.grant.id());
+        runtime.access().revoke(login(f.owner),f.p,id(),f.grant.id(),1);
+        assertThat(runtime.projector(graph).drain(f.p,50).pending()).isZero();
+        assertThat(allowed(f)).isFalse();assertThat(graphAllows(f)).isFalse();
+    }
     private record Fixture(BootstrapCommand owner,BootstrapCommand member,Partition p,Grant grant,AccessContext context){}
 }

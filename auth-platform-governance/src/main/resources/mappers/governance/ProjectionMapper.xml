@@ -4,7 +4,7 @@
  <sql id="partition">g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}</sql>
  <select id="due" resultType="com.lrj.authz.governance.domain.AccessModels$Projection">
  SELECT o.grant_id,o.grant_version,o.operation,o.attempts FROM auth_governance.grant_projection o JOIN auth_governance.access_grant g ON g.id=o.grant_id
- WHERE <include refid="partition"/> AND o.completed=false AND o.attempts &lt; 5 AND o.next_attempt_at &lt;=clock_timestamp()
+ WHERE <include refid="partition"/> AND o.completed=false AND (g.version &lt;&gt; o.grant_version OR (o.attempts &lt; 5 AND o.next_attempt_at &lt;=clock_timestamp()))
  ORDER BY o.created_at,o.grant_id,o.grant_version LIMIT #{limit}
  </select>
  <select id="pending" resultType="int">SELECT count(*) FROM auth_governance.grant_projection o JOIN auth_governance.access_grant g ON g.id=o.grant_id

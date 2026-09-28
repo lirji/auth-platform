@@ -83,6 +83,19 @@ public final class AccessManagement {
             });return mapper.grant(p,result);
         });
     }
+    /** 修复依赖后受控重新领取耗尽的投影；不直接改变Grant或伪造生效回执。 */
+    public Grant retryProjection(VerifiedLogin login,Partition p,String command,String grantId,long version){
+        BootstrapCommand.uuid(grantId);if(version<1)throw new GovernanceException(INVALID_ARGUMENT);
+        return tx.execute(status->{
+            Manager manager=manager(login,p,true);Grant g=mapper.grant(p,grantId);
+            if(g==null)throw new GovernanceException(ACCESS_DENIED);
+            requireCeiling(manager.delegation(),AccessValues.read(mapper.role(p,g.roleId()).capabilitiesJson()));
+            String result=command(manager.context(),p,"RETRY_PROJECTION",command,AccessValues.hash(p,grantId,version),()->{
+                if(g.version()!=version)throw new GovernanceException(VERSION_CONFLICT);
+                one(mapper.retryProjection(p,grantId,version));audit(manager,p,"RETRY_PROJECTION",grantId,version,command);return grantId;
+            });return mapper.grant(p,result);
+        });
+    }
     /** 读取同一管理分区，稳定游标防止无界返回及跨环境泄露。 */
     public State state(VerifiedLogin login,Partition p,String afterRole,String afterGrant){
         manager(login,p,false);String r=cursor(afterRole),g=cursor(afterGrant);

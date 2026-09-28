@@ -27,4 +27,10 @@
  AND m.valid_from &lt;= clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to &gt; clock_timestamp()))</select>
  <select id="roles" resultType="com.lrj.authz.governance.domain.AccessModels$RoleVersion">SELECT <include refid="roleColumns"/> FROM auth_governance.role_version WHERE <include refid="partition"/> AND id &gt; #{after} ORDER BY id LIMIT 101</select>
  <select id="grants" resultType="com.lrj.authz.governance.domain.AccessModels$Grant">SELECT <include refid="grantColumns"/> FROM auth_governance.access_grant WHERE <include refid="partition"/> AND id &gt; #{after} ORDER BY id LIMIT 101</select>
+ <update id="retryProjection">
+ UPDATE auth_governance.grant_projection o SET attempts=0,next_attempt_at=clock_timestamp(),last_error=NULL
+ FROM auth_governance.access_grant g WHERE g.id=o.grant_id AND g.id=#{id} AND g.version=#{version}
+ AND g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}
+ AND o.grant_version=#{version} AND o.completed=false AND o.attempts=5
+ </update>
 </mapper>

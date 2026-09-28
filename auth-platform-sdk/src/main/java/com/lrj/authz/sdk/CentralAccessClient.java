@@ -13,6 +13,7 @@ import java.util.concurrent.Flow;
 
 /** 可信双身份中央检查客户端；独立Jackson2避免宿主Boot3/4消息转换差异。 */
 public final class CentralAccessClient {
+    private static final String HUMAN_ACTOR_TYPE="HUMAN";
     private static final ObjectMapper JSON=new ObjectMapper(JsonFactory.builder().enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION).build())
             .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE).enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
             .disable(MapperFeature.ALLOW_COERCION_OF_SCALARS).disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT);
@@ -68,7 +69,7 @@ public final class CentralAccessClient {
         if(d==null||!"1".equals(d.schemaVersion())||!request.requestId().equals(d.requestId())||!request.capability().equals(d.capability())||!request.resourceType().equals(d.resourceType())
                 ||!Set.of("ALLOW","DENY").contains(d.decision()==null?"":d.decision())||!uuid(d.decisionId())||d.context()==null)throw unavailable();
         var c=d.context();
-        if(!request.tenantId().equals(c.tenantId())||!application.equals(c.applicationId())||!environment.equals(c.environment())||!"HUMAN".equals(c.actorType())
+        if(!request.tenantId().equals(c.tenantId())||!application.equals(c.applicationId())||!environment.equals(c.environment())||!HUMAN_ACTOR_TYPE.equals(c.actorType())
                 ||!uuid(c.principalId())||!uuid(c.membershipId())||!uuid(c.traceId())||!code(c.callerServiceId())||c.membershipGeneration()<1||c.membershipVersion()<1||c.principalVersion()<1
                 ||(request.expectedMembershipGeneration()!=null&&request.expectedMembershipGeneration()!=c.membershipGeneration())
                 ||("ALLOW".equals(d.decision())?!"TENANT_ALL".equals(d.scope()):d.scope()!=null))throw unavailable();

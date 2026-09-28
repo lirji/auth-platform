@@ -47,6 +47,12 @@ public class GovernanceAccessController {
         RevokeGrant r=AccessWeb.read(request.getInputStream(),RevokeGrant.class);
         return GovernanceWeb.body(AccessWeb.grant(access.revoke(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),r.grantId(),r.expectedVersion())));
     }
+    /** 依赖恢复后显式重试耗尽意图；委派、乐观版本、幂等和审计仍完整执行。 */
+    @PostMapping(value="/access/retry-projection",consumes="application/json")
+    public JsonNode retry(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{
+        RevokeGrant r=AccessWeb.read(request.getInputStream(),RevokeGrant.class);
+        return GovernanceWeb.body(AccessWeb.grant(access.retryProjection(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),r.grantId(),r.expectedVersion())));
+    }
     /** 查询同样校验管理范围；游标不能改变tenant/app/env过滤。 */
     @GetMapping("/access/state")
     public JsonNode state(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("tenant_id")String tenant,@RequestParam("application_id")String app,

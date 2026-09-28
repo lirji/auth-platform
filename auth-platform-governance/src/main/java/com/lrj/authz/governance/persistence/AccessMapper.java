@@ -40,4 +40,6 @@ public interface AccessMapper {
     List<RoleVersion> roles(@Param("p") Partition p,@Param("after") String after);
     /** 任何状态都保留供审计诊断，不只展示成功记录。 */
     List<Grant> grants(@Param("p") Partition p,@Param("after") String after);
+    /** 只重置当前版本已耗尽且未完成的意图，每个管理命令有审计和回执。 */
+    int retryProjection(@Param("p") Partition p,@Param("id") String id,@Param("version") long version);
 }
