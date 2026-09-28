@@ -25,6 +25,14 @@ public final class GovernanceDtos {
                                 String applicationId, String environment, String callerServiceId,
                                 String actorType, String traceId) {}
 
+    /** 原文证明不得进入默认日志输出。 */
+    public record AcceptInvitationRequest(String invitationId, String token) {
+        @Override public String toString() { return "AcceptInvitationRequest[proof=redacted]"; }
+    }
+    /** 只确认成员结果；调用方仍需独立应用/业务判权。 */
+    public record InvitationAcceptance(String invitationId, String membershipId, long membershipGeneration,
+                                       String membershipStatus, String traceId) {}
+
     /** 错误只公开稳定 code/traceId，不传入 Token、SQL 或内部堆栈。 */
     public record ErrorResponse(String code, String traceId) {}
 }

@@ -1,0 +1,32 @@
+{
+  "slice_id": "P1-05",
+  "base": "4059800add61ff4acb12912dd5337449caf38c98",
+  "source_files": {
+    ".github/workflows/authz-ci.yml": "68d76120d68d623b8998363aa823575c1d7feba28eacc6b1bc470a3cdf0f5eed",
+    "auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/GovernanceAdminConfiguration.java": "54fa9bd3f909b751eb5fd548662856384edf7dde33bfa54c216ed839f5b05855",
+    "auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/GovernanceBearerFilter.java": "03bd03f5a92dc3e1f07a2d7311e3c95087772b12e9381d0eab4ea8865d3e0bab",
+    "auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/InvitationAcceptanceController.java": "f321b800435363b3ae98641f1d3d72bf894f90aeac8608b83dc40b2d64f1deb0",
+    "auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/InvitationConfiguration.java": "6f52822d7709f4800628cd915afa67bc592969a4988d0ef978245fc95bab7ade",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/InvitationCommands.java": "d080b56f7a4ee9b42716aef3ff0a8b7851aa6f0a94cfce5eb8c9040579a06a74",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/InvitationGovernance.java": "8f9fe7a30c6b19ae54d25263df35ba46690c225f471424a4ec840537463375d2",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/LifecycleCommand.java": "8b583de04ef20f5a05a3a4440f2aba3d64695923be4b648e4ca396507e75245d",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/LifecycleGovernance.java": "d5757aaa7ca540cf4f8b19efe64019ea60f8a4a33d0b738873eba5e7cb876f12",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/InvitationCli.java": "40d9e9a6e64ee397bea496df5643274d4ab50c35db48b323bc1e2232d3eadb5d",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/LifecycleCli.java": "fe37b043b2bb55490eb85146c90dd67f4725070acfcd03698a4173b0b02b20c0",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/domain/InvitationModels.java": "3502a801f43b83b15ece8750b811d8098d4f52494d4d88dcf840ee55de467341",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/GovernanceRuntime.java": "0567a7f0e880a7a19d9b4734864c6ac32280a477c0f35626206a7d622c03a079",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/IdentityMapper.java": "0c8598ece52fc53eb51a0e790680cd050b2556f6f40962dade7bf9bde9d8d662",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/InvitationMapper.java": "feb229cface82891055e259042180576dde5f016aa4a912b5ecd20b31f3028e8",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/web/GovernanceWeb.java": "3c373ae7e53051d1fb55a9ae504e785662665a0f6889d8718f8a81c47df60af2",
+    "auth-platform-governance/src/main/resources/db/governance/migration/V4__external_invitations.sql": "69abeef6066aed6e0a6b2658047063bacf0dd171c7f031f5333b8d38225aa8a3",
+    "auth-platform-governance/src/main/resources/mappers/governance/IdentityMapper.xml": "9fea640bf8b5212e4c0ab5654586494288c98586009422a17815e61e7d4db3a8",
+    "auth-platform-governance/src/main/resources/mappers/governance/InvitationMapper.xml": "6362051578b21680646e156b22ba3a50da245b54cd5682d02b7a1a58dab011ec",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/application/InvitationCommandsTest.java": "f5428c5c520b4b15651c45ffe53d197a9d857d85c707652408cca564bcfefd76",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/InvitationPostgresIT.java": "a0f3ba7c6689bf7e0551c4ec560ff4d023b17792a1b2cda77e9599f02e865d87",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/web/GovernanceWebTest.java": "792a577c597055ee9a7e6964aa999eaea3b1fe6b83e954bbe251a8ed3fcfca6b",
+    "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/GovernanceDtos.java": "9a222d4da1d64144ecb00e24fcbdac72a491862adaabcaff478a5eeaa301e8ed",
+    "deploy/governance-context-smoke.py": "705170b9dcd8bdcad37ce46e88c37d578b1659f8f9a581fd66455334f75aad14",
+    "deploy/governance-invitation-smoke.py": "f232ae4fb6fc3afa69c9d888e5de039d34a85aedbdb1a78d4b7685decc8ed0d1"
+  },
+  "source_fingerprint": "66b997602477988247b9a3e39fc3687c9d5440f6d93b02bd98e99f4e46d0190e"
+}

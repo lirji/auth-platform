@@ -29,7 +29,7 @@ public final class LifecycleCli {
                     Long.parseLong(input.getProperty("expected.version")), input.getProperty("reason"));
             // 停用操作不承担迁移，防止业务动作暗中成为 schema owner。
             try (var runtime = GovernanceRuntime.open(GovernanceDatabase.from(configuration), false)) {
-                var receipt = runtime.lifecycle().suspend(command);
+                var receipt = runtime.lifecycle().apply(command);
                 output.printf("%s %s version=%d%n", receipt.targetId(), receipt.status(), receipt.version());
                 output.flush();
             }

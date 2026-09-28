@@ -7,6 +7,8 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Consumer;
+import com.lrj.authz.governance.authentication.VerifiedLogin;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -14,11 +16,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /** 新治理前缀统一认证；不注册全局 Filter Bean，避免影响旧 JWT 链。 */
 final class GovernanceBearerFilter extends OncePerRequestFilter {
     private final CasdoorAccessTokenVerifier tokens;
-    private final IdentityGovernance identities;
+    private final Consumer<VerifiedLogin> bindingCheck;
 
     /** 发行方与绑定均由受控 Runtime 注入，JWT roles/isAdmin 不参与权限。 */
     GovernanceBearerFilter(CasdoorAccessTokenVerifier tokens, IdentityGovernance identities) {
-        this.tokens = tokens; this.identities = identities;
+        this(tokens, login -> identities.principalForLogin(login.issuer(), login.subject()));
+    }
+
+    /** 窄邀请入口由接受事务验证显式邀请，不能把未绑定例外扩散到通用治理前缀。 */
+    GovernanceBearerFilter(CasdoorAccessTokenVerifier tokens, Consumer<VerifiedLogin> bindingCheck) {
+        this.tokens = tokens; this.bindingCheck = bindingCheck;
     }
 
     /** SecurityContext 只存已验证 issuer/sub，当前身份不可用时拒绝，结束后清理线程。 */
@@ -26,7 +33,7 @@ final class GovernanceBearerFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             var login = tokens.verify(GovernanceWeb.bearer(GovernanceWeb.singleHeader(request.getHeaders("Authorization"))));
-            identities.principalForLogin(login.issuer(), login.subject());
+            bindingCheck.accept(login);
             var context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(login, null, List.of()));
             SecurityContextHolder.setContext(context);

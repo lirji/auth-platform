@@ -47,6 +47,18 @@ public final class GovernanceWeb {
         } catch (IOException failure) { throw new GovernanceException(INVALID_ARGUMENT); }
     }
 
+    /** 邀请接受只接收指定邀请与原文令牌，主体永远来自已验证的登录身份。 */
+    public static GovernanceDtos.AcceptInvitationRequest readInvitation(InputStream input) {
+        try {
+            byte[] bytes = input.readNBytes(MAX_REQUEST_BYTES + 1);
+            if (bytes.length > MAX_REQUEST_BYTES) { throw new GovernanceException(INVALID_ARGUMENT); }
+            JsonNode node = JSON.readTree(bytes);
+            if (node == null || !node.isObject() || node.size() != 2
+                    || !node.path("invitation_id").isTextual() || !node.path("token").isTextual()) { throw new GovernanceException(INVALID_ARGUMENT); }
+            return new GovernanceDtos.AcceptInvitationRequest(node.path("invitation_id").textValue(), node.path("token").textValue());
+        } catch (IOException failure) { throw new GovernanceException(INVALID_ARGUMENT); }
+    }
+
     /** Header 不能重复，防止代理/宿主对同名凭据采用不同值。 */
     public static String singleHeader(Enumeration<String> headers) {
         if (headers == null || !headers.hasMoreElements()) { throw new GovernanceException(INVALID_CREDENTIAL); }

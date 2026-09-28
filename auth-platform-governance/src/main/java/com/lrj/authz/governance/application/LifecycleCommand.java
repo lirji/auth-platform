@@ -13,10 +13,11 @@ public record LifecycleCommand(String commandId, String operatorRef, String scop
                                String targetId, long expectedVersion, String reason) {
     public static final String GLOBAL_SCOPE = "GLOBAL";
 
-    /** 首片只有收紧命令；恢复、离职和重新加入不能伪装成停用或 bootstrap。 */
+    /** 收紧与受控外部退出分开；员工离职归目录源，恢复不能伪装成重新加入。 */
     public enum Operation {
         SUSPEND_MEMBER("SUSPEND_MEMBERSHIP", "suspend-member"),
-        SUSPEND_PRINCIPAL("SUSPEND_PRINCIPAL", "suspend-principal");
+        SUSPEND_PRINCIPAL("SUSPEND_PRINCIPAL", "suspend-principal"),
+        LEAVE_EXTERNAL_MEMBER("LEAVE_EXTERNAL_MEMBER", "leave-external-member");
         private final String code;
         private final String cli;
         Operation(String code, String cli) { this.code = code; this.cli = cli; }

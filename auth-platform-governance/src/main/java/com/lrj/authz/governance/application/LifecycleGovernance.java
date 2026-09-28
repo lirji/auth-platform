@@ -21,6 +21,12 @@ public final class LifecycleGovernance {
 
     /** 占位、CAS、原因/前后版本审计和回执原子提交，失败不保留半完成命令。 */
     public Receipt suspend(LifecycleCommand command) {
+        if (command.operation() == LifecycleCommand.Operation.LEAVE_EXTERNAL_MEMBER) { throw new GovernanceException(INVALID_ARGUMENT); }
+        return apply(command);
+    }
+
+    /** 保留旧 suspend 用例兼容入口，新 CLI 显式区分停用与外部退出。 */
+    public Receipt apply(LifecycleCommand command) {
         return transaction.execute(status -> {
             String operation = command.operation().code();
             mapper.reserveCommand(command.operatorRef(), command.scope(), operation, command.commandId(), command.payloadHash());
@@ -37,20 +43,23 @@ public final class LifecycleGovernance {
             int affected = switch (command.operation()) {
                 case SUSPEND_MEMBER -> mapper.suspendMember(command.targetId(), command.scope(), command.expectedVersion());
                 case SUSPEND_PRINCIPAL -> mapper.suspendPrincipal(command.targetId(), command.expectedVersion());
+                case LEAVE_EXTERNAL_MEMBER -> mapper.leaveExternalMember(command.targetId(), command.scope(), command.expectedVersion());
             };
             requireOne(affected);
+            String resultingStatus = command.operation() == LifecycleCommand.Operation.LEAVE_EXTERNAL_MEMBER ? MemberStatus.LEFT.code() : GlobalStatus.SUSPENDED.code();
             requireOne(mapper.appendLifecycleAudit(UUID.randomUUID().toString(), command.operatorRef(), command.scope(), operation,
                     command.targetId(), command.expectedVersion() + 1, command.commandId(), command.reason(), before.status(),
-                    GlobalStatus.SUSPENDED.code(), command.expectedVersion()));
+                    resultingStatus, command.expectedVersion()));
             requireOne(mapper.completeCommand(command.operatorRef(), command.scope(), operation, command.commandId(), command.targetId()));
-            return new Receipt(command.targetId(), GlobalStatus.SUSPENDED.code(), command.expectedVersion() + 1);
+            return new Receipt(command.targetId(), resultingStatus, command.expectedVersion() + 1);
         });
     }
 
     private Receipt current(LifecycleCommand command) {
-        if (command.operation() == LifecycleCommand.Operation.SUSPEND_MEMBER) {
+        if (command.operation() != LifecycleCommand.Operation.SUSPEND_PRINCIPAL) {
             Membership member = mapper.membership(command.targetId());
             if (member == null || !member.tenantId().equals(command.scope())) { throw new GovernanceException(MEMBERSHIP_UNAVAILABLE); }
+            if (command.operation() == LifecycleCommand.Operation.LEAVE_EXTERNAL_MEMBER && member.memberKind() == MemberKind.EMPLOYEE) { throw new GovernanceException(BINDING_CONFLICT); }
             return new Receipt(member.id(), member.status().code(), member.version());
         }
         Principal principal = mapper.principal(command.targetId());

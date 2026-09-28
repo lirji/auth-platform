@@ -52,3 +52,7 @@ P1-03 已完成，P1-06 已提供受控停用；按原 P1-05 节点实施。此�
 3. LEFT 外部成员受控重新加入增加代际，旧邀请和旧代上下文拒绝；不得修改内部成员类型。
 4. 真实独立 Casdoor 邀请夹具完成外部 Token → 接受 → 成员查询/上下文的验证，使用独立组织/客户端，保留 P1-02 未绑定外部账号负例。
 5. 证明无角色、应用和图关系副作用；本片无 UI 改动，浏览器视觉 N/A。完整登录升级仍受已记录 redirect_uri Gate 限制，不将本片通过视为共享 IdP 可切换。
+
+### 外部成员退出入口
+
+重新加入必须有可审计的退出来源。沿用 LifecycleCli 增加 `leave-external-member`，仍由配置固定操作者/企业范围、command_id、expected_version 和 reason。仅 ACTIVE 的 PARTNER/GUEST 可转 LEFT、version +1，代际保持；EMPLOYEE 退出归 OA 权威适配，SUSPENDED 不能先退再入绕过停用。它与普通 suspend 是不同稳定操作码，追加完整生命周期审计，已有 suspend 入口保持兼容。

@@ -2,6 +2,8 @@ package com.lrj.authz.governance.persistence;
 
 import com.lrj.authz.governance.application.IdentityGovernance;
 import com.lrj.authz.governance.application.LifecycleGovernance;
+import com.lrj.authz.governance.application.InvitationGovernance;
+import com.lrj.authz.governance.domain.InvitationModels.InvitationState;
 import com.lrj.authz.governance.domain.IdentityModels.*;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -19,12 +21,14 @@ public final class GovernanceRuntime implements AutoCloseable {
     private final IdentityMapper mapper;
     private final IdentityGovernance identity;
     private final LifecycleGovernance lifecycle;
+    private final InvitationGovernance invitations;
 
-    private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle) {
+    private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle, InvitationGovernance invitations) {
         this.dataSource = dataSource;
         this.mapper = mapper;
         this.identity = identity;
         this.lifecycle = lifecycle;
+        this.invitations = invitations;
     }
 
     /** 显式 migration owner 才能迁移；读取实例必须通过已存在序列的 validate。 */
@@ -57,6 +61,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             config.getTypeHandlerRegistry().register(GlobalStatus.class, new IdentityCodeTypeHandler<>(GlobalStatus.class));
             config.getTypeHandlerRegistry().register(MemberKind.class, new IdentityCodeTypeHandler<>(MemberKind.class));
             config.getTypeHandlerRegistry().register(MemberStatus.class, new IdentityCodeTypeHandler<>(MemberStatus.class));
+            config.getTypeHandlerRegistry().register(InvitationState.class, new IdentityCodeTypeHandler<>(InvitationState.class));
             config.setMapUnderscoreToCamelCase(true);
             config.setArgNameBasedConstructorAutoMapping(true);
             config.setCacheEnabled(false);
@@ -71,7 +76,8 @@ public final class GovernanceRuntime implements AutoCloseable {
             IdentityMapper mapper = session.getMapper(IdentityMapper.class);
             TransactionTemplate transaction = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
             transaction.setTimeout(5);
-            return new GovernanceRuntime(dataSource, mapper, new IdentityGovernance(mapper, transaction), new LifecycleGovernance(mapper, transaction));
+            return new GovernanceRuntime(dataSource, mapper, new IdentityGovernance(mapper, transaction), new LifecycleGovernance(mapper, transaction),
+                    new InvitationGovernance(mapper, session.getMapper(InvitationMapper.class), transaction));
         } catch (Exception failure) {
             dataSource.close();
             throw new IllegalStateException("治理库装配失败，拒绝启用新路径", failure);
@@ -83,6 +89,9 @@ public final class GovernanceRuntime implements AutoCloseable {
 
     /** 受控操作适配器使用停用用例，不能由本人只读 HTTP 接口直接暴露。 */
     public LifecycleGovernance lifecycle() { return lifecycle; }
+
+    /** 邀请创建/撤销使用受控身份，接受前必须完成独立 Token 验证。 */
+    public InvitationGovernance invitations() { return invitations; }
 
     IdentityMapper mapper() { return mapper; }
 

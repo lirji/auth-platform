@@ -56,6 +56,8 @@ public interface IdentityMapper {
 
     /** 企业和版本一起进入 CAS 条件，防止跨企业停用或旧版本覆盖。 */
     int suspendMember(@Param("id") String id, @Param("tenantId") String tenantId, @Param("expectedVersion") long expectedVersion);
+    /** 仅受控外部 ACTIVE 成员退出，不能把员工或暂停成员改成可重新加入状态。 */
+    int leaveExternalMember(@Param("id") String id, @Param("tenantId") String tenantId, @Param("expectedVersion") long expectedVersion);
     /** 全局主体停用不改各企业成员记录；入口必须先具备全局范围。 */
     int suspendPrincipal(@Param("id") String id, @Param("expectedVersion") long expectedVersion);
     /** 生命周期审计必须完整记录原因与前后状态/版本，不能复用缺少原因的旧写入。 */

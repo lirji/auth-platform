@@ -69,7 +69,7 @@ def expect(name, port, path, headers=(), body=None, status=200, code=None):
     return result
 
 
-def start(jar, port, log, config=None, missing=False):
+def start(jar, port, log, config=None, missing=False, invitations=False):
     """仅启动本任务回环进程；退出时只终止本工具持有的 Popen。"""
     with socket.socket() as probe:
         probe.bind(('127.0.0.1', port))
@@ -78,6 +78,8 @@ def start(jar, port, log, config=None, missing=False):
         args += ['--authz.governance.enabled=true']
     if config:
         args += ['--authz.governance.configuration=' + str(config)]
+    if invitations:
+        args += ['--authz.governance.invitations.enabled=true']
     descriptor = os.open(log, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(descriptor, 'w') as output:
         process = subprocess.Popen(args, stdout=output, stderr=subprocess.STDOUT)

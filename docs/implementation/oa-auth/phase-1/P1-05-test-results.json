@@ -1,0 +1,321 @@
+{
+  "slice_id": "P1-05",
+  "revision": "66b997602477988247b9a3e39fc3687c9d5440f6d93b02bd98e99f4e46d0190e",
+  "overall": "PASS",
+  "gate": "PASS",
+  "unit_tests": 181,
+  "postgres_tests": 29,
+  "casdoor_tests": 5,
+  "checks": [
+    {
+      "acceptance": "创建、重复、并发接受、约束、事务审计回滚",
+      "method": "InvitationPostgresIT + IdentityPostgresIT",
+      "result": "PASS",
+      "count": 29
+    },
+    {
+      "acceptance": "精确身份、用途/受众、证明/过期/撤销、跨企业与负责人状态",
+      "method": "InvitationPostgresIT + real Casdoor HTTP",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "外部退出重入、旧代际拒绝、员工/停用不可绕过",
+      "method": "InvitationPostgresIT + controlled LifecycleCli + HTTP",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "真实外部 Token 接受并查询成员/解析上下文",
+      "method": "deploy/governance-invitation-smoke.py",
+      "result": "PASS",
+      "checks": [
+        {
+          "check": "first CLI issue replay retains private proof",
+          "result": "PASS"
+        },
+        {
+          "check": "invitation switch disabled rejects acceptance",
+          "result": "PASS"
+        },
+        {
+          "check": "invitation missing bearer",
+          "result": "PASS"
+        },
+        {
+          "check": "invitation rejects ID token",
+          "result": "PASS"
+        },
+        {
+          "check": "invitation rejects wrong audience",
+          "result": "PASS"
+        },
+        {
+          "check": "repeated authorization rejected",
+          "result": "PASS"
+        },
+        {
+          "check": "unknown body field rejected",
+          "result": "PASS"
+        },
+        {
+          "check": "oversized invitation body",
+          "result": "PASS"
+        },
+        {
+          "check": "wrong invitation proof",
+          "result": "PASS"
+        },
+        {
+          "check": "wrong-target CLI issue replay retains private proof",
+          "result": "PASS"
+        },
+        {
+          "check": "exact subject required",
+          "result": "PASS"
+        },
+        {
+          "check": "revoked CLI issue replay retains private proof",
+          "result": "PASS"
+        },
+        {
+          "check": "revoked invitation denied",
+          "result": "PASS"
+        },
+        {
+          "check": "external identity accepts invitation",
+          "result": "PASS"
+        },
+        {
+          "check": "accept replay is same membership",
+          "result": "PASS"
+        },
+        {
+          "check": "external me lists accepted membership",
+          "result": "PASS"
+        },
+        {
+          "check": "external current context",
+          "result": "PASS"
+        },
+        {
+          "check": "second CLI issue replay retains private proof",
+          "result": "PASS"
+        },
+        {
+          "check": "active membership cannot be silently expanded",
+          "result": "PASS"
+        },
+        {
+          "check": "leave-external-member CLI and replay",
+          "result": "PASS"
+        },
+        {
+          "check": "left membership no longer resolves",
+          "result": "PASS"
+        },
+        {
+          "check": "rejoin keeps member and increments generation",
+          "result": "PASS"
+        },
+        {
+          "check": "old invite cannot restore old generation",
+          "result": "PASS"
+        },
+        {
+          "check": "old business context generation rejected",
+          "result": "PASS"
+        },
+        {
+          "check": "suspend-member CLI and replay",
+          "result": "PASS"
+        },
+        {
+          "check": "suspended member cannot replay accepted invite",
+          "result": "PASS"
+        },
+        {
+          "check": "sponsor-stop CLI issue replay retains private proof",
+          "result": "PASS"
+        },
+        {
+          "check": "suspend-member CLI and replay",
+          "result": "PASS"
+        },
+        {
+          "check": "stopped sponsor blocks pending invitation",
+          "result": "PASS"
+        },
+        {
+          "check": "logs contain no tested bearer or invitation proof",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "acceptance": "既有绑定/安全链/停用回归",
+      "method": "CasdoorIdentityIT (5) + governance-context-smoke.py",
+      "result": "PASS",
+      "checks": [
+        {
+          "check": "explicit CLI creates isolated membership",
+          "result": "PASS"
+        },
+        {
+          "check": "default off has no internal route",
+          "result": "PASS"
+        },
+        {
+          "check": "auth-platform-server enabled missing config fails startup",
+          "result": "PASS"
+        },
+        {
+          "check": "default off old admin chain remains",
+          "result": "PASS"
+        },
+        {
+          "check": "auth-platform-admin enabled missing config fails startup",
+          "result": "PASS"
+        },
+        {
+          "check": "me returns own membership",
+          "result": "PASS"
+        },
+        {
+          "check": "dual identity current context",
+          "result": "PASS"
+        },
+        {
+          "check": "admin missing bearer",
+          "result": "PASS"
+        },
+        {
+          "check": "future governance route protected by filter",
+          "result": "PASS"
+        },
+        {
+          "check": "admin rejects ID token",
+          "result": "PASS"
+        },
+        {
+          "check": "admin rejects wrong audience",
+          "result": "PASS"
+        },
+        {
+          "check": "admin repeated authorization",
+          "result": "PASS"
+        },
+        {
+          "check": "missing service before malformed body",
+          "result": "PASS"
+        },
+        {
+          "check": "missing user",
+          "result": "PASS"
+        },
+        {
+          "check": "user cannot act as service",
+          "result": "PASS"
+        },
+        {
+          "check": "service cannot act as user",
+          "result": "PASS"
+        },
+        {
+          "check": "internal rejects business/id_token",
+          "result": "PASS"
+        },
+        {
+          "check": "internal rejects management/access_token",
+          "result": "PASS"
+        },
+        {
+          "check": "reject body principal_id",
+          "result": "PASS"
+        },
+        {
+          "check": "reject body application_id",
+          "result": "PASS"
+        },
+        {
+          "check": "reject body caller_service_id",
+          "result": "PASS"
+        },
+        {
+          "check": "reject body environment",
+          "result": "PASS"
+        },
+        {
+          "check": "cross tenant",
+          "result": "PASS"
+        },
+        {
+          "check": "stale generation",
+          "result": "PASS"
+        },
+        {
+          "check": "duplicate tenant field",
+          "result": "PASS"
+        },
+        {
+          "check": "oversized body",
+          "result": "PASS"
+        },
+        {
+          "check": "repeated user header",
+          "result": "PASS"
+        },
+        {
+          "check": "controlled CLI suspension and idempotent replay",
+          "result": "PASS"
+        },
+        {
+          "check": "old valid JWT rejected after suspension",
+          "result": "PASS"
+        },
+        {
+          "check": "me excludes suspended membership",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "acceptance": "无角色/应用/图关系副作用",
+      "method": "source review: InvitationGovernance only IdentityMapper/InvitationMapper on governance datasource; no graph or role/app writer dependency",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "旧版本读取 V4 schema",
+      "method": "saved P1-03 GovernanceCli lookup",
+      "result": "PASS",
+      "evidence": {
+        "result": "PASS",
+        "old_application": "P1-03 server JAR",
+        "old_jar_sha256": "345b8e44619157c7c9b76092c573ae49e5368a24cf95058de0f20bcac4455093",
+        "database_schema": "V4",
+        "suspended_sponsor_excluded": true
+      }
+    },
+    {
+      "acceptance": "FORMAT",
+      "method": "existing tool discovery",
+      "result": "UNVERIFIED",
+      "limitation": "No canonical formatter; surrounding style and diff hygiene checked"
+    },
+    {
+      "acceptance": "STATIC_ANALYSIS",
+      "method": "repository tooling inventory",
+      "result": "N/A"
+    },
+    {
+      "acceptance": "UI visual",
+      "method": "no UI change in this slice",
+      "result": "N/A"
+    }
+  ],
+  "failures": [],
+  "limitations": [
+    "FORMAT_TOOL_NOT_AVAILABLE",
+    "Shared IdP compatibility upgrade remains HOLD; no production deployment"
+  ],
+  "local_evidence_directory": ".local/governance/p1-05",
+  "ci": "PENDING"
+}

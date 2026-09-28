@@ -9,6 +9,7 @@ on:
       - 'deploy/benefit-platform-provision.sh'
       - 'deploy/governance-test-db.py'
       - 'deploy/governance-context-smoke.py'
+      - 'deploy/governance-invitation-smoke.py'
       - 'deploy/governance-casdoor-*.py'
       - 'pom.xml'
       - 'mvnw'
@@ -23,6 +24,7 @@ on:
       - 'deploy/benefit-platform-provision.sh'
       - 'deploy/governance-test-db.py'
       - 'deploy/governance-context-smoke.py'
+      - 'deploy/governance-invitation-smoke.py'
       - 'deploy/governance-casdoor-*.py'
       - 'pom.xml'
       - 'mvnw'
@@ -94,3 +96,9 @@ jobs:
           GOVERNANCE_IDENTITY_FIXTURE: ${{ github.workspace }}/.local/governance/casdoor-isolated
       - name: Verify governance HTTP boundaries and controlled suspension (P1-03/06)
         run: python3 deploy/governance-context-smoke.py
+      - name: Verify external invitations with a separate identity namespace (P1-05)
+        run: |
+          python3 deploy/governance-casdoor-fixture.py --base http://localhost:18090 --phase tokens \
+            --directory .local/governance/p1-05-idp \
+            --management-config .local/governance/casdoor-isolated/management-client.json
+          python3 deploy/governance-invitation-smoke.py

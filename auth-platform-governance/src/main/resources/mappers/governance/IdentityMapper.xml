@@ -110,4 +110,9 @@
         VALUES (#{id}, #{operatorRef}, #{tenantId}, #{operation}, #{targetId}, #{targetVersion}, #{commandId},
             #{reason}, #{previousStatus}, #{resultingStatus}, #{previousVersion})
     </insert>
+    <update id="leaveExternalMember">
+        UPDATE auth_governance.membership SET status = 'LEFT', version = version + 1, updated_at = clock_timestamp()
+        WHERE id = #{id} AND tenant_id = #{tenantId} AND version = #{expectedVersion} AND status = 'ACTIVE'
+            AND member_kind IN ('PARTNER', 'GUEST')
+    </update>
 </mapper>

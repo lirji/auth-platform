@@ -13,6 +13,22 @@ import static org.assertj.core.api.Assertions.*;
 /** 协议边界拒绝身份注入与歧义 JSON，不依赖宿主宽松 Jackson 默认值。 */
 class GovernanceWebTest {
     @ParameterizedTest @ValueSource(strings = {
+        "{}", "null", "[]", "{\"invitation_id\":\"x\",\"token\":1}",
+        "{\"invitation_id\":\"x\",\"token\":\"a\",\"subject\":\"victim\"}",
+        "{\"invitation_id\":\"x\",\"token\":\"a\",\"token\":\"b\"}",
+        "{\"invitation_id\":\"x\",\"token\":\"a\"} {}"})
+    void rejectsAmbiguousInvitationProof(String value) {
+        assertThatThrownBy(() -> GovernanceWeb.readInvitation(new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8))))
+                .isInstanceOf(GovernanceException.class);
+    }
+    @Test void invitationIsBoundedAndStrict() {
+        var request = GovernanceWeb.readInvitation(new ByteArrayInputStream("{\"invitation_id\":\"x\",\"token\":\"proof\"}".getBytes(StandardCharsets.UTF_8)));
+        assertThat(request.invitationId()).isEqualTo("x");
+        assertThat(request.token()).isEqualTo("proof");
+        assertThatThrownBy(() -> GovernanceWeb.readInvitation(new ByteArrayInputStream(new byte[4097])))
+                .isInstanceOf(GovernanceException.class);
+    }
+    @ParameterizedTest @ValueSource(strings = {
         "{}", "[]", "null", "{\"tenant_id\":1}",
         "{\"tenant_id\":\"a\",\"principal_id\":\"victim\"}",
         "{\"tenant_id\":\"a\",\"application_id\":\"admin\"}",

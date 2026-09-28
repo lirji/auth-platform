@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrj.authz.governance.persistence.InvitationMapper">
+    <sql id="invitationColumns">id, tenant_id, sponsor_membership_id, operator_ref, target_issuer, target_subject,
+        member_kind, token_hash, expires_at, membership_valid_to, state, version, accepted_membership_id, accepted_generation, accepted_at</sql>
+    <select id="now" resultType="java.time.Instant">SELECT clock_timestamp()</select>
+    <select id="lock" resultType="com.lrj.authz.governance.domain.InvitationModels$Invitation">
+        SELECT <include refid="invitationColumns"/> FROM auth_governance.invitation WHERE id = #{id} FOR UPDATE
+    </select>
+    <insert id="insert">
+        INSERT INTO auth_governance.invitation(id, tenant_id, sponsor_membership_id, operator_ref, target_issuer,
+            target_subject, member_kind, token_hash, expires_at, membership_valid_to, state, version)
+        VALUES (#{id}, #{tenantId}, #{sponsorMembershipId}, #{operatorRef}, #{targetIssuer}, #{targetSubject},
+            #{memberKind}, #{tokenHash}, #{expiresAt}, #{membershipValidTo}, #{state}, #{version}) ON CONFLICT DO NOTHING
+    </insert>
+    <update id="accept">
+        UPDATE auth_governance.invitation SET state = 'ACCEPTED', version = version + 1,
+            accepted_membership_id = #{memberId}, accepted_generation = #{generation}, accepted_at = clock_timestamp()
+        WHERE id = #{id} AND version = #{version} AND state = 'PENDING' AND expires_at > clock_timestamp()
+    </update>
+    <update id="revoke">
+        UPDATE auth_governance.invitation SET state = 'REVOKED', version = version + 1
+        WHERE id = #{id} AND version = #{version} AND state = 'PENDING'
+    </update>
+    <select id="lockSponsor" resultType="com.lrj.authz.governance.domain.IdentityModels$Membership">
+        SELECT m.id, m.tenant_id, m.principal_id, m.member_kind, m.status, m.generation, m.version,
+            m.valid_from, m.valid_to, m.sponsor_membership_id
+        FROM auth_governance.membership m
+        JOIN auth_governance.principal p ON p.id = m.principal_id
+        JOIN auth_governance.tenant t ON t.id = m.tenant_id
+        WHERE m.id = #{id} AND m.tenant_id = #{tenantId} AND m.member_kind = 'EMPLOYEE'
+            AND m.status = 'ACTIVE' AND p.kind = 'HUMAN' AND p.status = 'ACTIVE' AND t.status = 'ACTIVE'
+            AND m.valid_from &lt;= clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to > clock_timestamp())
+        FOR SHARE OF m, p, t
+    </select>
+    <select id="lockActiveHuman" resultType="com.lrj.authz.governance.domain.IdentityModels$Principal">
+        SELECT id, kind, status, version FROM auth_governance.principal
+        WHERE id = #{id} AND kind = 'HUMAN' AND status = 'ACTIVE' FOR SHARE
+    </select>
+    <select id="lockMember" resultType="com.lrj.authz.governance.domain.IdentityModels$Membership">
+        SELECT id, tenant_id, principal_id, member_kind, status, generation, version, valid_from, valid_to, sponsor_membership_id
+        FROM auth_governance.membership WHERE principal_id = #{principalId} AND tenant_id = #{tenantId} FOR UPDATE
+    </select>
+    <update id="rejoin">
+        UPDATE auth_governance.membership SET status = 'ACTIVE', generation = generation + 1, version = version + 1,
+            valid_from = #{member.validFrom}, valid_to = #{member.validTo}, sponsor_membership_id = #{member.sponsorMembershipId},
+            updated_at = clock_timestamp()
+        WHERE id = #{member.id} AND tenant_id = #{member.tenantId} AND principal_id = #{member.principalId}
+            AND version = #{member.version} - 1 AND generation = #{member.generation} - 1 AND status = 'LEFT'
+            AND member_kind = #{member.memberKind} AND member_kind IN ('PARTNER', 'GUEST')
+    </update>
+    <insert id="auditDetail">
+        INSERT INTO auth_governance.invitation_audit_detail(audit_event_id, invitation_id, reason, previous_state, resulting_state, previous_version)
+        VALUES (#{auditId}, #{invitationId}, #{reason}, #{before}, #{after}, #{previousVersion})
+    </insert>
+</mapper>

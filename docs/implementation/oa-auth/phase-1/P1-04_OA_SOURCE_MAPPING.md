@@ -4,7 +4,7 @@
 
 | 事实 | OA 现有来源 | auth 消费边界 |
 |---|---|---|
-| 员工 | oa-org Employee：tenantId、id、userId、status、version | 保留 OA tenant+employee 主键；显式 issuer+userId 映射 Principal；未知绑定首次建成员策略待 Q-PROVISION；不按邮箱合并 |
+| 员工 | oa-org Employee：tenantId、id、userId、status、version | 保留 OA tenant+employee 主键；显式 issuer+userId 映射 Principal；可信来源首次自动创建主体/员工成员；精确来源标识绑定登录身份；不按邮箱合并 |
 | 企业 | 既有 OA tenantId | 受控 OA tenant→auth Tenant 映射，不直接采用请求或 Casdoor org |
 | 任职/部门 | OrgUnit、EmployeeOrgAssignment、OrgQueryApi | 只消费直接任职事实与同企业树；组授权直到 P3 栅栏完成才启用 |
 | 状态 | PROBATION/ACTIVE/LEAVING/LEFT | 前三者仍在职，LEFT 退出；LEAVING 不能提前当作退出。全局主体暂停与成员退出分别处理 |
@@ -19,7 +19,7 @@ page/delta 当前同时返回 changes和有限数量 deletions；nextSince/hasMo
 
 离职在 auth 接受并持久化前，OA应显示“权限回收中”或等待确认，不能把现有日志“已触发授权回收”视为跨平台完成。旧进程内事件缺可靠证据的发现已记录，不在准备记录里顺手重构 OA。
 
-下一实现 Owner：P1-04，需补齐 Q-PROVISION 后冻结事件与服务来源认证，独立 OA 任务工作树增量迁移及 auth Inbox/checkpoint真实重放/乱序/快照测试。当前 OA 原脏文件不变。
+下一实现 Owner：P1-04，Q-PROVISION 已确认，接着冻结事件与服务来源认证，独立 OA 任务工作树增量迁移及 auth Inbox/checkpoint真实重放/乱序/快照测试。当前 OA 原脏文件不变。
 
 
 ## 本次补充核查与有界实施顺序
@@ -44,8 +44,9 @@ OA 基线 `f07c978`，Spring Boot 3.3.5 / Java 21 / MyBatis-Plus 3.5.5，优先�
 
 建议在同一 P1-04 下分实施 pass，保持原稳定节点：来源注册与事件/快照契约 → OA 事务生产者与可靠投递 → auth 幂等消费与状态投影 → 双库真实重复/乱序/断连/完整性测试。任一 pass 完成不把整个 P1-04 标成 DONE。
 
-## 必要业务输入 Q-PROVISION
+## 已确认业务输入 Q-PROVISION
 
-已向用户提出：OA 新员工尚无 auth 显式身份绑定时，是由已登记来源自动建立内部成员，还是先进入待绑定队列。两条路线都不自动发业务角色，均不按邮箱合并。这个选择决定首次身份/成员写入权与冲突流程，不能用“OA 是权威”默认为用户已经批准自动建成员。
-
-在答复前，保留源码调查和实施顺序，不落地未经选择的首次建成员行为。Q-EXT 是另一个独立的外部业务试点问题，不把两者混为同一阻塞。
+用户确认选择：可信 OA 来源自动建立主体和员工成员，登录身份仅凭精确来源标识绑定。
+这授权已登记来源的首次开户，不授权按邮箱、姓名、显示名称猜测合并，不自动发放角色或应用准入。
+缺失精确登录标识时可保留目录主体事实，但不得制造登录绑定；标识冲突必须隔离，不能覆盖现有主体。
+该决定解除 P1-04 首次建成员策略阻塞。Q-EXT 仍只影响后续真实外部业务试点。
