@@ -2,7 +2,11 @@
 
 用户指定使用 Claude 提供的技能。本轮从 `/Users/liruijun/.claude/skills/` 读取；这些技能链接到现有共享安装，未修改技能文件或启动 Claude 模型代理。
 
-## backend-architecture-design
+## 历史 P0 设计交接
+
+以下保留规划时的状态，当前结果以下面的 P1 完成交接为准。
+
+### backend-architecture-design
 
 status=COMPLETED；gate=PASS_WITH_ASSUMPTIONS。
 
@@ -11,7 +15,7 @@ status=COMPLETED；gate=PASS_WITH_ASSUMPTIONS。
 - 核验：auth/OA 部署边界保留、数据权威与唯一写入入口明确；新增复杂度对应持久化/投影/审批/数据范围的真实要求。
 - 未决：目录权威、外部真实资源、正式 ID 映射和运行目标；只阻塞对应正式接管或验证，不假设已经批准。
 
-## implementation-slicing
+### implementation-slicing
 
 候选任务与依赖映射=COMPLETED；产品实施交接=PARTIAL，尚待 P1-00 及所属阶段的具体契约冻结。
 
@@ -20,7 +24,7 @@ status=COMPLETED；gate=PASS_WITH_ASSUMPTIONS。
 - 源共享契约状态为 DESIGN_DRAFT_NOT_EXECUTED；本轮消费其技术方向，不把它改标为已发布线上契约。
 - 下游要求：按 P1 首批计划冻结薄路径契约后，用 backend-implementation 一次实施一条 READY 片。准备完成不等于产品片已完成。
 
-## update-progress-docs
+### update-progress-docs
 
 status=COMPLETED；gate=PASS_WITH_LIMITATIONS。
 
@@ -28,8 +32,20 @@ status=COMPLETED；gate=PASS_WITH_LIMITATIONS。
 - P0 基线与准备已交付，保留 commerce 测试命令失败和所有 NOT_RUN；P1—P7 不改成 DONE。
 - 下一设计任务：P1-00；对应业务前置为 Q-DIR、Q-EXT 及正式数据映射。
 
-## task-git-delivery
+### task-git-delivery
 
 独立于上面的规划/进度副作用执行。用户 AGENTS.md 第 8 条授权当前任务正常 Git 交付；仅允许本计划与 P0 记录，不包含 OA、commerce 原脏文件、私密 .local、产品源码或部署。
 
 输入：P0 TEST_RESULT、正式状态、当前范围与验证结果。精确提交、push、main 观察及各动作实际结果写入 `.local/p0-evidence/delivery-result.json`；生产部署、tag、release、PR 均不由本轮授权推导。
+
+## 当前 P1 完成交接
+
+- session-handoff / continue-approved-delivery：复用原任务、原目录和63节点DAG，P1范围连续完成；未启动Claude模型或子代理。
+- backend-implementation / runtime-and-deploy：P1-00—P1-06实现完成，固定隔离环境验证；产品默认新路径关闭。
+- implementation-validation：P1-04、P1-07 status=COMPLETED、gate=PASS，证据见 phase-1/P1-04_TEST_RESULT.md、P1-07_TEST_RESULT.md。
+- project-documentation / update-progress-docs：P1全部DONE，P2—P7保持TODO且本任务无执行授权。下一步为用户要求的暂停；后续从P2-01接续。
+- task-git-delivery：已按AGENTS常驻授权分批提交、正常合并并推送两个main；不夹带OA用户文件。结果见 phase-1/P1_DELIVERY_RESULT.md。
+- ci-cd-gate：auth main 3edf262 /36399797905、OA main4ea8be9 /36399675935均SUCCESS；精确结果见 phase-1/P1_CI_RESULT.json。
+- 未解决：共享Casdoor升级HOLD、后续正式最小权限探针/浏览器回调、Q-EXT等。它们不冒充本次完成或生产就绪。
+
+产物、源码摘要与真实验证均可追溯。相同执行者完成实现后的验证pass，不声明独立代理审查。FORMAT工具缺失与独立静态分析N/A已在报告中记录。Git交付不代表生产部署；未执行生产发布。

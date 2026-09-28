@@ -1,0 +1,39 @@
+{
+  "protocol": "skill-contract/v1",
+  "skill": "ci-cd-gate",
+  "status": "COMPLETED",
+  "gate": "PASS",
+  "scope": "P1 existing repository workflows; no production release or deploy gate",
+  "checks": [
+    {
+      "repository": "lirji/auth-platform",
+      "ref": "3edf26227a127c1ed1a079a9d44953b7ec4ab9c1",
+      "workflow": "authz-ci.yml",
+      "run_id": 36399797905,
+      "url": "https://github.com/lirji/auth-platform/actions/runs/36399797905",
+      "required": true,
+      "result": "PASS",
+      "jobs": [
+        "verify"
+      ]
+    },
+    {
+      "repository": "lirji/oa-platform",
+      "ref": "4ea8be9bfa3643a46f77f41be198142e0867c6d6",
+      "workflow": "ci.yml",
+      "run_id": 36399675935,
+      "url": "https://github.com/lirji/oa-platform/actions/runs/36399675935",
+      "required": true,
+      "result": "PASS",
+      "jobs": [
+        "Backend / JDK 21",
+        "PC Console / Node 20",
+        "Mobile H5 / Node 20"
+      ]
+    }
+  ],
+  "revision_fence": "Final report-only commit may follow these refs; no source, tests, runtime or CI workflow changes. Report validation uses JSON/DAG/fingerprint/diff checks; this record does not claim a new remote CI run for report-only files.",
+  "blockers": [],
+  "production_deploy": "NOT_EXECUTED",
+  "shared_casdoor_upgrade": "HOLD"
+}
