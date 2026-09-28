@@ -35,3 +35,11 @@ projection_operation固定operation UUID、fence、target_epoch、单调batch_no
 receipt按operation唯一，保存graph_marker、content_hash、opaque zed_token和confirmed_at。末批确认仅在desired仍等于operation.target_epoch且非BLOCKED时READY；并发管理更新保留UPDATING。PENDING→ACTIVE仅匹配当前Grant version，不恢复REVOKED。每步失败保留操作，指数退避带抖动，上限60秒/最多5次后BLOCKED；协议/未知marker直接隔离。受控审计重试由P3-06管理接口补齐。
 
 运行历史不自动删除。当前marker引用的operation、所有非终态和幂等记录必须保留；本隔离验证阶段保留全部证据。生产保留/归档期限需沿P7运营策略确认，不能编造法规保留期。这里不引入新的定时调度或消息中间件。
+
+## P3-05 实施细化
+
+StrictGraphReader只检查gov_access_grant#eligible，主体固定gov_membership:{membership_id}_g{generation}。最多100个唯一Grant；逐项校验回显resource、permission、subject、基数与唯一性。只接受明确HAS_PERMISSION/NO_PERMISSION；Conditional、缺项、重复、错关联、逐项error和不支持的caveat统一AUTHZ_PROTOCOL_INVALID。不同水位不能合并为字符串最大值，policyToken与directoryToken各跑同一批，完整结果取交集。
+
+ReliableAuthorization在ReadFence的A/C新事务内使用一条SQL连接Grant、固定RoleVersion、固定ScopeRule及当前成员，避免N+1。C除了栅栏、身份、目录版本，还核对仍有效的完整候选集合；时间边界导致候选变化时拒绝本次不稳定结果。读取仅使用持久化Token，Runtime重建或不同实例不依赖本地内存。一个请求预算8秒，超过预算没有ALLOW；图每次调用仍受已验证的body总超时保护。
+
+内部Evaluation含decisionId、当前Stamp、完整Grant alternatives和validUntil=min(数据库当前时间+30秒,匹配Grant到期时间)。它是本次请求的后端结果，不是可缓存或浏览器可提交的授权凭据。P3-02将它接到ScopePlan/可信资源Owner接口，每次业务请求重新取得与验证；长任务各检查点重新检查。当前仍不引入跨请求ALLOW缓存。

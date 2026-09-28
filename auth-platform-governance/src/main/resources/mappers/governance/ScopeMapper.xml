@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrj.authz.governance.persistence.ScopeMapper">
+ <select id="eligible" resultType="com.lrj.authz.governance.domain.ScopeModels$GrantPath">
+ SELECT g.id,g.version,r.capabilities_json,g.scope,s.rule_json,g.valid_to
+ FROM auth_governance.access_grant g
+ JOIN auth_governance.role_version r ON r.id=g.role_id AND r.tenant_id=g.tenant_id AND r.application_id=g.application_id AND r.environment=g.environment
+ LEFT JOIN auth_governance.grant_scope s ON s.grant_id=g.id AND s.tenant_id=g.tenant_id AND s.application_id=g.application_id AND s.environment=g.environment
+ JOIN auth_governance.membership m ON m.id=g.membership_id AND m.tenant_id=g.tenant_id AND m.generation=g.generation
+ JOIN auth_governance.principal u ON u.id=m.principal_id
+ WHERE g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}
+ AND g.membership_id=#{member} AND g.generation=#{generation} AND g.source_type='DIRECT' AND g.state='ACTIVE'
+ AND g.valid_from &lt;=clock_timestamp() AND g.valid_to &gt;clock_timestamp()
+ AND m.status='ACTIVE' AND u.status='ACTIVE' AND u.kind='HUMAN'
+ AND m.valid_from &lt;=clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to &gt;clock_timestamp())
+ ORDER BY g.id LIMIT 101
+ </select>
+</mapper>

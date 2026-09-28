@@ -31,6 +31,7 @@ public final class GovernanceRuntime implements AutoCloseable {
     private ProjectionMapper projectionMapper;
     private FenceMapper fenceMapper;
     private ReliableProjectionMapper reliableMapper;
+    private ScopeMapper scopeMapper;
     private TransactionTemplate transaction;
 
     private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle,
@@ -107,7 +108,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(FenceMapper.class));
             runtime.accessMapper=session.getMapper(AccessMapper.class); runtime.catalogMapper=session.getMapper(CatalogMapper.class);
             runtime.projectionMapper=session.getMapper(ProjectionMapper.class); runtime.transaction=transaction;
-            runtime.fenceMapper=session.getMapper(FenceMapper.class);runtime.reliableMapper=session.getMapper(ReliableProjectionMapper.class);
+            runtime.fenceMapper=session.getMapper(FenceMapper.class);runtime.reliableMapper=session.getMapper(ReliableProjectionMapper.class);runtime.scopeMapper=session.getMapper(ScopeMapper.class);
             return runtime;
         } catch (Exception failure) {
             dataSource.close();
@@ -150,6 +151,11 @@ public final class GovernanceRuntime implements AutoCloseable {
     /** 可靠执行器只使用受控CAS端口，不能回退到旧无前置条件写入。 */
     public com.lrj.authz.governance.application.ReliableProjection reliableProjector(com.lrj.authz.protocol.ProjectionGraph graph){
         return new com.lrj.authz.governance.application.ReliableProjection(reliableMapper,fenceMapper,transaction.getTransactionManager(),graph);
+    }
+
+    /** 严格授权使用持久双水位和同Grant范围，没有跨请求允许缓存。 */
+    public com.lrj.authz.governance.application.ReliableAuthorization reliableAuthorization(com.lrj.authz.protocol.StrictGraphReader graph){
+        return new com.lrj.authz.governance.application.ReliableAuthorization(readFence(),scopeMapper,catalogMapper,accessMapper,graph);
     }
 
     IdentityMapper mapper() { return mapper; }

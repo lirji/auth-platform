@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-P0/P1/P2已交付；P3执行中。P3-01 DONE，证据见phase-3/P3-01_TEST_RESULT.md。P3-03 DONE（67真实PG用例通过）；P3-04a DONE（真实图4项、协议5项通过）；P3-04b DONE（投影10项、真实Jar CLI通过）；P3-04c及04汇总DONE（12项真实投影用例含2个进程故障）；当前P3-05 IN_PROGRESS；它与P3-02都已满足原前置依赖，先完成版本栅栏以支撑ScopePlan。其余P3节点TODO。
+P0/P1/P2已交付；P3执行中。P3-01 DONE，证据见phase-3/P3-01_TEST_RESULT.md。P3-03 DONE（67真实PG用例通过）；P3-04a DONE（真实图4项、协议5项通过）；P3-04b DONE（投影10项、真实Jar CLI通过）；P3-04c及04汇总DONE（12项真实投影用例含2个进程故障）；P3-05 DONE（真实授权5项、协议7项）；当前P3-06 IN_PROGRESS；它与P3-02都已满足原前置依赖，先完成版本栅栏以支撑ScopePlan。其余P3节点TODO。
 
 ## 已完成
 

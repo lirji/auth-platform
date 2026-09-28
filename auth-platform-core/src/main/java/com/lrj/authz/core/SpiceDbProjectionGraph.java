@@ -16,7 +16,10 @@ import java.util.concurrent.*;
 import static com.lrj.authz.protocol.ProjectionGraph.Failure.Code.*;
 
 /** P3专用有界HTTP适配；marker前置条件和关系变更在SpiceDB同一事务提交。 */
-public final class SpiceDbProjectionGraph implements ProjectionGraph {
+public final class SpiceDbProjectionGraph implements ProjectionGraph, StrictGraphReader {
+    private static final String ELIGIBLE_PERMISSION = "eligible";
+    private static final String HAS_PERMISSION = "PERMISSIONSHIP_HAS_PERMISSION";
+    private static final String NO_PERMISSION = "PERMISSIONSHIP_NO_PERMISSION";
     private static final int MAX_RESPONSE_BYTES = 524288;
     private static final int RPC_FAILED_PRECONDITION = 9;
     private final ObjectMapper json = new ObjectMapper(JsonFactory.builder()
@@ -85,6 +88,36 @@ public final class SpiceDbProjectionGraph implements ProjectionGraph {
         byte[] response = post("/v1/relationships/write", Map.of("updates", writes,
                 "optionalPreconditions", List.of(Map.of("operation", precondition, "filter", filter(partitionId, expectedMarker)))));
         return token(single(response), "writtenAt");
+    }
+
+    /** 按回显的完整请求关联结果，不依赖数组顺序；Conditional与任何缺项整批报错。 */
+    @Override public Map<String,Boolean> checkEligible(String membershipId,long generation,List<String> grantIds,String zedToken){
+        uuid(membershipId);
+        if(generation<1||grantIds==null||grantIds.size()>100||new HashSet<>(grantIds).size()!=grantIds.size()
+                ||zedToken==null||zedToken.isBlank()||zedToken.length()>2048)throw new Failure(PROTOCOL_INVALID);
+        grantIds.forEach(this::uuid);
+        if(grantIds.isEmpty())return Map.of();
+        String subjectId=membershipId+"_g"+generation;
+        List<Map<String,Object>> items=grantIds.stream().map(id->Map.<String,Object>of(
+                "resource",Map.of("objectType",GRANT_TYPE,"objectId",id),"permission",ELIGIBLE_PERMISSION,
+                "subject",Map.of("object",Map.of("objectType",MEMBER_TYPE,"objectId",subjectId)))).toList();
+        JsonNode response=single(post("/v1/permissions/checkbulk",Map.of("consistency",Map.of("atLeastAsFresh",Map.of("token",zedToken)),"items",items)));
+        JsonNode pairs=response.path("pairs");
+        if(!pairs.isArray()||pairs.size()!=grantIds.size())throw new Failure(PROTOCOL_INVALID);
+        Map<String,Boolean> result=new LinkedHashMap<>();Set<String> expected=new HashSet<>(grantIds);
+        for(JsonNode pair:pairs){
+            JsonNode request=pair.path("request"),resource=request.path("resource"),subject=request.path("subject"),item=pair.path("item");
+            String grant=resource.path("objectId").asText();
+            if(pair.hasNonNull("error")||!item.isObject()||!expected.contains(grant)||result.containsKey(grant)
+                    ||!GRANT_TYPE.equals(resource.path("objectType").asText())||!ELIGIBLE_PERMISSION.equals(request.path("permission").asText())
+                    ||!MEMBER_TYPE.equals(subject.path("object").path("objectType").asText())||!subjectId.equals(subject.path("object").path("objectId").asText())
+                    ||!subject.path("optionalRelation").asText("").isEmpty()||request.path("context").size()>0||item.hasNonNull("partialCaveatInfo"))throw new Failure(PROTOCOL_INVALID);
+            String state=item.path("permissionship").asText();
+            if(!HAS_PERMISSION.equals(state)&&!NO_PERMISSION.equals(state))throw new Failure(PROTOCOL_INVALID);
+            result.put(grant,HAS_PERMISSION.equals(state));
+        }
+        if(!result.keySet().equals(expected))throw new Failure(PROTOCOL_INVALID);
+        return Map.copyOf(result);
     }
 
     private Map<String,Object> filter(String partition, String marker) {
