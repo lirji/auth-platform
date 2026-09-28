@@ -6,7 +6,6 @@
  WHERE g.tenant_id=#{p.tenantId} AND s.environment=#{p.environment} AND NOT s.quarantined</sql>
  <select id="group" resultType="com.lrj.authz.governance.domain.AccessModels$Group"><include refid="groupSelect"/> AND g.id=#{id}</select>
  <select id="groups" resultType="com.lrj.authz.governance.domain.AccessModels$Group"><include refid="groupSelect"/> AND g.id &gt;#{after} ORDER BY g.id LIMIT 100</select>
- <update id="clock">UPDATE auth_governance.directory_source SET business_zone=#{zone} WHERE id=#{source} AND tenant_id=#{p.tenantId} AND environment=#{p.environment} AND NOT quarantined</update>
  <select id="groupMember" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.directory_group_member WHERE group_id=#{group} AND membership_id=#{member} AND generation=#{generation} AND current)</select>
  <select id="groupCount" resultType="int">SELECT count(*) FROM auth_governance.access_grant
  WHERE tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment} AND group_id=#{group}

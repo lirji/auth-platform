@@ -91,12 +91,6 @@ public class GovernanceAccessController {
         try{kind=com.lrj.authz.governance.domain.ProjectionModels.Kind.valueOf(r.kind());}catch(RuntimeException e){throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);}
         access.retryStrict(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),kind);return ResponseEntity.accepted().build();
     }
-    /** 未显式设置时区的来源保持拒绝组授权。 */
-    @PostMapping(value="/access/directory-clock",consumes="application/json")
-    public ResponseEntity<Void> clock(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{
-        var r=AccessWeb.read(request.getInputStream(),com.lrj.authz.protocol.SafetyDtos.DirectoryClock.class);
-        access.configureGroupClock(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),r.sourceId(),r.businessZone());return ResponseEntity.noContent().build();
-    }
     /** 目录组分页仅展示当前管理环境。 */
     @GetMapping("/access/groups")
     public JsonNode groups(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("tenant_id")String tenant,@RequestParam("application_id")String app,@RequestParam("environment")String env,@RequestParam(value="after",required=false)String after){

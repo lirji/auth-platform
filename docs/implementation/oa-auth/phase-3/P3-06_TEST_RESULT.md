@@ -8,3 +8,9 @@
 - Code Hygiene COMPLETE_WITH_LIMITATIONS：未配置Java formatter及静态分析器；编译、单测、差异检查通过。管理HTTP真实双身份验收和商城消费继续归P3-02/07；未声明生产或完整P3已完成。
 
 SKILL_HANDOFF: status=COMPLETE; gate=PASS; produced=P3-06_TEST_RESULT.md; unresolved=无本片阻塞; downstream_requirements=严格HTTP/ScopePlan/资源Owner与商城验证; recommended_next=P3-02。
+
+## 收尾审查修正
+
+目录business_zone影响租户内多应用，应用管理员不能获得修改它的权力。删除未发布的directory-clock HTTP入口及DTO，改用DirectoryImportCli clock，0600运维来源配置必须精确匹配登记的source/environment/sourceTenantRef/tenant/issuer。directory.business-zone显式IANA时区，directory.command-id为UUID；相同命令重放不再推进epoch，异内容拒绝，审计与变更/命令回执同事务。未配置时区继续fail closed。
+
+最终真实P3图profile exit0：CAS4、worker6、进程故障2、授权12，共24项；新增运维时区错误来源、无效时区和幂等冲突验收。最终governance-it 67项、全仓单测228项均零失败。此修正不修改已执行V12。

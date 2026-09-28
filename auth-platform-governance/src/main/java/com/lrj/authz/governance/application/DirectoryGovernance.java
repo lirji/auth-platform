@@ -45,6 +45,22 @@ public final class DirectoryGovernance {
             return source;
         });
     }
+    /** 租户级目录时区只能由受控来源运维设置，应用管理员不能改变其他应用的任职日期语义。 */
+    public void configureBusinessZone(DirectoryAuthority authority, String zone, String operatorRef, String commandId) {
+        BootstrapCommand.bounded(operatorRef, 160); BootstrapCommand.uuid(commandId);
+        if (zone == null || !java.time.ZoneId.getAvailableZoneIds().contains(zone)) { throw new GovernanceException(INVALID_ARGUMENT); }
+        String hash = AccessValues.hash(authority, zone);
+        transaction.executeWithoutResult(status -> {
+            requireSource(authority);
+            identity.reserveCommand(operatorRef, authority.tenantId(), "DIRECTORY_CLOCK", commandId, hash);
+            var receipt = identity.lockCommand(operatorRef, authority.tenantId(), "DIRECTORY_CLOCK", commandId);
+            if (receipt == null || !hash.equals(receipt.payloadHash())) { throw new GovernanceException(COMMAND_CONFLICT); }
+            if (receipt.completed()) { return; }
+            one(directory.configureClock(authority.id(), zone));
+            one(identity.appendAudit(id(), operatorRef, authority.tenantId(), "DIRECTORY_CLOCK", authority.id(), 1, commandId));
+            one(identity.completeCommand(operatorRef, authority.tenantId(), "DIRECTORY_CLOCK", commandId, authority.id()));
+        });
+    }
     /** 只读检查点仍核对不可变配置，隔离中的来源不得继续正常导入。 */
     public Receipt checkpoint(DirectoryAuthority authority) {
         return transaction.execute(status -> receipt(requireSource(authority), false));

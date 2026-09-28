@@ -113,16 +113,6 @@ public final class AccessManagement {
                             com.lrj.authz.protocol.ScopeDtos.Rule rule,String source,Instant from,Instant to){
         return grantFixed(login,p,command,null,0,roleId,"SCOPED",ScopeRules.validated(rule),source,from,to,group);
     }
-    /** 显式确认来源时区，必须与OA进程日期语义一致；每次更改均审计并阻断旧目录水位。 */
-    public void configureGroupClock(VerifiedLogin login,Partition p,String command,String source,String zone){
-        BootstrapCommand.uuid(source);
-        if(zone==null||!ZoneId.getAvailableZoneIds().contains(zone))throw new GovernanceException(INVALID_ARGUMENT);
-        tx.executeWithoutResult(status->{var actor=manager(login,p,true);
-            command(actor.context(),p,"DIRECTORY_CLOCK",command,AccessValues.hash(p,source,zone),()->{
-                one(safety.clock(p,source,zone));audit(actor,p,"DIRECTORY_CLOCK",source,1,command);return source;
-            });
-        });
-    }
     /** 只提供管理分区内的目录组，返回最多100条，下一页使用末项ID。 */
     public List<Group> groups(VerifiedLogin login,Partition p,String after){manager(login,p,false);return safety.groups(p,cursor(after));}
     /** 严格分区预检查与撤销在同事务，避免非严格调用部分提交后才发现无receipt。 */

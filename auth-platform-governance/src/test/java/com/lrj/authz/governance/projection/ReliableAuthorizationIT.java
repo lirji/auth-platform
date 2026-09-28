@@ -168,7 +168,7 @@ class ReliableAuthorizationIT {
     private String group(Fixture f,String org){return runtime.access().groups(f.login,f.p,null).stream().filter(g->g.orgRef().equals(org)).findFirst().orElseThrow().id();}
     @Test void directoryMovementRevokesOldGroupBeforeGraphAndPreservesIndependentGrant(){
         var f=fixture();var source=directory(f);
-        runtime.access().configureGroupClock(f.login,f.p,id(),source.id(),"UTC");
+        runtime.directory().configureBusinessZone(source,"UTC","test",id());
         employee(f,source,3,1,"ACTIVE","1","2020-01-01",null,"PRIMARY");
         var group=groupGrant(f,group(f,"1"));project(f);var c=context(f);var auth=second.reliableAuthorization(graph);
         assertThat(graphAllows(f,group)).isTrue();
@@ -184,7 +184,7 @@ class ReliableAuthorizationIT {
         awaitAllowed(f,"S002");
     }
     @Test void leftRejoinChangesGenerationAndDoesNotRestoreRevokedGroupGrant(){
-        var f=fixture();var source=directory(f);runtime.access().configureGroupClock(f.login,f.p,id(),source.id(),"UTC");
+        var f=fixture();var source=directory(f);runtime.directory().configureBusinessZone(source,"UTC","test",id());
         employee(f,source,3,1,"ACTIVE","1","2020-01-01",null,"PRIMARY");var g=groupGrant(f,group(f,"1"));project(f);var old=context(f);
         employee(f,source,4,2,"LEFT","1","2020-01-01",null,"PRIMARY");project(f);
         assertThat(graphAllows(f,g)).isFalse();
@@ -194,11 +194,20 @@ class ReliableAuthorizationIT {
         assertThatThrownBy(()->runtime.reliableAuthorization(graph).evaluate(old,f.p.applicationId()+".read","store")).isInstanceOf(GovernanceException.class);
         assertThat(runtime.reliableAuthorization(graph).allowed(context(f),f.p.applicationId()+".read",store(f,"S001"))).isFalse();
     }
+    @Test void directoryClockRequiresExactOperationalAuthorityAndStableCommand() {
+        var f=fixture();var source=directory(f);String command=id();
+        runtime.directory().configureBusinessZone(source,"UTC","test",command);
+        runtime.directory().configureBusinessZone(source,"UTC","test",command);
+        assertThatThrownBy(()->runtime.directory().configureBusinessZone(source,"Asia/Shanghai","test",command)).hasMessage("COMMAND_CONFLICT");
+        var wrong=new DirectoryAuthority(source.id(),source.source(),"other",source.sourceTenantRef(),source.tenantId(),source.issuer());
+        assertThatThrownBy(()->runtime.directory().configureBusinessZone(wrong,"UTC","test",id())).hasMessage("BINDING_CONFLICT");
+        assertThatThrownBy(()->runtime.directory().configureBusinessZone(source,"unknown","test",id())).hasMessage("INVALID_ARGUMENT");
+    }
     @Test void sourceClockAndAssignmentDatesAreAuthoritativeEvenWhenGraphHasRelationship(){
         var f=fixture();var source=directory(f);
         employee(f,source,3,1,"ACTIVE","1","2020-01-01",null,"PRIMARY");
         assertThatThrownBy(()->groupGrant(f,group(f,"1"))).hasMessage("ACCESS_DENIED");
-        runtime.access().configureGroupClock(f.login,f.p,id(),source.id(),"UTC");var g=groupGrant(f,group(f,"1"));
+        runtime.directory().configureBusinessZone(source,"UTC","test",id());var g=groupGrant(f,group(f,"1"));
         employee(f,source,4,2,"ACTIVE","1","2020-01-01",LocalDate.now(ZoneOffset.UTC).toString(),"PRIMARY");project(f);
         assertThat(graphAllows(f,g)).isTrue();assertThat(runtime.reliableAuthorization(graph).allowed(context(f),f.p.applicationId()+".read",store(f,"S001"))).isFalse();
         employee(f,source,5,3,"ACTIVE","1",LocalDate.now(ZoneOffset.UTC).plusDays(1).toString(),null,"PRIMARY");project(f);

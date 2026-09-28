@@ -9,3 +9,5 @@ schema `governance-p3.zed`使用gov_access_grant/gov_group和gov_partition#head�
 保留隔离数据库、配置与日志以复验；没有删除库/卷命令，没有生产部署。原P2 IdP18090及图18543继续保留。停止图可使用普通docker stop对应自有容器，但本轮验证结束前保留。
 
 P3 worker入口 `com.lrj.authz.admin.governance.ReliableProjectionCli` 使用admin可执行Jar中的PropertiesLauncher。一个0600配置包含既有jdbc.*、graph.http/key、access.tenant/application/environment以及projection.kind=POLICY或DIRECTORY。每个新进程随机worker UUID；一次最多一个50项批次，30秒总预算后退出并保留未知结果供恢复。exit0仅该分区READY，exit2表示需要后续批次/恢复或隔离，exit3表示输入/依赖/总超时故障。受控调度须同时收敛目录与策略，不能只看一个exit0宣称整个应用就绪。
+
+目录时区属于租户目录来源Owner，不提供应用管理员HTTP修改入口。以现有DirectoryImportCli相同0600来源配置增加directory.business-zone（与OA运行一致的IANA ZoneId）和directory.command-id（UUID），执行DirectoryImportCli clock <private-properties>。CLI核对完整登记来源与隔离状态，写入、目录epoch、幂等回执及审计同事务；无网络拉取，不恢复隔离来源。运维身份来自配置operator-ref和本机受控DB权限，不是浏览器传入的管理员声明。

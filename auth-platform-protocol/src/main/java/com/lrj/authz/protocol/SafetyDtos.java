@@ -7,8 +7,6 @@ public final class SafetyDtos {
                              ScopeDtos.Rule scopeRule,String sourceId,String validFrom,String validTo) {}
     /** 显式切换及有界重试管理命令。 */
     public record PartitionCommand(String tenantId,String applicationId,String environment,String commandId,String kind) {}
-    /** 来源时区必须与OA进程配置一致。 */
-    public record DirectoryClock(String tenantId,String applicationId,String environment,String commandId,String sourceId,String businessZone) {}
     /** 应用拥有者独立紧急开关，不修改旧角色能力集合。 */
     public record CapabilityCommand(String applicationId,String capability,boolean disabled,long expectedVersion,String reason,String commandId) {}
 }

@@ -46,13 +46,13 @@ ReliableAuthorization在ReadFence的A/C新事务内使用一条SQL连接Grant、
 
 ## P3-06 实施细化
 
-组织组仅来自P1已消费的OA直接组织与PRIMARY/CONCURRENT任职；DOTTED、领导标志和汇报线不推导业务权限。组可以先于ORG事实登记占位，但只有已收到ACTIVE组织事实才允许授予。来源business_zone必须由管理命令显式设置为与OA生产进程一致的IANA时区；未配置拒绝组授权，不默认使用数据库或服务器时区。日期遵循左闭右开，每次主库A/C均核对；组ScopePlan期限不跨来源午夜。
+组织组仅来自P1已消费的OA直接组织与PRIMARY/CONCURRENT任职；DOTTED、领导标志和汇报线不推导业务权限。组可以先于ORG事实登记占位，但只有已收到ACTIVE组织事实才允许授予。来源business_zone必须由0600目录来源配置对应的受控运维CLI显式设置为与OA生产进程一致的IANA时区；未配置拒绝组授权，不默认使用数据库或服务器时区。日期遵循左闭右开，每次主库A/C均核对；组ScopePlan期限不跨来源午夜。
 
 V12以directory_entry事务触发器维护组织组及当前成员代际/任职日期；旧组及旧代际边保留墓碑用于可靠DELETE。每事件最多100任职，目录worker每批50边，策略worker投影Grant→group#member，目录worker投影group→当前membership代际。两者仍独立marker与持久水位；两个atLeastAsFresh快照可能短暂保守DENY，不能提升为ALLOW，实测追平时间在P3-07记录。来源变更与目录epoch原子推进。退组/离职/迁移不能使用旧SQL资格，重新入组只能使用仍有效的独立Grant，不能恢复REVOKED来源。
 
 GROUP Grant使用独立group_id与租户复合外键，成员为空、generation=0表示组受益方，不能伪造成直接成员；DIRECT保持原约束。组Grant只允许已切换严格分区，仍校验管理能力上限、期限、同Grant固定范围、幂等和审计，拒绝管理者向自己当前所在组授予。每组最多100活跃Grant，总候选超过100时失败关闭。
 
-POST /api/governance/v1/access/group-grants返回202；GET /access/groups按末项UUID分页。POST /access/directory-clock显式配置来源时区；POST /access/enable-strict只切换已升级受保护路由；POST /access/retry-strict按POLICY/DIRECTORY清除耗尽次数并审计，活动租约不能强行替换，未知marker仍会再次BLOCKED。各接口沿用P2已验证管理Token和完整tenant/application/environment委派校验。
+POST /api/governance/v1/access/group-grants返回202；GET /access/groups按末项UUID分页。DirectoryImportCli clock以完整来源权限设置时区，配置新增directory.business-zone和directory.command-id；不提供应用管理员HTTP时区入口。POST /access/enable-strict只切换已升级受保护路由；POST /access/retry-strict按POLICY/DIRECTORY清除耗尽次数并审计，活动租约不能强行替换，未知marker仍会再次BLOCKED。管理HTTP接口沿用P2已验证管理Token和完整tenant/application/environment委派校验。
 
 POST /access/strict-revoke返回202及PROCESSING/BLOCKED/COMPLETED回执；GET /access/revocation-receipt重新检查当前管理范围。只有同Grant当前版本存在真实projection_receipt关联，策略applied覆盖操作target_epoch且策略/目录都READY才COMPLETED。旧/access/revoke继续只表示SQL撤销，不能展示为全局完成。
 

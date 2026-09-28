@@ -10,8 +10,6 @@ public interface SafetyMapper {
     Group group(@Param("p") Partition p,@Param("id") String id);
     /** 有界分页列出来源组。 */
     List<Group> groups(@Param("p") Partition p,@Param("after") String after);
-    /** 显式确认OA业务时区；来源更新同时推进目录栅栏。 */
-    int clock(@Param("p") Partition p,@Param("source") String source,@Param("zone") String zone);
     /** 防止管理者通过当前组织组绕过禁止自授予。 */
     boolean groupMember(@Param("group") String group,@Param("member") String member,@Param("generation") long generation);
     /** 每组当前有效Grant数限制。 */
