@@ -1,7 +1,7 @@
 {
   "schema_version": "oa-auth-project-execution-plan/1",
-  "plan_status": "P3_IMPLEMENTED_DELIVERY_PENDING",
-  "scope": "Complete all P3 nodes, validate and deliver main, then pause before P4.",
+  "plan_status": "P3_COMPLETE_PAUSED",
+  "scope": "P3 completed and delivered; paused before P4 per user stop boundary. No production deployment.",
   "source_task_count": 58,
   "task_count": 63,
   "topological_order": [

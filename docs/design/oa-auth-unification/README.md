@@ -2,12 +2,15 @@
 
 本计划按用户提供的 `oa-auth-phased-plan` v0.2，落到三个现有仓库。**目标是在原项目中增量改造：auth 管理身份消费模型、应用与授权，OA 保留目录和审批职责，commerce 接入可信身份、页面权限及接口数据权限。**
 
-整体计划和 P0 已交付；用户现已授权继续实施，P1-00 契约已冻结，P1-01 已完成独立治理模型和真实 PG 验证，P1-02 待实施。实际状态以 PROGRESS_STATE 为准，总体计划完成不代表统一权限已经运行。
+P0/P1/P2已交付；用户本轮授权P3后，全部10个P3节点完成实现与本地验收。最终Git/CI状态见[当前进度](PROGRESS_STATE.md)及[P3交付记录](../../implementation/oa-auth/phase-3/P3_DELIVERY_RESULT.md)。P3交付后暂停，P4未授权；没有生产部署。
 
 | 文档 | 用途 |
 |---|---|
 | [EXECUTION_PLAN.md](EXECUTION_PLAN.md) | 八阶段范围、里程碑、验收、回退、业务决策与交付方式 |
 | [BACKEND_ARCHITECTURE.md](BACKEND_ARCHITECTURE.md) | 模块归属、内部／外部用户、应用角色、数据权威及一致性 |
+| [CONTRACTS_P3_SCOPE.md](CONTRACTS_P3_SCOPE.md) | 固定范围、ScopePlan、资源Owner与业务查询契约 |
+| [CONTRACTS_P3_CONSISTENCY.md](CONTRACTS_P3_CONSISTENCY.md) | 持久栅栏、CAS投影、组/期限及撤权回执 |
+| [P3 Handoff](../../implementation/oa-auth/phase-3/P3_HANDOFF.md) | 完成边界、运行恢复与P4前停止点 |
 | [CONTRACTS_P1.md](CONTRACTS_P1.md) | P1 身份/成员/持久化及信任边界 |
 | [TECH_SELECTION.md](TECH_SELECTION.md) | 保留的技术、必要新增能力与兼容验证 |
 | [IMPLEMENTATION_SLICES.md](IMPLEMENTATION_SLICES.md) | 唯一实施切片表；沿用源方案 P0—P7 任务 ID |

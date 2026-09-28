@@ -30,4 +30,4 @@ Status: DONE；Validation: PASS；远程CI与Git结果另见P3_DELIVERY_RESULT�
 
 ## 远程CI差异修正
 
-首轮auth CI（36440680619）在4个组目录用例生成事件时失败：Linux Instant.now可含纳秒，而DirectoryEvents契约仅接受微秒。macOS时钟恰为微秒导致本地未复现。将测试事件时间显式截断至MICROS，保留生产协议严格校验；不放宽断言、不跳过用例。后续CI以P3_DELIVERY_RESULT为准。商城首轮main dceeb5a完整CI36440692582已成功，含真实MySQL、前端审计及浏览器验收。
+首轮auth CI（36440680619）在4个组目录用例生成事件时失败：Linux Instant.now可含纳秒，而DirectoryEvents契约仅接受微秒。macOS时钟恰为微秒导致本地未复现。将测试事件时间显式截断至MICROS，保留生产协议严格校验；不放宽断言、不跳过用例。修复后auth main e55368a的CI36441586619完整SUCCESS，包括24项P3图测试及全部既有HTTP回归；详见P3_DELIVERY_RESULT。商城首轮main dceeb5a完整CI36440692582已成功，含真实MySQL、前端审计及浏览器验收。
