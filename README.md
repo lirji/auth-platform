@@ -4,6 +4,8 @@
 
 完整设计见 `~/.claude/plans/mock-velvet-mist.md`。
 
+OA、Auth 与业务项目的统一权限改造见 [整体改造计划与 P0 实施准备](docs/design/oa-auth-unification/README.md)。该计划按用户 v0.2 方案复用现有项目；目前完成基线与首批任务准备，P1—P7 产品能力尚未实施。
+
 ## 架构一览
 
 ```

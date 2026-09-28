@@ -1,0 +1,1571 @@
+{
+  "schema_version": "oa-auth-project-execution-plan/1",
+  "plan_status": "PREPARATION_COMPLETE_WITH_LIMITATIONS",
+  "scope": "整体候选计划+本轮P0；P1—P7未实施",
+  "source_task_count": 58,
+  "task_count": 63,
+  "topological_order": [
+    "P0-01",
+    "P0-02",
+    "P0-03",
+    "P0-04",
+    "P0-05",
+    "P0-06",
+    "P0-07",
+    "P1-00",
+    "P1-01",
+    "P1-02",
+    "P1-03",
+    "P1-04",
+    "P1-05",
+    "P1-06",
+    "P1-07",
+    "P2-01",
+    "P2-02",
+    "P2-03",
+    "P2-04",
+    "P2-05a",
+    "P2-05",
+    "P2-06",
+    "P2-07",
+    "P2-08",
+    "P3-01",
+    "P3-02",
+    "P3-03",
+    "P3-04a",
+    "P3-04b",
+    "P3-04c",
+    "P3-04",
+    "P3-05",
+    "P3-06",
+    "P3-07",
+    "P4-01",
+    "P4-02",
+    "P4-03",
+    "P4-04",
+    "P4-05",
+    "P4-06",
+    "P4-07",
+    "P5-01",
+    "P5-02",
+    "P5-03",
+    "P5-04",
+    "P5-05",
+    "P5-06",
+    "P5-07",
+    "P6-01",
+    "P6-02",
+    "P6-03",
+    "P6-04",
+    "P6-05",
+    "P6-06",
+    "P6-07",
+    "P7-01",
+    "P7-02",
+    "P7-03",
+    "P7-04",
+    "P7-05",
+    "P7-06",
+    "P7-07",
+    "P7-08"
+  ],
+  "next_design_task": "P1-00",
+  "production_authorized": false,
+  "tasks": [
+    {
+      "id": "P0-01",
+      "phase": 0,
+      "source_file": "01-phase-0-discovery-and-baseline.md",
+      "observable_result": "确认根目录、ref、未提交变更及现有分析",
+      "needs": [],
+      "owner": "IAM 工程负责人",
+      "paths": [
+        "docs/implementation/oa-auth/phase-0",
+        "docs/design/oa-auth-unification"
+      ],
+      "acceptance": "仓库基线记录",
+      "pass": "baseline+evidence",
+      "runtime": "既有构建工具；不写运行数据",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "DONE",
+      "execution_authorized_this_task": true,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "无产品Schema变更"
+    },
+    {
+      "id": "P0-02",
+      "phase": 0,
+      "source_file": "01-phase-0-discovery-and-baseline.md",
+      "observable_result": "跟踪一条登录请求和一条权限检查",
+      "needs": [
+        "P0-01"
+      ],
+      "owner": "IAM 工程负责人",
+      "paths": [
+        "docs/implementation/oa-auth/phase-0",
+        "docs/design/oa-auth-unification"
+      ],
+      "acceptance": "请求链与入口映射",
+      "pass": "baseline+evidence",
+      "runtime": "既有构建工具；不写运行数据",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "DONE",
+      "execution_authorized_this_task": true,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "无产品Schema变更"
+    },
+    {
+      "id": "P0-03",
+      "phase": 0,
+      "source_file": "01-phase-0-discovery-and-baseline.md",
+      "observable_result": "盘点数据表、Schema和全部授权写入方",
+      "needs": [
+        "P0-02"
+      ],
+      "owner": "IAM 工程负责人",
+      "paths": [
+        "docs/implementation/oa-auth/phase-0",
+        "docs/design/oa-auth-unification"
+      ],
+      "acceptance": "数据所有权／写入方表",
+      "pass": "baseline+evidence",
+      "runtime": "既有构建工具；不写运行数据",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "DONE",
+      "execution_authorized_this_task": true,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "无产品Schema变更"
+    },
+    {
+      "id": "P0-04",
+      "phase": 0,
+      "source_file": "01-phase-0-discovery-and-baseline.md",
+      "observable_result": "复跑仓库已有最小构建与核心安全测试",
+      "needs": [
+        "P0-03"
+      ],
+      "owner": "IAM 工程负责人",
+      "paths": [
+        "docs/implementation/oa-auth/phase-0",
+        "docs/design/oa-auth-unification"
+      ],
+      "acceptance": "进入基线",
+      "pass": "baseline+evidence",
+      "runtime": "既有构建工具；不写运行数据",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "DONE",
+      "execution_authorized_this_task": true,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "无产品Schema变更"
+    },
+    {
+      "id": "P0-05",
+      "phase": 0,
+      "source_file": "01-phase-0-discovery-and-baseline.md",
+      "observable_result": "定义内外部试点夹具和资源归属",
+      "needs": [
+        "P0-04"
+      ],
+      "owner": "IAM 工程负责人",
+      "paths": [
+        "docs/implementation/oa-auth/phase-0",
+        "docs/design/oa-auth-unification"
+      ],
+      "acceptance": "场景与样例数据设计",
+      "pass": "baseline+evidence",
+      "runtime": "既有构建工具；不写运行数据",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "DONE",
+      "execution_authorized_this_task": true,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "无产品Schema变更"
+    },
+    {
+      "id": "P0-06",
+      "phase": 0,
+      "source_file": "01-phase-0-discovery-and-baseline.md",
+      "observable_result": "固定ADR和P1变更范围",
+      "needs": [
+        "P0-05"
+      ],
+      "owner": "IAM 工程负责人",
+      "paths": [
+        "docs/implementation/oa-auth/phase-0",
+        "docs/design/oa-auth-unification"
+      ],
+      "acceptance": "P1可执行待办",
+      "pass": "baseline+evidence",
+      "runtime": "既有构建工具；不写运行数据",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "DONE",
+      "execution_authorized_this_task": true,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "无产品Schema变更"
+    },
+    {
+      "id": "P0-07",
+      "phase": 0,
+      "source_file": "01-phase-0-discovery-and-baseline.md",
+      "observable_result": "输出一次性阶段记录和交接",
+      "needs": [
+        "P0-06"
+      ],
+      "owner": "IAM 工程负责人",
+      "paths": [
+        "docs/implementation/oa-auth/phase-0",
+        "docs/design/oa-auth-unification"
+      ],
+      "acceptance": "P0结果／P1入口",
+      "pass": "baseline+evidence",
+      "runtime": "既有构建工具；不写运行数据",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "DONE",
+      "execution_authorized_this_task": true,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "无产品Schema变更"
+    },
+    {
+      "id": "P1-00",
+      "phase": 1,
+      "source_file": "PROJECT_ADAPTATION",
+      "observable_result": "冻结可信成员薄路径的具体契约、旧身份映射与持久化装配",
+      "needs": [
+        "P0-07"
+      ],
+      "owner": "IAM／目录 Owner",
+      "paths": [
+        "auth: governance（候选）, protocol, admin, server",
+        "OA: oa-org/api"
+      ],
+      "acceptance": "字段/信任/错误/约束足以实施第一片；只用隔离映射，不发明已发布接口",
+      "pass": "contract-design",
+      "runtime": "按本片需要的隔离验证目标",
+      "parallel": false,
+      "parallel_reason": "同一公开契约/投影Owner",
+      "status": "READY",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "所属阶段薄路径",
+      "schema_migration_owner": "对应阶段唯一Owner"
+    },
+    {
+      "id": "P1-01",
+      "phase": 1,
+      "source_file": "02-phase-1-identity-tenant-directory.md",
+      "observable_result": "将模型映射到已有表和领域对象，增量迁移",
+      "needs": [
+        "P1-00"
+      ],
+      "owner": "IAM／目录 Owner",
+      "paths": [
+        "auth: governance（候选）, protocol, admin, server",
+        "OA: oa-org/api"
+      ],
+      "acceptance": "旧数据可读取、无身份合并",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P1-02",
+      "phase": 1,
+      "source_file": "02-phase-1-identity-tenant-directory.md",
+      "observable_result": "实现Token验证与LoginIdentity适配",
+      "needs": [
+        "P1-01"
+      ],
+      "owner": "IAM／目录 Owner",
+      "paths": [
+        "auth: governance（候选）, protocol, admin, server",
+        "OA: oa-org/api"
+      ],
+      "acceptance": "错issuer／aud、ID Token、过期Token被拒绝",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P1-03",
+      "phase": 1,
+      "source_file": "02-phase-1-identity-tenant-directory.md",
+      "observable_result": "实现Membership上下文解析",
+      "needs": [
+        "P1-02"
+      ],
+      "owner": "IAM／目录 Owner",
+      "paths": [
+        "auth: governance（候选）, protocol, admin, server",
+        "OA: oa-org/api"
+      ],
+      "acceptance": "请求体伪造主体、跨租户选择无效",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P1-04",
+      "phase": 1,
+      "source_file": "02-phase-1-identity-tenant-directory.md",
+      "observable_result": "接入唯一目录源与幂等检查点",
+      "needs": [
+        "P1-03"
+      ],
+      "owner": "IAM／目录 Owner",
+      "paths": [
+        "auth: governance（候选）, protocol, admin, server",
+        "OA: oa-org/api"
+      ],
+      "acceptance": "重复、乱序、全量不完整不误删",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "additional_gates": [
+        "Q-DIR来源确认，或明确隔离源试点"
+      ]
+    },
+    {
+      "id": "P1-05",
+      "phase": 1,
+      "source_file": "02-phase-1-identity-tenant-directory.md",
+      "observable_result": "实现外部邀请和生命周期",
+      "needs": [
+        "P1-03"
+      ],
+      "owner": "IAM／目录 Owner",
+      "paths": [
+        "auth: governance（候选）, protocol, admin, server",
+        "OA: oa-org/api"
+      ],
+      "acceptance": "并发接受唯一、外部成员无内部默认访问",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P1-06",
+      "phase": 1,
+      "source_file": "02-phase-1-identity-tenant-directory.md",
+      "observable_result": "接入停用状态与审计",
+      "needs": [
+        "P1-03"
+      ],
+      "owner": "IAM／目录 Owner",
+      "paths": [
+        "auth: governance（候选）, protocol, admin, server",
+        "OA: oa-org/api"
+      ],
+      "acceptance": "旧JWT不能绕过当前成员停用",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P1-07",
+      "phase": 1,
+      "source_file": "02-phase-1-identity-tenant-directory.md",
+      "observable_result": "输出真实集成测试与P2交接",
+      "needs": [
+        "P1-04",
+        "P1-05",
+        "P1-06"
+      ],
+      "owner": "IAM／目录 Owner",
+      "paths": [
+        "auth: governance（候选）, protocol, admin, server",
+        "OA: oa-org/api"
+      ],
+      "acceptance": "不以Mock代替真实身份源验证",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P2-01",
+      "phase": 2,
+      "source_file": "03-phase-2-application-rbac-sdk.md",
+      "observable_result": "应用／能力／菜单清单解析与预览",
+      "needs": [
+        "P1-03"
+      ],
+      "owner": "IAM／应用 Owner",
+      "paths": [
+        "auth: governance（候选）, admin, core, sdk, auth-console",
+        "commerce: StoreAccessController/Service"
+      ],
+      "acceptance": "外部应用不能覆盖trade能力",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P2-02",
+      "phase": 2,
+      "source_file": "03-phase-2-application-rbac-sdk.md",
+      "observable_result": "RoleVersion与AccessGrant模型",
+      "needs": [
+        "P2-01",
+        "P1-06"
+      ],
+      "owner": "IAM／应用 Owner",
+      "paths": [
+        "auth: governance（候选）, admin, core, sdk, auth-console",
+        "commerce: StoreAccessController/Service"
+      ],
+      "acceptance": "唯一约束、版本不变、来源保留",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P2-03",
+      "phase": 2,
+      "source_file": "03-phase-2-application-rbac-sdk.md",
+      "observable_result": "受保护的角色与授权管理API",
+      "needs": [
+        "P2-02"
+      ],
+      "owner": "IAM／应用 Owner",
+      "paths": [
+        "auth: governance（候选）, admin, core, sdk, auth-console",
+        "commerce: StoreAccessController/Service"
+      ],
+      "acceptance": "无委派权限不能授予，高危自提权失败",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P2-04",
+      "phase": 2,
+      "source_file": "03-phase-2-application-rbac-sdk.md",
+      "observable_result": "Grant图模型与单执行者投影",
+      "needs": [
+        "P2-03"
+      ],
+      "owner": "IAM／应用 Owner",
+      "paths": [
+        "auth: governance（候选）, admin, core, sdk, auth-console",
+        "commerce: StoreAccessController/Service"
+      ],
+      "acceptance": "真写入、真检查、生效水位及异常",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P2-05a",
+      "phase": 2,
+      "source_file": "PROJECT_ADAPTATION",
+      "observable_result": "Boot4消费指定auth源码SDK并启动、检查和拒绝",
+      "needs": [
+        "P2-04"
+      ],
+      "owner": "IAM／应用 Owner",
+      "paths": [
+        "auth: governance（候选）, admin, core, sdk, auth-console",
+        "commerce: StoreAccessController/Service"
+      ],
+      "acceptance": "自动装配/Jackson2与3/AOP与显式调用/实际HTTP和错误拒绝，旧SDK回归",
+      "pass": "bounded-compatibility-spike",
+      "runtime": "按本片需要的隔离验证目标",
+      "parallel": false,
+      "parallel_reason": "同一公开契约/投影Owner",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "所属阶段薄路径",
+      "schema_migration_owner": "对应阶段唯一Owner"
+    },
+    {
+      "id": "P2-05",
+      "phase": 2,
+      "source_file": "03-phase-2-application-rbac-sdk.md",
+      "observable_result": "SDK错误与身份契约",
+      "needs": [
+        "P2-05a"
+      ],
+      "owner": "IAM／应用 Owner",
+      "paths": [
+        "auth: governance（候选）, admin, core, sdk, auth-console",
+        "commerce: StoreAccessController/Service"
+      ],
+      "acceptance": "错受众、伪造主体、超时和批量缺项",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P2-06",
+      "phase": 2,
+      "source_file": "03-phase-2-application-rbac-sdk.md",
+      "observable_result": "内部业务只读接口接入",
+      "needs": [
+        "P2-05",
+        "P2-03",
+        "P2-04"
+      ],
+      "owner": "IAM／应用 Owner",
+      "paths": [
+        "auth: governance（候选）, admin, core, sdk, auth-console",
+        "commerce: StoreAccessController/Service"
+      ],
+      "acceptance": "授予允许、撤销拒绝、跨租户拒绝",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P2-07",
+      "phase": 2,
+      "source_file": "03-phase-2-application-rbac-sdk.md",
+      "observable_result": "最小菜单与授权状态展示",
+      "needs": [
+        "P2-06"
+      ],
+      "owner": "IAM／应用 Owner",
+      "paths": [
+        "auth: governance（候选）, admin, core, sdk, auth-console",
+        "commerce: StoreAccessController/Service"
+      ],
+      "acceptance": "无权直接请求后端仍被拒绝",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P2-08",
+      "phase": 2,
+      "source_file": "03-phase-2-application-rbac-sdk.md",
+      "observable_result": "文档与交接",
+      "needs": [
+        "P2-07"
+      ],
+      "owner": "IAM／应用 Owner",
+      "paths": [
+        "auth: governance（候选）, admin, core, sdk, auth-console",
+        "commerce: StoreAccessController/Service"
+      ],
+      "acceptance": "记录多实例与细范围尚未认证",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P3-01",
+      "phase": 3,
+      "source_file": "04-phase-3-data-scope-and-consistency.md",
+      "observable_result": "ScopeRule、同Grant匹配与业务字段绑定",
+      "needs": [
+        "P2-08"
+      ],
+      "owner": "IAM／业务 Mapper Owner",
+      "paths": [
+        "auth: governance（候选）, core, server",
+        "commerce: StoreAccessMapper.xml",
+        "OA: OaDataPermissionHandler"
+      ],
+      "acceptance": "查询全范围＋退款单范围不交叉放大",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P3-02",
+      "phase": 3,
+      "source_file": "04-phase-3-data-scope-and-consistency.md",
+      "observable_result": "ScopePlan与列表／导出适配",
+      "needs": [
+        "P3-01"
+      ],
+      "owner": "IAM／业务 Mapper Owner",
+      "paths": [
+        "auth: governance（候选）, core, server",
+        "commerce: StoreAccessMapper.xml",
+        "OA: OaDataPermissionHandler"
+      ],
+      "acceptance": "行、数量、统计、下载均不越权",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P3-03",
+      "phase": 3,
+      "source_file": "04-phase-3-data-scope-and-consistency.md",
+      "observable_result": "PolicyPartition与DirectoryFence",
+      "needs": [
+        "P2-08"
+      ],
+      "owner": "IAM／业务 Mapper Owner",
+      "paths": [
+        "auth: governance（候选）, core, server",
+        "commerce: StoreAccessMapper.xml",
+        "OA: OaDataPermissionHandler"
+      ],
+      "acceptance": "主库快照及二次版本校验",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P3-04a",
+      "phase": 3,
+      "source_file": "PROJECT_ADAPTATION",
+      "observable_result": "真实图marker CAS使旧版本写入失败",
+      "needs": [
+        "P3-03",
+        "P2-04"
+      ],
+      "owner": "IAM／业务 Mapper Owner",
+      "paths": [
+        "auth: governance（候选）, core, server",
+        "commerce: StoreAccessMapper.xml",
+        "OA: OaDataPermissionHandler"
+      ],
+      "acceptance": "前置条件、原子marker+关系更新、旧payload不能借新marker写入",
+      "pass": "implementation+focused-fault-validation",
+      "runtime": "按本片需要的隔离验证目标",
+      "parallel": false,
+      "parallel_reason": "同一公开契约/投影Owner",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "所属阶段薄路径",
+      "schema_migration_owner": "对应阶段唯一Owner"
+    },
+    {
+      "id": "P3-04b",
+      "phase": 3,
+      "source_file": "PROJECT_ADAPTATION",
+      "observable_result": "有界执行器领取并推进当前desired epoch",
+      "needs": [
+        "P3-04a"
+      ],
+      "owner": "IAM／业务 Mapper Owner",
+      "paths": [
+        "auth: governance（候选）, core, server",
+        "commerce: StoreAccessMapper.xml",
+        "OA: OaDataPermissionHandler"
+      ],
+      "acceptance": "SQL租约+远端栅栏、旧READY失败、批次未完不READY",
+      "pass": "implementation+focused-fault-validation",
+      "runtime": "按本片需要的隔离验证目标",
+      "parallel": false,
+      "parallel_reason": "同一公开契约/投影Owner",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "所属阶段薄路径",
+      "schema_migration_owner": "对应阶段唯一Owner"
+    },
+    {
+      "id": "P3-04c",
+      "phase": 3,
+      "source_file": "PROJECT_ADAPTATION",
+      "observable_result": "远端未知结果与图成功SQL失败可恢复",
+      "needs": [
+        "P3-04b"
+      ],
+      "owner": "IAM／业务 Mapper Owner",
+      "paths": [
+        "auth: governance（候选）, core, server",
+        "commerce: StoreAccessMapper.xml",
+        "OA: OaDataPermissionHandler"
+      ],
+      "acceptance": "真实双执行器暂停恢复、超时查marker、receipt恢复、幂等对账",
+      "pass": "implementation+focused-fault-validation",
+      "runtime": "按本片需要的隔离验证目标",
+      "parallel": false,
+      "parallel_reason": "同一公开契约/投影Owner",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "所属阶段薄路径",
+      "schema_migration_owner": "对应阶段唯一Owner"
+    },
+    {
+      "id": "P3-04",
+      "phase": 3,
+      "source_file": "04-phase-3-data-scope-and-consistency.md",
+      "observable_result": "P3-04a/b/c全部通过后汇总CAS与多执行器恢复",
+      "needs": [
+        "P3-04a",
+        "P3-04b",
+        "P3-04c"
+      ],
+      "owner": "IAM／业务 Mapper Owner",
+      "paths": [
+        "auth: governance（候选）, core, server",
+        "commerce: StoreAccessMapper.xml",
+        "OA: OaDataPermissionHandler"
+      ],
+      "acceptance": "旧写入不能覆盖新状态",
+      "pass": "aggregate-only",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P3-05",
+      "phase": 3,
+      "source_file": "04-phase-3-data-scope-and-consistency.md",
+      "observable_result": "水位持久化、逐项批量校验",
+      "needs": [
+        "P3-04"
+      ],
+      "owner": "IAM／业务 Mapper Owner",
+      "paths": [
+        "auth: governance（候选）, core, server",
+        "commerce: StoreAccessMapper.xml",
+        "OA: OaDataPermissionHandler"
+      ],
+      "acceptance": "不是单JVM内存保证",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P3-06",
+      "phase": 3,
+      "source_file": "04-phase-3-data-scope-and-consistency.md",
+      "observable_result": "撤权receipt、期限及组变更",
+      "needs": [
+        "P3-05"
+      ],
+      "owner": "IAM／业务 Mapper Owner",
+      "paths": [
+        "auth: governance（候选）, core, server",
+        "commerce: StoreAccessMapper.xml",
+        "OA: OaDataPermissionHandler"
+      ],
+      "acceptance": "完成后新请求不走旧路径",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P3-07",
+      "phase": 3,
+      "source_file": "04-phase-3-data-scope-and-consistency.md",
+      "observable_result": "故障注入与性能基线",
+      "needs": [
+        "P3-02",
+        "P3-06"
+      ],
+      "owner": "IAM／业务 Mapper Owner",
+      "paths": [
+        "auth: governance（候选）, core, server",
+        "commerce: StoreAccessMapper.xml",
+        "OA: OaDataPermissionHandler"
+      ],
+      "acceptance": "保存真实kill、双实例和延迟结果",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P4-01",
+      "phase": 4,
+      "source_file": "05-phase-4-oa-access-lifecycle.md",
+      "observable_result": "AccessRequest及不可变快照",
+      "needs": [
+        "P3-07"
+      ],
+      "owner": "IAM／OA 流程 Owner",
+      "paths": [
+        "auth: governance（候选）/admin",
+        "OA: oa-flow/工作流适配/待办/通知"
+      ],
+      "acceptance": "角色修改不改变原申请内容",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P4-02",
+      "phase": 4,
+      "source_file": "05-phase-4-oa-access-lifecycle.md",
+      "observable_result": "既有OA流程适配和幂等启动",
+      "needs": [
+        "P4-01"
+      ],
+      "owner": "IAM／OA 流程 Owner",
+      "paths": [
+        "auth: governance（候选）/admin",
+        "OA: oa-flow/工作流适配/待办/通知"
+      ],
+      "acceptance": "超时重试只生成一个实例",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P4-03",
+      "phase": 4,
+      "source_file": "05-phase-4-oa-access-lifecycle.md",
+      "observable_result": "可信回调、Inbox和冲突隔离",
+      "needs": [
+        "P4-02"
+      ],
+      "owner": "IAM／OA 流程 Owner",
+      "paths": [
+        "auth: governance（候选）/admin",
+        "OA: oa-flow/工作流适配/待办/通知"
+      ],
+      "acceptance": "伪造、重复、同ID改体、旧版本",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P4-04",
+      "phase": 4,
+      "source_file": "05-phase-4-oa-access-lifecycle.md",
+      "observable_result": "审批结果→Grant→投影衔接",
+      "needs": [
+        "P4-03"
+      ],
+      "owner": "IAM／OA 流程 Owner",
+      "paths": [
+        "auth: governance（候选）/admin",
+        "OA: oa-flow/工作流适配/待办/通知"
+      ],
+      "acceptance": "审批成功但图失败不显示ACTIVE",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P4-05",
+      "phase": 4,
+      "source_file": "05-phase-4-oa-access-lifecycle.md",
+      "observable_result": "取消／撤销／到期／离职",
+      "needs": [
+        "P4-04"
+      ],
+      "owner": "IAM／OA 流程 Owner",
+      "paths": [
+        "auth: governance（候选）/admin",
+        "OA: oa-flow/工作流适配/待办/通知"
+      ],
+      "acceptance": "竞态收敛且来源隔离",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P4-06",
+      "phase": 4,
+      "source_file": "05-phase-4-oa-access-lifecycle.md",
+      "observable_result": "待办、状态查询与通知",
+      "needs": [
+        "P4-05"
+      ],
+      "owner": "IAM／OA 流程 Owner",
+      "paths": [
+        "auth: governance（候选）/admin",
+        "OA: oa-flow/工作流适配/待办/通知"
+      ],
+      "acceptance": "外部只能看自己允许的内容",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P4-07",
+      "phase": 4,
+      "source_file": "05-phase-4-oa-access-lifecycle.md",
+      "observable_result": "真实跨进程E2E和故障恢复",
+      "needs": [
+        "P4-06"
+      ],
+      "owner": "IAM／OA 流程 Owner",
+      "paths": [
+        "auth: governance（候选）/admin",
+        "OA: oa-flow/工作流适配/待办/通知"
+      ],
+      "acceptance": "停OA不影响已有日常授权检查",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P5-01",
+      "phase": 5,
+      "source_file": "06-phase-5-portal-and-pilot-acceptance.md",
+      "observable_result": "工作台壳层、组织选择、应用卡片",
+      "needs": [
+        "P1-03",
+        "P2-07"
+      ],
+      "owner": "门户／试点 Owner",
+      "paths": [
+        "auth-console/project-portal",
+        "OA: oa-console",
+        "commerce: frontend"
+      ],
+      "acceptance": "多组织切换与应用隔离",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P5-02",
+      "phase": 5,
+      "source_file": "06-phase-5-portal-and-pilot-acceptance.md",
+      "observable_result": "角色版本、成员授权、状态查询",
+      "needs": [
+        "P2-03",
+        "P3-06"
+      ],
+      "owner": "门户／试点 Owner",
+      "paths": [
+        "auth-console/project-portal",
+        "OA: oa-console",
+        "commerce: frontend"
+      ],
+      "acceptance": "权限差异与待生效展示",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P5-03",
+      "phase": 5,
+      "source_file": "06-phase-5-portal-and-pilot-acceptance.md",
+      "observable_result": "邀请、我的申请、审批进度",
+      "needs": [
+        "P1-05",
+        "P4-06"
+      ],
+      "owner": "门户／试点 Owner",
+      "paths": [
+        "auth-console/project-portal",
+        "OA: oa-console",
+        "commerce: frontend"
+      ],
+      "acceptance": "外部最小可见范围",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P5-04",
+      "phase": 5,
+      "source_file": "06-phase-5-portal-and-pilot-acceptance.md",
+      "observable_result": "授权解释、撤权与审计",
+      "needs": [
+        "P3-06",
+        "P4-05"
+      ],
+      "owner": "门户／试点 Owner",
+      "paths": [
+        "auth-console/project-portal",
+        "OA: oa-console",
+        "commerce: frontend"
+      ],
+      "acceptance": "多来源撤销解释",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P5-05",
+      "phase": 5,
+      "source_file": "06-phase-5-portal-and-pilot-acceptance.md",
+      "observable_result": "内部真实业务接入验收",
+      "needs": [
+        "P2-06",
+        "P3-07",
+        "P4-07"
+      ],
+      "owner": "门户／试点 Owner",
+      "paths": [
+        "auth-console/project-portal",
+        "OA: oa-console",
+        "commerce: frontend"
+      ],
+      "acceptance": "后端直调不能绕过",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P5-06",
+      "phase": 5,
+      "source_file": "06-phase-5-portal-and-pilot-acceptance.md",
+      "observable_result": "外部供应商真实验收",
+      "needs": [
+        "P1-07",
+        "P3-07",
+        "P4-07"
+      ],
+      "owner": "门户／试点 Owner",
+      "paths": [
+        "auth-console/project-portal",
+        "OA: oa-console",
+        "commerce: frontend"
+      ],
+      "acceptance": "全流程及越权反例",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "additional_gates": [
+        "Q-EXT真实场景与资源归属实现"
+      ]
+    },
+    {
+      "id": "P5-07",
+      "phase": 5,
+      "source_file": "06-phase-5-portal-and-pilot-acceptance.md",
+      "observable_result": "可用性与部署演练",
+      "needs": [
+        "P5-01",
+        "P5-02",
+        "P5-03",
+        "P5-04",
+        "P5-05",
+        "P5-06"
+      ],
+      "owner": "门户／试点 Owner",
+      "paths": [
+        "auth-console/project-portal",
+        "OA: oa-console",
+        "commerce: frontend"
+      ],
+      "acceptance": "登录回调、CORS、Cookie、错误提示",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P6-01",
+      "phase": 6,
+      "source_file": "07-phase-6-migration-and-rollout.md",
+      "observable_result": "迁移单元及旧写入方清单",
+      "needs": [
+        "P5-07"
+      ],
+      "owner": "IAM／旧系统 Owner",
+      "paths": [
+        "三仓迁移工具/服务端路由/管理写入口"
+      ],
+      "acceptance": "无遗漏旧授权入口",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P6-02",
+      "phase": 6,
+      "source_file": "07-phase-6-migration-and-rollout.md",
+      "observable_result": "身份／角色／范围映射及dry-run",
+      "needs": [
+        "P6-01"
+      ],
+      "owner": "IAM／旧系统 Owner",
+      "paths": [
+        "三仓迁移工具/服务端路由/管理写入口"
+      ],
+      "acceptance": "无未知规则自动放宽",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "additional_gates": [
+        "真实企业/角色/身份映射及只读导入快照"
+      ]
+    },
+    {
+      "id": "P6-03",
+      "phase": 6,
+      "source_file": "07-phase-6-migration-and-rollout.md",
+      "observable_result": "幂等批量导入及增量衔接",
+      "needs": [
+        "P6-02"
+      ],
+      "owner": "IAM／旧系统 Owner",
+      "paths": [
+        "三仓迁移工具/服务端路由/管理写入口"
+      ],
+      "acceptance": "重跑不重复、撤销不复活",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P6-04",
+      "phase": 6,
+      "source_file": "07-phase-6-migration-and-rollout.md",
+      "observable_result": "影子比较及差异解释",
+      "needs": [
+        "P6-03"
+      ],
+      "owner": "IAM／旧系统 Owner",
+      "paths": [
+        "三仓迁移工具/服务端路由/管理写入口"
+      ],
+      "acceptance": "禁止OR放行，覆盖反向场景",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P6-05",
+      "phase": 6,
+      "source_file": "07-phase-6-migration-and-rollout.md",
+      "observable_result": "服务端权威路由及旧写冻结",
+      "needs": [
+        "P6-04"
+      ],
+      "owner": "IAM／旧系统 Owner",
+      "paths": [
+        "三仓迁移工具/服务端路由/管理写入口"
+      ],
+      "acceptance": "每单元只有一个有效权威",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P6-06",
+      "phase": 6,
+      "source_file": "07-phase-6-migration-and-rollout.md",
+      "observable_result": "单批预生产切换与回退演练",
+      "needs": [
+        "P6-05"
+      ],
+      "owner": "IAM／旧系统 Owner",
+      "paths": [
+        "三仓迁移工具/服务端路由/管理写入口"
+      ],
+      "acceptance": "回退仍保留最新拒绝约束",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "additional_gates": [
+        "明确预生产迁移单元及安全回退版本"
+      ]
+    },
+    {
+      "id": "P6-07",
+      "phase": 6,
+      "source_file": "07-phase-6-migration-and-rollout.md",
+      "observable_result": "生产候选报告和历史下线计划",
+      "needs": [
+        "P6-06"
+      ],
+      "owner": "IAM／旧系统 Owner",
+      "paths": [
+        "三仓迁移工具/服务端路由/管理写入口"
+      ],
+      "acceptance": "与P7上线门禁关联",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P7-01",
+      "phase": 7,
+      "source_file": "08-phase-7-production-hardening-and-handover.md",
+      "observable_result": "部署与权限暴露面清单",
+      "needs": [
+        "P6-07"
+      ],
+      "owner": "运行／安全 Owner",
+      "paths": [
+        "三仓现有deploy/监控/恢复证据"
+      ],
+      "acceptance": "各凭证与端点最小范围",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P7-02",
+      "phase": 7,
+      "source_file": "08-phase-7-production-hardening-and-handover.md",
+      "observable_result": "指标、日志、告警及错误口径",
+      "needs": [
+        "P7-01"
+      ],
+      "owner": "运行／安全 Owner",
+      "paths": [
+        "三仓现有deploy/监控/恢复证据"
+      ],
+      "acceptance": "DENY和ERROR可区分",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P7-03",
+      "phase": 7,
+      "source_file": "08-phase-7-production-hardening-and-handover.md",
+      "observable_result": "固定数据夹具与容量测试",
+      "needs": [
+        "P7-02"
+      ],
+      "owner": "运行／安全 Owner",
+      "paths": [
+        "三仓现有deploy/监控/恢复证据"
+      ],
+      "acceptance": "真实P95／P99、瓶颈和限制",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "additional_gates": [
+        "容量试验目标与真实数据分布"
+      ]
+    },
+    {
+      "id": "P7-04",
+      "phase": 7,
+      "source_file": "08-phase-7-production-hardening-and-handover.md",
+      "observable_result": "双实例、旧进程、超时与混部故障验证",
+      "needs": [
+        "P7-03"
+      ],
+      "owner": "运行／安全 Owner",
+      "paths": [
+        "三仓现有deploy/监控/恢复证据"
+      ],
+      "acceptance": "关键安全不变量通过",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P7-05",
+      "phase": 7,
+      "source_file": "08-phase-7-production-hardening-and-handover.md",
+      "observable_result": "密钥与服务账号轮换",
+      "needs": [
+        "P7-04"
+      ],
+      "owner": "运行／安全 Owner",
+      "paths": [
+        "三仓现有deploy/监控/恢复证据"
+      ],
+      "acceptance": "旧身份不可继续调用",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P7-06",
+      "phase": 7,
+      "source_file": "08-phase-7-production-hardening-and-handover.md",
+      "observable_result": "隔离备份恢复与图重建",
+      "needs": [
+        "P7-05"
+      ],
+      "owner": "运行／安全 Owner",
+      "paths": [
+        "三仓现有deploy/监控/恢复证据"
+      ],
+      "acceptance": "权限不复活，水位重新建立",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "additional_gates": [
+        "隔离恢复目标和备份输入"
+      ]
+    },
+    {
+      "id": "P7-07",
+      "phase": 7,
+      "source_file": "08-phase-7-production-hardening-and-handover.md",
+      "observable_result": "单批上线评审与回退手册",
+      "needs": [
+        "P7-03",
+        "P7-04",
+        "P7-05",
+        "P7-06"
+      ],
+      "owner": "运行／安全 Owner",
+      "paths": [
+        "三仓现有deploy/监控/恢复证据"
+      ],
+      "acceptance": "明确上线Owner及操作授权",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+    },
+    {
+      "id": "P7-08",
+      "phase": 7,
+      "source_file": "08-phase-7-production-hardening-and-handover.md",
+      "observable_result": "获准上线后有限观察和交接",
+      "needs": [
+        "P7-07"
+      ],
+      "owner": "运行／安全 Owner",
+      "paths": [
+        "三仓现有deploy/监控/恢复证据"
+      ],
+      "acceptance": "不凭预生产报告声明生产完成",
+      "pass": "implementation+focused-validation",
+      "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
+      "parallel": false,
+      "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
+      "status": "TODO",
+      "execution_authorized_this_task": false,
+      "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "additional_gates": [
+        "全部上线门禁、生产目标及生产部署授权"
+      ]
+    }
+  ]
+}

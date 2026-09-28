@@ -1,0 +1,69 @@
+{
+  "package": "oa-auth-unification-project-plan",
+  "source_package_version": "0.2",
+  "source_status": "DESIGN_DRAFT_NOT_EXECUTED",
+  "captured_at": "2026-09-28T05:17:03.344042+00:00",
+  "source_directory": "/Users/liruijun/Downloads/统一认证/oa-auth-phased-technical-plans/oa-auth-phased-plan",
+  "files": [
+    {
+      "name": "00-roadmap-and-execution-guide.md",
+      "bytes": 11607,
+      "sha256": "ed28af41df0bff2cb45d7942d3812ac37204ae8d3aa933decdfc01cf01680eaf"
+    },
+    {
+      "name": "01-phase-0-discovery-and-baseline.md",
+      "bytes": 9841,
+      "sha256": "e8ff1cbe232186db0842795009b9b6c5015c5373f7a79e8e0f3ae0d164c95fb5"
+    },
+    {
+      "name": "02-phase-1-identity-tenant-directory.md",
+      "bytes": 13281,
+      "sha256": "387db56ecd59f8f4e2bfe48e87ef72849c736c9067643f3859b6610071d76a15"
+    },
+    {
+      "name": "03-phase-2-application-rbac-sdk.md",
+      "bytes": 12499,
+      "sha256": "0e5772e603acfda33e3194cbdaecac5f5291281a9325cf4d2a7fe37e5f508c97"
+    },
+    {
+      "name": "04-phase-3-data-scope-and-consistency.md",
+      "bytes": 17124,
+      "sha256": "d6180facd92198ab56ff0111aae57171e89f4a902f58bec40570309c2598618a"
+    },
+    {
+      "name": "05-phase-4-oa-access-lifecycle.md",
+      "bytes": 11659,
+      "sha256": "c3d4d1ec1a6504272108ff12f625ecbeef318120351fcb80c50e37a30da144ce"
+    },
+    {
+      "name": "06-phase-5-portal-and-pilot-acceptance.md",
+      "bytes": 10495,
+      "sha256": "6aa5cfeb699ce5aae7163ce3ee7d430c11ccfbc9467f537f71f6ba9bf17ddef4"
+    },
+    {
+      "name": "07-phase-6-migration-and-rollout.md",
+      "bytes": 10341,
+      "sha256": "b615d2273bc4f6b812f3ded220f5deb84a2ee216219ab1b01818ea4901d48162"
+    },
+    {
+      "name": "08-phase-7-production-hardening-and-handover.md",
+      "bytes": 12714,
+      "sha256": "5f914a3b862486f45f9bdef2ea39bd70c8b5db0e0ea4e751b911f43e6941c0f9"
+    },
+    {
+      "name": "09-shared-contracts-and-acceptance.md",
+      "bytes": 19675,
+      "sha256": "cfa8e305bc25848c30643c72784c141487be9c03ab76c19b3c2531e1e5791036"
+    },
+    {
+      "name": "manifest.json",
+      "bytes": 2959,
+      "sha256": "eb75d6d002248aaec0dd7c95fe9006da0a39c6d4c610207bdd98f77ed182935a"
+    },
+    {
+      "name": "oa-auth-unified-platform-architecture.md",
+      "bytes": 37398,
+      "sha256": "609b0c68f0af887011300bb7a0f88f2849a89160fa5cece0daeea9f81b490067"
+    }
+  ]
+}

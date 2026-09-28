@@ -1,0 +1,1929 @@
+{
+  "captured_at": "2026-09-28T05:17:03.344042+00:00",
+  "scope": "P0 既有基线；没有实现 P1—P7",
+  "counts": {
+    "auth": {
+      "tests": 124,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "oa": {
+      "tests": 149,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "commands": [
+    {
+      "repository": "auth",
+      "command": "mvn -B test",
+      "exit_code": 0,
+      "result": "PASS",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "log_sha256": "68f406a8a85585238561a38312617dfe403e0bb87761c6153bb2d6f143a207b8"
+    },
+    {
+      "repository": "oa",
+      "command": "mvn -B -pl oa-iam,oa-security -am test",
+      "exit_code": 0,
+      "result": "PASS",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "log_sha256": "6ec60c014a40f4da2f4b40a5cd22f385e4ee8ba5f1d9374a9c1237c435e814d1"
+    },
+    {
+      "repository": "commerce",
+      "command": "mvn -B -pl commerce-app -am test -Dtest=AuthorizationCoverageTest -Dsurefire.failIfNoSpecifiedTests=false -DfailIfNoTests=false",
+      "exit_code": 1,
+      "result": "FAIL",
+      "classification": "VALIDATION_COMMAND_CONFIGURATION",
+      "detail": "shared-kernel 显式 failIfNoTests=true；没有执行到 commerce-app 测试，不是已复现的权限实现失败。",
+      "log_sha256": "69670665f018a914524d37df14f30b5ae6b2f8d61187a05d2cc62148f5fb179e"
+    },
+    {
+      "repository": "commerce",
+      "command": "mvn -B -pl commerce-app -am test-compile -DskipTests",
+      "exit_code": 0,
+      "result": "PASS",
+      "scope": "生产和测试源码编译，不运行测试",
+      "source_ref": "919081be0deef6024f39ba2ea4c232d2ed56fdab",
+      "log_sha256": "fa6cbda0b528faa2e33f9b6c7f7f6ae4fe44c0285ddb6c0773b8f83962881f74"
+    }
+  ],
+  "suites": [
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.AdminControllerTest.xml",
+      "report_sha256": "b070b813aa97e6fa716c55017f951d19de434186d2c74c7ed5f75495585ae6ed",
+      "name": "com.lrj.authz.admin.AdminControllerTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.051,
+      "cases": [
+        {
+          "name": "checkUsesFullConsistency",
+          "result": "PASS"
+        },
+        {
+          "name": "grantWritesTouchAndAuditsIntentThenOk",
+          "result": "PASS"
+        },
+        {
+          "name": "adminReadsAlwaysUseFullConsistency",
+          "result": "PASS"
+        },
+        {
+          "name": "expandParsesJsonAndRejectsMalformedTree",
+          "result": "PASS"
+        },
+        {
+          "name": "auditLogKeepsOnlyCurrentWorkspaceRecords",
+          "result": "PASS"
+        },
+        {
+          "name": "revokeWritesDeleteAndFallsBackToJwtSubject",
+          "result": "PASS"
+        },
+        {
+          "name": "grantWriteFailureAuditsIntentAndFailButNotOk",
+          "result": "PASS"
+        },
+        {
+          "name": "revokeAbortsWriteWhenIntentAuditFails",
+          "result": "PASS"
+        },
+        {
+          "name": "checkDenyReturnsFalse",
+          "result": "PASS"
+        },
+        {
+          "name": "schemaRelationshipsAndAuditDelegate",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.AdminExceptionHandlerTest.xml",
+      "report_sha256": "1670d2729b63b52b4d376bedd59678a56aa38dc7256c21a858428776323c7b43",
+      "name": "com.lrj.authz.admin.AdminExceptionHandlerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.001,
+      "cases": [
+        {
+          "name": "spiceDbDownBecomes503WithWorkspaceHint",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.InMemoryAuditStoreTest.xml",
+      "report_sha256": "1ef5b0e93de05eea9329d743b2fcd7c66d6641a025b7cbe49df1c4d2d254b410",
+      "name": "com.lrj.authz.admin.InMemoryAuditStoreTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.005,
+      "cases": [
+        {
+          "name": "keepsNewestUpToCapacityAndNormalizesActor",
+          "result": "PASS"
+        },
+        {
+          "name": "floorsCapacityAndLimitAtOne",
+          "result": "PASS"
+        },
+        {
+          "name": "concurrentWritersNeverExposeMoreThanCapacity",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.JdbcAuditStoreTest.xml",
+      "report_sha256": "de228e47680cfe672690fb3603672318a507737dee45b2110b558687c4022b80",
+      "name": "com.lrj.authz.admin.JdbcAuditStoreTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.138,
+      "cases": [
+        {
+          "name": "retention_prunesOldestBeyondMaxRows",
+          "result": "PASS"
+        },
+        {
+          "name": "createTable_isIdempotent_acrossRestart",
+          "result": "PASS"
+        },
+        {
+          "name": "recordAndRecent_roundTrip_newestFirst",
+          "result": "PASS"
+        },
+        {
+          "name": "nullActor_normalizedToDash_andLimitFloorsAtOne",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.casdoor.CasdoorClientTest.xml",
+      "report_sha256": "f45255a3efdbd75ae450ec9af61fbb6f14cbe9124de730147b00e81db4976855",
+      "name": "com.lrj.authz.admin.casdoor.CasdoorClientTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.305,
+      "cases": [
+        {
+          "name": "httpErrorStatusPropagates",
+          "result": "PASS"
+        },
+        {
+          "name": "malformedJsonFailsWithProtocolException",
+          "result": "PASS"
+        },
+        {
+          "name": "groupMembersScopesAndDeduplicatesAcrossOrganizations",
+          "result": "PASS"
+        },
+        {
+          "name": "groupNamesUsesOwnerAndSkipsBlankNames",
+          "result": "PASS"
+        },
+        {
+          "name": "effectiveOrganizationsUsesListOrFallback",
+          "result": "PASS"
+        },
+        {
+          "name": "nameSubjectFieldUsesUserName",
+          "result": "PASS"
+        },
+        {
+          "name": "departmentSnapshotBuildsTreeAndAdmins",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.casdoor.CasdoorGroupIdsTest.xml",
+      "report_sha256": "ca1234036faf6a3014b0aa30b4419887bac3e9913090e579bbab63a089f71a0a",
+      "name": "com.lrj.authz.admin.casdoor.CasdoorGroupIdsTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.01,
+      "cases": [
+        {
+          "name": "encodesTenantScoped",
+          "result": "PASS"
+        },
+        {
+          "name": "encodesBuiltInOrgWithHyphen",
+          "result": "PASS"
+        },
+        {
+          "name": "rejectsSlash",
+          "result": "PASS"
+        },
+        {
+          "name": "rejectsLeadingHyphen",
+          "result": "PASS"
+        },
+        {
+          "name": "crossTenantSameGroupDoNotCollide",
+          "result": "PASS"
+        },
+        {
+          "name": "rejectsBlankOrNull",
+          "result": "PASS"
+        },
+        {
+          "name": "rejectsUnderscoreToAvoidPrefixAmbiguity",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.casdoor.CasdoorSyncControllerTest.xml",
+      "report_sha256": "873f5ee9b10362bb5b29bbf982888fee25f58dd6945bb2f9fd5f5ad081761881",
+      "name": "com.lrj.authz.admin.casdoor.CasdoorSyncControllerTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.714,
+      "cases": [
+        {
+          "name": "validWebhookRunsGroupAndOptionalDepartment",
+          "result": "PASS"
+        },
+        {
+          "name": "missingFeatureBeansReturnConflict",
+          "result": "PASS"
+        },
+        {
+          "name": "manualSyncReturnsServiceSummary",
+          "result": "PASS"
+        },
+        {
+          "name": "blankConfiguredSecretCurrentlyAllowsMissingHeader",
+          "result": "PASS"
+        },
+        {
+          "name": "wrongWebhookSecretReturns401WithoutSync",
+          "result": "PASS"
+        },
+        {
+          "name": "syncDepartmentsReturnsServiceSummary",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.casdoor.DepartmentSyncServiceTest.xml",
+      "report_sha256": "180020f779aaaeb4ddb776687b671e42089a22276cbc62a5c67aed30bc90436e",
+      "name": "com.lrj.authz.admin.casdoor.DepartmentSyncServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.003,
+      "cases": [
+        {
+          "name": "deleteThreshold_abortsRound",
+          "result": "PASS"
+        },
+        {
+          "name": "writesMemberParentAdmin_forNewTree",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.casdoor.GroupSyncServiceTest.xml",
+      "report_sha256": "13117ed28c6e9cfde737bf77963be0ea33bf1d660be4a38ff3485e41837280d4",
+      "name": "com.lrj.authz.admin.casdoor.GroupSyncServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.013,
+      "cases": [
+        {
+          "name": "deleteThreshold_abortsWholeRun_writesNothing",
+          "result": "PASS"
+        },
+        {
+          "name": "idempotent_noWriteWhenDesiredEqualsCurrent",
+          "result": "PASS"
+        },
+        {
+          "name": "ignoresNestedGroupSubjects_whenComputingCurrent",
+          "result": "PASS"
+        },
+        {
+          "name": "addsMissingAndRemovesExtra",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.casdoor.ReconcileJobTest.xml",
+      "report_sha256": "fe96c8503b0f82eef4195cf64ea179d928d088a00966bdd285394a2524984c0a",
+      "name": "com.lrj.authz.admin.casdoor.ReconcileJobTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.007,
+      "cases": [
+        {
+          "name": "groupFailurePropagatesAndStopsBeforeDepartment",
+          "result": "PASS"
+        },
+        {
+          "name": "noDepartmentBeanStillRunsGroupOnce",
+          "result": "PASS"
+        },
+        {
+          "name": "reconcilesGroupThenOptionalDepartment",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.casdoor.SyncServiceBoundaryTest.xml",
+      "report_sha256": "bb8f33f5268bb3d9a0cc0e40b88382ad194469b22a51c4bbf777e0fc5443b44a",
+      "name": "com.lrj.authz.admin.casdoor.SyncServiceBoundaryTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.047,
+      "cases": [
+        {
+          "name": "groupDeleteAtThresholdIsAllowedAndFilterIsScoped",
+          "result": "PASS"
+        },
+        {
+          "name": "departmentParentReplacementIsAtomicInOneWrite",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.workspace.WorkspaceAccessTest.xml",
+      "report_sha256": "7af09d33ceed893dd50a22c3fd357c1d4e55d8f384328c84e6f3fafcfa6a2234",
+      "name": "com.lrj.authz.admin.workspace.WorkspaceAccessTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.009,
+      "cases": [
+        {
+          "name": "projectViewerOnlyEntersMatchingOrg",
+          "result": "PASS"
+        },
+        {
+          "name": "platformAdminEntersEveryWorkspace",
+          "result": "PASS"
+        },
+        {
+          "name": "extraOrganizationsAllowLangchainTenantsOntoKnowledge",
+          "result": "PASS"
+        },
+        {
+          "name": "visibleFiltersToAllowedOnly",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-admin/target/surefire-reports/TEST-com.lrj.authz.admin.workspace.WorkspaceInterceptorTest.xml",
+      "report_sha256": "d3c622da94a88a9dff4f6fca1621dde42b29daf2e3b127518e8253d9b5ca5f57",
+      "name": "com.lrj.authz.admin.workspace.WorkspaceInterceptorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.023,
+      "cases": [
+        {
+          "name": "skipsWorkspaceCatalogAndCasdoorSync",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-core/target/surefire-reports/TEST-com.lrj.authz.core.SpiceDbAuthzEngineTest.xml",
+      "report_sha256": "e6e61c1c6aeb399b6a510b008748492f6036aa52131aa4e45307af6312f00020",
+      "name": "com.lrj.authz.core.SpiceDbAuthzEngineTest",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.641,
+      "cases": [
+        {
+          "name": "lookupSubjectsSerializesRequestFields",
+          "result": "PASS"
+        },
+        {
+          "name": "bulkRejectsNonArrayPairsExtraItemsAndMissingItemPermissionship",
+          "result": "PASS"
+        },
+        {
+          "name": "serializesOtherConsistencyModes",
+          "result": "PASS"
+        },
+        {
+          "name": "bulkMapsPairsInRequestOrder",
+          "result": "PASS"
+        },
+        {
+          "name": "rejectsMalformedJsonAndHttpError",
+          "result": "PASS"
+        },
+        {
+          "name": "lookupResourcesParsesConcatenatedJson",
+          "result": "PASS"
+        },
+        {
+          "name": "checkSerializesUsersetAndFreshness",
+          "result": "PASS"
+        },
+        {
+          "name": "lookupResourcesSerializesRequestAndReturnsEmptyOnBlankStream",
+          "result": "PASS"
+        },
+        {
+          "name": "bulkRejectsWrongCardinalityAndPerItemError",
+          "result": "PASS"
+        },
+        {
+          "name": "lookupSubjectsParsesStream",
+          "result": "PASS"
+        },
+        {
+          "name": "lookupResourcesRejectsMissingPermissionship",
+          "result": "PASS"
+        },
+        {
+          "name": "emptyBulkDoesNotCallServer",
+          "result": "PASS"
+        },
+        {
+          "name": "writeRelationshipsSerializesOperationsAndReturnsToken",
+          "result": "PASS"
+        },
+        {
+          "name": "streamTopLevelErrorFailsWholeCall",
+          "result": "PASS"
+        },
+        {
+          "name": "deleteRelationshipsHonorsOptionalFilterFields",
+          "result": "PASS"
+        },
+        {
+          "name": "checkReturnsFalseForNoPermissionAndRejectsMissingPermissionship",
+          "result": "PASS"
+        },
+        {
+          "name": "readsSchemaAndExpandTree",
+          "result": "PASS"
+        },
+        {
+          "name": "deleteAndExpandUseCorrectPaths",
+          "result": "PASS"
+        },
+        {
+          "name": "readRelationshipsParsesDirectAndUsersetTuples",
+          "result": "PASS"
+        },
+        {
+          "name": "writeAndDeleteRejectMissingToken",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-protocol/target/surefire-reports/TEST-com.lrj.authz.protocol.ProtocolValueObjectsTest.xml",
+      "report_sha256": "f8af5c20fe638e0c6690461b1479727ee87cc0d14c5d5c192e846b17828ff28e",
+      "name": "com.lrj.authz.protocol.ProtocolValueObjectsTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.069,
+      "cases": [
+        {
+          "name": "consistencyFactoriesEncodeModes",
+          "result": "PASS"
+        },
+        {
+          "name": "filterFactoriesPreserveWildcards",
+          "result": "PASS"
+        },
+        {
+          "name": "zedTokenHasValueSemantics",
+          "result": "PASS"
+        },
+        {
+          "name": "updateFactoriesSelectExactOperation",
+          "result": "PASS"
+        },
+        {
+          "name": "resourceFactoryAndRef",
+          "result": "PASS"
+        },
+        {
+          "name": "relationshipHasValueSemantics",
+          "result": "PASS"
+        },
+        {
+          "name": "subjectFactoriesPreserveUserset",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-sdk/target/surefire-reports/TEST-com.lrj.authz.sdk.CheckAccessAspectTest.xml",
+      "report_sha256": "373b0828b196b1ef01de746d8d6373bf0041e633bff208f7fefc8e5f4b9840c0",
+      "name": "com.lrj.authz.sdk.CheckAccessAspectTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.609,
+      "cases": [
+        {
+          "name": "fullyConsistentAnnotationUsesFullMode",
+          "result": "PASS"
+        },
+        {
+          "name": "missingParameterNameFailsBeforeCheck",
+          "result": "PASS"
+        },
+        {
+          "name": "engineFailureNeverInvokesTarget",
+          "result": "PASS"
+        },
+        {
+          "name": "allowedProceedsWithResolvedNamedParameter",
+          "result": "PASS"
+        },
+        {
+          "name": "resolverFailureNeverInvokesEngineOrTarget",
+          "result": "PASS"
+        },
+        {
+          "name": "deniedNeverInvokesTarget",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-sdk/target/surefire-reports/TEST-com.lrj.authz.sdk.RemoteAuthzEngineHttpTest.xml",
+      "report_sha256": "b2b1b8134ca6efd514dc21a42a249ea49b7f7bdf105180edccc3a39581887755",
+      "name": "com.lrj.authz.sdk.RemoteAuthzEngineHttpTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.397,
+      "cases": [
+        {
+          "name": "singleCheckMapsFalse",
+          "result": "PASS"
+        },
+        {
+          "name": "otherPortsMapResponsesAndUseCorrectPaths",
+          "result": "PASS"
+        },
+        {
+          "name": "emptyBulkDoesNotPerformHttpRequest",
+          "result": "PASS"
+        },
+        {
+          "name": "omittingTokenSendsNoAuthorizationHeader",
+          "result": "PASS"
+        },
+        {
+          "name": "singleCheckRequiresBooleanAllowedAndSendsFreshness",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-sdk/target/surefire-reports/TEST-com.lrj.authz.sdk.RemoteAuthzEngineTest.xml",
+      "report_sha256": "325da7a1a49473d82f81bdce105262543c49923b59fb49e9b0d97204f4742ae3",
+      "name": "com.lrj.authz.sdk.RemoteAuthzEngineTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.012,
+      "cases": [
+        {
+          "name": "throwsOnEmptyBody",
+          "result": "PASS"
+        },
+        {
+          "name": "throwsOnTruncatedResults",
+          "result": "PASS"
+        },
+        {
+          "name": "throwsOnMissingResourceField",
+          "result": "PASS"
+        },
+        {
+          "name": "throwsOnDuplicateResource",
+          "result": "PASS"
+        },
+        {
+          "name": "throwsOnUnrequestedResource",
+          "result": "PASS"
+        },
+        {
+          "name": "mapsEchoedResultsByResource",
+          "result": "PASS"
+        },
+        {
+          "name": "throwsOnMissingAllowedField",
+          "result": "PASS"
+        },
+        {
+          "name": "throwsOnStringAllowed",
+          "result": "PASS"
+        },
+        {
+          "name": "throwsOnNumberAllowed",
+          "result": "PASS"
+        },
+        {
+          "name": "throwsOnNullAllowed",
+          "result": "PASS"
+        },
+        {
+          "name": "mapsCorrectlyEvenWhenServerReordersResults",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-server/target/surefire-reports/TEST-com.lrj.authz.server.AuthzControllerFacadeTest.xml",
+      "report_sha256": "be33254d98d0b28ae84539037b9ba2bcbc80c1baa14030574b1c9fb8ad1eb1d8",
+      "name": "com.lrj.authz.server.AuthzControllerFacadeTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.721,
+      "cases": [
+        {
+          "name": "schemaExpandAndReadRelationshipsDelegate",
+          "result": "PASS"
+        },
+        {
+          "name": "checkMapsConsistencyModesAndArguments",
+          "result": "PASS"
+        },
+        {
+          "name": "expandRejectsMalformedEngineJson",
+          "result": "PASS"
+        },
+        {
+          "name": "writeAndDeleteAdvanceWatermark",
+          "result": "PASS"
+        },
+        {
+          "name": "bulkPreservesRequestOrder",
+          "result": "PASS"
+        },
+        {
+          "name": "bulkThrowsWhenEngineOmitsRequestedResource",
+          "result": "PASS"
+        },
+        {
+          "name": "delegatesLookupMethodsWithFullConsistency",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-server/target/surefire-reports/TEST-com.lrj.authz.server.AuthzControllerWatermarkTest.xml",
+      "report_sha256": "297d475ee56af2caad23bc56dc5e0dcabd49b1e3e7f409f933bb607ac36818e7",
+      "name": "com.lrj.authz.server.AuthzControllerWatermarkTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.006,
+      "cases": [
+        {
+          "name": "freshWithoutToken_afterWrite_usesWatermark",
+          "result": "PASS"
+        },
+        {
+          "name": "freshWithoutToken_noWatermark_fallsBackToFull",
+          "result": "PASS"
+        },
+        {
+          "name": "disabled_ignoresWatermark_fallsBackToFull",
+          "result": "PASS"
+        },
+        {
+          "name": "callerToken_alwaysWinsOverWatermark",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-server/target/surefire-reports/TEST-com.lrj.authz.server.AuthzServerSecurityFilterBoundaryTest.xml",
+      "report_sha256": "47f670467e5091d00d1fe620379147ef20a57121e2331a38d34d79ca2f753858",
+      "name": "com.lrj.authz.server.AuthzServerSecurityFilterBoundaryTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.015,
+      "cases": [
+        {
+          "name": "rejectsWrongAuthorizationSchemesAndWhitespace",
+          "result": "PASS"
+        },
+        {
+          "name": "unauthorizedResponseDoesNotInvokeChainOrEchoCredential",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-server/target/surefire-reports/TEST-com.lrj.authz.server.AuthzServerSecurityFilterTest.xml",
+      "report_sha256": "788e89d5e8be29631a20ced1f702e6cf4d063ccbc86b9bf78945e3bf267d398e",
+      "name": "com.lrj.authz.server.AuthzServerSecurityFilterTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.057,
+      "cases": [
+        {
+          "name": "enabled_wrongToken_401",
+          "result": "PASS"
+        },
+        {
+          "name": "enabled_nonV1Path_passesThrough",
+          "result": "PASS"
+        },
+        {
+          "name": "enabled_correctToken_passes",
+          "result": "PASS"
+        },
+        {
+          "name": "disabled_passesThrough",
+          "result": "PASS"
+        },
+        {
+          "name": "enabled_missingToken_401",
+          "result": "PASS"
+        },
+        {
+          "name": "enabled_blankToken_failsFast",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "report": "auth-platform-server/target/surefire-reports/TEST-com.lrj.authz.server.ZedTokenWatermarkTest.xml",
+      "report_sha256": "af32a7d2f0c442289ca31d94a3b760317964b7a18a19af2ec02549d978a068b3",
+      "name": "com.lrj.authz.server.ZedTokenWatermarkTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.005,
+      "cases": [
+        {
+          "name": "concurrentAdvancePublishesACompleteSubmittedToken",
+          "result": "PASS"
+        },
+        {
+          "name": "ignoresBlankAndPublishesNonBlankToken",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.api.DelegationRuleTest.xml",
+      "report_sha256": "68e8350cf1826c11952f515fb3cee9375519e7c61974859e7593a2a2e3f08bc0",
+      "name": "com.lrj.oa.iam.api.DelegationRuleTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.001,
+      "cases": [
+        {
+          "name": "processAndRoleScopesFailClosedOutsideConfiguredRange",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.AbacEvaluatorTest.xml",
+      "report_sha256": "15f3d8a16253665e291ed5d34508891cdad4e84a7a0feb911a61017d2d29f27b",
+      "name": "com.lrj.oa.iam.application.AbacEvaluatorTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.056,
+      "cases": [
+        {
+          "name": "unknownPermissionAndMissingBranchFailClosed",
+          "result": "PASS"
+        },
+        {
+          "name": "missingVariableAndTypeErrorFailClosed",
+          "result": "PASS"
+        },
+        {
+          "name": "unconditionalAuthorizationSourceBypassesConditionalSources",
+          "result": "PASS"
+        },
+        {
+          "name": "dangerousSpelFeaturesAreRejectedAtWriteTime",
+          "result": "PASS"
+        },
+        {
+          "name": "decisionReturnsOnlyPassingRolesSoTheirScopesCanBeMerged",
+          "result": "PASS"
+        },
+        {
+          "name": "branchConditionsAreAndAndIndependentBranchesAreOr",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.AccessRequestServiceTest.xml",
+      "report_sha256": "e4690b345572e2b9e8e236d4b4cc78510a1c3778018018c7afa3515d1b3a653e",
+      "name": "com.lrj.oa.iam.application.AccessRequestServiceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.023,
+      "cases": [
+        {
+          "name": "delegationTypeRejected",
+          "result": "PASS"
+        },
+        {
+          "name": "createPendingRoleRequest",
+          "result": "PASS"
+        },
+        {
+          "name": "approveWritesApprovalGrant",
+          "result": "PASS"
+        },
+        {
+          "name": "duplicateCommandIdIsIdempotent",
+          "result": "PASS"
+        },
+        {
+          "name": "cannotApproveOwnRequest",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.AuthzCheckServiceTest.xml",
+      "report_sha256": "230bd8124c26acf1abd5f0583289b5b31801def5a19abc1b136e005b08029cbe",
+      "name": "com.lrj.oa.iam.application.AuthzCheckServiceTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.053,
+      "cases": [
+        {
+          "name": "incompleteRequestIsInvalid",
+          "result": "PASS"
+        },
+        {
+          "name": "userWithPermissionIsAllow",
+          "result": "PASS"
+        },
+        {
+          "name": "missingIdentityIsNotFound",
+          "result": "PASS"
+        },
+        {
+          "name": "disabledIdentityDenied",
+          "result": "PASS"
+        },
+        {
+          "name": "cannotCheckSomeoneElseWithoutAdmin",
+          "result": "PASS"
+        },
+        {
+          "name": "agentIsDeniedWithoutInheritingOwner",
+          "result": "PASS"
+        },
+        {
+          "name": "auditInsertFailureDoesNotFailDecision",
+          "result": "PASS"
+        },
+        {
+          "name": "ownerCanCheckOwnedAgentWithoutAdmin",
+          "result": "PASS"
+        },
+        {
+          "name": "userWithoutPermissionIsDeny",
+          "result": "PASS"
+        },
+        {
+          "name": "expiredOrMissingDelegationDoesNotAllow",
+          "result": "PASS"
+        },
+        {
+          "name": "agentNonInvokeIsDenied",
+          "result": "PASS"
+        },
+        {
+          "name": "nonApiResourceIsDeniedInThisSlice",
+          "result": "PASS"
+        },
+        {
+          "name": "activePermissionDelegationAllowsCheck",
+          "result": "PASS"
+        },
+        {
+          "name": "agentOwnGrantAllowsInvoke",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.CredentialServiceTest.xml",
+      "report_sha256": "1e3b9b0b8e47be89673ef102b2cd01d6dde094d8d15a930bff83c622389f5dae",
+      "name": "com.lrj.oa.iam.application.CredentialServiceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.035,
+      "cases": [
+        {
+          "name": "issueReturnsPlaintextOnceAndStoresHash",
+          "result": "PASS"
+        },
+        {
+          "name": "rotateIssuesNewAndMarksOldRotated",
+          "result": "PASS"
+        },
+        {
+          "name": "listDoesNotExposeHash",
+          "result": "PASS"
+        },
+        {
+          "name": "humanIdentityCannotGetCredential",
+          "result": "PASS"
+        },
+        {
+          "name": "revokeMarksInactive",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.GrantServiceGovernanceTest.xml",
+      "report_sha256": "5c4f0590e0945a73102576f9b369e2164ca9514d7188fbce37ede218119a6437",
+      "name": "com.lrj.oa.iam.application.GrantServiceGovernanceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.108,
+      "cases": [
+        {
+          "name": "duplicateActiveGrantReturnsExistingIdWithoutWriting",
+          "result": "PASS"
+        },
+        {
+          "name": "customScopeRejectsUnknownOrCrossTenantOrg",
+          "result": "PASS"
+        },
+        {
+          "name": "elevationRequestDoesNotCreateGrantBeforeApproval",
+          "result": "PASS"
+        },
+        {
+          "name": "requesterCannotApproveOwnElevation",
+          "result": "PASS"
+        },
+        {
+          "name": "directSelfGrantIsRejectedBeforeAnyWrite",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.IamInvalidationServiceTest.xml",
+      "report_sha256": "e1ff35c58305df5a30887be239ab0fda64d356a5721e3b5dd57c373725476af6",
+      "name": "com.lrj.oa.iam.application.IamInvalidationServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.05,
+      "cases": [
+        {
+          "name": "rollbackDoesNotEvictOrPublish",
+          "result": "PASS"
+        },
+        {
+          "name": "roleEventAndEpochAreWrittenBeforeCommitButExternalInvalidationWaitsForCommit",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.IdentityGraphServiceTest.xml",
+      "report_sha256": "bf21099269f119cbc0d70dafd0ae8478868d9277387ad4fb92ea0a3372dc6b21",
+      "name": "com.lrj.oa.iam.application.IdentityGraphServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.006,
+      "cases": [
+        {
+          "name": "missingIdentityIsNotFound",
+          "result": "PASS"
+        },
+        {
+          "name": "agentShowsOwnerOwnsEdgeWithoutRoles",
+          "result": "PASS"
+        },
+        {
+          "name": "orgLookupFailureFallsBackToPath",
+          "result": "PASS"
+        },
+        {
+          "name": "userGraphHasOrgOwnerAndRoles",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.IdentityProjectionListenerTest.xml",
+      "report_sha256": "74abd49216aa07f7def7c55775e6dcbed02996e7b91aaf6da9c351965611b64e",
+      "name": "com.lrj.oa.iam.application.IdentityProjectionListenerTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.004,
+      "cases": [
+        {
+          "name": "missingEmployeeIsIgnored",
+          "result": "PASS"
+        },
+        {
+          "name": "createdEventProjectsUser",
+          "result": "PASS"
+        },
+        {
+          "name": "seedEventBackfillsIdentities",
+          "result": "PASS"
+        },
+        {
+          "name": "transferRefreshesProjectionFromOrgQuery",
+          "result": "PASS"
+        },
+        {
+          "name": "leaveDisablesIdentityWithoutReadingOrg",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.IdentityServiceTest.xml",
+      "report_sha256": "eb7572547264e1cae61d876e296ea2d41491bd06f9802f1e7b6e7b99b40e0ce4",
+      "name": "com.lrj.oa.iam.application.IdentityServiceTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.027,
+      "cases": [
+        {
+          "name": "deletedIdentityIsNotFound",
+          "result": "PASS"
+        },
+        {
+          "name": "creatingServiceAccountPersistsAndReturnsView",
+          "result": "PASS"
+        },
+        {
+          "name": "leaveDisablesExistingUserIdentity",
+          "result": "PASS"
+        },
+        {
+          "name": "agentWithoutOwnerIsRejected",
+          "result": "PASS"
+        },
+        {
+          "name": "incrementalUpsertSkipsExisting",
+          "result": "PASS"
+        },
+        {
+          "name": "duplicateExternalKeyIsConflict",
+          "result": "PASS"
+        },
+        {
+          "name": "invalidStatusTransitionConflicts",
+          "result": "PASS"
+        },
+        {
+          "name": "staleVersionOnUpdateConflicts",
+          "result": "PASS"
+        },
+        {
+          "name": "unknownLabelRejected",
+          "result": "PASS"
+        },
+        {
+          "name": "creatingUserIdentityIsRejected",
+          "result": "PASS"
+        },
+        {
+          "name": "listUsesCursorAndHasMore",
+          "result": "PASS"
+        },
+        {
+          "name": "projectUserInsertsThenUpdatesIdempotently",
+          "result": "PASS"
+        },
+        {
+          "name": "upsertSyncedNhiIsIdempotentOnSameKey",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.IdentitySyncServiceTest.xml",
+      "report_sha256": "28640924a5856752a2b73183e93f5bc8c23b90d834d0e7862589e7d5ee2bc635",
+      "name": "com.lrj.oa.iam.application.IdentitySyncServiceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.041,
+      "cases": [
+        {
+          "name": "ldapIsRejected",
+          "result": "PASS"
+        },
+        {
+          "name": "mockIncrementalSkipsExisting",
+          "result": "PASS"
+        },
+        {
+          "name": "internalFullRefreshesThenBackfills",
+          "result": "PASS"
+        },
+        {
+          "name": "missingJobIsNotFound",
+          "result": "PASS"
+        },
+        {
+          "name": "mockFullCreatesThenUpdatesSameKeys",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.OrgChangeListenerTest.xml",
+      "report_sha256": "26cad7b47f0dc61eacd23abf13191263a11369b33a5f9f70d8b5fdf1152bfa90",
+      "name": "com.lrj.oa.iam.application.OrgChangeListenerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.028,
+      "cases": [
+        {
+          "name": "assignmentChangeUsesTenantEpochSoScopeContractionSurvivesLostPubSub",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.PermissionDataScopeAccessCheckerTest.xml",
+      "report_sha256": "c49d2d8e0cbe0af3bebabf2879ccb38d830fc8cae39d5e6e42b7bcfa431c1dc1",
+      "name": "com.lrj.oa.iam.application.PermissionDataScopeAccessCheckerTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.011,
+      "cases": [
+        {
+          "name": "customWithoutDescendantsOnlyAllowsExactOrgAndSelfOnlyAllowsOwner",
+          "result": "PASS"
+        },
+        {
+          "name": "customExactAndDescendantScopesDoNotCrossRegions",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.PermissionDelegationServiceTest.xml",
+      "report_sha256": "2c84401b4202bbb723a26aaac24e6ce49fab8f8da06b1ce74df232bdc9be8d0c",
+      "name": "com.lrj.oa.iam.application.PermissionDelegationServiceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.222,
+      "cases": [
+        {
+          "name": "reDelegateIsRejected",
+          "result": "PASS"
+        },
+        {
+          "name": "createExpandsRoleIdsAndChecksHolder",
+          "result": "PASS"
+        },
+        {
+          "name": "coveringIgnoresUnrelatedPerm",
+          "result": "PASS"
+        },
+        {
+          "name": "coveringRequiresDelegatorStillHolds",
+          "result": "PASS"
+        },
+        {
+          "name": "createPersistsWhenHolderHasPerm",
+          "result": "PASS"
+        },
+        {
+          "name": "revokeMarksStatus",
+          "result": "PASS"
+        },
+        {
+          "name": "cannotDelegateToSelf",
+          "result": "PASS"
+        },
+        {
+          "name": "othersCannotRevoke",
+          "result": "PASS"
+        },
+        {
+          "name": "createRequiresCurrentHolder",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.PermissionSnapshotBuilderElevationTest.xml",
+      "report_sha256": "b8967de24ba7d4abf0c6ac838104fb6eb04dd532da4a14c5cb2a5b2b68303d4c",
+      "name": "com.lrj.oa.iam.application.PermissionSnapshotBuilderElevationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.056,
+      "cases": [
+        {
+          "name": "jitRecordElevatesButDoesNotExpandCustomScope",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.RiskFindingServiceTest.xml",
+      "report_sha256": "e6d85cdcd3b105bf0e92645e595594c353eeedd3656a6e250725f0a5c041b0e8",
+      "name": "com.lrj.oa.iam.application.RiskFindingServiceTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.021,
+      "cases": [
+        {
+          "name": "listUnknownStatusIsBadRequest",
+          "result": "PASS"
+        },
+        {
+          "name": "openToResolved",
+          "result": "PASS"
+        },
+        {
+          "name": "scanDoesNotDuplicateActiveFinding",
+          "result": "PASS"
+        },
+        {
+          "name": "scanOpensThreeBuiltinRules",
+          "result": "PASS"
+        },
+        {
+          "name": "resolvedCannotMove",
+          "result": "PASS"
+        },
+        {
+          "name": "missingFindingIsNotFound",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.RoleAdminServiceTest.xml",
+      "report_sha256": "2d457875bf4e06a551f04cca51bd6dfea86cce7e74e7f0501c305f866bc2756d",
+      "name": "com.lrj.oa.iam.application.RoleAdminServiceTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.025,
+      "cases": [
+        {
+          "name": "statusChangeRebuildsActiveClosureAndInvalidatesGlobally",
+          "result": "PASS"
+        },
+        {
+          "name": "deleteRejectsRoleWithAnyGrantHistory",
+          "result": "PASS"
+        },
+        {
+          "name": "builtInRoleCannotBeDisabledAndSuperAdminMatrixIsProtected",
+          "result": "PASS"
+        },
+        {
+          "name": "staleVersionIsReportedAsConflict",
+          "result": "PASS"
+        },
+        {
+          "name": "inheritanceRejectsSelfCrossTenantAndCycles",
+          "result": "PASS"
+        },
+        {
+          "name": "createNormalizesRoleBuildsMatrixAndRebuildsClosure",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.UserGroupServiceTest.xml",
+      "report_sha256": "4c2bb2d4b1e2e358b682e8833f18699afc7c4417b012713d17ab2a305193f469",
+      "name": "com.lrj.oa.iam.application.UserGroupServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.059,
+      "cases": [
+        {
+          "name": "addMembersDeduplicatesValidatesEmployeesAndInvalidatesGlobally",
+          "result": "PASS"
+        },
+        {
+          "name": "disabledGroupAndInvalidPeriodAreRejected",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.application.WhoHasAccessServiceTest.xml",
+      "report_sha256": "029ec1a86e7aa6c55d16b0eb318af4fb3ce6806a15e691adabf8ea17e27b7fbf",
+      "name": "com.lrj.oa.iam.application.WhoHasAccessServiceTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.028,
+      "cases": [
+        {
+          "name": "userGrantDistanceZeroIsRole",
+          "result": "PASS"
+        },
+        {
+          "name": "resourceTypeApiUsesResourceIdAsPermCode",
+          "result": "PASS"
+        },
+        {
+          "name": "orgGrantExactMatchDoesNotUsePrefix",
+          "result": "PASS"
+        },
+        {
+          "name": "orgGrantWithoutPathYieldsNoUsers",
+          "result": "PASS"
+        },
+        {
+          "name": "unknownPermReturnsEmptyKnownFalse",
+          "result": "PASS"
+        },
+        {
+          "name": "groupGrantIsGroupSource",
+          "result": "PASS"
+        },
+        {
+          "name": "delegationIgnoredWhenDelegatorLostPermission",
+          "result": "PASS"
+        },
+        {
+          "name": "activeDelegationIsDelegationSource",
+          "result": "PASS"
+        },
+        {
+          "name": "orgGrantUsesPathPrefixNotIdList",
+          "result": "PASS"
+        },
+        {
+          "name": "missingQueryIsInvalid",
+          "result": "PASS"
+        },
+        {
+          "name": "userGrantDistancePositiveIsInherited",
+          "result": "PASS"
+        },
+        {
+          "name": "nonApiResourceIsInvalid",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.aspect.DataScopeAspectTest.xml",
+      "report_sha256": "8e0197bc5887196e81b246ce9e59ded87f18e7886014d618714acf5fae3d3727",
+      "name": "com.lrj.oa.iam.aspect.DataScopeAspectTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.014,
+      "cases": [
+        {
+          "name": "all_is_explicitly_evaluated",
+          "result": "PASS"
+        },
+        {
+          "name": "rejects_permission_not_authorized_at_entry",
+          "result": "PASS"
+        },
+        {
+          "name": "nested_authorization_context_restores_outer_permissions",
+          "result": "PASS"
+        },
+        {
+          "name": "strict_mode_rejects_unconsumed_scope",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.aspect.DataScopeBypassAspectTest.xml",
+      "report_sha256": "5ecb69fada3dd69f8d29fe7a52993921d32e7f4dedf9567687bd0a28f7b47334",
+      "name": "com.lrj.oa.iam.aspect.DataScopeBypassAspectTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.058,
+      "cases": [
+        {
+          "name": "audited_bypass_proceeds",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.aspect.RequiresPermAspectAuthorizationContextTest.xml",
+      "report_sha256": "3819ed96844119bc0aa91a3c77312d19223c9da197d2321202a1ebe18aa11d1d",
+      "name": "com.lrj.oa.iam.aspect.RequiresPermAspectAuthorizationContextTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.166,
+      "cases": [
+        {
+          "name": "or_rule_exposes_only_the_permission_actually_held",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.config.AuthorizationSafetyGuardTest.xml",
+      "report_sha256": "c765df46c486b4b6cbb4ed617bad017ba360bcf2f90afe43760827a553a4ec54",
+      "name": "com.lrj.oa.iam.config.AuthorizationSafetyGuardTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.006,
+      "cases": [
+        {
+          "name": "jwt_requires_interface_and_data_enforcement",
+          "result": "PASS"
+        },
+        {
+          "name": "dev_can_use_report_mode_for_local_migration",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.datascope.DataScopeConditionTest.xml",
+      "report_sha256": "998c91f5b325def90c86819902e0616c88be8dc1fb4372be284d0de3174dc798",
+      "name": "com.lrj.oa.iam.datascope.DataScopeConditionTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.136,
+      "cases": [
+        {
+          "name": "nested_context_restores_outer_scope",
+          "result": "PASS"
+        },
+        {
+          "name": "org_and_sub_uses_path_prefix",
+          "result": "PASS"
+        },
+        {
+          "name": "none_scope_denies_everything",
+          "result": "PASS"
+        },
+        {
+          "name": "target_table_alias_mismatch_is_rejected",
+          "result": "PASS"
+        },
+        {
+          "name": "all_scope_adds_nothing",
+          "result": "PASS"
+        },
+        {
+          "name": "no_context_means_no_injection",
+          "result": "PASS"
+        },
+        {
+          "name": "too_many_prefixes_preserve_descendant_semantics",
+          "result": "PASS"
+        },
+        {
+          "name": "non_target_join_table_is_untouched",
+          "result": "PASS"
+        },
+        {
+          "name": "custom_exact_orgs_use_id_predicate",
+          "result": "PASS"
+        },
+        {
+          "name": "malicious_path_is_rejected",
+          "result": "PASS"
+        },
+        {
+          "name": "read_and_write_operations_share_the_same_predicate",
+          "result": "PASS"
+        },
+        {
+          "name": "custom_union_keeps_all_components",
+          "result": "PASS"
+        },
+        {
+          "name": "governed_table_without_context_is_rejected",
+          "result": "PASS"
+        },
+        {
+          "name": "multiple_prefixes_are_or_ed",
+          "result": "PASS"
+        },
+        {
+          "name": "self_scope_filters_by_user_and_escapes",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.domain.IdentityStatusTest.xml",
+      "report_sha256": "d6b0125b3d7e48a51dcfb384533ee6a5f9f6874ce7e7961a8f7733ed8d2b1969",
+      "name": "com.lrj.oa.iam.domain.IdentityStatusTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.0,
+      "cases": [
+        {
+          "name": "activeCannotJumpToDeleted",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.domain.PermissionSnapshotScopeTest.xml",
+      "report_sha256": "f6b81688b054e33cb59465d036366163a6a9404f602380418d936a6ba215e557",
+      "name": "com.lrj.oa.iam.domain.PermissionSnapshotScopeTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.003,
+      "cases": [
+        {
+          "name": "samePermissionCombinesIndependentOrganizationGrants",
+          "result": "PASS"
+        },
+        {
+          "name": "scopesAreWidenedPerPermissionNotAcrossTheWholeModule",
+          "result": "PASS"
+        },
+        {
+          "name": "mixedScopeTypesAreUnionedInsteadOfDroppingTheNarrowerGrant",
+          "result": "PASS"
+        },
+        {
+          "name": "allAndNoneRemainAbsorbingAndIdentityElements",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.identity.UserContextFilterTest.xml",
+      "report_sha256": "487b858235242dcd519f58a6802f36bf440b56ef384c9cd74150171a742f741f",
+      "name": "com.lrj.oa.iam.identity.UserContextFilterTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.563,
+      "cases": [
+        {
+          "name": "jwtModeNeverTrustsDevIdentityHeader",
+          "result": "PASS"
+        },
+        {
+          "name": "explicitDevModeStillSupportsSmokeIdentity",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.infrastructure.cache.PermissionEngineTenantCacheTest.xml",
+      "report_sha256": "a5d03fb95a9391afc7cf3a6693cce12c55540d42a632aef086bd12d60ae3073c",
+      "name": "com.lrj.oa.iam.infrastructure.cache.PermissionEngineTenantCacheTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.028,
+      "cases": [
+        {
+          "name": "tenantMessageEvictsOnlyItsTenantAndOlderEpochIsIgnored",
+          "result": "PASS"
+        },
+        {
+          "name": "payloadCodecRejectsMalformedValues",
+          "result": "PASS"
+        },
+        {
+          "name": "rollingUpgradeFenceObservesLegacyWriterAndOldMessageForcesRefresh",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-iam/target/surefire-reports/TEST-com.lrj.oa.iam.infrastructure.cache.SnapshotCodecAbacTest.xml",
+      "report_sha256": "19e7c6e3d0841bb16bd253a30437a491adee7ecc52426dfd35198aaaaa1e919f",
+      "name": "com.lrj.oa.iam.infrastructure.cache.SnapshotCodecAbacTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.041,
+      "cases": [
+        {
+          "name": "roundTripPreservesAbacModeUnconditionalBitsAndBranches",
+          "result": "PASS"
+        },
+        {
+          "name": "rejectsLegacySnapshotsWithoutSchemaVersion",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-org/target/surefire-reports/TEST-com.lrj.oa.org.application.EmployeeServiceDataScopeTest.xml",
+      "report_sha256": "764a8ece2101d689d8319bd8d589c0a121705284862dcfc9b3dbba2871c23930",
+      "name": "com.lrj.oa.org.application.EmployeeServiceDataScopeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.886,
+      "cases": [
+        {
+          "name": "crossRegionUpdateIsRejectedBeforeAnyWrite",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-org/target/surefire-reports/TEST-com.lrj.oa.org.domain.OrgTreeSnapshotTest.xml",
+      "report_sha256": "95749b68fa8061f43c924a1caba3d37a58aec9f337da8d8e771c7593be80e45c",
+      "name": "com.lrj.oa.org.domain.OrgTreeSnapshotTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.087,
+      "cases": [
+        {
+          "name": "cyclic_data_does_not_hang",
+          "result": "PASS"
+        },
+        {
+          "name": "ancestors_are_ordered_from_self_upward",
+          "result": "PASS"
+        },
+        {
+          "name": "minimal_prefixes_drop_covered_paths",
+          "result": "PASS"
+        },
+        {
+          "name": "is_ancestor_uses_path_prefix",
+          "result": "PASS"
+        },
+        {
+          "name": "descendants_cover_whole_subtree",
+          "result": "PASS"
+        },
+        {
+          "name": "deep_chain_does_not_blow_the_stack",
+          "result": "PASS"
+        },
+        {
+          "name": "trailing_slash_prevents_prefix_collision",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "report": "oa-security/target/surefire-reports/TEST-com.lrj.oa.security.config.OaSecurityConfigTest.xml",
+      "report_sha256": "7a40376a74d4e3af4baca8415db0165c3f4d01a556cdec34caa908e78e464aae",
+      "name": "com.lrj.oa.security.config.OaSecurityConfigTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.051,
+      "cases": [
+        {
+          "name": "productionSafeDefaultIsJwt",
+          "result": "PASS"
+        },
+        {
+          "name": "audienceMustContainConfiguredClient",
+          "result": "PASS"
+        }
+      ]
+    }
+  ],
+  "not_run": [
+    "commerce database-backed permission regression",
+    "actual user authorization-code/PKCE login",
+    "new centralized grant/check/revoke graph integration",
+    "SpiceDB marker CAS on installed version",
+    "multi-instance revocation",
+    "OA-auth approval integration",
+    "external supplier scenario",
+    "capacity and disaster recovery"
+  ],
+  "raw_logs": "任务隔离工作树 .local/p0-evidence；只发布不含凭据的测试元数据和摘要"
+}

@@ -1,0 +1,310 @@
+{
+  "captured_at": "2026-09-28T05:17:03.344042+00:00",
+  "repositories": [
+    {
+      "name": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "test_worktree": "/Users/liruijun/personal/LLM/auth-platform-oa-unification"
+    },
+    {
+      "name": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "test_worktree": "/Users/liruijun/personal/LLM/auth-platform-oa-unification/.local/p0-baselines/oa"
+    },
+    {
+      "name": "commerce",
+      "source_ref": "919081be0deef6024f39ba2ea4c232d2ed56fdab",
+      "test_worktree": "/Users/liruijun/personal/LLM/auth-platform-oa-unification/.local/p0-baselines/commerce"
+    }
+  ],
+  "fingerprints": [
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "pom.xml",
+      "sha256": "9c8e65ced20b53d7c772fdbb0045f39ad8705bab7242fd59220bbbe9b4e9bf80"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/AuthzEngine.java",
+      "sha256": "c103f5fa2e1d418b131198785ba26c82c07d490dc50672c8704d534577c11ba9"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-core/src/main/java/com/lrj/authz/core/SpiceDbAuthzEngine.java",
+      "sha256": "da53729c33cab8f58b87bc62a6eff782ef7a9369372f302f781117e9ad0cd91b"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-sdk/src/main/java/com/lrj/authz/sdk/RemoteAuthzEngine.java",
+      "sha256": "afcfc18f4f125fb8a9a8b18409c34e122093e6b5688a57d7766c3b7eaf9aa754"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-sdk/src/main/java/com/lrj/authz/sdk/AuthzSdkAutoConfiguration.java",
+      "sha256": "4d5fed82f0a7b0a1749129205ac1ed784bea9c821e696a5e84e93c687717ca6c"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-sdk/src/main/java/com/lrj/authz/sdk/CheckAccessAspect.java",
+      "sha256": "5b41bb575e7c3d65d8f795d848d7afc453b7b29d4ec3aad5fcb08ab1762e53d3"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/AuthzServerSecurityFilter.java",
+      "sha256": "9e167e94e0031f4b1a2d041c97186f858761c705b435e2978fe5bed9d526d66f"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/AuthzController.java",
+      "sha256": "f566c6e767ebca26a230d85d48f09a9d9ce21f17156227228a7121396a73ea21"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/ZedTokenWatermark.java",
+      "sha256": "3d5f0bf395469a931b00bb431849fb0346c97e1b18339a225e6ad7dd94e625aa"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/AdminController.java",
+      "sha256": "ecb5c7e9b9b9208b48cf46d526175f7276d459a64cb9d292077aa19afc551f88"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/GroupSyncService.java",
+      "sha256": "604030c625c701651bcf2e190fcac8a09c9de459eb3ffe61e6d3997d15b18649"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/DepartmentSyncService.java",
+      "sha256": "36016a88482bcdd9eff3d67ea3148ce14cd6fe120ed740511541a60766127a5a"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/workspace/WorkspaceRoutingEngine.java",
+      "sha256": "926b778776afb53b65ff20a729087278fb059f457b671af7b4daf79c8c5ec693"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/JdbcAuditStore.java",
+      "sha256": "2bd2869a3f9cb5447a4778537ce3e3cda473ccafd732bc9c60c3be7200cbf5fd"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": ".github/workflows/authz-ci.yml",
+      "sha256": "11b15f247111b0d8740ba16f748dedee44ccaabe512e7649cf7982ca87b2d493"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "deploy/spicedb-smoke.sh",
+      "sha256": "551e969df63b4e999f13d6a7988b65a0350398e7e0786623827a24c0a14bc325"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "deploy/his-smoke.sh",
+      "sha256": "3ea0816172700d407c592062ed9e5b1e2dd10bbd9c2af76dd454fc6a28115321"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "deploy/recsys-authz-fixture.sh",
+      "sha256": "e72ca5b2202eb9a705e042900ed3aafab93cf52c66a6de888b45f767c2d1edb1"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "deploy/risk-authz-fixture.sh",
+      "sha256": "09e819cf023adc61d08a3d79572480a6ca12bb156cf2cec9b98fd2f267310750"
+    },
+    {
+      "repository": "auth",
+      "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
+      "path": "deploy/casdoor-tenant-provision.sh",
+      "sha256": "dda4787e0ac095d6135d5786eb241cce90e0912007394f1a90438c8cf7791f0d"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "pom.xml",
+      "sha256": "78bf5726c1710e6c95a69ee2d2c6d61b436818710f88ec0a1a378320eebebdff"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-dependencies/pom.xml",
+      "sha256": "1dc5240e812303d33174f3fe65cc8c9b7e5bbc9df15246eb040b3ed2621e558f"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/IdentityService.java",
+      "sha256": "b15030981d1e130aa5c5c7ca97399f7f77fa7dfa25762cb5eff357c9ac9babb7"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/IdentityProjectionListener.java",
+      "sha256": "652cd4f0b4273726d739ec0fce75931e9a21761ab6a1e971174af536e4db27f9"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/GrantService.java",
+      "sha256": "539b52c0e280f7b4d13e6e16adb10631e0e44e5d4c8e90ab928ce5c9d27032b1"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/AccessRequestService.java",
+      "sha256": "5a5f552bced75f8fc5fb8a3d8d41fc78f0cba72fbbfaae885cd195e844ed4c29"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/PermissionSnapshotBuilder.java",
+      "sha256": "d43299bd498a5b0d4821c719cf1d46190bf9ca585e792670b2e0e6cc9285cddf"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/domain/GrantRecord.java",
+      "sha256": "1c333ceacd8c00b723fc66dae387cb9d1cb3218a1b079f8d13ce93e24643862d"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/AuthzCheckService.java",
+      "sha256": "da9dbab2ac0a7f722219ff66c444e34acefb4195e00c64fc34abc05cb707fb02"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/infrastructure/cache/PermissionEngine.java",
+      "sha256": "0126ba2a003f67c73fc23b3a9794e2672d81d75d385cc860839b960ef10c449e"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/infrastructure/datascope/OaDataPermissionHandler.java",
+      "sha256": "f6748e5c2b49ddc3283bb507985d15cf38d76f1c56bf256ea358d21e28cca8ff"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-iam/src/main/resources/db/migration/V10__iam.sql",
+      "sha256": "e71774809f45f19b6e060da83a84907d187992498228ef5434ae6c8c826e0fb1"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-iam/src/main/resources/db/migration/V110__identity_principal.sql",
+      "sha256": "fdfc52c93d003e841c1f74bcedc7188475a8ad15c5355f171b884f8b6aa91134"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "oa-org/src/main/resources/db/migration/V2__org.sql",
+      "sha256": "35d22e62daccb119a69aaf1fa6b309c293f6ea6cb784cc70bf6d95a643c50f5f"
+    },
+    {
+      "repository": "oa",
+      "source_ref": "f07c97893238cd97bab38a140b5f6946184d4459",
+      "path": "docs/design/identity-authz-governance/DECISION_RECORD.md",
+      "sha256": "0deedf5c0429e123913e986a66af0d467fd0828468a55d8ecb6c245644024882"
+    },
+    {
+      "repository": "commerce",
+      "source_ref": "919081be0deef6024f39ba2ea4c232d2ed56fdab",
+      "path": "pom.xml",
+      "sha256": "aaf0adcf5766473543842245a5c759e8654a5f3df09dd1b8a6db15c574e513d4"
+    },
+    {
+      "repository": "commerce",
+      "source_ref": "919081be0deef6024f39ba2ea4c232d2ed56fdab",
+      "path": "commerce-app/pom.xml",
+      "sha256": "748003f370a85afa138ac291d586191a914eaf68c0892e0b369ed6bf7597d571"
+    },
+    {
+      "repository": "commerce",
+      "source_ref": "919081be0deef6024f39ba2ea4c232d2ed56fdab",
+      "path": "commerce-app/src/main/java/com/lrj/commerce/app/configuration/security/SecurityConfiguration.java",
+      "sha256": "f9f4e53901ab6ff478adc53579c53f10e713466c68d27362f508a7c073cb4d09"
+    },
+    {
+      "repository": "commerce",
+      "source_ref": "919081be0deef6024f39ba2ea4c232d2ed56fdab",
+      "path": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/StoreAccessController.java",
+      "sha256": "ecaf84db806ec1c573c52b96664cea946f7e60a11fa6752d9642a2ec4421233d"
+    },
+    {
+      "repository": "commerce",
+      "source_ref": "919081be0deef6024f39ba2ea4c232d2ed56fdab",
+      "path": "platform-runtime/src/main/java/com/lrj/commerce/runtime/api/identity/Actor.java",
+      "sha256": "0ef25e34f6684b4ebd47d024b57d803131d470f08dabb14f158d33e8d4e72800"
+    },
+    {
+      "repository": "commerce",
+      "source_ref": "919081be0deef6024f39ba2ea4c232d2ed56fdab",
+      "path": "store/src/main/java/com/lrj/commerce/store/access/application/StoreAccessService.java",
+      "sha256": "dbc48b3e841ddb5f003ff4ca876b25c6230a867632cd99bea98ffedfeaf2c121"
+    },
+    {
+      "repository": "commerce",
+      "source_ref": "919081be0deef6024f39ba2ea4c232d2ed56fdab",
+      "path": "store/src/main/resources/mappers/store/StoreAccessMapper.xml",
+      "sha256": "3feefc1798af6cb99d647106e2e6b9c51cc73fbb406d7089263deec74f00f639"
+    },
+    {
+      "repository": "commerce",
+      "source_ref": "919081be0deef6024f39ba2ea4c232d2ed56fdab",
+      "path": "commerce-app/src/test/java/com/lrj/commerce/app/StoreAccessTest.java",
+      "sha256": "e49e945a9771ed06d0ae3e518affa677d1385da9f29d3281e5e5968fd145042b"
+    },
+    {
+      "repository": "commerce",
+      "source_ref": "919081be0deef6024f39ba2ea4c232d2ed56fdab",
+      "path": "commerce-app/src/test/java/com/lrj/commerce/app/configuration/security/AuthorizationCoverageTest.java",
+      "sha256": "bb4140033071a80579a2d62adde3a4d8f1f43d26944294fda7bd92c1a5281668"
+    },
+    {
+      "repository": "commerce",
+      "source_ref": "919081be0deef6024f39ba2ea4c232d2ed56fdab",
+      "path": "docs/design/enterprise-iam-integration/EXECUTION_PLAN.md",
+      "sha256": "735d7eb3e47147776c76846c84be9416a621dc4191de791066b28e13d3dacd59"
+    }
+  ],
+  "runtime_observations": {
+    "docker_context": "desktop-linux",
+    "java": "21.0.11",
+    "maven": "3.9.12",
+    "spicedb_version": "v1.56.2",
+    "spicedb_image_digest": "sha256:aa96009a0477f8a759149823407d47ad16d1a74390bae3102b3b0b7143502764",
+    "casdoor_semantic_version": "UNKNOWN",
+    "casdoor_image_digest": "sha256:1b479655bf51b1c630f2a3ea93ec1ef58388e1d5861173377269266ea321537e",
+    "discovery": "http://127.0.0.1:8000/.well-known/openid-configuration",
+    "issuer": "http://localhost:8000",
+    "pkce_discovery_methods": [
+      "S256"
+    ],
+    "subject_types_discovery": [
+      "public"
+    ],
+    "observation_limits": "Discovery 声明与只读版本信息，不是实际 Token 受众/注销/CAS/授权链证明；当前 docker ps 未见 OA 容器。"
+  }
+}
