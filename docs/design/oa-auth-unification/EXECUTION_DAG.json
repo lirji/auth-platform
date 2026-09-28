@@ -69,7 +69,7 @@
     "P7-07",
     "P7-08"
   ],
-  "next_design_task": "P3-04a",
+  "next_design_task": "P3-04b",
   "production_authorized": false,
   "tasks": [
     {
@@ -763,11 +763,12 @@
       "runtime": "按本片需要的隔离验证目标",
       "parallel": false,
       "parallel_reason": "同一公开契约/投影Owner",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "execution_authorized_this_task": true,
       "contract_ownership": "所属阶段薄路径",
       "schema_migration_owner": "对应阶段唯一Owner",
-      "contract_ref": "CONTRACTS_P3_CONSISTENCY.md"
+      "contract_ref": "CONTRACTS_P3_CONSISTENCY.md",
+      "evidence_ref": "../../implementation/oa-auth/phase-3/P3-04a_TEST_RESULT.md"
     },
     {
       "id": "P3-04b",
@@ -788,10 +789,11 @@
       "runtime": "按本片需要的隔离验证目标",
       "parallel": false,
       "parallel_reason": "同一公开契约/投影Owner",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "execution_authorized_this_task": true,
       "contract_ownership": "所属阶段薄路径",
-      "schema_migration_owner": "对应阶段唯一Owner"
+      "schema_migration_owner": "对应阶段唯一Owner",
+      "contract_ref": "CONTRACTS_P3_CONSISTENCY.md"
     },
     {
       "id": "P3-04c",

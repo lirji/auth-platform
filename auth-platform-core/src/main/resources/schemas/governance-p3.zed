@@ -1,0 +1,14 @@
+// P3专属图定义；旧P2关系写入不能改变严格读取使用的Grant。
+definition gov_membership {}
+definition gov_group {
+    relation member: gov_membership
+}
+definition gov_access_grant {
+    relation assignee: gov_membership | gov_group#member
+    permission eligible = assignee
+}
+// marker仅投影服务持有的独立凭证可以写入，ID为不可复用的operation UUID。
+definition gov_epoch_marker {}
+definition gov_partition {
+    relation head: gov_epoch_marker
+}

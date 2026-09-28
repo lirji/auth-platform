@@ -12,6 +12,8 @@ import urllib.request
 import urllib.error
 
 IMAGE='authzed/spicedb@sha256:aa96009a0477f8a759149823407d47ad16d1a74390bae3102b3b0b7143502764'
+PHASE_P2='p2'
+PHASE_P3='p3'
 ROOT=Path('.local/governance/p2/graph').resolve()
 NAME='auth-governance-p2-graph'
 PORT=18543
@@ -29,7 +31,12 @@ def main():
     parser.add_argument('--port',type=int,default=45432)
     parser.add_argument('--postgres-host',default='host.docker.internal')
     parser.add_argument('--network')
+    parser.add_argument('--phase',choices=[PHASE_P2,PHASE_P3],default=PHASE_P2)
     args=parser.parse_args()
+    global ROOT,NAME,PORT
+    ROOT=Path(f'.local/governance/{args.phase}/graph').resolve()
+    NAME=f'auth-governance-{args.phase}-graph'
+    PORT=18543 if args.phase==PHASE_P2 else 18544
     network=['--network',args.network] if args.network else []
     ROOT.mkdir(parents=True,exist_ok=True,mode=0o700)
     subprocess.run(['python3','deploy/governance-test-db.py','--directory',str(ROOT),'--container',args.postgres_container,'--port',str(args.port)],check=True,stdout=subprocess.DEVNULL)
@@ -44,13 +51,13 @@ def main():
     found=subprocess.run(['docker','inspect',NAME],capture_output=True,text=True)
     if found.returncode==0:
         current=json.loads(found.stdout)[0]
-        if current['Config']['Labels'].get('auth-governance-phase')!='p2' or current['Config']['Image']!=IMAGE:
+        if current['Config']['Labels'].get('auth-governance-phase')!=args.phase or current['Config']['Image']!=IMAGE:
             raise RuntimeError('existing container ownership mismatch')
         if not current['State']['Running']:subprocess.run(['docker','start',NAME],check=True,stdout=subprocess.DEVNULL)
     else:
         with open(ROOT/'migration.log','w') as out:
             subprocess.run(['docker','run',*network,'--rm','--env-file',str(env),IMAGE,'datastore','migrate','head'],check=True,stdout=out,stderr=subprocess.STDOUT)
-        subprocess.run(['docker','run',*network,'-d','--name',NAME,'--label','auth-governance-phase=p2','--cpus=1','--memory=512m',
+        subprocess.run(['docker','run',*network,'-d','--name',NAME,'--label',f'auth-governance-phase={args.phase}','--cpus=1','--memory=512m',
             '--env-file',str(env),'-p',f'127.0.0.1:{PORT}:8443',IMAGE,'serve','--http-enabled','--http-addr=:8443','--grpc-addr=:50051'],check=True,stdout=subprocess.DEVNULL)
     headers={'Authorization':'Bearer '+values['SPICEDB_GRPC_PRESHARED_KEY'],'Content-Type':'application/json'}
     deadline=time.monotonic()+45
@@ -66,7 +73,8 @@ def main():
         except Exception:
             if time.monotonic()>deadline:raise RuntimeError('isolated graph startup timeout')
             time.sleep(.25)
-    schema=Path('auth-platform-core/src/main/resources/schemas/governance.zed').read_text()
+    schema_name='governance.zed' if args.phase==PHASE_P2 else 'governance-p3.zed'
+    schema=Path('auth-platform-core/src/main/resources/schemas',schema_name).read_text()
     # 仅空的专属图首次初始化；已有模型不覆盖，要求人工评审迁移。
     if not current:
         req=urllib.request.Request(f'http://127.0.0.1:{PORT}/v1/schema/write',data=json.dumps({'schema':schema}).encode(),headers=headers)
