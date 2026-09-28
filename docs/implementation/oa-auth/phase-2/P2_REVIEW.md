@@ -4,6 +4,8 @@
 
 已修复并验证：
 
+- SDK响应头后body卡住不受原HttpRequest超时完全约束：真实失败用例复现2秒停滞；完整异步结果限时等待并取消，新增专项通过。
+
 - 商城与auth Maven安装仓库不同导致旧SNAPSHOT被使用：统一安装使用商城Maven，并固定源码完整SHA、核对SDK范围diff。
 - Actor存在兼容构造器，MyBatis自动构造映射会失败：显式constructor resultMap；真实MySQL门店读取13项通过。
 - 失败耗尽的投影缺少受控恢复：增加当前委派管理、幂等、版本、审计的retry-projection，不直接激活Grant。

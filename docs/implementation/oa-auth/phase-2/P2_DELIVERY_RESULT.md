@@ -15,7 +15,7 @@ P2-01—P2-08（含P2-05a）本地实现与验收完成。当前正在正常合�
 | G2-07 故障与拒绝区分 | SDK协议/超时专项、待投影/中央故障503，明确拒绝403/DENY | PASS |
 | G2-08 真实业务链路 | 真实Casdoor→治理SQL/SpiceDB→SDK→Boot4商城→MySQL门店列表 | PASS |
 
-验证：auth单测209，真实PG58，真实图7；Boot4 SDK兼容1项、6次HTTP交互；治理HTTP34项；商城HTTP13项、非HTTP绕过2项；控制台真实浏览器6组（1440与390视口）。商城完整verify结果及精确CI在末尾。各片TEST_RESULT保留当时证据，本表为最终汇总；P1历史身份IT5未冒充本轮新跑。
+验证：auth单测210，真实PG58，真实图7；Boot4 SDK兼容1项、6次HTTP交互；治理HTTP34项；商城HTTP13项、非HTTP绕过2项；控制台真实浏览器6组（1440与390视口）。商城完整verify 377项通过；精确CI在末尾。各片TEST_RESULT保留当时证据，本表为最终汇总；P1历史身份IT5未冒充本轮新跑。
 
 质量复核见P2_REVIEW；两仓Code Hygiene为IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS（无既有Java formatter/静态分析器），编译、测试、diff检查通过。页面截图已实际查看。凭据和日志只在忽略目录；所有建表/字段均有注释。
 

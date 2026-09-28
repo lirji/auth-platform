@@ -49,17 +49,21 @@ public final class CentralAccessClient {
     public Decision requireAllowed(String token,Check request){Decision decision=check(token,request);if(!"ALLOW".equals(decision.decision()))throw new AccessDeniedException("CENTRAL_ACCESS_DENIED");return decision;}
     private <T>T post(String path,String user,Object request,Class<T> type){
         if(user==null||user.isBlank()||user.length()>16384||user.chars().anyMatch(Character::isWhitespace))throw new CentralAccessException(401);
+        CompletableFuture<HttpResponse<byte[]>> pending=null;
         try{
             var message=HttpRequest.newBuilder(base.resolve("/internal/governance/v1/access/"+path)).timeout(timeout)
                     .header("Authorization","Bearer "+credential).header("X-User-Access-Token",user).header("Content-Type","application/json")
                     .POST(HttpRequest.BodyPublishers.ofByteArray(JSON.writeValueAsBytes(request))).build();
-            var response=http.send(message,ignored->new BoundedBody());
+            // HttpRequest超时不足以约束已收响应头后的body停滞；总期限覆盖完整响应并取消在途交换。
+            pending=http.sendAsync(message,ignored->new BoundedBody());
+            var response=pending.get(timeout.toMillis(),TimeUnit.MILLISECONDS);
             if(response.statusCode()!=200)throw new CentralAccessException(response.statusCode()==401?401:503);
             if(!response.headers().firstValue("Content-Type").orElse("").split(";",2)[0].trim().equalsIgnoreCase("application/json"))throw unavailable();
             return JSON.readValue(response.body(),type);
         }catch(CentralAccessException failure){throw failure;}
         catch(InterruptedException failure){Thread.currentThread().interrupt();throw unavailable();}
         catch(Exception failure){throw unavailable();}
+        finally{if(pending!=null&&!pending.isDone())pending.cancel(true);}
     }
     private void validate(Check request){
         if(request==null||!uuid(request.tenantId())||!uuid(request.requestId())||!code(request.capability())||!code(request.resourceType())

@@ -51,4 +51,23 @@ class CentralAccessClientTest {
         client=new CentralAccessClient("http://127.0.0.1:"+server.getAddress().getPort(),"s".repeat(48),"commerce","test",Duration.ofMillis(100),Duration.ofMillis(100));
         assertThatThrownBy(()->client.check("user-token",request)).isInstanceOf(CentralAccessException.class);
     }
+    @Test void timeoutAlsoBoundsAStalledResponseBody() throws Exception {
+        var release = new java.util.concurrent.CountDownLatch(1);
+        server.removeContext("/internal/governance/v1/access");
+        server.createContext("/internal/governance/v1/access", exchange -> {
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, 1000);
+            exchange.getResponseBody().write('{'); exchange.getResponseBody().flush();
+            try { release.await(2, java.util.concurrent.TimeUnit.SECONDS); }
+            catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); }
+            finally { exchange.close(); }
+        });
+        client = new CentralAccessClient("http://127.0.0.1:" + server.getAddress().getPort(), "s".repeat(48),
+                "commerce", "test", Duration.ofMillis(100), Duration.ofMillis(100));
+        try {
+            org.junit.jupiter.api.Assertions.assertTimeout(Duration.ofMillis(750), () ->
+                    assertThatThrownBy(() -> client.check("user-token", request)).isInstanceOf(CentralAccessException.class));
+        } finally { release.countDown(); }
+    }
+
 }

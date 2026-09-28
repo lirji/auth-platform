@@ -7,3 +7,5 @@ PASS。全仓package、SDK install/unit、Boot4兼容复跑均通过；CentralAc
 应用/环境由固定服务配置给定，新增access.check.callers允许名单避免旧context.resolve服务自动获新能力。所有中央入口默认关闭；旧九项SDK及AOP兼容回归通过。
 
 跨请求缓存、多实例撤权和细范围仍未启用。批量最多20项并限定同tenant/generation；单检查候选最多100且有6秒预算，批量10秒预算，不把超时当DENY或成功。完整商城应用真实链路由P2-06继续。
+
+交付复核补充：响应头已返回但body停滞的真实HTTP用例最初失败（100ms配置实际等待约2秒）。现改为完整sendAsync结果的有界等待，超时/中断取消在途交换，保留64KiB订阅上限；5项SDK专项和Boot4兼容复跑通过。不能仅凭HttpRequest.timeout声明body读取有界。最终auth单测总数210。
