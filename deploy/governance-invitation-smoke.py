@@ -114,9 +114,9 @@ def main():
     body = json.dumps(first).encode()
     # 先证明邀请开关关闭时，未绑定用户没有通用治理入口；独立开关不能越过主开关。
     process = base.start(jars['admin'], base.ADMIN_PORT, run / 'off.log', run / 'admin.properties')
-    # 夹具可能重跑，先前已绑定的用户会得到 404，而首次未绑定得到 403。
+    # 首次未绑定为 403；重跑已绑定时路由不存在，框架可能经旧 /error 链返回 401 或 404。
     status, response = base.request(base.ADMIN_PORT, ACCEPT, user, body)
-    if status not in (403, 404):
+    if status not in (401, 403, 404):
         raise RuntimeError('disabled invitation route became available')
     base.CHECKS.append({'check': 'invitation switch disabled rejects acceptance', 'result': 'PASS'})
     base.stop(process)
@@ -184,7 +184,8 @@ if __name__ == '__main__':
     try:
         main()
     except (OSError, ValueError, RuntimeError, AssertionError, KeyError, subprocess.SubprocessError) as failure:
-        print(json.dumps({'result': 'FAIL', 'completed_checks': base.CHECKS, 'category': type(failure).__name__}))
+        print(json.dumps({'result': 'FAIL', 'completed_checks': base.CHECKS,
+                          'category': type(failure).__name__, 'errno': getattr(failure, 'errno', None)}))
         raise SystemExit('P1-05 smoke failed; inspect private logs, credentials not printed') from None
     finally:
         for process in base.PROCESSES:

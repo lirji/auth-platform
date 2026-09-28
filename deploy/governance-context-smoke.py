@@ -72,6 +72,9 @@ def expect(name, port, path, headers=(), body=None, status=200, code=None):
 def start(jar, port, log, config=None, missing=False, invitations=False):
     """仅启动本任务回环进程；退出时只终止本工具持有的 Popen。"""
     with socket.socket() as probe:
+        # Linux 的已退出进程连接可能仍处 TIME_WAIT；允许地址重用但不启用 SO_REUSEPORT，
+        # 这样仍拒绝正在监听的他人进程，不会把正常的本任务重启误判为端口占用。
+        probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         probe.bind(('127.0.0.1', port))
     args = ['java', '-Xmx256m', '-jar', str(jar), '--server.address=127.0.0.1', '--server.port=' + str(port)]
     if config or missing:

@@ -1,6 +1,6 @@
 {
   "slice_id": "P1-05",
-  "revision": "66b997602477988247b9a3e39fc3687c9d5440f6d93b02bd98e99f4e46d0190e",
+  "revision": "77c820cc64bc1fb5e541edcec21ce682b23710efc9c6b9c50514613a67510d93",
   "overall": "PASS",
   "gate": "PASS",
   "unit_tests": 181,
@@ -317,5 +317,19 @@
     "Shared IdP compatibility upgrade remains HOLD; no production deployment"
   ],
   "local_evidence_directory": ".local/governance/p1-05",
-  "ci": "PENDING"
+  "ci": "PENDING",
+  "ci_attempts": [
+    {
+      "run_id": 36392202962,
+      "head": "f541c2edb85a39738d9685b5987bb339441f2ac9",
+      "result": "FAIL",
+      "failure": "invitation process restart OSError; earlier steps PASS"
+    }
+  ],
+  "runtime_remediation": {
+    "linux_time_wait_reproduction": "PASS",
+    "active_listener_rejected": "PASS",
+    "invitation_rerun": "/Users/liruijun/personal/LLM/auth-platform/.local/governance/p1-05/http-cadb3d6ede21",
+    "checks": 30
+  }
 }

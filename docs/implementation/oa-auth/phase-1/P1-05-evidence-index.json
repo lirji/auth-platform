@@ -25,8 +25,8 @@
     "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/InvitationPostgresIT.java": "a0f3ba7c6689bf7e0551c4ec560ff4d023b17792a1b2cda77e9599f02e865d87",
     "auth-platform-governance/src/test/java/com/lrj/authz/governance/web/GovernanceWebTest.java": "792a577c597055ee9a7e6964aa999eaea3b1fe6b83e954bbe251a8ed3fcfca6b",
     "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/GovernanceDtos.java": "9a222d4da1d64144ecb00e24fcbdac72a491862adaabcaff478a5eeaa301e8ed",
-    "deploy/governance-context-smoke.py": "705170b9dcd8bdcad37ce46e88c37d578b1659f8f9a581fd66455334f75aad14",
-    "deploy/governance-invitation-smoke.py": "f232ae4fb6fc3afa69c9d888e5de039d34a85aedbdb1a78d4b7685decc8ed0d1"
+    "deploy/governance-context-smoke.py": "205fcbd5b940f4dada9ae316f4ddb8dd9917460f202d101d68e0d971acb227fb",
+    "deploy/governance-invitation-smoke.py": "8336666e626b7158269e480372960ab7559e699c651f5f1c93e49f855b7de98a"
   },
-  "source_fingerprint": "66b997602477988247b9a3e39fc3687c9d5440f6d93b02bd98e99f4e46d0190e"
+  "source_fingerprint": "77c820cc64bc1fb5e541edcec21ce682b23710efc9c6b9c50514613a67510d93"
 }
