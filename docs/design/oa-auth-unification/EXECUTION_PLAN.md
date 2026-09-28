@@ -43,7 +43,7 @@
 |---|---|---|---|---|
 | P0 基线 | 三仓证据、唯一所有权、ADR、真实试点入口、P1 范围 | 用户方案 | 差异和未验证项可追溯；足以启动受限 P1 设计 | COMPLETE_WITH_LIMITATIONS |
 | P1 身份与目录 | Principal／LoginIdentity／Tenant／Membership、可信上下文、邀请与生命周期 | P0；具体契约冻结 | 真 Token 正反例、成员隔离、重复乱序、邀请并发、停用拒绝 | COMPLETE（隔离后端验收；共享升级 HOLD） |
-| P2 应用 RBAC | 应用清单、角色版本、直接授权、单执行者投影、SDK、首个内部只读请求 | P1 核心身份契约 | 真实授予→检查允许→撤销拒绝；无旁路；旧 SDK 回归 | NOT_STARTED |
+| P2 应用 RBAC | 应用清单、角色版本、直接授权、单执行者投影、SDK、首个内部只读请求 | P1 核心身份契约 | 真实授予→检查允许→撤销拒绝；无旁路；旧 SDK 回归 | COMPLETE_LOCAL（Git/CI收口中） |
 | P3 数据权限与一致性 | ScopePlan、查询／写入守卫、主库版本栅栏、远端 CAS、回执与组关系 | P2 最小闭环 | 同 Grant 绑定；双实例旧写拒绝；撤权完成后新请求无旧路径 | NOT_STARTED |
 | P4 OA 审批 | 请求快照、OA 实例与事件、Inbox、待生效状态、来源回收 | P3 安全底座 | 真实跨进程全链路、超时幂等、取消竞态、审批通过不冒充 ACTIVE | NOT_STARTED |
 | P5 门户与试点 | 统一工作台、管理台、内外部真实业务及浏览器验收 | P1—P4 所需契约 | 页面与后端一致；跨组织／应用／合作方反例；异常提示 | NOT_STARTED |
@@ -217,4 +217,4 @@ P5 只读页面可在各自 API 冻结后提前开发，不等待全部后端功
 
 用户 AGENTS.md 第 8 条持续授权当前任务独立分支、必要验证、正常合并和推送远程 main；方案包的默认“不提交”不覆盖此授权。生产部署、破坏性迁移、清库、覆盖他人修改、强推不在授权内。
 
-P1-00 已冻结 [CONTRACTS_P1.md](CONTRACTS_P1.md)，当前进入 **P1-01 最小可信成员路径**。详细文件、负例和验证命令在 [phase-1-plan.md](../../implementation/oa-auth/phase-0/phase-1-plan.md)。正式外部试点和目录接管只等待其必要业务决策，不要求重新规划整个项目。
+P1-00—P1-07及P2全部实施片已完成本地验收，P2 Git/CI正在收口，之后按用户要求暂停；当前权威见PROGRESS_STATE与phase-2/P2_DELIVERY_RESULT。P1-00冻结的契约见[CONTRACTS_P1.md](CONTRACTS_P1.md)。详细文件、负例和验证命令在 [phase-1-plan.md](../../implementation/oa-auth/phase-0/phase-1-plan.md)。正式外部试点和目录接管只等待其必要业务决策，不要求重新规划整个项目。

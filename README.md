@@ -174,3 +174,7 @@ TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh # 部门层级模型 seed 
 ## OA 本地接入
 
 能力门户卡片 `oa` 指向 Docker 控制台 `:8404/login`。本地走 Casdoor 组织 `built-in`、应用 `oa-platform`、`aud=oa-platform-local`，账号 `admin` / `123`。`OA_UI_PORT` 对应 `oa-platform` 的 `OA_CONSOLE_PORT`；生产示例保持 `coming-soon`。本地 Vite `:5473` 仅作开发，不进能力页。
+
+## 企业 IAM 分阶段建设
+
+P1已完成，P2应用RBAC与首个商城读取链路已完成本地验收，Git/CI见[阶段报告](docs/implementation/oa-auth/phase-2/P2_DELIVERY_RESULT.md)。当前进度以[PROGRESS_STATE](docs/design/oa-auth-unification/PROGRESS_STATE.md)为准；P2交付后暂停，不自动进入P3。控制台最小入口为`/governance`，运行条件见[契约](docs/design/oa-auth-unification/CONTRACTS_P2_PRESENTATION.md)。

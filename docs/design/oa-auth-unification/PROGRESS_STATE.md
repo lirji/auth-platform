@@ -1,21 +1,7 @@
-# 改造计划与实施进度
+# 企业 IAM 当前进度
 
-## 任务目标与当前状态
+P0/P1已完成。P2全部9个节点（含P2-05a）实现和本地验收DONE，正在收口两仓正常Git交付与CI；结果见[phase-2/P2_DELIVERY_RESULT](../../implementation/oa-auth/phase-2/P2_DELIVERY_RESULT.md)。63节点DAG保持原依赖。
 
-用户已授权连续完成全部 P2（含 P2-05a），完成验证、Git交付后暂停，不进入 P3。原63节点保留。auth分支 feat/oa-auth-p2-rbac，基线187cbde。
+已验证应用清单、固定角色、受控授权、单执行者投影、SDK/Boot4、真实商城读取以及菜单/授权状态页面。质量限制、真实验收和隔离资源见阶段报告。
 
-## 已完成
-
-P0/P1全部完成，证据见 docs/implementation/oa-auth/phase-1/P1_DELIVERY_RESULT.md。当前P2契约从清单纵向片开始冻结。
-
-## 未完成
-
-P2-01 DONE（phase-2/P2-01_TEST_RESULT）；P2-02 DONE（phase-2/P2-02_TEST_RESULT）；P2-03 DONE（phase-2/P2-03_TEST_RESULT）；P2-04 DONE（phase-2/P2-04_TEST_RESULT）；P2-05a DONE（phase-2/P2-05a_TEST_RESULT）；P2-05 DONE（phase-2/P2-05_TEST_RESULT）；P2-06 DONE（真实业务13项）；P2-07 DONE（HTTP34项、页面6组）；P2-08 IN_PROGRESS（总验收/交付）。P3—P7仍TODO且未获本轮授权。
-
-## 当前限制
-
-共享Casdoor升级HOLD保留；仅隔离验证，不执行生产目录接管/生产部署。OA用户已有修改保持。P1原进度备份于.local/governance/p2/P1_CODEX_PROGRESS.md。
-
-## 下一步
-
-收口P2-08与两仓Git/CI，commerce任务分支feat/oa-auth-p2-commerce；无需再确认阶段继续。唯一当前执行摘要见auth根CODEX_PROGRESS.md。
+用户要求P2全部做完后暂停；P3—P7未获本轮授权。共享Casdoor升级HOLD保留；未生产部署，未改OA用户文件。Git/CI成功后更新最终记录并停止。

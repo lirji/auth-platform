@@ -11,6 +11,10 @@ on:
       - 'deploy/governance-context-smoke.py'
       - 'deploy/governance-invitation-smoke.py'
       - 'deploy/governance-casdoor-*.py'
+      - 'deploy/governance-access-smoke.py'
+      - 'deploy/governance-graph-isolation.py'
+      - 'compatibility/boot4-sdk/**'
+      - 'auth-console/**'
       - 'pom.xml'
       - 'mvnw'
       - '.mvn/**'
@@ -26,6 +30,10 @@ on:
       - 'deploy/governance-context-smoke.py'
       - 'deploy/governance-invitation-smoke.py'
       - 'deploy/governance-casdoor-*.py'
+      - 'deploy/governance-access-smoke.py'
+      - 'deploy/governance-graph-isolation.py'
+      - 'compatibility/boot4-sdk/**'
+      - 'auth-console/**'
       - 'pom.xml'
       - 'mvnw'
       - '.mvn/**'
@@ -102,3 +110,29 @@ jobs:
             --directory .local/governance/p1-05-idp \
             --management-config .local/governance/casdoor-isolated/management-client.json
           python3 deploy/governance-invitation-smoke.py
+
+      - name: Verify Boot4 SDK source compatibility
+        run: |
+          ./mvnw -B -pl auth-platform-sdk -am install -DskipTests
+          ./mvnw -B -f compatibility/boot4-sdk/pom.xml test
+      - name: Prepare independent persistent governance graph
+        run: |
+          GOV_TEST_NETWORK="$(docker inspect --format '{{range $key, $value := .NetworkSettings.Networks}}{{print $key}}{{end}}' '${{ job.services.postgres.id }}')"
+          python3 deploy/governance-graph-isolation.py --postgres-container '${{ job.services.postgres.id }}' --port 5432 --postgres-host postgres --network "$GOV_TEST_NETWORK"
+      - name: Verify real graph failure and recovery boundaries
+        run: ./mvnw -B -pl auth-platform-governance -am -Pgovernance-graph-it verify
+        env:
+          GOVERNANCE_TEST_CONFIG: ${{ github.workspace }}/.local/governance/database.properties
+          GOVERNANCE_GRAPH_CONFIG: ${{ github.workspace }}/.local/governance/p2/graph/graph.properties
+      - name: Verify application RBAC and own menus through real HTTP
+        run: |
+          python3 deploy/governance-casdoor-fixture.py --base http://localhost:18090 --phase tokens --directory .local/governance/p2/identity --management-config .local/governance/casdoor-isolated/management-client.json
+          python3 deploy/governance-access-smoke.py --with-checks
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - name: Build governance console
+        run: pnpm --dir auth-console install --frozen-lockfile && pnpm --dir auth-console build
