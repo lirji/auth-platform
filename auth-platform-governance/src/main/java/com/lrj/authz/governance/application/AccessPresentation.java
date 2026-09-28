@@ -11,13 +11,23 @@ import java.util.*;
 public final class AccessPresentation {
     private final IdentityGovernance identity;
     private final CatalogMapper catalog;
-    private final AccessAuthorization authorization;
+    private final Checker authorization;
 
     /** 只组合现有权威身份、目录与判权，不引入前端角色推断。 */
     public AccessPresentation(IdentityGovernance identity, CatalogMapper catalog, AccessAuthorization authorization) {
-        this.identity = identity; this.catalog = catalog; this.authorization = authorization;
+        this(identity,catalog,authorization::allowed);
+    }
+    /** 展示可切换严格范围，但提示永远不代替业务资源检查。 */
+    public AccessPresentation(IdentityGovernance identity,CatalogMapper catalog,Checker authorization){
+        this.identity=identity;this.catalog=catalog;this.authorization=authorization;
     }
 
+    /** 只回答是否存在当前有效范围，用于菜单提示，不返回全范围授权。 */
+    @FunctionalInterface
+    public interface Checker {
+        /** 当前主体至少有一条完整允许路径才显示能力。 */
+        boolean allowed(AccessContext context,String capability,String resourceType);
+    }
     /** 租户由本人有效成员关系验证，app/env仅选择展示目标，不能代查其他主体。 */
     public View current(VerifiedLogin login, Partition partition) {
         AccessValues.partition(partition);

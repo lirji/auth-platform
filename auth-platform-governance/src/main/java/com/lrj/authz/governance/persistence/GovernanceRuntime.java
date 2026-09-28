@@ -165,6 +165,15 @@ public final class GovernanceRuntime implements AutoCloseable {
         return new com.lrj.authz.governance.application.AccessPresentation(identity, catalogMapper, authorization(graph));
     }
 
+    /** 严格分区菜单按范围存在性显示，不能调用P2全范围检查或回退旧权限。 */
+    public com.lrj.authz.governance.application.AccessPresentation presentation(com.lrj.authz.protocol.AuthzEngine legacy,com.lrj.authz.protocol.StrictGraphReader strict){
+        var old=authorization(legacy);var current=reliableAuthorization(strict);
+        return new com.lrj.authz.governance.application.AccessPresentation(identity,catalogMapper,(context,capability,resource)->{
+            var p=new com.lrj.authz.governance.domain.AccessModels.Partition(context.tenantId(),context.applicationId(),context.environment());
+            return accessMapper.strict(p)?!current.evaluate(context,capability,resource).alternatives().isEmpty():old.allowed(context,capability,resource);
+        });
+    }
+
     /** 所属进程停止或 CLI 退出时释放连接池，不清理数据库。 */
     @Override public void close() { dataSource.close(); }
 }

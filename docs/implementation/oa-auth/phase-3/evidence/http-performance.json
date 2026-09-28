@@ -1,0 +1,26 @@
+{
+  "scope_plan_two_nodes_concurrency_2": {
+    "samples": 60,
+    "p50_ms": 49.096,
+    "p95_ms": 62.649,
+    "p99_ms": 77.182,
+    "max_ms": 77.182
+  },
+  "commerce_scope_page_concurrency_1": {
+    "samples": 30,
+    "p50_ms": 122.106,
+    "p95_ms": 152.322,
+    "p99_ms": 152.725,
+    "max_ms": 152.725
+  },
+  "new_grant_convergence_ms": [
+    299.889,
+    101.506
+  ],
+  "dataset": {
+    "stores": 55,
+    "products": 3,
+    "foreign_tenant_rows": 2
+  },
+  "scope": "isolated local functional baseline; not production capacity"
+}

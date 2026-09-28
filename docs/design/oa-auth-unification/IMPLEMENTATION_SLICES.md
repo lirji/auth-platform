@@ -31,7 +31,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 | P2-07 | 最小菜单与授权状态展示 | P2-06 | IAM／应用 Owner；auth: governance（候选）, admin, core, sdk, auth-console、commerce: StoreAccessController/Service | 无权直接请求后端仍被拒绝 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P2-08 | 文档与交接 | P2-07 | IAM／应用 Owner；auth: governance（候选）, admin, core, sdk, auth-console、commerce: StoreAccessController/Service | 记录多实例与细范围尚未认证 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P3-01 | ScopeRule、同Grant匹配与业务字段绑定 | P2-08 | IAM／业务 Mapper Owner；auth: governance（候选）, core, server、commerce: StoreAccessMapper.xml、OA: OaDataPermissionHandler | 查询全范围＋退款单范围不交叉放大 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
-| P3-02 | ScopePlan与列表／导出适配 | P3-01 | IAM／业务 Mapper Owner；auth: governance（候选）, core, server、commerce: StoreAccessMapper.xml、OA: OaDataPermissionHandler | 行、数量、统计、下载均不越权 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | IN_PROGRESS |
+| P3-02 | ScopePlan与列表／导出适配 | P3-01 | IAM／业务 Mapper Owner；auth: governance（候选）, core, server、commerce: StoreAccessMapper.xml、OA: OaDataPermissionHandler | 行、数量、统计、下载均不越权 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P3-03 | PolicyPartition与DirectoryFence | P2-08 | IAM／业务 Mapper Owner；auth: governance（候选）, core, server、commerce: StoreAccessMapper.xml、OA: OaDataPermissionHandler | 主库快照及二次版本校验 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P3-04a | 真实图marker CAS使旧版本写入失败 | P3-03, P2-04 | IAM／业务 Mapper Owner；auth: governance（候选）, core, server、commerce: StoreAccessMapper.xml、OA: OaDataPermissionHandler | 前置条件、原子marker+关系更新、旧payload不能借新marker写入 | implementation+focused-fault-validation；按本片需要的隔离验证目标 | DONE |
 | P3-04b | 有界执行器领取并推进当前desired epoch | P3-04a | IAM／业务 Mapper Owner；auth: governance（候选）, core, server、commerce: StoreAccessMapper.xml、OA: OaDataPermissionHandler | SQL租约+远端栅栏、旧READY失败、批次未完不READY | implementation+focused-fault-validation；按本片需要的隔离验证目标 | DONE |
@@ -39,7 +39,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 | P3-04 | P3-04a/b/c全部通过后汇总CAS与多执行器恢复 | P3-04a, P3-04b, P3-04c | IAM／业务 Mapper Owner；auth: governance（候选）, core, server、commerce: StoreAccessMapper.xml、OA: OaDataPermissionHandler | 旧写入不能覆盖新状态 | aggregate-only；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P3-05 | 水位持久化、逐项批量校验 | P3-04 | IAM／业务 Mapper Owner；auth: governance（候选）, core, server、commerce: StoreAccessMapper.xml、OA: OaDataPermissionHandler | 不是单JVM内存保证 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P3-06 | 撤权receipt、期限及组变更 | P3-05 | IAM／业务 Mapper Owner；auth: governance（候选）, core, server、commerce: StoreAccessMapper.xml、OA: OaDataPermissionHandler | 完成后新请求不走旧路径 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
-| P3-07 | 故障注入与性能基线 | P3-02, P3-06 | IAM／业务 Mapper Owner；auth: governance（候选）, core, server、commerce: StoreAccessMapper.xml、OA: OaDataPermissionHandler | 保存真实kill、双实例和延迟结果 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
+| P3-07 | 故障注入与性能基线 | P3-02, P3-06 | IAM／业务 Mapper Owner；auth: governance（候选）, core, server、commerce: StoreAccessMapper.xml、OA: OaDataPermissionHandler | 保存真实kill、双实例和延迟结果 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | IN_PROGRESS |
 | P4-01 | AccessRequest及不可变快照 | P3-07 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 角色修改不改变原申请内容 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P4-02 | 既有OA流程适配和幂等启动 | P4-01 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 超时重试只生成一个实例 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P4-03 | 可信回调、Inbox和冲突隔离 | P4-02 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 伪造、重复、同ID改体、旧版本 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
@@ -72,7 +72,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 
 ## 当前下一片
 
-P0/P1/P2已交付。用户新授权P3；P3-01/03/04a/04b/04c/04/05/06已完成验证，当前P3-02进行ScopePlan与商城数据范围，之后P3-07整体故障和性能验证。P3全部交付后暂停，不进入P4。
+P0/P1/P2已交付。用户新授权P3；P3-01/03/04a/04b/04c/04/05/06已完成验证，P3-02范围适配已完成，当前P3-07聚合故障/性能证据与交付。P3全部交付后暂停，不进入P4。
 
 ## 依赖与外部条件
 

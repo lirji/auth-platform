@@ -19,8 +19,12 @@ public class GovernancePresentationController {
     private final AccessPresentation presentation;
     /** 展示单独开关，未配置专属图时不改变已有管理接口启动条件。 */
     public GovernancePresentationController(GovernanceRuntime runtime, Environment environment) {
-        var graph = GovernanceGraph.open(GovernanceConfigurationFile.read(environment.getProperty("authz.governance.configuration")));
-        presentation = runtime.presentation(graph);
+        var properties=GovernanceConfigurationFile.read(environment.getProperty("authz.governance.configuration"));
+        var graph=GovernanceGraph.open(properties);
+        if(environment.getProperty("authz.governance.scope.enabled",Boolean.class,false)){
+            var strict=new com.lrj.authz.core.SpiceDbProjectionGraph(properties.getProperty("scope.graph.http"),properties.getProperty("scope.graph.key"),java.time.Duration.ofSeconds(3));
+            presentation=runtime.presentation(graph,strict);
+        }else presentation=runtime.presentation(graph);
     }
     /** 仅当前已验证主体；未知principal等查询字段不参与选人。 */
     @GetMapping("/api/governance/v1/me/access")
