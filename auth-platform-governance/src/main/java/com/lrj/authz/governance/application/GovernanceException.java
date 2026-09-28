@@ -4,16 +4,26 @@ package com.lrj.authz.governance.application;
 public final class GovernanceException extends RuntimeException {
     /** 当前治理契约错误，与旧 SpiceDB 协议异常保持各自语义。 */
     public enum Code {
-        INVALID_ARGUMENT, INVALID_CREDENTIAL, IDENTITY_NOT_BOUND, MEMBERSHIP_UNAVAILABLE,
-        GENERATION_MISMATCH, BINDING_CONFLICT, COMMAND_CONFLICT, VERSION_CONFLICT,
-        DEPENDENCY_UNAVAILABLE
+        INVALID_ARGUMENT("INVALID_ARGUMENT"),
+        INVALID_CREDENTIAL("INVALID_CREDENTIAL"),
+        IDENTITY_NOT_BOUND("IDENTITY_NOT_BOUND"),
+        MEMBERSHIP_UNAVAILABLE("MEMBERSHIP_UNAVAILABLE"),
+        GENERATION_MISMATCH("GENERATION_MISMATCH"),
+        BINDING_CONFLICT("BINDING_CONFLICT"),
+        COMMAND_CONFLICT("COMMAND_CONFLICT"),
+        VERSION_CONFLICT("VERSION_CONFLICT"),
+        DEPENDENCY_UNAVAILABLE("DEPENDENCY_UNAVAILABLE");
+        private final String value;
+        Code(String value) { this.value = value; }
+        /** 对外稳定编码，不依赖 Java 枚举名称。 */
+        public String value() { return value; }
     }
 
     private final Code code;
 
     /** 创建不会回显原始输入的业务错误。 */
     public GovernanceException(Code code) {
-        super(code.name());
+        super(code.value());
         this.code = code;
     }
 

@@ -12,3 +12,5 @@
 证据保存在忽略目录 `.local/governance/p1-02/ci-uid-repro-container.log`（0600）、`ci-native-user-fixed.log` 与 `.local/governance-ci-runtime/casdoor-isolated/runtime-result.json`。失败容器保留为后缀 `-uid1001-failure`，没有删除现场或改共享组件。重跑与 Python 编译 PASS，限定 runtime 文件的 Hygiene 扫描见 `ci-native-user-hygiene.json`。
 
 本次仅交付 runtime 整改和相应证据，不夹带未验收的 P1-03。新的精确 SHA 远程 CI 成功前，合并门禁继续 HOLD。独立的错误 redirect_uri 升级缺陷仍为 HOLD。
+
+Final CI: [36388476420](https://github.com/lirji/auth-platform/actions/runs/36388476420), exact SHA `3db3f3b972199b212b423d2e9e613dc88c38f4a1`, SUCCESS including real IdP IT. Fast-forward merged and pushed to main. P1-02 Delivery Gate PASS; earlier failures retained.

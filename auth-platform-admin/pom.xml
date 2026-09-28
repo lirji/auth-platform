@@ -14,6 +14,10 @@
     <dependencies>
         <dependency>
             <groupId>com.lrj.authz</groupId>
+            <artifactId>auth-platform-governance</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lrj.authz</groupId>
             <artifactId>auth-platform-core</artifactId>
         </dependency>
         <dependency>

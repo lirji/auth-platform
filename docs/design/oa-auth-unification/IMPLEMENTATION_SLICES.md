@@ -16,7 +16,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 | P1-00 | 冻结可信成员薄路径的具体契约、旧身份映射与持久化装配 | P0-07 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 字段/信任/错误/约束足以实施第一片；只用隔离映射，不发明已发布接口 | contract-design；按本片需要的隔离验证目标 | DONE |
 | P1-01 | 将模型映射到已有表和领域对象，增量迁移 | P1-00 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 旧数据可读取、无身份合并 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P1-02 | 实现Token验证与LoginIdentity适配 | P1-01 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 错issuer／aud、ID Token、过期Token被拒绝 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
-| P1-03 | 实现Membership上下文解析 | P1-02 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 请求体伪造主体、跨租户选择无效 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | READY |
+| P1-03 | 实现Membership上下文解析 | P1-02 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 请求体伪造主体、跨租户选择无效 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P1-04 | 接入唯一目录源与幂等检查点 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 重复、乱序、全量不完整不误删 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P1-05 | 实现外部邀请和生命周期 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 并发接受唯一、外部成员无内部默认访问 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P1-06 | 接入停用状态与审计 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 旧JWT不能绕过当前成员停用 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
@@ -72,7 +72,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 
 ## 当前下一片
 
-P1-00/01/02 已完成，验收见 phase-1。当前 P1-03 READY：默认关闭的本人/内部双身份成员上下文；使用隔离固定发行方，不接管共享旧 IdP。共享 Casdoor 升级 Gate HOLD，额外 redirect_uri 缺陷必须整改。
+P1-00/01/02 已完成，验收见 phase-1。P1-03 本地验收 DONE、远程交付待 CI：默认关闭的本人/内部双身份成员上下文；使用隔离固定发行方，不接管共享旧 IdP。共享 Casdoor 升级 Gate HOLD，额外 redirect_uri 缺陷必须整改。
 
 ## 依赖与外部条件
 

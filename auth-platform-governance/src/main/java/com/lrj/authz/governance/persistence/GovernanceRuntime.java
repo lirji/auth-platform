@@ -1,6 +1,7 @@
 package com.lrj.authz.governance.persistence;
 
 import com.lrj.authz.governance.application.IdentityGovernance;
+import com.lrj.authz.governance.domain.IdentityModels.*;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.LocalCacheScope;
@@ -49,6 +50,10 @@ public final class GovernanceRuntime implements AutoCloseable {
                 flyway.validate();
             }
             org.apache.ibatis.session.Configuration config = new org.apache.ibatis.session.Configuration();
+            config.getTypeHandlerRegistry().register(PrincipalKind.class, new IdentityCodeTypeHandler<>(PrincipalKind.class));
+            config.getTypeHandlerRegistry().register(GlobalStatus.class, new IdentityCodeTypeHandler<>(GlobalStatus.class));
+            config.getTypeHandlerRegistry().register(MemberKind.class, new IdentityCodeTypeHandler<>(MemberKind.class));
+            config.getTypeHandlerRegistry().register(MemberStatus.class, new IdentityCodeTypeHandler<>(MemberStatus.class));
             config.setMapUnderscoreToCamelCase(true);
             config.setArgNameBasedConstructorAutoMapping(true);
             config.setCacheEnabled(false);

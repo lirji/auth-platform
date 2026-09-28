@@ -1,5 +1,7 @@
 server:
   port: 8200
+  # 新内部双身份入口接收有界 Casdoor JWT；与 admin 相同的 64KB 请求头上限。
+  max-http-request-header-size: 64KB
 
 spring:
   application:

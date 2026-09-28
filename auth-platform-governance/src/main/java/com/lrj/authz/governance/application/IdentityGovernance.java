@@ -91,6 +91,20 @@ public final class IdentityGovernance {
         return List.copyOf(result);
     }
 
+    /** 只读解析本人指定租户的当前快照；成功不产生应用准入或任何业务角色。 */
+    public CurrentContext contextForLogin(String issuer, String subject, String tenantId, Long expectedGeneration) {
+        BootstrapCommand.uuid(tenantId);
+        if (expectedGeneration != null && expectedGeneration < 1) { throw new GovernanceException(INVALID_ARGUMENT); }
+        // 区分未知绑定与已知主体不可用；最终快照仍在 SQL 内再次核验状态和身份。
+        principalForLogin(issuer, subject);
+        CurrentContext context = mapper.currentContext(issuer, subject, tenantId);
+        if (context == null) { throw new GovernanceException(MEMBERSHIP_UNAVAILABLE); }
+        if (expectedGeneration != null && expectedGeneration != context.membershipGeneration()) {
+            throw new GovernanceException(GENERATION_MISMATCH);
+        }
+        return context;
+    }
+
     private Membership requireMember(String id) {
         Membership member = mapper.membership(id);
         if (member == null) { throw new GovernanceException(BINDING_CONFLICT); }

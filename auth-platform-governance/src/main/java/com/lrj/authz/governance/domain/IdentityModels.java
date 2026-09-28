@@ -6,14 +6,41 @@ import java.time.Instant;
 public final class IdentityModels {
     private IdentityModels() {}
 
+    /** 持久化/协议稳定代码，不使用 ordinal 或隐式枚举名称。 */
+    public interface DbCode { String code(); }
+
     /** 人类与服务主体使用不同认证入口，不能用员工身份隐式创建服务账号。 */
-    public enum PrincipalKind { HUMAN, SERVICE }
+    public enum PrincipalKind implements DbCode {
+        HUMAN("HUMAN"), SERVICE("SERVICE");
+        private final String code;
+        PrincipalKind(String code) { this.code = code; }
+        /** 稳定数据库与公开契约代码。 */
+        public String code() { return code; }
+    }
     /** 主体/企业全局状态，停用不会被登录或初始化自动恢复。 */
-    public enum GlobalStatus { ACTIVE, SUSPENDED }
+    public enum GlobalStatus implements DbCode {
+        ACTIVE("ACTIVE"), SUSPENDED("SUSPENDED");
+        private final String code;
+        GlobalStatus(String code) { this.code = code; }
+        /** 稳定数据库与公开契约代码。 */
+        public String code() { return code; }
+    }
     /** 员工与受邀成员分开；合作方成功登录也不会变成员工。 */
-    public enum MemberKind { EMPLOYEE, PARTNER, GUEST }
+    public enum MemberKind implements DbCode {
+        EMPLOYEE("EMPLOYEE"), PARTNER("PARTNER"), GUEST("GUEST");
+        private final String code;
+        MemberKind(String code) { this.code = code; }
+        /** 稳定数据库与公开契约代码。 */
+        public String code() { return code; }
+    }
     /** 离开后再加入递增代际；暂停必须显式恢复，不经重新加入绕过。 */
-    public enum MemberStatus { ACTIVE, SUSPENDED, LEFT }
+    public enum MemberStatus implements DbCode {
+        ACTIVE("ACTIVE"), SUSPENDED("SUSPENDED"), LEFT("LEFT");
+        private final String code;
+        MemberStatus(String code) { this.code = code; }
+        /** 稳定数据库与公开契约代码。 */
+        public String code() { return code; }
+    }
 
     /** 跨租户稳定主体；version 用于当前状态与后续授权一致性检查。 */
     public record Principal(String id, PrincipalKind kind, GlobalStatus status, long version) {}
@@ -28,4 +55,8 @@ public final class IdentityModels {
     /** 保留旧系统主键，只维护显式映射。 */
     public record LegacyBinding(String sourceSystem, String sourceTenantRef, String sourceSubjectRef,
                                 String principalId, String membershipId, String tenantId) {}
+
+    /** 单 SQL 快照中的主体/成员版本，防止拼接不同查询时刻的上下文。 */
+    public record CurrentContext(String principalId, long principalVersion, String membershipId,
+                                 long membershipGeneration, long membershipVersion, String tenantId) {}
 }

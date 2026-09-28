@@ -198,6 +198,40 @@ class IdentityPostgresIT {
         Files.setPosixFilePermissions(config, PosixFilePermissions.fromString("rw-------"));
     }
 
+    @Test void contextUsesCurrentSingleTenantVersionsAndRejectsStaleGeneration() {
+        var c = fixture(); runtime.identity().bootstrapEmployee(c);
+        var context = runtime.identity().contextForLogin(c.issuer(), c.subject(), c.tenantId(), 1L);
+        assertThat(context.principalId()).isEqualTo(c.principalId());
+        assertThat(context.membershipId()).isEqualTo(c.membershipId());
+        assertThat(context.membershipVersion()).isEqualTo(1);
+        assertThat(context.principalVersion()).isEqualTo(1);
+        expectCode(() -> runtime.identity().contextForLogin(c.issuer(), c.subject(), id(), 1L), GovernanceException.Code.MEMBERSHIP_UNAVAILABLE);
+        expectCode(() -> runtime.identity().contextForLogin(c.issuer(), c.subject(), c.tenantId(), 2L), GovernanceException.Code.GENERATION_MISMATCH);
+        assertThat(runtime.mapper().compareAndSetMemberStatus(c.membershipId(), 1, MemberStatus.ACTIVE, MemberStatus.SUSPENDED)).isEqualTo(1);
+        expectCode(() -> runtime.identity().contextForLogin(c.issuer(), c.subject(), c.tenantId(), 1L), GovernanceException.Code.MEMBERSHIP_UNAVAILABLE);
+    }
+
+    @Test void contextRejectsTenantAndPrincipalRevocationAndServicePrincipals() {
+        for (String change : List.of("tenant", "principal", "service")) {
+            var c = fixture(); runtime.identity().bootstrapEmployee(c);
+            switch (change) {
+                case "tenant" -> jdbc.update("UPDATE auth_governance.tenant SET status='SUSPENDED',version=version+1 WHERE id=?", c.tenantId());
+                case "principal" -> jdbc.update("UPDATE auth_governance.principal SET status='SUSPENDED',version=version+1 WHERE id=?", c.principalId());
+                case "service" -> jdbc.update("UPDATE auth_governance.principal SET kind='SERVICE',version=version+1 WHERE id=?", c.principalId());
+                default -> throw new AssertionError();
+            }
+            expectCode(() -> runtime.identity().contextForLogin(c.issuer(), c.subject(), c.tenantId(), null), GovernanceException.Code.MEMBERSHIP_UNAVAILABLE);
+        }
+    }
+
+    @Test void contextRejectsFutureAndExpiredMembershipUsingDatabaseTime() {
+        var c = fixture(); runtime.identity().bootstrapEmployee(c);
+        jdbc.update("UPDATE auth_governance.membership SET valid_to=now()-interval '1 second' WHERE id=?", c.membershipId());
+        expectCode(() -> runtime.identity().contextForLogin(c.issuer(), c.subject(), c.tenantId(), null), GovernanceException.Code.MEMBERSHIP_UNAVAILABLE);
+        jdbc.update("UPDATE auth_governance.membership SET valid_to=NULL,valid_from=now()+interval '1 hour' WHERE id=?", c.membershipId());
+        expectCode(() -> runtime.identity().contextForLogin(c.issuer(), c.subject(), c.tenantId(), null), GovernanceException.Code.MEMBERSHIP_UNAVAILABLE);
+    }
+
     private int auditCount(BootstrapCommand c) { return jdbc.queryForObject("SELECT count(*) FROM auth_governance.audit_event WHERE command_id=? AND operator_ref=?", Integer.class, c.commandId(), c.operatorRef()); }
     private int commandCount(BootstrapCommand c) { return jdbc.queryForObject("SELECT count(*) FROM auth_governance.command_record WHERE command_id=? AND operator_ref=?", Integer.class, c.commandId(), c.operatorRef()); }
     private static String id() { return UUID.randomUUID().toString(); }

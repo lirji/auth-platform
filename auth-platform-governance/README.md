@@ -13,7 +13,7 @@ GOVERNANCE_TEST_CONFIG="$PWD/.local/governance/database.properties" ./mvnw -B -P
 
 工具创建唯一 `auth_gov_p1_test_` 库和非超级用户 Owner；检查点/配置 0600、目录 0700，只操作本任务命名空间。重跑不重置角色密码、不接管其他 Owner、不删除夹具。仅用于本机测试；现有 `dev.sh` 不会因此迁移或启用治理。CI 在一次性 PostgreSQL 16 service 中执行同一 profile，缺配置失败，不能以 skipped 当集成 PASS。
 
-普通 `./mvnw verify` 仍可无数据库运行单测；它不等于上述集成验收。P1-01 已验证真实迁移、约束、并发幂等、版本 CAS、旧 ID 保留和审计失败全事务回滚；P1-02 已实现固定 Casdoor Access Token 和 LoginIdentity 适配，HTTP/S2S 接入仍待 P1-03。
+普通 `./mvnw verify` 仍可无数据库运行单测；它不等于上述集成验收。P1-01 已验证真实迁移、约束、并发幂等、版本 CAS、旧 ID 保留和审计失败全事务回滚；P1-02 已实现固定 Casdoor Access Token 和 LoginIdentity 适配，P1-03 已提供默认关闭的 HTTP/S2S 接入。
 
 ## 固定发行方验证
 
@@ -55,4 +55,8 @@ java -cp "$GOVERNANCE_CP" com.lrj.authz.governance.cli.GovernanceCli lookup .loc
 
 连接 ID `AUTH-GOVERNANCE-LOCAL-TEST`：dev_infra PostgreSQL 16（本机实测 16.15），127.0.0.1:45432；用户名/密码/数据库检查点引用忽略的 `.local/governance/database.json`，治理配置引用 `.local/governance/database.properties`。该凭据仅有专用库 Owner 权限，真实连接与写入已验证。没有部署到生产，也未共写认证/图/OA/商城库。
 
-V1 仅新增表，旧服务尚未依赖本模块。原业务主键和数据不变；后续只添加新迁移，不能修改已执行 V1。关闭治理功能后仍保留成员停用、审计和命令事实。审计归档期限/容量需正式治理策略确认，当前没有自动删除，不承诺生产增长治理已完成。
+V1 仅新增表，admin/server 已按显式开关接入本模块。原业务主键和数据不变；后续只添加新迁移，不能修改已执行 V1。关闭治理功能后仍保留成员停用、审计和命令事实。审计归档期限/容量需正式治理策略确认，当前没有自动删除，不承诺生产增长治理已完成。
+
+## P1-03 HTTP integration
+
+Default-off admin/server routes, private configuration and isolated verification: [P1-03 runtime](../docs/implementation/oa-auth/phase-1/P1-03_RUNTIME.md). Identity context is not application admission or business authorization.

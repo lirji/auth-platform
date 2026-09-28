@@ -8,6 +8,7 @@ on:
       - 'deploy/recon-platform-provision.sh'
       - 'deploy/benefit-platform-provision.sh'
       - 'deploy/governance-test-db.py'
+      - 'deploy/governance-context-smoke.py'
       - 'deploy/governance-casdoor-*.py'
       - 'pom.xml'
       - 'mvnw'
@@ -21,6 +22,7 @@ on:
       - 'deploy/recon-platform-provision.sh'
       - 'deploy/benefit-platform-provision.sh'
       - 'deploy/governance-test-db.py'
+      - 'deploy/governance-context-smoke.py'
       - 'deploy/governance-casdoor-*.py'
       - 'pom.xml'
       - 'mvnw'
@@ -90,3 +92,5 @@ jobs:
         env:
           GOVERNANCE_TEST_CONFIG: ${{ github.workspace }}/.local/governance/database.properties
           GOVERNANCE_IDENTITY_FIXTURE: ${{ github.workspace }}/.local/governance/casdoor-isolated
+      - name: Verify governance HTTP boundaries (P1-03)
+        run: python3 deploy/governance-context-smoke.py --postgres-container '${{ job.services.postgres.id }}'

@@ -6,6 +6,9 @@ import java.util.List;
 
 /** 治理持久化入口，所有 SQL 位于 XML；业务服务不得拼接 SQL。 */
 public interface IdentityMapper {
+    /** 当前身份、租户、主体与成员状态必须在同一查询内成立，不接受调用方 principal。 */
+    CurrentContext currentContext(@Param("issuer") String issuer, @Param("subject") String subject,
+                                  @Param("tenantId") String tenantId);
     /** 创建时保留冲突事实，由应用层核验映射而非覆盖。 */
     int insertPrincipal(Principal principal);
     /** 读取当前主体状态，不走正向授权缓存。 */

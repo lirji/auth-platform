@@ -1,0 +1,172 @@
+{
+  "slice_id": "P1-03",
+  "overall": "PASS",
+  "gate": "PASS",
+  "source_fingerprint": "9ab01edabe0df4b583e65b1a21207802ab32299841cdabfce64aefc3d56af22c",
+  "unit_tests": 167,
+  "postgres_tests": 14,
+  "casdoor_tests": 5,
+  "http_checks": [
+    {
+      "check": "explicit CLI creates isolated membership",
+      "result": "PASS"
+    },
+    {
+      "check": "default off has no internal route",
+      "result": "PASS"
+    },
+    {
+      "check": "auth-platform-server enabled missing config fails startup",
+      "result": "PASS"
+    },
+    {
+      "check": "default off old admin chain remains",
+      "result": "PASS"
+    },
+    {
+      "check": "auth-platform-admin enabled missing config fails startup",
+      "result": "PASS"
+    },
+    {
+      "check": "me returns own membership",
+      "result": "PASS"
+    },
+    {
+      "check": "dual identity current context",
+      "result": "PASS"
+    },
+    {
+      "check": "admin missing bearer",
+      "result": "PASS"
+    },
+    {
+      "check": "future governance route protected by filter",
+      "result": "PASS"
+    },
+    {
+      "check": "admin rejects ID token",
+      "result": "PASS"
+    },
+    {
+      "check": "admin rejects wrong audience",
+      "result": "PASS"
+    },
+    {
+      "check": "admin repeated authorization",
+      "result": "PASS"
+    },
+    {
+      "check": "missing service before malformed body",
+      "result": "PASS"
+    },
+    {
+      "check": "missing user",
+      "result": "PASS"
+    },
+    {
+      "check": "user cannot act as service",
+      "result": "PASS"
+    },
+    {
+      "check": "service cannot act as user",
+      "result": "PASS"
+    },
+    {
+      "check": "internal rejects business/id_token",
+      "result": "PASS"
+    },
+    {
+      "check": "internal rejects management/access_token",
+      "result": "PASS"
+    },
+    {
+      "check": "reject body principal_id",
+      "result": "PASS"
+    },
+    {
+      "check": "reject body application_id",
+      "result": "PASS"
+    },
+    {
+      "check": "reject body caller_service_id",
+      "result": "PASS"
+    },
+    {
+      "check": "reject body environment",
+      "result": "PASS"
+    },
+    {
+      "check": "cross tenant",
+      "result": "PASS"
+    },
+    {
+      "check": "stale generation",
+      "result": "PASS"
+    },
+    {
+      "check": "duplicate tenant field",
+      "result": "PASS"
+    },
+    {
+      "check": "oversized body",
+      "result": "PASS"
+    },
+    {
+      "check": "repeated user header",
+      "result": "PASS"
+    },
+    {
+      "check": "old valid JWT rejected after suspension",
+      "result": "PASS"
+    },
+    {
+      "check": "me excludes suspended membership",
+      "result": "PASS"
+    }
+  ],
+  "checks": [
+    {
+      "acceptance": "request body identity injection and cross-tenant selection rejected",
+      "method": "real HTTP JAR + pinned Casdoor + PostgreSQL",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "default off, enabled missing config fails closed; new admin routes uniformly authenticated",
+      "method": "29 HTTP assertions with real processes",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "current status, versions, expiry and HUMAN-only identities",
+      "method": "14 PostgreSQL IT and old JWT after suspension HTTP test",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "old protocols and private runtime integration regression",
+      "method": "167 reactor unit tests + 5 real IdP IT",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "code hygiene and scope",
+      "method": "hygiene-final.json and diff review",
+      "result": "PASS"
+    },
+    {
+      "acceptance": "visible UI",
+      "method": "backend-only slice",
+      "result": "N/A"
+    }
+  ],
+  "limits": [
+    "FORMAT_TOOL_NOT_AVAILABLE",
+    "STATIC_ANALYSIS_NOT_CONFIGURED",
+    "SHARED_IDP_UPGRADE_HOLD_REDIRECT_URI",
+    "NO_PRODUCTION_DEPLOYMENT_OR_CAPACITY_CLAIM"
+  ],
+  "logs": [
+    ".local/governance/p1-03/final-verify.log",
+    ".local/governance/p1-03/identity-it.log",
+    ".local/governance/p1-03/http-smoke-verified.log",
+    ".local/governance/p1-03/hygiene-final.json"
+  ],
+  "delivery_gate": "PENDING_EXACT_CI"
+}
