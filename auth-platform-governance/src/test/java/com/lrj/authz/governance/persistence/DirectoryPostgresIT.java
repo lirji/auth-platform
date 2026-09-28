@@ -19,6 +19,7 @@ import static com.lrj.authz.governance.application.GovernanceException.Code.*;
 class DirectoryPostgresIT {
     private GovernanceRuntime runtime;
     private JdbcTemplate jdbc;
+    private Properties databaseProperties;
     @BeforeAll void openOwnedDatabase() {
         Properties p = new Properties();
         String file = System.getenv("GOVERNANCE_TEST_CONFIG");
@@ -30,6 +31,7 @@ class DirectoryPostgresIT {
         }
         assertThat(p.getProperty("jdbc.url")).matches("jdbc:postgresql://(?:127\\.0\\.0\\.1|localhost):[0-9]+/auth_gov_p1_test_[a-z0-9_]+");
         var config = GovernanceDatabase.from(p); runtime = GovernanceRuntime.open(config, true);
+        databaseProperties = p;
         jdbc = new JdbcTemplate(new DriverManagerDataSource(config.jdbcUrl(), config.username(), config.password()));
     }
     @AfterAll void close() { if (runtime != null) { runtime.close(); } }
@@ -216,6 +218,65 @@ class DirectoryPostgresIT {
         assertCode(() -> runtime.directory().accept(a, org(a, 2, "2", "1")), BINDING_CONFLICT);
         assertThat(jdbc.queryForObject("SELECT count(*) FROM auth_governance.directory_entry WHERE source_id=? AND aggregate_type='ORG'", Integer.class, a.id())).isEqualTo(1);
         assertThat(quarantined(a)).isTrue();
+    }
+
+    @Test void realHttpCliResumesCommittedPageAfterLostAckThenProcessesLeave() throws Exception {
+        var a = authority(); String user = id();
+        var events = List.of(employee(a, 1, 1, "1", user, "ACTIVE", null), employee(a, 2, 2, "1", user, "LEFT", null));
+        var acked = new java.util.concurrent.atomic.AtomicLong();
+        var loseAck = new java.util.concurrent.atomic.AtomicBoolean(true);
+        String secret = id().replace("-", "") + id().replace("-", "");
+        var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        var json = new com.fasterxml.jackson.databind.ObjectMapper();
+        server.createContext("/internal/directory/v1/", exchange -> {
+            if (!("Bearer " + secret).equals(exchange.getRequestHeaders().getFirst("Authorization"))) { exchange.sendResponseHeaders(401, -1); exchange.close(); return; }
+            int code = 200; String body;
+            if (exchange.getRequestURI().getPath().endsWith("/events")) {
+                String[] params = exchange.getRequestURI().getQuery().split("&");
+                long after = Long.parseLong(params[0].substring("after_sequence=".length()));
+                int limit = Integer.parseInt(params[1].substring("limit=".length()));
+                body = "{\"events\":[" + events.stream().filter(e -> e.partitionSequence() > after).limit(limit)
+                        .map(DirectoryJson::event).collect(java.util.stream.Collectors.joining(",")) + "]}";
+            } else {
+                if (exchange.getRequestURI().getPath().endsWith("/ack")) {
+                    var value = json.readTree(exchange.getRequestBody()); long sequence = value.get("sequence").longValue();
+                    if (runtime.directory().checkpoint(a).lastSequence() < sequence || !DirectoryEvents.eventFingerprint(events.get((int) sequence - 1)).equals(value.get("fingerprint").textValue())) { code = 409; }
+                    else { acked.accumulateAndGet(sequence, Math::max); }
+                    if (loseAck.getAndSet(false)) { code = 503; }
+                }
+                var status = new LinkedHashMap<String, Object>(); status.put("source", a.source()); status.put("environment", a.environment());
+                status.put("source_tenant_ref", a.sourceTenantRef()); status.put("last_sequence", 2); status.put("acked_sequence", acked.get());
+                status.put("acked_fingerprint", acked.get() == 0 ? null : DirectoryEvents.eventFingerprint(events.get((int) acked.get() - 1)));
+                status.put("backlog", 2 - acked.get()); body = json.writeValueAsString(status);
+            }
+            byte[] bytes = body.getBytes(java.nio.charset.StandardCharsets.UTF_8); exchange.sendResponseHeaders(code, bytes.length);
+            try (var out = exchange.getResponseBody()) { out.write(bytes); }
+        });
+        server.start();
+        var file = java.nio.file.Files.createTempFile("directory-import-it-", ".properties", java.nio.file.attribute.PosixFilePermissions.asFileAttribute(
+                java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")));
+        try {
+            Properties config = new Properties(); config.putAll(databaseProperties);
+            config.setProperty("directory.id", a.id()); config.setProperty("directory.source", a.source()); config.setProperty("directory.environment", a.environment());
+            config.setProperty("directory.source-tenant-ref", a.sourceTenantRef()); config.setProperty("directory.tenant-id", a.tenantId()); config.setProperty("directory.issuer", a.issuer());
+            config.setProperty("directory.endpoint", "http://127.0.0.1:" + server.getAddress().getPort() + "/internal/directory/v1");
+            config.setProperty("directory.credential", secret); config.setProperty("directory.operator-ref", "directory-it"); config.setProperty("directory.max-events", "1");
+            try (var out = java.nio.file.Files.newBufferedWriter(file)) { config.store(out, "isolated directory fixture"); }
+            var output = new java.io.StringWriter(); var error = new java.io.StringWriter();
+            java.util.function.Function<String, Integer> run = command -> com.lrj.authz.governance.cli.DirectoryImportCli.run(
+                    new String[]{command, file.toString()}, new java.io.PrintWriter(output), new java.io.PrintWriter(error));
+            assertThat(run.apply("register")).isZero();
+            assertThat(run.apply("pull")).isNotZero();
+            assertThat(runtime.directory().checkpoint(a).lastSequence()).isEqualTo(1);
+            assertThat(member(a, "1").status()).isEqualTo(MemberStatus.ACTIVE);
+            assertThat(runtime.identity().contextForLogin(a.issuer(), user, a.tenantId(), 1L)).isNotNull();
+            assertThat(run.apply("pull")).isZero();
+            assertThat(member(a, "1").status()).isEqualTo(MemberStatus.LEFT); assertThat(acked.get()).isEqualTo(2);
+            assertCode(() -> runtime.identity().contextForLogin(a.issuer(), user, a.tenantId(), 1L), MEMBERSHIP_UNAVAILABLE);
+            assertThat(run.apply("pull")).isZero();
+            assertThat(audits(events.getFirst())).isEqualTo(1); assertThat(audits(events.getLast())).isEqualTo(1);
+            assertThat(output.toString() + error).doesNotContain(secret).doesNotContain(databaseProperties.getProperty("jdbc.password"));
+        } finally { server.stop(0); java.nio.file.Files.deleteIfExists(file); }
     }
     private final Map<String, String> seedMembers = new HashMap<>();
     private DirectoryAuthority authority() {

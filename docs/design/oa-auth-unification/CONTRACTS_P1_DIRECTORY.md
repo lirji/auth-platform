@@ -59,7 +59,7 @@ EMPLOYEE：OA employee ID、精确 userId（可缺失）、status、直接任职
 不传邮箱、手机号、证件号、姓名等本片无需的个人字段。
 PROBATION/ACTIVE/LEAVING 均表示在职，LEFT 表示退出，未知状态拒绝。
 任职保留 source assignment ID、org ID、type、is_leader、valid_from/valid_to；
-汇报线保留 source ID、manager employee ID、type 和有效期，时间语义保持 OA 日期含义。
+汇报线保留 source ID、manager employee ID、type 和有效期，时间语义保持 OA 日期含义（左闭右开）；出口保留当前和未来关系，valid_to <= OA 当天的历史关系仍保存在 OA，不再重复导出。
 只投影直接关系，不复制 closure/path 为授权关系。
 
 ORG：OA org ID、parent ID、status；ACTIVE/FROZEN/DISSOLVED 沿用 OA 显式代码，冻结事实不映射为新增授权。
@@ -95,7 +95,7 @@ userId 缺失时，允许创建来源专属 HUMAN 主体及员工成员，保持
 
 受控源端初始化在登记/写入互斥边界内生成持久化批次，包含 snapshot_id、BEGIN/END、
 事件数量、确定顺序摘要与分区起止序号。分批传输可恢复，源端封存后内容不变。
-初始化物化使用明确行数上限，超限显式停止并保留诊断；不是生产容量达标承诺。
+初始化物化最多 10000 条业务记录、16 MiB 编码正文、60 秒事务；可配置更低行数上限。超限整批回滚登记及快照，不构成生产容量达标承诺。
 不能通过调用个人可见范围的通讯录 API 生成企业全量快照。
 
 auth 只有核对 BEGIN/END、连续序号、数量与摘要后才标记快照 COMPLETE。
@@ -147,3 +147,19 @@ null 字符串长度为 -1，数组为 32 位项数后逐项编码。所有字�
 content_hash 为中间事件按分区序号排列后的 32 字节 event_fingerprint 串联再 SHA-256。
 不把 BEGIN/END 自身摘要加入内容摘要，避免递归定义。结束确认必须同时匹配开始声明与实际内容。
 普通增量 snapshot_id=null；同一来源一次只初始化一个批次，失败后用同批 ID 恢复，不覆盖历史声明。
+
+## P1-04 来源出口实施细节
+
+事件页正文 `{ "events": [<event>...] }`，继续沿用上面的 snake_case 事件协议。
+状态正文为 source、environment、source_tenant_ref、last_sequence、acked_sequence、acked_fingerprint、backlog；
+backlog 为最后提交与已确认的差值，不代表消费者已处理但未确认的精确数量。
+确认正文严格只有 `sequence`（正整数）与 `fingerprint`（64 位小写 SHA-256）；最长 1024 字节。
+同摘要的旧确认可以幂等返回最新状态，不降低水位；未知序号或错误摘要返回 409。
+出口默认关闭返回 404，无服务凭据 401，非 TLS 且非显式许可的本地回环连接 403。
+HTTP 配置开关不停止已登记来源的事务捕获。
+
+OA 用 `@RequiresServiceIdentity("oa-directory")` 声明独立服务身份；不复用 PublicApi 或员工权限。
+HTTP 认证链、运行时 Handler 守卫、出口用例共同检查类型化服务身份；租户只取部署配置。
+固定企业的系统目录 Mapper 保持 MyBatis 拦截器启用，系统读取声明 DataScopeBypass 审计元数据，
+只查询本域事实表，不借个人通讯录视图生成快照。
+初始化 CLI 当前只支持 0600 配置的隔离回环 PostgreSQL，前置执行真实 OA 迁移；不自动迁移、建库、清空或替换共享实例。
