@@ -4,7 +4,7 @@
 
 - 实际执行 `GOVERNANCE_TEST_CONFIG=<私密配置> ./mvnw -q -pl auth-platform-governance -am -Pgovernance-it verify`，退出0。
 - 新增3项解析测试、5项真实PG测试通过：未知/重复/错误类型字段、跨应用命名空间、菜单环路、源URL、归一化摘要；预览无写、并发同版发布唯一、所有权冲突、版本/语义不可变、停用owner、审计失败回滚。
-- 既有本模块unit回归通过。当前本次真实PG报告为Identity 15、Invitation 9、Directory 22、Catalog 5（共51）；其他历史profile报告不计入本次。
+- 既有本模块unit回归通过。当前本次真实PG报告为Identity 20、Invitation 9、Directory 17、Catalog 5（共51）；其他历史profile报告不计入本次。
 - 复用独立auth_gov_p1_test数据库，Flyway增量V6通过，V1–V5未修改；未改共享IdP/图。私密日志 `.local/governance/p2/p2-01-pg.log`。
 - CLI注册/预览/发布复用同一服务；HTTP管理API属于P2-03，当前没有开放未鉴权路由。
 - 仓库未配置统一formatter/独立静态分析器；格式沿用既有Java风格，最终阶段执行Code Hygiene gate。当前没有可见UI。

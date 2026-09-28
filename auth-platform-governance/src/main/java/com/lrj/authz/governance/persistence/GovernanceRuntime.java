@@ -25,6 +25,7 @@ public final class GovernanceRuntime implements AutoCloseable {
     private final InvitationGovernance invitations;
     private final DirectoryGovernance directory;
     private com.lrj.authz.governance.application.ApplicationCatalog catalog;
+    private com.lrj.authz.governance.application.AccessManagement access;
 
     private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle,
                               InvitationGovernance invitations, DirectoryGovernance directory) {
@@ -68,6 +69,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             config.getTypeHandlerRegistry().register(MemberStatus.class, new IdentityCodeTypeHandler<>(MemberStatus.class));
             config.getTypeHandlerRegistry().register(InvitationState.class, new IdentityCodeTypeHandler<>(InvitationState.class));
             config.getTypeHandlerRegistry().register(com.lrj.authz.protocol.DirectoryEvents.DirectoryAggregateType.class, new DirectoryEventTypeHandler());
+            config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.AccessModels.GrantState.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.AccessModels.GrantState.class));
             config.setMapUnderscoreToCamelCase(true);
             config.setArgNameBasedConstructorAutoMapping(true);
             config.setCacheEnabled(false);
@@ -94,6 +96,7 @@ public final class GovernanceRuntime implements AutoCloseable {
                     new DirectoryGovernance(session.getMapper(DirectoryMapper.class), mapper, session.getMapper(InvitationMapper.class),
                             directoryTransaction, conflictTransaction));
             runtime.catalog = new com.lrj.authz.governance.application.ApplicationCatalog(session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction);
+            runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction);
             return runtime;
         } catch (Exception failure) {
             dataSource.close();
@@ -115,6 +118,9 @@ public final class GovernanceRuntime implements AutoCloseable {
 
     /** 目录发布不接管旧工作区或业务权限。 */
     public com.lrj.authz.governance.application.ApplicationCatalog catalog() { return catalog; }
+
+    /** 应用管理不能绕过委派和当前成员状态。 */
+    public com.lrj.authz.governance.application.AccessManagement access() { return access; }
 
     IdentityMapper mapper() { return mapper; }
 
