@@ -94,4 +94,4 @@ P1-01 首次需要隔离 auth 治理数据库及迁移装配，由 runtime-and-d
 
 本表状态由 update-progress-docs 更新，验收语义由契约和设计Owner维护，不为通过而删掉真实组件要求。
 
-P1-06 受控停用本地验收 DONE（170 单测、20 PG、30 HTTP；旧 JAR/V3 读取兼容 PASS），远程交付待精确 CI。下一片 P1-04 目录接入；未改变原节点依赖。
+P1-06 受控停用本地验收 DONE（170 单测、20 PG、30 HTTP；旧 JAR/V3 读取兼容 PASS），精确 CI 36389719173 SUCCESS，9fd58ca 已合并推送 main。下一片 P1-04 目录接入；未改变原节点依赖。

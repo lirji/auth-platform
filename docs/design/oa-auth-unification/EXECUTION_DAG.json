@@ -407,9 +407,11 @@
       "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
-      "delivery_gate": "PENDING_EXACT_CI",
+      "delivery_gate": "PASS",
       "contract_ref": "CONTRACTS_P1_LIFECYCLE.md",
-      "evidence_ref": "../../implementation/oa-auth/phase-1/P1-06_TEST_RESULT.md"
+      "evidence_ref": "../../implementation/oa-auth/phase-1/P1-06_TEST_RESULT.md",
+      "ci_run": "36389719173",
+      "commit": "9fd58ca"
     },
     {
       "id": "P1-07",
