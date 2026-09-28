@@ -23,8 +23,8 @@ public final class ScopeRules {
         if (input == null || input.version() != 1 || input.resourceType() == null
                 || input.clauses() == null || input.clauses().isEmpty() || input.clauses().size() > 4) throw invalid();
         CatalogManifest.code(input.resourceType());
-        // 当前真实资源绑定只有门店；未确定拥有者/部门/供应商语义前绝不猜测字段。
-        if (!com.lrj.authz.protocol.ScopeDtos.STORE_RESOURCE_TYPE.equals(input.resourceType())) throw new GovernanceException(SCOPE_UNSUPPORTED);
+        // 当前真实资源绑定为门店和商品；未确定拥有者/部门/供应商语义前绝不猜测字段。
+        if (!Set.of(com.lrj.authz.protocol.ScopeDtos.STORE_RESOURCE_TYPE, com.lrj.authz.protocol.ScopeDtos.PRODUCT_RESOURCE_TYPE).contains(input.resourceType())) throw new GovernanceException(SCOPE_UNSUPPORTED);
         Set<Kind> seen = EnumSet.noneOf(Kind.class);
         List<Clause> clauses = new ArrayList<>();
         for (Clause c : input.clauses()) {

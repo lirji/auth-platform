@@ -7,6 +7,10 @@ public final class ScopeDtos {
     private ScopeDtos() {}
     /** 已绑定的门店资源类型，与应用清单及业务Owner字段一致。 */
     public static final String STORE_RESOURCE_TYPE = "store";
+    /** 商品的归属字段由commerce catalog模块提供。 */
+    public static final String PRODUCT_RESOURCE_TYPE = "product";
+    /** 范围响应大小有界，超出不能截断后放行。 */
+    public static final int MAX_PLAN_BYTES = 262144;
 
     /** 显式编码不使用ordinal；未注册业务字段的类型不能执行。 */
     public enum Kind {

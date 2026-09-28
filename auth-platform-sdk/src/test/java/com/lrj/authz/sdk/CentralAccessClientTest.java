@@ -3,6 +3,9 @@ package com.lrj.authz.sdk;
 import com.fasterxml.jackson.databind.*;
 import com.lrj.authz.protocol.CentralAccessDtos.*;
 import com.lrj.authz.protocol.GovernanceDtos.AccessContext;
+import com.lrj.authz.protocol.ScopeAccessDtos.*;
+import com.lrj.authz.protocol.ScopeDtos.*;
+import java.time.Instant;
 import com.sun.net.httpserver.HttpServer;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -68,6 +71,43 @@ class CentralAccessClientTest {
             org.junit.jupiter.api.Assertions.assertTimeout(Duration.ofMillis(750), () ->
                     assertThatThrownBy(() -> client.check("user-token", request)).isInstanceOf(CentralAccessException.class));
         } finally { release.countDown(); }
+    }
+
+    private Plan plan(){
+        return new Plan("1",request.requestId(),request.capability(),request.resourceType(),"ALLOW",UUID.randomUUID().toString(),decision(request,"ALLOW").context(),
+            UUID.randomUUID().toString(),1,UUID.randomUUID().toString(),1,1,1,Instant.now().plusSeconds(25).toString(),
+            List.of(new Alternative(UUID.randomUUID().toString(),1,List.of(new Clause(Kind.SPECIFIED_STORES,List.of("S001"),false)))));
+    }
+    @Test void scopePlanRejectsForeignIdentityStaleVersionsExpiredAndMalformedRules()throws Exception{
+        String good=json.writeValueAsString(plan());response.set(good);assertThat(client.requireScope("user-token",request).alternatives()).hasSize(1);
+        for(String bad:List.of("{}",good.replace("SPECIFIED_STORES","SELF"),good.replace("SPECIFIED_STORES","UNKNOWN"),good.replace("\"policy_epoch\":1","\"policy_epoch\":0"),
+            good.replace("\"include_root\":false","\"include_root\":true"),good.replace("\"scope_version\":1","\"scope_version\":2"),good.replace("\"values\":[\"S001\"]","\"values\":[]"),
+            good.replace("\"membership_generation\":1","\"membership_generation\":2"),good.replace(tenant,UUID.randomUUID().toString())," ".repeat(262145))){
+            response.set(bad);assertThatThrownBy(()->client.scopePlan("user-token",request)).isInstanceOf(CentralAccessException.class);
+        }
+        var expired=json.readTree(good).deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)expired).put("valid_until","2020-01-01T00:00:00Z");response.set(expired.toString());
+        assertThatThrownBy(()->client.scopePlan("user-token",request)).isInstanceOf(CentralAccessException.class);
+    }
+    @Test void emptyDeniedScopeCannotBecomeUnrestrictedSql()throws Exception{
+        var data=(com.fasterxml.jackson.databind.node.ObjectNode)json.valueToTree(plan());data.put("decision","DENY");data.putArray("alternatives");response.set(data.toString());
+        assertThat(client.scopePlan("user-token",request).alternatives()).isEmpty();assertThatThrownBy(()->client.requireScope("user-token",request)).isInstanceOf(AccessDeniedException.class);
+        data.put("decision","ALLOW");response.set(data.toString());assertThatThrownBy(()->client.scopePlan("user-token",request)).isInstanceOf(CentralAccessException.class);
+    }
+    @Test void scopeFingerprintIgnoresRequestNonceButBindsPolicyAndPrincipal()throws Exception{
+        var before=plan();var node=(com.fasterxml.jackson.databind.node.ObjectNode)json.valueToTree(before);
+        node.put("decision_id",UUID.randomUUID().toString());node.put("request_id",UUID.randomUUID().toString());
+        ((com.fasterxml.jackson.databind.node.ObjectNode)node.get("context")).put("trace_id",UUID.randomUUID().toString());
+        var same=json.treeToValue(node,Plan.class);assertThat(CentralAccessClient.scopeFingerprint(before)).isEqualTo(CentralAccessClient.scopeFingerprint(same));CentralAccessClient.requireSameScope(before,same);
+        node.put("policy_epoch",2);var newer=json.treeToValue(node,Plan.class);assertThatThrownBy(()->CentralAccessClient.requireSameScope(before,newer)).isInstanceOf(AccessDeniedException.class);
+        node.put("policy_epoch",1);((com.fasterxml.jackson.databind.node.ObjectNode)node.get("context")).put("principal_id",UUID.randomUUID().toString());
+        var foreign=json.treeToValue(node,Plan.class);assertThatThrownBy(()->CentralAccessClient.requireSameScope(before,foreign)).isInstanceOf(AccessDeniedException.class);
+    }
+    @Test void resourceResponseMustMatchExactOwnerFactsVersion()throws Exception{
+        var p=plan();var facts=new Facts(tenant,"store","S001",7,null,null,List.of(),"S001",null);
+        var d=new ResourceDecision("1",request.requestId(),request.capability(),"store","S001",7,"ALLOW",p.decisionId(),p.context(),p.validUntil());
+        response.set(json.writeValueAsString(d));assertThat(client.checkResource("user-token",request,facts).decision()).isEqualTo("ALLOW");
+        response.set(json.writeValueAsString(d).replace("\"resource_version\":7","\"resource_version\":8"));
+        assertThatThrownBy(()->client.checkResource("user-token",request,facts)).isInstanceOf(CentralAccessException.class);
     }
 
 }

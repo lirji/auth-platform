@@ -123,6 +123,23 @@ class ReliableAuthorizationIT {
         StrictGraphReader incomplete=(member,generation,grants,token)->Map.of();
         assertThatThrownBy(()->runtime.reliableAuthorization(incomplete).evaluate(c,f.p.applicationId()+".read","store")).hasMessage("AUTHZ_PROTOCOL_INVALID");
     }
+    @Test void productScopeRequiresBothTrustedStoreAndProductOnSameGrant(){
+        var f=fixture();String cap=f.p.applicationId()+".product.read";
+        runtime.catalog().publish(f.login,new Manifest("1",f.p.applicationId(),2,List.of(
+            new Capability(f.p.applicationId()+".read","store",Risk.NORMAL),new Capability(f.p.applicationId()+".refund","store",Risk.HIGH),new Capability(cap,"product",Risk.NORMAL)),List.of()),id());
+        // 独立隔离环境显式授予新增能力上限；不修改原固定委派或RoleVersion。
+        var owner=runtime.identity().contextForLogin(f.login.issuer(),f.login.subject(),f.p.tenantId(),null);
+        var partition=new Partition(f.p.tenantId(),f.p.applicationId(),"product-test");
+        runtime.access().bootstrap(partition,new Delegation(owner.membershipId(),owner.membershipGeneration(),AccessValues.json(List.of(cap)),3600),"test",id());
+        var role=runtime.access().createRole(f.login,partition,id(),"product-reader",1,List.of(cap));runtime.access().enableStrict(f.login,partition,id());
+        var product=new Fixture(partition,f.login,f.member,role);
+        var rule=new Rule(1,"product",List.of(new Clause(com.lrj.authz.protocol.ScopeDtos.Kind.SPECIFIED_STORES,List.of("S001"),false),new Clause(com.lrj.authz.protocol.ScopeDtos.Kind.SPECIFIED_RESOURCES,List.of("P001"),false)));
+        runtime.access().grantScoped(f.login,partition,id(),f.member.membershipId(),1,role.id(),rule,id(),Instant.now(),Instant.now().plusSeconds(60));project(product);
+        var auth=runtime.reliableAuthorization(graph);var c=context(product);
+        assertThat(auth.allowed(c,cap,new Facts(partition.tenantId(),"product","P001",1,null,null,List.of(),"S001",null))).isTrue();
+        assertThat(auth.allowed(c,cap,new Facts(partition.tenantId(),"product","P002",1,null,null,List.of(),"S001",null))).isFalse();
+        assertThat(auth.allowed(c,cap,new Facts(partition.tenantId(),"product","P001",1,null,null,List.of(),"S002",null))).isFalse();
+    }
     private void awaitAllowed(Fixture f,String store){
         // 独立双水位允许保守短暂拒绝；等待图量化快照追平，不把旧DENY改为ALLOW。
         var auth=second.reliableAuthorization(graph);var c=context(f);long deadline=System.nanoTime()+10_000_000_000L;
