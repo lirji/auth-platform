@@ -49,6 +49,16 @@ public final class DirectoryGovernance {
     public Receipt checkpoint(DirectoryAuthority authority) {
         return transaction.execute(status -> receipt(requireSource(authority), false));
     }
+    /** 运维状态可观察隔离事实，不绕过隔离恢复消费；仍必须精确匹配已登记权限范围。 */
+    public Inspection inspect(DirectoryAuthority authority) {
+        return transaction.execute(status -> {
+            Source source = directory.lockSource(authority.id());
+            if (!authority.matches(source)) { throw new GovernanceException(BINDING_CONFLICT); }
+            return new Inspection(source.lastSequence(), source.quarantined());
+        });
+    }
+    /** 不输出消息正文或身份数据，仅暴露本地持久化进度与冲突隔离标记。 */
+    public record Inspection(long lastSequence, boolean quarantined) {}
     /** 精确来源认证由受控拉取配置保证；消息中的来源事实只能核对，不能选择权限范围。 */
     public Receipt accept(DirectoryAuthority authority, Event event) {
         if (event == null || !authority.source().equals(event.source()) || !authority.environment().equals(event.environment())

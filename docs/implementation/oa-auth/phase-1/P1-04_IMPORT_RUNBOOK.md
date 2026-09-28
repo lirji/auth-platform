@@ -31,6 +31,18 @@ java -Dloader.main=com.lrj.authz.governance.cli.DirectoryImportCli \
 ```
 
 `register` 先核对来源再登记，重复登记不覆盖权限范围；`pull` 只消费既有来源。数据库、服务出口超时后可重新运行同一配置，先恢复确认，再取连续检查点后的事件。
-输出 processed/last_sequence 只说明本次进度，不代表所有积压已清除。以 OA status 的提交/确认水位判断积压；目标冲突隔离需要人工处置，不能重置游标或按缺失删除员工。
+输出 processed/last_sequence 只说明本次进度，不代表所有积压已清除。用同一 CLI 的 `status` 命令查询目标隔离状态和双端水位：
+
+```sh
+java -Dloader.main=com.lrj.authz.governance.cli.DirectoryImportCli \
+  -cp auth-platform-admin/target/auth-platform-admin-0.1.0-SNAPSHOT.jar \
+  org.springframework.boot.loader.launch.PropertiesLauncher status /private/directory.properties
+```
+
+- `PENDING`：来源已提交、本地已导入、来源已确认水位尚未全部相等。
+- `ACKNOWLEDGED`：本次观察三个水位相等，且本地未隔离；不承诺查询完成后没有新增事件。
+- `CONFLICT`：本地已持久化隔离，或来源水位与本地不可能一致。已隔离时无需 OA 在线，未知来源/确认水位输出 `null`。
+
+`status` 不消费、确认、清除隔离或修改检查点。非隔离情况下 OA 不可用会非零退出，不能误报已确认。目标冲突需人工核查来源配置和保留事件；不能重置游标或按缺失删除员工。
 
 固定版本 Casdoor 的共享升级 Gate 仍 HOLD；导入测试不授权生产目录接管、共享 IdP 升级或生产部署。

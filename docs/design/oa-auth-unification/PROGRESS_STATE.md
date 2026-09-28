@@ -30,7 +30,7 @@ AGENTS 第8条授权验证后正常任务提交、合并、推送 main；无强�
 
 ## 下一步
 
-P1-06 已交付；P1-05 本地验收 DONE（181 单测、29 PG、5 Casdoor、60 HTTP/CLI），精确 CI 36392809729 SUCCESS（47ff9d9）；P1-04 首次绑定策略已获用户确认，契约已冻结，auth 消费事务 pass 已验证（189 单测、44 PG、5 IdP、60 HTTP），OA 来源端 626ecc8 已通过 13 PG/5 HTTP/全仓回归与 CI 36397627546；auth 拉取器通过 197 单测/45 PG，真实双库闭环尚未完成。交付 P1-05 并完成 P1-04 后执行 P1-07 总验收，随后暂停，不开始 P2。每片完成实施、独立验证、文档/进度与 Git 交付，不等待反复继续。
+P1-06 已交付；P1-05 本地验收 DONE（181 单测、29 PG、5 Casdoor、60 HTTP/CLI），精确 CI 36392809729 SUCCESS（47ff9d9）；P1-04 首次绑定策略已获用户确认，契约已冻结，auth 消费事务 pass 已验证（189 单测、44 PG、5 IdP、60 HTTP），OA 来源端 626ecc8 已通过 13 PG/5 HTTP/全仓回归与 CI 36397627546；auth 拉取器通过 197 单测/45 PG，OA bc0734b 的真实双库及专属 Casdoor 闭环已完成，CI 36398882953 全部 SUCCESS；状态诊断补充已通过 198 单测/46 PG/5 IdP，等待本 pass CI 和 P1-07 最终交付。交付 P1-05 并完成 P1-04 后执行 P1-07 总验收，随后暂停，不开始 P2。每片完成实施、独立验证、文档/进度与 Git 交付，不等待反复继续。
 
 目录收敛证据见 docs/implementation/oa-auth/WORKTREE_CONSOLIDATION.md；Git 只剩主目录工作树，历史资料/私密配置和 P0 基线已保留。
 

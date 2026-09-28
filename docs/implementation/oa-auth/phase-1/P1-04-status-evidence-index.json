@@ -1,0 +1,28 @@
+{
+  "slice": "P1-04",
+  "scope": "read-only operational status pass",
+  "base": "b11d080ae38024c482ab49e4dd3a9dce2993835e",
+  "fingerprint": "90e38e3d0039bf79160828e3dec7e38b14091203424daa0ad6cf3ad1672d31a3",
+  "files": [
+    {
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/DirectoryGovernance.java",
+      "sha256": "265d3e10657830aa8a5931bf460ceb5e5a5a2edaaacdcde3714ae955dbd54edc"
+    },
+    {
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/DirectoryPullImporter.java",
+      "sha256": "b7554b7fd2fe8876af1c59ec7f1c782ee3f99d51fbfbe0472fed66997218df1c"
+    },
+    {
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/DirectoryImportCli.java",
+      "sha256": "641394f75085b155cc2b0e92b560b9afb73c499f9218e6c8be0e39f57bccf024"
+    },
+    {
+      "path": "auth-platform-governance/src/test/java/com/lrj/authz/governance/application/DirectoryPullImporterTest.java",
+      "sha256": "7b1fdd659bbacd3761a603a7620a7fcae2dbcce17ce9a36c41afd4aec1b9cd2a"
+    },
+    {
+      "path": "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/DirectoryPostgresIT.java",
+      "sha256": "a9f708884b97b1682c2a0f33a1e9705e976c7abd42d4fdb0e12395d89258a727"
+    }
+  ]
+}

@@ -174,6 +174,17 @@ class DirectoryPostgresIT {
         assertThat(member(a, "1").status()).isEqualTo(MemberStatus.LEFT);
         assertThat(quarantined(a)).isTrue();
     }
+
+    @Test void quarantinedSourceCanBeInspectedButCannotResumeOrChangeAuthority() {
+        var a = authority(); var original = employee(a, 1, 1, "1", id(), "ACTIVE", null);
+        runtime.directory().accept(a, original);
+        assertCode(() -> runtime.directory().accept(a, employee(a, 1, 2, "1", id(), "LEFT", null)), BINDING_CONFLICT);
+        assertThat(runtime.directory().inspect(a)).isEqualTo(new DirectoryGovernance.Inspection(1, true));
+        assertCode(() -> runtime.directory().checkpoint(a), BINDING_CONFLICT);
+        var wrong = new DirectoryAuthority(a.id(), a.source(), a.environment(), a.sourceTenantRef(), id(), a.issuer());
+        assertCode(() -> runtime.directory().inspect(wrong), BINDING_CONFLICT);
+        assertThat(runtime.directory().inspect(a).quarantined()).isTrue();
+    }
     @Test void auditFailureRollsBackIdentityProjectionVersionAndCheckpoint() {
         var a = authority(); String user = id(); Event event = employee(a, 1, 1, "1", user, "ACTIVE", null);
         String trigger = "directory_test_" + id().replace("-", "");

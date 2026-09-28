@@ -32,6 +32,27 @@ public final class DirectoryPullImporter implements AutoCloseable {
     /** 结果表示本次提交和连续水位；未读取最新来源状态时不宣称积压已全部清零。 */
     public record Result(int processed, long lastSequence) {}
 
+    /** 稳定运维状态不等于任何应用访问许可；冲突优先于表面上的相等水位。 */
+    public enum SyncState {
+        PENDING("PENDING"), ACKNOWLEDGED("ACKNOWLEDGED"), CONFLICT("CONFLICT");
+        private final String code;
+        SyncState(String code) { this.code = code; }
+        public String code() { return code; }
+    }
+    /** 冲突时无需依赖在线 OA；来源/确认未知使用 null，不能以 0 冒充读取结果。 */
+    public record Status(SyncState state, long importedSequence, Long sourceSequence, Long confirmedSequence) {}
+
+    /** 固定来源状态查询不清除冲突、改写游标或发送确认，可在隔离后用于诊断。 */
+    public Status inspect() {
+        var local = directory.inspect(config.authority());
+        if (local.quarantined()) { return new Status(SyncState.CONFLICT, local.lastSequence(), null, null); }
+        JsonNode source = status();
+        long last = number(source, "last_sequence"), confirmed = number(source, "acked_sequence");
+        SyncState state = confirmed > local.lastSequence() || last < local.lastSequence() ? SyncState.CONFLICT
+                : confirmed == last && local.lastSequence() == last ? SyncState.ACKNOWLEDGED : SyncState.PENDING;
+        return new Status(state, local.lastSequence(), last, confirmed);
+    }
+
     /** 初次登记是显式管理操作；先核对 HTTP 来源，既有企业必须由上游预先建立。 */
     public void register() {
         status();

@@ -61,6 +61,7 @@ class DirectoryPullImporterTest {
         });
         source.start();
         when(directory.checkpoint(authority)).thenAnswer(call -> receipt());
+        when(directory.inspect(authority)).thenAnswer(call -> new DirectoryGovernance.Inspection(committed.get(), false));
         when(directory.accept(eq(authority), any())).thenAnswer(call -> { committed.set(1); page.set("{\"events\":[]}"); return receipt(); });
     }
     @AfterEach void close() { source.stop(0); }
@@ -133,6 +134,19 @@ class DirectoryPullImporterTest {
         }
         assertThat(config(10, 1000).toString()).doesNotContain("x".repeat(43));
         assertThatThrownBy(() -> config(1001, 1000)).isInstanceOf(GovernanceException.class);
+    }
+
+    @Test void operationalStatusDistinguishesPendingAcknowledgedAndOfflineConflict() {
+        try (var importer = importer(10, 1000)) {
+            assertThat(importer.inspect().state()).isEqualTo(DirectoryPullImporter.SyncState.PENDING);
+            committed.set(1); assertThat(importer.inspect().state()).isEqualTo(DirectoryPullImporter.SyncState.PENDING);
+            confirmed.set(1); assertThat(importer.inspect().state()).isEqualTo(DirectoryPullImporter.SyncState.ACKNOWLEDGED);
+            when(directory.inspect(authority)).thenReturn(new DirectoryGovernance.Inspection(1, true));
+            source.stop(0);
+            var conflict = importer.inspect(); assertThat(conflict.state()).isEqualTo(DirectoryPullImporter.SyncState.CONFLICT);
+            assertThat(conflict.sourceSequence()).isNull(); assertThat(conflict.confirmedSequence()).isNull();
+        }
+        verify(directory, never()).accept(any(), any()); assertThat(ackCalls.get()).isZero();
     }
 
     private DirectoryPullImporter importer(int max, int timeout) { return new DirectoryPullImporter(directory, config(max, timeout)); }
