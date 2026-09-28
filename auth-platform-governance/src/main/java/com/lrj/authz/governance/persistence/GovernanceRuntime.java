@@ -26,6 +26,10 @@ public final class GovernanceRuntime implements AutoCloseable {
     private final DirectoryGovernance directory;
     private com.lrj.authz.governance.application.ApplicationCatalog catalog;
     private com.lrj.authz.governance.application.AccessManagement access;
+    private AccessMapper accessMapper;
+    private CatalogMapper catalogMapper;
+    private ProjectionMapper projectionMapper;
+    private TransactionTemplate transaction;
 
     private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle,
                               InvitationGovernance invitations, DirectoryGovernance directory) {
@@ -97,6 +101,8 @@ public final class GovernanceRuntime implements AutoCloseable {
                             directoryTransaction, conflictTransaction));
             runtime.catalog = new com.lrj.authz.governance.application.ApplicationCatalog(session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction);
             runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction);
+            runtime.accessMapper=session.getMapper(AccessMapper.class); runtime.catalogMapper=session.getMapper(CatalogMapper.class);
+            runtime.projectionMapper=session.getMapper(ProjectionMapper.class); runtime.transaction=transaction;
             return runtime;
         } catch (Exception failure) {
             dataSource.close();
@@ -121,6 +127,15 @@ public final class GovernanceRuntime implements AutoCloseable {
 
     /** 应用管理不能绕过委派和当前成员状态。 */
     public com.lrj.authz.governance.application.AccessManagement access() { return access; }
+
+    /** 图投影只使用显式提供的独立引擎。 */
+    public com.lrj.authz.governance.application.GrantProjection projector(com.lrj.authz.protocol.AuthzEngine graph) {
+        return new com.lrj.authz.governance.application.GrantProjection(dataSource,accessMapper,projectionMapper,transaction,graph);
+    }
+    /** 公开中央鉴权组合SQL事实和同Grant图资格。 */
+    public com.lrj.authz.governance.application.AccessAuthorization authorization(com.lrj.authz.protocol.AuthzEngine graph) {
+        return new com.lrj.authz.governance.application.AccessAuthorization(accessMapper,projectionMapper,catalogMapper,graph);
+    }
 
     IdentityMapper mapper() { return mapper; }
 

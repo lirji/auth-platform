@@ -1,0 +1,6 @@
+// 独立治理图：只接受中央投影器写入，不能加载到旧工作区。
+definition gov_membership {}
+definition gov_grant {
+    relation assignee: gov_membership
+    permission eligible = assignee
+}
