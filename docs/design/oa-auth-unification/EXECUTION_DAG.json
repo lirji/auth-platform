@@ -1,7 +1,7 @@
 {
   "schema_version": "oa-auth-project-execution-plan/1",
   "plan_status": "IMPLEMENTATION_AUTHORIZED",
-  "scope": "最新用户授权在既有计划上连续实施；正式业务输入及生产部署门禁独立",
+  "scope": "Current user scope: complete P1, then pause; consolidate auth worktrees into the original auth-platform directory. P2-P7 execution deferred.",
   "source_task_count": 58,
   "task_count": 63,
   "topological_order": [
@@ -380,10 +380,11 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "contract_ref": "CONTRACTS_P1_INVITATIONS.md"
     },
     {
       "id": "P1-06",
@@ -457,7 +458,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -481,7 +482,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -504,7 +505,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -527,7 +528,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -550,7 +551,7 @@
       "parallel": false,
       "parallel_reason": "同一公开契约/投影Owner",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "所属阶段薄路径",
       "schema_migration_owner": "对应阶段唯一Owner"
     },
@@ -573,7 +574,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -598,7 +599,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -621,7 +622,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -644,7 +645,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -668,7 +669,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -692,7 +693,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -716,7 +717,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -741,7 +742,7 @@
       "parallel": false,
       "parallel_reason": "同一公开契约/投影Owner",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "所属阶段薄路径",
       "schema_migration_owner": "对应阶段唯一Owner"
     },
@@ -765,7 +766,7 @@
       "parallel": false,
       "parallel_reason": "同一公开契约/投影Owner",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "所属阶段薄路径",
       "schema_migration_owner": "对应阶段唯一Owner"
     },
@@ -789,7 +790,7 @@
       "parallel": false,
       "parallel_reason": "同一公开契约/投影Owner",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "所属阶段薄路径",
       "schema_migration_owner": "对应阶段唯一Owner"
     },
@@ -815,7 +816,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -839,7 +840,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -863,7 +864,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -888,7 +889,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -911,7 +912,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -934,7 +935,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -957,7 +958,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -980,7 +981,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1003,7 +1004,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1026,7 +1027,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1049,7 +1050,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1074,7 +1075,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1099,7 +1100,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1124,7 +1125,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1149,7 +1150,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1175,7 +1176,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1201,7 +1202,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "additional_gates": [
@@ -1233,7 +1234,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1255,7 +1256,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1277,7 +1278,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "additional_gates": [
@@ -1302,7 +1303,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1324,7 +1325,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1346,7 +1347,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1368,7 +1369,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "additional_gates": [
@@ -1393,7 +1394,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1415,7 +1416,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1437,7 +1438,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1459,7 +1460,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "additional_gates": [
@@ -1484,7 +1485,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1506,7 +1507,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1528,7 +1529,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "additional_gates": [
@@ -1556,7 +1557,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": true,
+      "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1585,5 +1586,7 @@
         "全部上线门禁、生产目标及生产部署授权"
       ]
     }
-  ]
+  ],
+  "current_execution_ceiling": "P1",
+  "pause_after_phase": 1
 }
