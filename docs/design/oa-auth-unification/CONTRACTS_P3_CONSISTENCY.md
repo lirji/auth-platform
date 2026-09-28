@@ -21,3 +21,17 @@ A和C各在独立 `REQUIRES_NEW + REPEATABLE_READ` 短事务（5秒）读取主�
 ## P3-05/06：后续读写语义
 
 严格批量响应校验请求关联、基数、逐项状态及错误；Conditional/缺项/重复/超时拒绝。对policy和directory两个水位分别执行同一批检查，交集才允许；不取字符串max。撤权受理与完成分开，完成必须有receipt且当前栅栏已覆盖对应操作。P3-06补能力紧急停用、组资格变化和到期行为。P3-07必须保存真实进程kill/双执行器晚到结果，不用当前PG单测替代。
+
+## P3-04b 实施细化（同一已批准算法）
+
+projection_stream按policy或directory的真实FK二选一登记，保存固定fence_id、最后确认marker/批号、当前目标与扫描游标、有界失败重试，以及worker_id/lease_generation/lease_until。每次领取生成新代际，使用数据库时间；本地租约15秒，每次调用一个批次，进程入口最多30秒。不在网络期间持有SQL事务。
+
+projection_operation固定operation UUID、fence、target_epoch、单调batch_no、expected_marker、规范化payload/hash、末游标和是否最后一批；PENDING/APPLIED/SUPERSEDED/QUARANTINED为稳定状态。每分区只允许一个PENDING；同分区target+batch唯一。payload/expected/new marker等语义字段由数据库不可变触发器保护，只有状态/尝试信息可更新。没有「读新marker后改旧operation」入口。
+
+规划按当前权威Grant（包括已撤销来源）稳定id扫描，51条探测是否还有下一批，实际每批最多50条；新epoch从头重新扫描，不静默丢掉尾部。关系与marker同一次CAS写，所有批次确认之前保持UPDATING。目录当前直接成员阶段使用独立空关系marker批次，P3-06组关系变化复用该分区和批次协议。
+
+每步先读取远端marker：等于最后确认值才能规划/重发固定operation；若指向同分区已持久化且比已确认更新、expected与最后确认一致的operation，先恢复其receipt，不重发payload。未知、回退或多marker立即BLOCKED。恢复确认需要当前有效租约，旧执行者不能提交READY。新desired覆盖旧PENDING时标SUPERSEDED并创建新operation；迟到旧CAS至多在新CAS之前完成，后续新worker必须重新读权威状态和恢复已知operation，不能换expected复用旧内容。
+
+receipt按operation唯一，保存graph_marker、content_hash、opaque zed_token和confirmed_at。末批确认仅在desired仍等于operation.target_epoch且非BLOCKED时READY；并发管理更新保留UPDATING。PENDING→ACTIVE仅匹配当前Grant version，不恢复REVOKED。每步失败保留操作，指数退避带抖动，上限60秒/最多5次后BLOCKED；协议/未知marker直接隔离。受控审计重试由P3-06管理接口补齐。
+
+运行历史不自动删除。当前marker引用的operation、所有非终态和幂等记录必须保留；本隔离验证阶段保留全部证据。生产保留/归档期限需沿P7运营策略确认，不能编造法规保留期。这里不引入新的定时调度或消息中间件。

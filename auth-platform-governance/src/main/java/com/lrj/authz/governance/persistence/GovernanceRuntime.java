@@ -30,6 +30,7 @@ public final class GovernanceRuntime implements AutoCloseable {
     private CatalogMapper catalogMapper;
     private ProjectionMapper projectionMapper;
     private FenceMapper fenceMapper;
+    private ReliableProjectionMapper reliableMapper;
     private TransactionTemplate transaction;
 
     private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle,
@@ -74,6 +75,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             config.getTypeHandlerRegistry().register(MemberStatus.class, new IdentityCodeTypeHandler<>(MemberStatus.class));
             config.getTypeHandlerRegistry().register(InvitationState.class, new IdentityCodeTypeHandler<>(InvitationState.class));
             config.getTypeHandlerRegistry().register(com.lrj.authz.protocol.DirectoryEvents.DirectoryAggregateType.class, new DirectoryEventTypeHandler());
+            config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.ProjectionModels.OperationState.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.ProjectionModels.OperationState.class));
             config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.FenceModels.State.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.FenceModels.State.class));
             config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.AccessModels.GrantState.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.AccessModels.GrantState.class));
             config.setMapUnderscoreToCamelCase(true);
@@ -105,7 +107,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(FenceMapper.class));
             runtime.accessMapper=session.getMapper(AccessMapper.class); runtime.catalogMapper=session.getMapper(CatalogMapper.class);
             runtime.projectionMapper=session.getMapper(ProjectionMapper.class); runtime.transaction=transaction;
-            runtime.fenceMapper=session.getMapper(FenceMapper.class);
+            runtime.fenceMapper=session.getMapper(FenceMapper.class);runtime.reliableMapper=session.getMapper(ReliableProjectionMapper.class);
             return runtime;
         } catch (Exception failure) {
             dataSource.close();
@@ -143,6 +145,11 @@ public final class GovernanceRuntime implements AutoCloseable {
     /** 严格读路径每次从主库获取两份独立快照。 */
     public com.lrj.authz.governance.application.ReadFence readFence(){
         return new com.lrj.authz.governance.application.ReadFence(fenceMapper,transaction.getTransactionManager());
+    }
+
+    /** 可靠执行器只使用受控CAS端口，不能回退到旧无前置条件写入。 */
+    public com.lrj.authz.governance.application.ReliableProjection reliableProjector(com.lrj.authz.protocol.ProjectionGraph graph){
+        return new com.lrj.authz.governance.application.ReliableProjection(reliableMapper,fenceMapper,transaction.getTransactionManager(),graph);
     }
 
     IdentityMapper mapper() { return mapper; }
