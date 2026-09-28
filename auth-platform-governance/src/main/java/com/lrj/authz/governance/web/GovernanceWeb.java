@@ -83,7 +83,7 @@ public final class GovernanceWeb {
         int status = switch (code) {
             case INVALID_ARGUMENT -> 400;
             case INVALID_CREDENTIAL -> 401;
-            case IDENTITY_NOT_BOUND, MEMBERSHIP_UNAVAILABLE, GENERATION_MISMATCH -> 403;
+            case ACCESS_DENIED, IDENTITY_NOT_BOUND, MEMBERSHIP_UNAVAILABLE, GENERATION_MISMATCH -> 403;
             case BINDING_CONFLICT, COMMAND_CONFLICT, VERSION_CONFLICT -> 409;
             case DEPENDENCY_UNAVAILABLE -> 503;
         };

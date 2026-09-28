@@ -24,6 +24,7 @@ public final class GovernanceRuntime implements AutoCloseable {
     private final LifecycleGovernance lifecycle;
     private final InvitationGovernance invitations;
     private final DirectoryGovernance directory;
+    private com.lrj.authz.governance.application.ApplicationCatalog catalog;
 
     private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle,
                               InvitationGovernance invitations, DirectoryGovernance directory) {
@@ -88,10 +89,12 @@ public final class GovernanceRuntime implements AutoCloseable {
             TransactionTemplate conflictTransaction = new TransactionTemplate(transaction.getTransactionManager());
             conflictTransaction.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
             conflictTransaction.setTimeout(5);
-            return new GovernanceRuntime(dataSource, mapper, new IdentityGovernance(mapper, transaction), new LifecycleGovernance(mapper, transaction),
+            GovernanceRuntime runtime = new GovernanceRuntime(dataSource, mapper, new IdentityGovernance(mapper, transaction), new LifecycleGovernance(mapper, transaction),
                     new InvitationGovernance(mapper, session.getMapper(InvitationMapper.class), transaction),
                     new DirectoryGovernance(session.getMapper(DirectoryMapper.class), mapper, session.getMapper(InvitationMapper.class),
                             directoryTransaction, conflictTransaction));
+            runtime.catalog = new com.lrj.authz.governance.application.ApplicationCatalog(session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction);
+            return runtime;
         } catch (Exception failure) {
             dataSource.close();
             throw new IllegalStateException("治理库装配失败，拒绝启用新路径", failure);
@@ -109,6 +112,9 @@ public final class GovernanceRuntime implements AutoCloseable {
 
     /** 仅受控目录适配器可登记来源和提交事件，不向普通用户 HTTP 暴露。 */
     public DirectoryGovernance directory() { return directory; }
+
+    /** 目录发布不接管旧工作区或业务权限。 */
+    public com.lrj.authz.governance.application.ApplicationCatalog catalog() { return catalog; }
 
     IdentityMapper mapper() { return mapper; }
 

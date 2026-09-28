@@ -2,7 +2,7 @@
 
 保留源方案全部 58 个任务 ID；新增 P1-00 契约冻结、P2-05a SDK兼容验证，并将 P3-04 分为三个有界 pass，原 ID 作为汇总。机器依赖以 EXECUTION_DAG.json 为准；执行范围遵循最新用户指令和 PROGRESS_STATE，生产操作独立授权。
 
-P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真实集成测试通过**。P1-00 已冻结当前薄路径契约；继续实施已授权，产品片须有对应冻结契约。P1-01 已验证 DONE，P1-02 当前 READY，未运行验收仍不可标 DONE。
+P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真实集成测试通过**。P1-00 已冻结当前薄路径契约；继续实施已授权，产品片须有对应冻结契约。P1 全部 DONE；本轮已授权完成 P2 后暂停，状态以 PROGRESS_STATE 和 DAG 为准。
 
 | ID | 可观察结果 | Needs | Owner／主要路径 | 验收 | Pass／Runtime | 状态 |
 |---|---|---|---|---|---|---|
@@ -21,7 +21,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 | P1-05 | 实现外部邀请和生命周期 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 并发接受唯一、外部成员无内部默认访问 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P1-06 | 接入停用状态与审计 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 旧JWT不能绕过当前成员停用 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P1-07 | 输出真实集成测试与P2交接 | P1-04, P1-05, P1-06 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 不以Mock代替真实身份源验证 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
-| P2-01 | 应用／能力／菜单清单解析与预览 | P1-03 | IAM／应用 Owner；auth: governance（候选）, admin, core, sdk, auth-console、commerce: StoreAccessController/Service | 外部应用不能覆盖trade能力 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
+| P2-01 | 应用／能力／菜单清单解析与预览 | P1-03 | IAM／应用 Owner；auth: governance（候选）, admin, core, sdk, auth-console、commerce: StoreAccessController/Service | 外部应用不能覆盖trade能力 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P2-02 | RoleVersion与AccessGrant模型 | P2-01, P1-06 | IAM／应用 Owner；auth: governance（候选）, admin, core, sdk, auth-console、commerce: StoreAccessController/Service | 唯一约束、版本不变、来源保留 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P2-03 | 受保护的角色与授权管理API | P2-02 | IAM／应用 Owner；auth: governance（候选）, admin, core, sdk, auth-console、commerce: StoreAccessController/Service | 无委派权限不能授予，高危自提权失败 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P2-04 | Grant图模型与单执行者投影 | P2-03 | IAM／应用 Owner；auth: governance（候选）, admin, core, sdk, auth-console、commerce: StoreAccessController/Service | 真写入、真检查、生效水位及异常 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
@@ -72,7 +72,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 
 ## 当前下一片
 
-P1-00—P1-07 全部 DONE，汇总见 phase-1/P1-07_TEST_RESULT.md。两仓正常 Git 交付、main CI 和最终目录审计已完成，当前按用户要求暂停；P2—P7 未获本次执行授权。
+P1-00—P1-07 全部 DONE，汇总见 phase-1/P1-07_TEST_RESULT.md。两仓正常 Git 交付、main CI 和最终目录审计已完成，P1历史停止点已由本轮P2授权解除；P2实施中，P3—P7未获本轮执行授权。
 P2 交接见 phase-1/P2_HANDOFF.md；共享 Casdoor 升级仍 HOLD，不把 P1 后端验收等同正式登录切换。
 
 ## 依赖与外部条件
