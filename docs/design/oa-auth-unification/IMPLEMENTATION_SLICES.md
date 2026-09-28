@@ -96,4 +96,4 @@ P1-01 首次需要隔离 auth 治理数据库及迁移装配，由 runtime-and-d
 
 P1-06 受控停用本地验收 DONE（170 单测、20 PG、30 HTTP；旧 JAR/V3 读取兼容 PASS），精确 CI 36389719173 SUCCESS，9fd58ca 已合并推送 main。下一片 P1-04 目录接入；未改变原节点依赖。
 
-P1-05 本地验收 DONE：181 单测、29 PG、5 Casdoor、30 邀请与 30 既有 HTTP/CLI 检查；旧 JAR/V4 读取兼容 PASS。远程精确提交 CI 待执行。Q-PROVISION 已确认自动建立主体/员工成员并精确来源绑定；下一片 P1-04。
+P1-05 本地验收 DONE：181 单测、29 PG、5 Casdoor、30 邀请与 30 既有 HTTP/CLI 检查；旧 JAR/V4 读取兼容 PASS。远程精确 CI 36392809729 SUCCESS（47ff9d9）。Q-PROVISION 已确认自动建立主体/员工成员并精确来源绑定；下一片 P1-04。

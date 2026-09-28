@@ -388,7 +388,9 @@
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "contract_ref": "CONTRACTS_P1_INVITATIONS.md",
       "validation_ref": "../../implementation/oa-auth/phase-1/P1-05_TEST_RESULT.md",
-      "delivery_status": "CI_PENDING"
+      "delivery_status": "CI_PASS",
+      "implementation_commit": "47ff9d9fac439d8fad9b38f48687868b8e41b6de",
+      "ci_run": 36392809729
     },
     {
       "id": "P1-06",

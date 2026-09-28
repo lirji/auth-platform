@@ -317,13 +317,19 @@
     "Shared IdP compatibility upgrade remains HOLD; no production deployment"
   ],
   "local_evidence_directory": ".local/governance/p1-05",
-  "ci": "PENDING",
+  "ci": "PASS",
   "ci_attempts": [
     {
       "run_id": 36392202962,
       "head": "f541c2edb85a39738d9685b5987bb339441f2ac9",
       "result": "FAIL",
       "failure": "invitation process restart OSError; earlier steps PASS"
+    },
+    {
+      "run_id": 36392809729,
+      "head": "47ff9d9fac439d8fad9b38f48687868b8e41b6de",
+      "result": "PASS",
+      "url": "https://github.com/lirji/auth-platform/actions/runs/36392809729"
     }
   ],
   "runtime_remediation": {
