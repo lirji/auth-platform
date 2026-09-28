@@ -19,6 +19,7 @@
 - P1-04/05 与 P2—P7 按既有 DAG 连续推进，身份上下文不等于应用准入或业务授权。
 - 共享 Casdoor v4.3.0 Access==ID，禁止用于新治理入口。隔离 v4.11.0 解决用途混用，但不拒绝错误 redirect_uri；完整升级 Gate HOLD。未升级共享实例，未完成旧库迁移及浏览器完整登录验证。
 - 正式最小权限版本证明仍需落实；隔离 built-in 运维客户端不发给 SDK/浏览器。
+- Q-PROVISION：OA 新员工首次自动建立成员还是进入待绑定队列，已询问用户，待冻结 P1-04 首次绑定写入规则；源码调查和事件可靠性准备已记录。
 - Q-EXT 外部真实业务资源/场景未确认，仅阻塞对应试点；正式审计保留期限和容量目标待确认。
 - Hygiene：IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS，无仓库 formatter；独立静态分析器未配置，N/A。
 
