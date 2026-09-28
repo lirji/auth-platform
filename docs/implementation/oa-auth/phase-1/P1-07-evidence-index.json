@@ -1,0 +1,45 @@
+{
+  "slice": "P1-07",
+  "auth_product_revision": "fb59d823d3f9368547f94daa83266aeb204d1019",
+  "oa_product_revision": "bc0734be47719b7b241b2fb66fa18cf9959f74de",
+  "auth_source_index": "P1-04-status-evidence-index.json",
+  "logs": [
+    {
+      "path": ".local/governance/p1-04/status-full.log",
+      "sha256": "552563635c19272cbb94d02cd86ea94f334fe2dc46c4931391cb550371b95c38"
+    },
+    {
+      "path": ".local/governance/p1-04/final-identity.log",
+      "sha256": "8c9bdae3b5f730d23119542cd2df2fd9bf389fd1aa819d6169b4d3ae55b6c2fd"
+    },
+    {
+      "path": ".local/governance/p1-04/dual-db-idp-full.log",
+      "sha256": "c46e97e020040d44c6e025bd13ba860f816a66b890035d2beab04aa790be59c7"
+    },
+    {
+      "path": ".local/governance/p1-04/final-context-result.json",
+      "sha256": "04f6b720b5efa4907dbae23cfe79c28226f386e522c02d5e8b9428b309265943"
+    },
+    {
+      "path": ".local/governance/p1-04/final-invitation-result.json",
+      "sha256": "87cee1dc9561f63e01e6f1696ad831516f71189df7aa72fc5d89d4dbc1d77227"
+    },
+    {
+      "path": ".local/governance/p1-04/final-old-jar-v5-result.json",
+      "sha256": "78b329f596c1f6c62313ac72693b0d9b3d19411ddabd3d8fd6e64516f7e72322"
+    },
+    {
+      "path": ".local/governance/p1-04/status-hygiene.json",
+      "sha256": "0dccb341269ed44c3fc9dbc563ad99275211ab52706853055ae756fcc112da7c"
+    }
+  ],
+  "auth_unit": 198,
+  "auth_postgres": 46,
+  "auth_real_identity": 5,
+  "http_context": 30,
+  "http_invitations": 30,
+  "oa_unit_pass": 191,
+  "oa_unit_existing_skip": 1,
+  "oa_postgres_including_real_identity": 15,
+  "old_jar_v5": "PASS"
+}

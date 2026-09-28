@@ -1,6 +1,6 @@
 # auth worktree 收敛记录
 
-用户要求 P1 做完后暂停，并将 auth worktree 合并，最终只保留 auth-platform 主目录。当前目录收敛已完成，P1 尚待 P1-04/05/07；不推进 P2，不将目录清理等同 P1 完成。
+用户要求 P1 做完后暂停，并将 auth worktree 合并，最终只保留 auth-platform 主目录。目录收敛已完成；P1-00—P1-07 当前均已通过验收，最终 Git 交付另行记录，不推进 P2。
 
 ## Git 与文件证据
 
@@ -21,4 +21,4 @@ P0 的 OA/commerce 只读基线通过各自仓库的 `git worktree move` 迁至�
 
 专用 Casdoor 18090 的旧宿主 bind mount 指向即将移除的目录，因此迁到固定镜像、原生 UID 1000 的任务私密配置卷。保留同一专用数据库和认证资料；discovery/版本 API 验证 v4.11.0 PASS。旧容器日志以 0600 保存后才移除已停止的替代前容器。共享 Casdoor 和其他共享组件没有改变。
 
-`.local/governance`、`.local/governance-ci-runtime`、`.local/p0-evidence` 和归档需保留，含凭据及后续 P1 验证资料，不提交远程。无清库、账号迁移或生产部署。本记录只证明工作目录收敛及已执行的配置迁移，不声称剩余 P1 验收已经通过。
+`.local/governance`、`.local/governance-ci-runtime`、`.local/p0-evidence` 和归档需保留，含凭据及后续 P1 验证资料，不提交远程。无清库、账号迁移或生产部署。本记录保存目录收敛及配置迁移事实；P1验收见 phase-1/P1-07_TEST_RESULT.md。

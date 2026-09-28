@@ -42,7 +42,7 @@
 | 阶段 | 核心交付 | 前置 | 退出条件 | 当前状态 |
 |---|---|---|---|---|
 | P0 基线 | 三仓证据、唯一所有权、ADR、真实试点入口、P1 范围 | 用户方案 | 差异和未验证项可追溯；足以启动受限 P1 设计 | COMPLETE_WITH_LIMITATIONS |
-| P1 身份与目录 | Principal／LoginIdentity／Tenant／Membership、可信上下文、邀请与生命周期 | P0；具体契约冻结 | 真 Token 正反例、成员隔离、重复乱序、邀请并发、停用拒绝 | NOT_STARTED |
+| P1 身份与目录 | Principal／LoginIdentity／Tenant／Membership、可信上下文、邀请与生命周期 | P0；具体契约冻结 | 真 Token 正反例、成员隔离、重复乱序、邀请并发、停用拒绝 | COMPLETE（隔离后端验收；共享升级 HOLD） |
 | P2 应用 RBAC | 应用清单、角色版本、直接授权、单执行者投影、SDK、首个内部只读请求 | P1 核心身份契约 | 真实授予→检查允许→撤销拒绝；无旁路；旧 SDK 回归 | NOT_STARTED |
 | P3 数据权限与一致性 | ScopePlan、查询／写入守卫、主库版本栅栏、远端 CAS、回执与组关系 | P2 最小闭环 | 同 Grant 绑定；双实例旧写拒绝；撤权完成后新请求无旧路径 | NOT_STARTED |
 | P4 OA 审批 | 请求快照、OA 实例与事件、Inbox、待生效状态、来源回收 | P3 安全底座 | 真实跨进程全链路、超时幂等、取消竞态、审批通过不冒充 ACTIVE | NOT_STARTED |

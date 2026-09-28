@@ -17,10 +17,10 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 | P1-01 | 将模型映射到已有表和领域对象，增量迁移 | P1-00 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 旧数据可读取、无身份合并 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P1-02 | 实现Token验证与LoginIdentity适配 | P1-01 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 错issuer／aud、ID Token、过期Token被拒绝 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P1-03 | 实现Membership上下文解析 | P1-02 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 请求体伪造主体、跨租户选择无效 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
-| P1-04 | 接入唯一目录源与幂等检查点 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 重复、乱序、全量不完整不误删 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | IN_PROGRESS |
+| P1-04 | 接入唯一目录源与幂等检查点 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 重复、乱序、全量不完整不误删 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P1-05 | 实现外部邀请和生命周期 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 并发接受唯一、外部成员无内部默认访问 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P1-06 | 接入停用状态与审计 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 旧JWT不能绕过当前成员停用 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
-| P1-07 | 输出真实集成测试与P2交接 | P1-04, P1-05, P1-06 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 不以Mock代替真实身份源验证 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
+| P1-07 | 输出真实集成测试与P2交接 | P1-04, P1-05, P1-06 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 不以Mock代替真实身份源验证 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P2-01 | 应用／能力／菜单清单解析与预览 | P1-03 | IAM／应用 Owner；auth: governance（候选）, admin, core, sdk, auth-console、commerce: StoreAccessController/Service | 外部应用不能覆盖trade能力 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P2-02 | RoleVersion与AccessGrant模型 | P2-01, P1-06 | IAM／应用 Owner；auth: governance（候选）, admin, core, sdk, auth-console、commerce: StoreAccessController/Service | 唯一约束、版本不变、来源保留 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P2-03 | 受保护的角色与授权管理API | P2-02 | IAM／应用 Owner；auth: governance（候选）, admin, core, sdk, auth-console、commerce: StoreAccessController/Service | 无委派权限不能授予，高危自提权失败 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
@@ -72,7 +72,8 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 
 ## 当前下一片
 
-P1-00/01/02 已完成，验收见 phase-1。P1-03 已验收并交付 main：默认关闭的本人/内部双身份成员上下文；使用隔离固定发行方，不接管共享旧 IdP。共享 Casdoor 升级 Gate HOLD，额外 redirect_uri 缺陷必须整改。
+P1-00—P1-07 全部 DONE，汇总见 phase-1/P1-07_TEST_RESULT.md。当前只完成两仓正常 Git 交付和最终目录审计，随后按用户要求暂停；P2—P7 未获本次执行授权。
+P2 交接见 phase-1/P2_HANDOFF.md；共享 Casdoor 升级仍 HOLD，不把 P1 后端验收等同正式登录切换。
 
 ## 依赖与外部条件
 

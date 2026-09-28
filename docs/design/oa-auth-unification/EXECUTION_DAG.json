@@ -1,6 +1,6 @@
 {
   "schema_version": "oa-auth-project-execution-plan/1",
-  "plan_status": "IMPLEMENTATION_AUTHORIZED",
+  "plan_status": "P1_VALIDATED_DELIVERY_IN_PROGRESS",
   "scope": "Current user scope: complete P1, then pause; consolidate auth worktrees into the original auth-platform directory. P2-P7 execution deferred.",
   "source_task_count": 58,
   "task_count": 63,
@@ -69,7 +69,7 @@
     "P7-07",
     "P7-08"
   ],
-  "next_design_task": "P1-00",
+  "next_design_task": null,
   "production_authorized": false,
   "tasks": [
     {
@@ -354,7 +354,7 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
@@ -363,8 +363,16 @@
       ],
       "contract_ref": "CONTRACTS_P1_DIRECTORY.md",
       "provisioning_decision": "Trusted OA automatically provisions principal/employee membership; exact source identity binding only",
-      "current_pass": "auth-consumer validated; OA source and dual-database integration pending",
-      "consumer_validation_ref": "../../implementation/oa-auth/phase-1/P1-04_CONSUMER_TEST_RESULT.md"
+      "current_pass": "consumer/source/importer/status and real dual-database identity integration validated",
+      "consumer_validation_ref": "../../implementation/oa-auth/phase-1/P1-04_CONSUMER_TEST_RESULT.md",
+      "validation_ref": "../../implementation/oa-auth/phase-1/P1-04_TEST_RESULT.md",
+      "ci_refs": [
+        "36394932731",
+        "36398245134",
+        "36399402126",
+        "36397627546",
+        "36398882953"
+      ]
     },
     {
       "id": "P1-05",
@@ -442,10 +450,12 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
+      "status": "DONE",
       "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "validation_ref": "../../implementation/oa-auth/phase-1/P1-07_TEST_RESULT.md",
+      "handoff_ref": "../../implementation/oa-auth/phase-1/P2_HANDOFF.md"
     },
     {
       "id": "P2-01",
