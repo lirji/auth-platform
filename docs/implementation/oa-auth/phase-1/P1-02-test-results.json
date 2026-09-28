@@ -3,7 +3,7 @@
   "overall": "PASS",
   "gate": "PASS",
   "scope": "Token validation and explicit identity binding only",
-  "source_fingerprint": "0d93a6a2abd70ebbb055da15c5a1d4eeeb163226bfbf6f52b5eb9fde50ac4190",
+  "source_fingerprint": "b48ffb7301068ac705cf48e9ae42c87052c8629a90c452520f323b4b029aa2d6",
   "checks": [
     {
       "acceptance": "错误签名、算法、issuer/aud、ID Token、过期/未来 nbf、缺失身份时间声明",
@@ -51,9 +51,9 @@
   "limits": [
     "FORMAT_TOOL_NOT_AVAILABLE",
     "No static analyzer configured; N/A",
-    "Remote CI current commit not yet submitted",
     "No shared/production IdP upgrade or old database migration",
-    "Version probe uses isolated builtin M2M; formal least privilege unresolved"
+    "Version probe uses isolated builtin M2M; formal least privilege unresolved",
+    "First remote CI 36386785526 FAIL in IdP readiness; isolated UID fix pending exact remote CI"
   ],
   "logs": [
     ".local/governance/p1-02/final-verify.log",
@@ -68,5 +68,6 @@
       "method": "code-flow-probe.json independent fresh codes",
       "result": "FAIL"
     }
-  ]
+  ],
+  "ci_remediation_ref": "P1-02_CI_REMEDIATION.md"
 }

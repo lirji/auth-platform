@@ -92,6 +92,7 @@ isDemoMode = false
             raise RuntimeError('container owner/image conflict')
     else:
         command(['docker', 'run', '-d', '--name', container, '--label', 'com.lrj.task=oa-auth-p1-token-compat',
+                 '--user', str(os.getuid()) + ':' + str(os.getgid()),
                  '--network', args.network, '--cpus', '1', '--memory', '768m', '--restart', 'no',
                  '-p', '127.0.0.1:18090:8000', '--mount', 'type=bind,source=' + str(config) + ',target=/conf/app.conf,readonly', IMAGE])
     deadline = time.monotonic() + 50
@@ -103,6 +104,9 @@ isDemoMode = false
                 break
         except (OSError, ValueError):
             if time.monotonic() >= deadline:
+                state = command(['docker', 'inspect', '--format', '{{.State.Status}}|{{.State.ExitCode}}', container])
+                # 只输出状态类别；不能将 Casdoor 启动日志中的 DSN/secret 发到 CI stdout。
+                print(json.dumps({'gate': 'readiness', 'container_state': state, 'result': 'FAIL'}))
                 raise RuntimeError('isolated IdP readiness timeout') from None
         time.sleep(0.5)
     credentials = json.loads(sql(name, "SELECT json_build_object('client_id',client_id,'client_secret',client_secret) "

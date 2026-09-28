@@ -12,8 +12,8 @@
     "auth-platform-governance/src/test/java/com/lrj/authz/governance/authentication/CasdoorIdentityIT.java": "8813af061a569bd0425d0b8119f59174742a651c378adc16f884aa988f25e05a",
     "auth-platform-governance/src/test/java/com/lrj/authz/governance/legacy/CasdoorLegacyIT.java": "2f3d24b72f7d03b5ec46e8518b7822fdf857f53a35fb4b9593ed3aae4aaaa648",
     "deploy/governance-casdoor-fixture.py": "48620187e789ac456a3133cd12daa40131e25a30d51c685387ca9a59ae892943",
-    "deploy/governance-casdoor-isolation.py": "85a8432e5d540f20e412c2fc7e8b801d44c97519f5e18059b72fbccfa759ed0d",
+    "deploy/governance-casdoor-isolation.py": "e6d534ff495e8b457f4cea6ce6dd4b3722464528b8e85fce1e9108e96422a9fd",
     "deploy/governance-test-db.py": "6dead52d64e4569eae93589172bbc660a211c01f7f444ff66df6be49012a2ee7"
   },
-  "source_fingerprint": "0d93a6a2abd70ebbb055da15c5a1d4eeeb163226bfbf6f52b5eb9fde50ac4190"
+  "source_fingerprint": "b48ffb7301068ac705cf48e9ae42c87052c8629a90c452520f323b4b029aa2d6"
 }
