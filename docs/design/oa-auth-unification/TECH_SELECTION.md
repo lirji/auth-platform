@@ -1,6 +1,6 @@
 # 增量技术选择与兼容验证
 
-状态：目标技术边界已按用户方案映射；新增依赖的精确版本和实际配置在 P1-00／所属切片冻结，本轮没有修改 pom、部署或应用配置。
+状态：P1-00 已冻结首片关系持久化装配；后续组件仍由所属切片核验，不升级既有 Spring Boot。
 
 | 问题 | 选择／候选 | 取舍与首次阶段 |
 |---|---|---|
@@ -25,3 +25,11 @@ Complexity Budget：本轮新增复杂度集中于一份治理关系模型、可
 - **V-APPROVAL**：先验证 OA 普通限时角色与 JIT 的区别，再验证真实 OA 流程启动／查询／回调；本地审批单测不能替代 auth-OA 跨进程闭环。
 
 版本记录以 pom、实际容器版本和镜像摘要为准。Casdoor 当前只有镜像摘要和 Discovery 证据，语义版本 UNKNOWN；不能把 `latest` 或历史文档里的 v3.115.0 写成实际安装版。
+
+## P1-00 精确装配
+
+- 治理模块使用 MyBatis 3.5.19 + mybatis-spring 3.0.4（Spring 6 适配），手动专用 SqlSessionFactory/SqlSessionTemplate，不引入第二套 ORM 或 Boot 4 starter。[MyBatis 官方兼容矩阵](https://mybatis.org/spring-boot-starter/mybatis-spring-boot-autoconfigure/), [mybatis-spring 3.0.4](https://github.com/mybatis/spring/releases/tag/mybatis-spring-3.0.4)
+- Flyway core + database-postgresql 10.10.0、HikariCP 5.1.0、PostgreSQL JDBC 42.7.4，版本由当前 Boot 3.3.5 BOM 管理；Spring JDBC/事务沿用 BOM。现有模块无需升级。依赖许可证沿用 Apache-2.0/BSD 生态；独立漏洞扫描未执行，不将 BOM 复用声称为漏洞审计通过。
+- 首片是库+受控 CLI；专用池最大 8、连接等待 3 秒、SQL statement/lock timeout、事务超时 5 秒（可受控配置，不承诺性能 SLA）。migration 固定 auth_governance schema，validateOnMigrate=true、baselineOnMigrate=false、cleanDisabled=true，显式 migrate owner，禁止自动接管非空旧库。
+- 真实本地测试复用 dev-infra-postgres16-1（实测 16.15），创建唯一 auth_gov_p1_test_ 前缀库及非超级用户角色；私密配置只存在忽略路径。CI 复用现有 verify job 并提供隔离 PostgreSQL 16 service。
+- 审计/命令记录初版保留，不在请求线程清理；正式归档期限需 Q-GOV/合规确认。未经确认不启动自动删除；上线前须完成增长容量和归档治理。

@@ -2,12 +2,13 @@
 
 本计划按用户提供的 `oa-auth-phased-plan` v0.2，落到三个现有仓库。**目标是在原项目中增量改造：auth 管理身份消费模型、应用与授权，OA 保留目录和审批职责，commerce 接入可信身份、页面权限及接口数据权限。**
 
-当前完成的是整体计划和 P0 实施准备；P1—P7 产品能力尚未实施。总体计划完成不代表统一权限已经运行。
+整体计划和 P0 已交付；用户现已授权继续实施，P1-00 契约已冻结，P1-01 待实现。实际状态以 PROGRESS_STATE 为准，总体计划完成不代表统一权限已经运行。
 
 | 文档 | 用途 |
 |---|---|
 | [EXECUTION_PLAN.md](EXECUTION_PLAN.md) | 八阶段范围、里程碑、验收、回退、业务决策与交付方式 |
 | [BACKEND_ARCHITECTURE.md](BACKEND_ARCHITECTURE.md) | 模块归属、内部／外部用户、应用角色、数据权威及一致性 |
+| [CONTRACTS_P1.md](CONTRACTS_P1.md) | P1 身份/成员/持久化及信任边界 |
 | [TECH_SELECTION.md](TECH_SELECTION.md) | 保留的技术、必要新增能力与兼容验证 |
 | [IMPLEMENTATION_SLICES.md](IMPLEMENTATION_SLICES.md) | 唯一实施切片表；沿用源方案 P0—P7 任务 ID |
 | [EXECUTION_DAG.json](EXECUTION_DAG.json) | 依赖关系、责任路径及候选任务；不是执行成功记录 |

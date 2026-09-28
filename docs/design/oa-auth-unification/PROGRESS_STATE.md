@@ -2,39 +2,26 @@
 
 ## 当前状态
 
-本次“按完整方案列出整体 plan，然后准备实施”已完成计划与 P0 准备。P0：COMPLETE_WITH_LIMITATIONS；P1—P7：NOT_STARTED。本文件是唯一阶段状态摘要，切片状态与 EXECUTION_DAG.json／IMPLEMENTATION_SLICES.md 对齐。
+最新指令已授权在已交付计划上继续实施。P0 基线已交付；P1-00 契约/技术装配 DONE；P1-01 READY，尚无产品代码或运行数据变更。此文件为当前唯一状态摘要，历史准备事实仍保留在 phase-0。
 
 ## 已完成
 
-- 用户 v0.2 全部 12 个输入文件重新摘要核对；原输入未修改。
-- 按 auth 权威目标映射三个现有仓库，明确旧 OA IAM 复用／迁移及单一写入策略。
-- 保留 58 个源任务 ID，加入契约冻结、Boot4 SDK 验证和 CAS 子切片，形成 63 个节点的无环依赖表。
-- P0 三仓源码 ref、已有脏文件、45 个关键源文件摘要、写入口和实际版本记录。
-- auth 124 项、OA 149 项既有测试通过；commerce 应用/依赖生产与测试源码编译通过。
-- 内部门店查询首片定位；外部邀请、供应商资源、审批与回收前置条件明确。
+- P0：12 个源文件、63 节点 DAG、三个仓库源码/运行基线；auth 124、OA 149 项单测 PASS，commerce 编译 PASS。
+- P1-00：[CONTRACTS_P1.md](CONTRACTS_P1.md) 冻结身份、成员、旧 ID 映射、受控初始化、Token/S2S 边界和错误；TECH_SELECTION 冻结最小 Mapper/Flyway 装配。
+- 当前独立分支 feat/oa-auth-p1-identity，隔离工作树 auth-platform-p1-identity，基线 f18e05e；原 OA/commerce 脏文件保留。
 
-## 未完成及限制
+## 未完成和限制
 
-- P1—P7 的产品代码、运行数据、业务集成和迁移均未实施。
-- commerce 定向测试命令在上游空测试门禁失败，未到目标用例；安全隔离库的行为回归未运行。
-- 新体系真实身份／Token、PG 约束、SDK 消费、图 CAS、多实例、OA 审批、外部业务及恢复均 NOT_RUN。
-- 正式目录权威和真实外部业务场景待用户确认；其业务决策不影响本轮准备交付，但阻塞对应正式接入。
-- P1 薄路径和后续新线上 DTO 尚待所属契约冻结；DRAFT 不作为全部产品片可执行的证明。
+- P1-01 尚未实现；真实 PostgreSQL 约束、事务、并发及 Token 用途负例 NOT_RUN。
+- P1-02/03 和后续产品片 TODO；不将契约冻结视为实际认证/授权能力已通过。
+- Q-DIR：唯一正式员工目录源待确认，仅阻塞正式 P1-04；Q-EXT：外部真实资源/场景待确认，仅阻塞对应外部业务接入。
+- commerce 现有定向测试在 P0 上游空测试门禁失败，行为验证 NOT_RUN。
+- 审计归档期限、正式管理策略、实际容量和生产部署未决；不自动发明正式 SLA/角色上限。
 
-## 授权边界
+## 授权
 
-用户当前授权整体计划、P0 基线和实施准备；没有将“准备”解释成直接执行 P1—P7。AGENTS.md 第 8 条授权本任务独立分支、正常提交/合并/推送 main。未授权生产部署、破坏性迁移、清库、强推或其他任务源码改动。
-
-源方案的默认不提交规则由用户持续 Git 授权覆盖。Claude 技能负责的规划、进度和 Git 副作用分别执行；不修改技能或公共 Engineering Shared Core，不派子 Agent。
+用户“开始执行后续任务”已授权连续实现当前依赖满足的片；AGENTS.md 第 8 条授权验证后正常提交/合并/推送 main。默认关闭新功能，隔离测试使用本任务命名空间。无生产部署、清库、强推、覆盖其他任务或修改公共技能授权。单执行者。
 
 ## 下一步
 
-P1-00 是可启动的设计入口：冻结最小可信成员路径、实际 Token/S2S、旧 ID 映射、独立治理库与 Mapper/迁移装配，再进入 P1-01。后端实施使用 Claude backend-implementation；每片验证和进度同步后按依赖推进。
-
-正式 Q-DIR 仅阻塞 P1-04 的正式来源接管；Q-EXT 阻塞外部业务 scope 及 P5-06。没有实际数据映射不做正式导入，没有生产门禁与授权不执行 P7-08。
-
-## 证据及 Git 交付
-
-基线、实际结果和源码摘要在 `docs/implementation/oa-auth/phase-0/`。本任务分支为 `feat/oa-auth-unification-plan`，源基线 c07741a；只提交本计划及其阶段记录。
-
-Git 精确提交、远程 main 观察和未触发 CI 的事实由 Git 技能写入任务工作树 `.local/p0-evidence/delivery-result.json`，根 CODEX_PROGRESS.md 指向该记录。本文件不以自身提交的循环 SHA 充当交付证明，正常合并也不代表生产部署或运行验收。
+实施 P1-01：独立治理库模型+受控 CLI，真实 PG 验证后同步证据并逻辑提交，再继续 P1-02 和 P1-03。每片由 Claude backend-implementation 实施、implementation-validation 独立判定、update-progress-docs 同步、task-git-delivery 交付。
