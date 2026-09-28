@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-P0/P1/P2已交付；P3执行中。P3-01 DONE，证据见phase-3/P3-01_TEST_RESULT.md。当前P3-03 IN_PROGRESS；它与P3-02都已满足原前置依赖，先完成版本栅栏以支撑ScopePlan。其余P3节点TODO。
+P0/P1/P2已交付；P3执行中。P3-01 DONE，证据见phase-3/P3-01_TEST_RESULT.md。P3-03 DONE（67真实PG用例通过）；当前P3-04a IN_PROGRESS；它与P3-02都已满足原前置依赖，先完成版本栅栏以支撑ScopePlan。其余P3节点TODO。
 
 ## 已完成
 
@@ -15,6 +15,6 @@ P0/P1/P2已交付；P3执行中。P3-01 DONE，证据见phase-3/P3-01_TEST_RESUL
 
 ## 未完成与下一步
 
-P3-03主库A/C新快照、策略/目录栅栏；随后P3-04a/b/c和05/06完成投影/读路径，P3-02完成ScopePlan与真实业务列表/导出，P3-07集中故障及性能验证。每片保持原DAG依赖，不把未验证结果写DONE。
+P3-04a/b/c和05/06完成真实图CAS、恢复及读路径，P3-02完成ScopePlan与真实业务列表/导出，P3-07集中故障及性能验证。每片保持原DAG依赖，不把未验证结果写DONE。
 
 两仓原目录任务分支已创建。OA用户修改未动，共享Casdoor升级HOLD保留。仅使用隔离测试资源，无生产部署；仓库无Java formatter/静态分析器的现有限制保留。

@@ -6,6 +6,7 @@
  <sql id="grantColumns">id,tenant_id,application_id,environment,membership_id,generation,role_id,scope,source_type,source_id,valid_from,valid_to,state,version,zed_token</sql>
  <insert id="registerPartition">INSERT INTO auth_governance.tenant_application(tenant_id,application_id,environment,created_by) VALUES(#{p.tenantId},#{p.applicationId},#{p.environment},#{operator}) ON CONFLICT DO NOTHING</insert>
  <select id="lockPartition" resultType="java.lang.Boolean">SELECT enabled FROM auth_governance.tenant_application WHERE <include refid="partition"/> FOR UPDATE</select>
+ <select id="strict" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.policy_partition WHERE <include refid="partition"/>)</select>
  <select id="enabled" resultType="java.lang.Boolean">SELECT enabled FROM auth_governance.tenant_application WHERE <include refid="partition"/></select>
  <insert id="registerDelegation">INSERT INTO auth_governance.access_delegation(tenant_id,application_id,environment,membership_id,generation,capabilities_json,max_duration_seconds,created_by)
  VALUES(#{p.tenantId},#{p.applicationId},#{p.environment},#{d.membershipId},#{d.generation},#{d.capabilitiesJson},#{d.maxDurationSeconds},#{operator}) ON CONFLICT DO NOTHING</insert>

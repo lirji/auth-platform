@@ -15,6 +15,7 @@ public final class AccessAuthorization {
     public boolean allowed(AccessContext context,String capability,String resourceType){
         CatalogManifest.code(capability);CatalogManifest.code(resourceType);
         Partition p=new Partition(context.tenantId(),context.applicationId(),context.environment());AccessValues.partition(p);
+        if(access.strict(p))throw new GovernanceException(AUTHZ_STATE_NOT_READY);
         if(!Boolean.TRUE.equals(access.enabled(p)))return false;
         if(projection.pending(p)>0)throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
         var app=catalog.application(p.applicationId());if(app==null||app.manifestVersion()==0)return false;

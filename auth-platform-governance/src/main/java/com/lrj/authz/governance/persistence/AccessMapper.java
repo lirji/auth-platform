@@ -10,6 +10,8 @@ public interface AccessMapper {
     int registerPartition(@Param("p") Partition p,@Param("operator") String operator);
     /** 锁分区串行管理变更，避免授权数量限制和并发命令穿透。 */
     Boolean lockPartition(@Param("p") Partition p);
+    /** 已接管分区不能继续走P2单写者或无栅栏读取。 */
+    boolean strict(@Param("p") Partition p);
     /** 逐请求确认应用开通。 */
     Boolean enabled(@Param("p") Partition p);
     /** 创建固定管理上限，冲突由应用层判断。 */

@@ -16,6 +16,7 @@ public final class GrantProjection {
     /** 一次最多50条/30秒，失败记录并保留意图；满5次需受控恢复，不能无限循环。 */
     public Result drain(Partition p,int limit){
         AccessValues.partition(p);if(limit<1||limit>50)throw new GovernanceException(INVALID_ARGUMENT);
+        if(access.strict(p))throw new GovernanceException(AUTHZ_STATE_NOT_READY);
         int completed=0,failed=0;long deadline=System.nanoTime()+30_000_000_000L;
         try(var lock=ProjectionLock.acquire(dataSource)){
             for(Projection intent:mapper.due(p,limit)){

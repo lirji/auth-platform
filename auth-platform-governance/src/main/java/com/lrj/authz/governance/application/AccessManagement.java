@@ -14,8 +14,20 @@ import static com.lrj.authz.governance.application.GovernanceException.Code.*;
 public final class AccessManagement {
     private final AccessMapper mapper;private final CatalogMapper catalog;private final IdentityMapper commands;
     private final IdentityGovernance identity;private final TransactionTemplate tx;
+    private final FenceMapper fences;
     /** 仅所属治理Runtime装配专用数据库事务。 */
-    public AccessManagement(AccessMapper mapper,CatalogMapper catalog,IdentityMapper commands,IdentityGovernance identity,TransactionTemplate tx){this.mapper=mapper;this.catalog=catalog;this.commands=commands;this.identity=identity;this.tx=tx;}
+    public AccessManagement(AccessMapper mapper,CatalogMapper catalog,IdentityMapper commands,IdentityGovernance identity,TransactionTemplate tx,FenceMapper fences){this.fences=fences;this.mapper=mapper;this.catalog=catalog;this.commands=commands;this.identity=identity;this.tx=tx;}
+    /** 先完成升级节点路由再启用；启用后没有自动退回P2的操作。 */
+    public void enableStrict(VerifiedLogin login,Partition p,String command){
+        tx.executeWithoutResult(status->{
+            Manager manager=manager(login,p,true);
+            command(manager.context(),p,"ENABLE_STRICT",command,AccessValues.hash(p),()->{
+                int changed=fences.enable(p,manager.context().membershipId());
+                if(changed==1)audit(manager,p,"ENABLE_STRICT",fences.policy(p).id(),1,command);
+                return fences.policy(p).id();
+            });
+        });
+    }
     /** 受控初始化只增加显式准入与管理上限，不恢复停用委派。 */
     public void bootstrap(Partition p,Delegation d,String operator,String command){
         AccessValues.partition(p);BootstrapCommand.uuid(d.membershipId());BootstrapCommand.uuid(command);BootstrapCommand.bounded(operator,100);

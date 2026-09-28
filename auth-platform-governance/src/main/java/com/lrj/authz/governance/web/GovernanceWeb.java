@@ -85,7 +85,7 @@ public final class GovernanceWeb {
             case INVALID_CREDENTIAL -> 401;
             case ACCESS_DENIED, IDENTITY_NOT_BOUND, MEMBERSHIP_UNAVAILABLE, GENERATION_MISMATCH -> 403;
             case BINDING_CONFLICT, COMMAND_CONFLICT, VERSION_CONFLICT -> 409;
-            case DEPENDENCY_UNAVAILABLE -> 503;
+            case DEPENDENCY_UNAVAILABLE, AUTHZ_STATE_NOT_READY -> 503;
         };
         String trace = UUID.randomUUID().toString();
         LogFactory.getLog(Errors.class).warn("治理请求失败 code=" + code.value() + " trace_id=" + trace);

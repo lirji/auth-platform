@@ -6,6 +6,7 @@ public final class GovernanceException extends RuntimeException {
     public enum Code {
         INVALID_ARGUMENT("INVALID_ARGUMENT"),
         SCOPE_UNSUPPORTED("SCOPE_UNSUPPORTED"),
+        AUTHZ_STATE_NOT_READY("AUTHZ_STATE_NOT_READY"),
         ACCESS_DENIED("ACCESS_DENIED"),
         INVALID_CREDENTIAL("INVALID_CREDENTIAL"),
         IDENTITY_NOT_BOUND("IDENTITY_NOT_BOUND"),
