@@ -19,7 +19,7 @@
 - POST `/access/roles`：tenant_id/application_id/environment/command_id/role_code/role_version/capabilities。
 - POST `/access/grants`：partition + command_id/member_id/member_generation/role_id/scope/source_id/valid_from/valid_to。
 - POST `/access/revoke`：partition + command_id/grant_id/expected_version。
-- GET `/access/state`：partition + after（可选），返回角色与授权分页及管理能力，不泄露其他partition。
+- GET `/access/state`：partition + after_role/after_grant（可选），返回角色与授权分页及管理能力，不泄露其他partition。
 - 创建Grant返回202，状态以响应为准；撤销返回当前记录，REVOKED不冒充图清理完成。
 
 公开DTO由protocol声明；外部时间字符串为ISO-8601 UTC，领域/SQL使用Instant。前端不传principal、不传任意SQL或图关系。
