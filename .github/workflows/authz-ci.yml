@@ -7,6 +7,7 @@ on:
       - 'deploy/risk-*.sh'
       - 'deploy/recon-platform-provision.sh'
       - 'deploy/benefit-platform-provision.sh'
+      - 'deploy/governance-test-db.py'
       - 'pom.xml'
       - 'mvnw'
       - '.mvn/**'
@@ -18,6 +19,7 @@ on:
       - 'deploy/risk-*.sh'
       - 'deploy/recon-platform-provision.sh'
       - 'deploy/benefit-platform-provision.sh'
+      - 'deploy/governance-test-db.py'
       - 'pom.xml'
       - 'mvnw'
       - '.mvn/**'
@@ -35,6 +37,18 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: isolated-ci-admin
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s --health-timeout 3s --health-retries 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -42,7 +56,17 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-      - run: ./mvnw -B verify
+      - name: Create isolated governance database owner
+        run: |
+          docker exec -i '${{ job.services.postgres.id }}' psql -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE governance_ci LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD 'isolated-ci-fixture';
+          CREATE DATABASE auth_gov_p1_test_ci OWNER governance_ci;
+          SQL
+      - run: ./mvnw -B -Pgovernance-it verify
+        env:
+          GOVERNANCE_TEST_DB_URL: jdbc:postgresql://127.0.0.1:5432/auth_gov_p1_test_ci
+          GOVERNANCE_TEST_DB_USER: governance_ci
+          GOVERNANCE_TEST_DB_PASSWORD: isolated-ci-fixture
       - name: Validate onboarding scripts
         run: |
           bash -n deploy/risk-platform-provision.sh deploy/risk-authz-fixture.sh \

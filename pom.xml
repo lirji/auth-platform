@@ -28,6 +28,7 @@
         <module>auth-platform-protocol</module>
         <module>auth-platform-core</module>
         <module>auth-platform-sdk</module>
+        <module>auth-platform-governance</module>
         <module>auth-platform-server</module>
         <module>auth-platform-admin</module>
     </modules>
@@ -47,6 +48,11 @@
             <dependency>
                 <groupId>com.lrj.authz</groupId>
                 <artifactId>auth-platform-sdk</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lrj.authz</groupId>
+                <artifactId>auth-platform-governance</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

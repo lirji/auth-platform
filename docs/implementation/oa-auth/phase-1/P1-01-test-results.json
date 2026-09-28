@@ -1,0 +1,221 @@
+{
+  "slice_id": "P1-01",
+  "source_fingerprint": "84f79794282605c01156646e5d74be3ce2e9ea93721914f88b32b9abc3f8b564",
+  "checks": {
+    "compile": "PASS",
+    "unit_126": "PASS",
+    "postgres_16_15_integration_11": "PASS",
+    "cli_bootstrap_replay_lookup": "PASS",
+    "test_db_repeat": "PASS",
+    "non_superuser_database_owner": "PASS",
+    "script_python_compile": "PASS",
+    "existing_ci_bash_syntax": "PASS",
+    "diff_check": "PASS",
+    "hygiene": "IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS",
+    "token_validation": "NOT_RUN_P1-02",
+    "formal_directory": "NOT_RUN_Q-DIR",
+    "production": "NOT_AUTHORIZED"
+  },
+  "reports": [
+    {
+      "suite": "com.lrj.authz.admin.AdminControllerTest",
+      "kind": "surefire",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.admin.AdminExceptionHandlerTest",
+      "kind": "surefire",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.admin.InMemoryAuditStoreTest",
+      "kind": "surefire",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.admin.JdbcAuditStoreTest",
+      "kind": "surefire",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.admin.casdoor.CasdoorClientTest",
+      "kind": "surefire",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.admin.casdoor.CasdoorGroupIdsTest",
+      "kind": "surefire",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.admin.casdoor.CasdoorSyncControllerTest",
+      "kind": "surefire",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.admin.casdoor.DepartmentSyncServiceTest",
+      "kind": "surefire",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.admin.casdoor.GroupSyncServiceTest",
+      "kind": "surefire",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.admin.casdoor.ReconcileJobTest",
+      "kind": "surefire",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.admin.casdoor.SyncServiceBoundaryTest",
+      "kind": "surefire",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.admin.workspace.WorkspaceAccessTest",
+      "kind": "surefire",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.admin.workspace.WorkspaceInterceptorTest",
+      "kind": "surefire",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.core.SpiceDbAuthzEngineTest",
+      "kind": "surefire",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.governance.application.BootstrapCommandTest",
+      "kind": "surefire",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.protocol.ProtocolValueObjectsTest",
+      "kind": "surefire",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.sdk.CheckAccessAspectTest",
+      "kind": "surefire",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.sdk.RemoteAuthzEngineHttpTest",
+      "kind": "surefire",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.sdk.RemoteAuthzEngineTest",
+      "kind": "surefire",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.server.AuthzControllerFacadeTest",
+      "kind": "surefire",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.server.AuthzControllerWatermarkTest",
+      "kind": "surefire",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.server.AuthzServerSecurityFilterBoundaryTest",
+      "kind": "surefire",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.server.AuthzServerSecurityFilterTest",
+      "kind": "surefire",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.server.ZedTokenWatermarkTest",
+      "kind": "surefire",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.lrj.authz.governance.persistence.IdentityPostgresIT",
+      "kind": "failsafe",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ]
+}

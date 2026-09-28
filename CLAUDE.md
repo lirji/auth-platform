@@ -52,9 +52,13 @@ TOUCH/DELETE，幂等；`CasdoorProperties.deleteThreshold` 删除熔断防误�
 避开 grpc/protobuf 与 langchain4j 根 pom 的钻石依赖冲突。`AuthzEngine` 端口保留正是为将来可另加 gRPC
 适配器。见 README `关键风险备忘` 与 `SpiceDbAuthzEngine.java` 顶部注释。
 
+## 新治理关系模块（P1）
+
+`auth-platform-governance` 是增量库模块，独立 PostgreSQL 16/schema + MyBatis XML/Flyway；当前提供受控身份/成员初始化和读取，不是新服务，不默认接管旧判权。依赖 Boot 3.3.5 BOM，Mapper 3.5.19/mybatis-spring 3.0.4。运行与隔离真实库测试见 `auth-platform-governance/README.md`；正式契约与进度见 `docs/design/oa-auth-unification/`。旧图写入与后续治理 SQL 权威不能混同；不得修改已执行的 V1 迁移。
+
 ## 数据/授权模型
 
-无应用层 ORM/DB——平台无状态，全部授权态是 **SpiceDB 里的关系元组**（唯一例外：admin 审计可选持久化
+旧授权链路没有应用层 ORM/DB，授权态是 **SpiceDB 里的关系元组**（例外：admin 审计可选持久化
 到独立 Postgres 库 `authz_admin`，`authz.audit.persistence-enabled` 门控，默认关=内存 500 条）。
 领域模型是 SpiceDB `.zed`（非 SQL）：
 `auth-platform-core/src/main/resources/schemas/knowledge.zed`（7 个 definition：`user/group/

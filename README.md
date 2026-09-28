@@ -4,7 +4,7 @@
 
 完整设计见 `~/.claude/plans/mock-velvet-mist.md`。
 
-OA、Auth 与业务项目的统一权限改造见 [整体改造计划与 P0 实施准备](docs/design/oa-auth-unification/README.md)。该计划按用户 v0.2 方案复用现有项目；目前完成基线与首批任务准备，P1—P7 产品能力尚未实施。
+OA、Auth 与业务项目的统一权限改造见 [整体改造计划](docs/design/oa-auth-unification/README.md)。P1 已落地独立治理库、受控身份/成员初始化与读取，使用真实 PostgreSQL 验证；认证和业务授权仍按后续切片接入。当前能力和运行方式见 [治理身份模块](auth-platform-governance/README.md)。
 
 ## 架构一览
 
@@ -23,6 +23,7 @@ OA、Auth 与业务项目的统一权限改造见 [整体改造计划与 P0 实�
 | `auth-platform-protocol` | 跨上下文 DTO 契约 + `AuthzEngine` 端口(9 个操作) |
 | `auth-platform-core` | `SpiceDbAuthzEngine` 适配器(SpiceDB HTTP/JSON,grpc-free)+ `schemas/*.zed`(knowledge/his 合并；recsys/risk 各用专属实例) |
 | `auth-platform-sdk` | Spring Boot Starter(消费方接入,`@CheckAccess` 切面,严格判权响应校验) |
+| `auth-platform-governance` | 治理关系模型/事务/Mapper/迁移，受控 CLI；不增加服务或默认接管旧接口 |
 | `auth-platform-server` | 判权服务(REST facade:check/checkBulk/lookup;grpc-free) |
 | `auth-platform-admin` | 授权管理 + Casdoor 组/部门同步/reconcile + webhook + 审计 |
 | `auth-console/` | 管控台前端(React+Vite+TS+antd,前后端分离;M1-M6 **已落地**) |

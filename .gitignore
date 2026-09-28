@@ -77,6 +77,7 @@ replay_pid*
 *.tmp
 /tmp/
 /temp/
+/.local/
 
 # 本机 Agent 配置与会话状态（共享配置保留）
 .claude/settings.local.json

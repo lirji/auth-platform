@@ -2,7 +2,7 @@
 
 保留源方案全部 58 个任务 ID；新增 P1-00 契约冻结、P2-05a SDK兼容验证，并将 P3-04 分为三个有界 pass，原 ID 作为汇总。机器依赖以 EXECUTION_DAG.json 为准；执行范围遵循最新用户指令和 PROGRESS_STATE，生产操作独立授权。
 
-P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真实集成测试通过**。P1-00 已冻结当前薄路径契约；继续实施已授权，产品片须有对应冻结契约。P1-01 当前 READY，未运行验收仍不可标 DONE。
+P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真实集成测试通过**。P1-00 已冻结当前薄路径契约；继续实施已授权，产品片须有对应冻结契约。P1-01 已验证 DONE，P1-02 当前 READY，未运行验收仍不可标 DONE。
 
 | ID | 可观察结果 | Needs | Owner／主要路径 | 验收 | Pass／Runtime | 状态 |
 |---|---|---|---|---|---|---|
@@ -14,8 +14,8 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 | P0-06 | 固定ADR和P1变更范围 | P0-05 | IAM 工程负责人；docs/implementation/oa-auth/phase-0、docs/design/oa-auth-unification | P1可执行待办 | baseline+evidence；既有构建工具；不写运行数据 | DONE |
 | P0-07 | 输出一次性阶段记录和交接 | P0-06 | IAM 工程负责人；docs/implementation/oa-auth/phase-0、docs/design/oa-auth-unification | P0结果／P1入口 | baseline+evidence；既有构建工具；不写运行数据 | DONE |
 | P1-00 | 冻结可信成员薄路径的具体契约、旧身份映射与持久化装配 | P0-07 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 字段/信任/错误/约束足以实施第一片；只用隔离映射，不发明已发布接口 | contract-design；按本片需要的隔离验证目标 | DONE |
-| P1-01 | 将模型映射到已有表和领域对象，增量迁移 | P1-00 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 旧数据可读取、无身份合并 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | READY |
-| P1-02 | 实现Token验证与LoginIdentity适配 | P1-01 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 错issuer／aud、ID Token、过期Token被拒绝 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
+| P1-01 | 将模型映射到已有表和领域对象，增量迁移 | P1-00 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 旧数据可读取、无身份合并 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
+| P1-02 | 实现Token验证与LoginIdentity适配 | P1-01 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 错issuer／aud、ID Token、过期Token被拒绝 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | READY |
 | P1-03 | 实现Membership上下文解析 | P1-02 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 请求体伪造主体、跨租户选择无效 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P1-04 | 接入唯一目录源与幂等检查点 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 重复、乱序、全量不完整不误删 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P1-05 | 实现外部邀请和生命周期 | P1-03 | IAM／目录 Owner；auth: governance（候选）, protocol, admin, server、OA: oa-org/api | 并发接受唯一、外部成员无内部默认访问 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
