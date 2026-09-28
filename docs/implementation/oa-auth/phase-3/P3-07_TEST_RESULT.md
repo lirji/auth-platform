@@ -27,3 +27,7 @@ Status: DONE；Validation: PASS；远程CI与Git结果另见P3_DELIVERY_RESULT�
 没有修改已执行迁移V9—V12/V47。新增资源Owner接口不跨模块写表；服务端构造资源事实，游标/任务绑定身份、代际、策略/目录版本及完整Grant集合；批次与命令回执同事务，下载重读当前版本。已收回跨应用影响的目录时区HTTP入口到受控CLI。
 
 生产容量、保留清理策略和共享Casdoor升级仍未承诺；隔离验收实例保留供复验。P4审批工作流、P5门户、P6旧权迁移与P7生产治理均不在本次授权内。P3完成后暂停。
+
+## 远程CI差异修正
+
+首轮auth CI（36440680619）在4个组目录用例生成事件时失败：Linux Instant.now可含纳秒，而DirectoryEvents契约仅接受微秒。macOS时钟恰为微秒导致本地未复现。将测试事件时间显式截断至MICROS，保留生产协议严格校验；不放宽断言、不跳过用例。后续CI以P3_DELIVERY_RESULT为准。商城首轮main dceeb5a完整CI36440692582已成功，含真实MySQL、前端审计及浏览器验收。

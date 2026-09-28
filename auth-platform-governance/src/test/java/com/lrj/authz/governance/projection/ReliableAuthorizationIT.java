@@ -155,8 +155,9 @@ class ReliableAuthorizationIT {
         return source;
     }
     private void consume(DirectoryAuthority source,long sequence,long version,DirectoryEvents.DirectoryAggregateType type,String aggregate,DirectoryEvents.Payload payload){
+        // Linux时钟可能提供纳秒，目录规范只允许微秒；测试事件也必须遵守生产规范。
         runtime.directory().accept(source,new DirectoryEvents.Event(1,id(),source.source(),source.environment(),source.sourceTenantRef(),sequence,type,aggregate,version,
-            Instant.now().toString(),null,payload,DirectoryEvents.payloadHash(type,payload)));
+            Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS).toString(),null,payload,DirectoryEvents.payloadHash(type,payload)));
     }
     private void employee(Fixture f,DirectoryAuthority source,long sequence,long version,String status,String org,String from,String to,String type){
         consume(source,sequence,version,DirectoryEvents.DirectoryAggregateType.EMPLOYEE,"1",new DirectoryEvents.Payload(
