@@ -60,3 +60,7 @@ V1 仅新增表，admin/server 已按显式开关接入本模块。原业务主�
 ## P1-03 HTTP integration
 
 Default-off admin/server routes, private configuration and isolated verification: [P1-03 runtime](../docs/implementation/oa-auth/phase-1/P1-03_RUNTIME.md). Identity context is not application admission or business authorization.
+
+## P1-06 受控停用
+
+[停用运行说明](../docs/implementation/oa-auth/phase-1/P1-06_RUNTIME.md)：独立成员/全局主体命令、版本 CAS、幂等与完整事务审计。V2/V3 仅扩展审计列和约束，V1 保持不变；身份读取始终检查当前停用事实。OA 目录投递尚待 P1-04，不把离线命令视为源端离职已全链路确认。

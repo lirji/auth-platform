@@ -23,4 +23,4 @@ GOVERNANCE_TEST_CONFIG="$PWD/.local/governance/database.properties" GOVERNANCE_I
 python3 deploy/governance-context-smoke.py
 ```
 
-HTTP 工具只绑定回环 18091/18092，端口占用则失败，使用 18090 固定候选及自有数据库检查点。每次创建独立 `p1-03/http-*` 目录，私密文件 0600，真实进程日志保留；成功后停止本次应用进程，保留验证数据以供审查。失败时同样停止自己的应用，不删除数据。CI 使用同样命令与一次性专用 PostgreSQL；通过 `--postgres-container` 指向 CI service。
+HTTP 工具只绑定回环 18091/18092，端口占用则失败，使用 18090 固定候选及自有数据库检查点。每次创建独立 `p1-03/http-*` 目录，私密文件 0600，真实进程日志保留；成功后停止本次应用进程，保留验证数据以供审查。失败时同样停止自己的应用，不删除数据。CI 使用同样命令与一次性专用 PostgreSQL。P1-06 后工具通过受控 LifecycleCli 停用成员，不再直接执行 PostgreSQL 命令，也不再接收 `--postgres-container` 参数。
