@@ -49,6 +49,7 @@ def token(base, fixture, purpose, user_kind):
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--directory', default='.local/governance/p2')
+    parser.add_argument('--with-checks', action='store_true')
     args=parser.parse_args()
     root=Path(args.directory).resolve()
     run=root/('access-'+secrets.token_hex(6));run.mkdir(parents=True,mode=0o700)
@@ -59,7 +60,7 @@ def main():
     jar=next(Path('auth-platform-admin/target').glob('auth-platform-admin-*.jar'))
     def cli(name, args):
         with os.fdopen(os.open(run/(name+'-'+secrets.token_hex(4)+'.log'), os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600),'w') as out:
-            result=subprocess.run(['java','-Dloader.main=com.lrj.authz.governance.cli.'+name,'-cp',str(jar),
+            result=subprocess.run(['java','-Dloader.main='+('com.lrj.authz.admin.governance.' if name=='ProjectionCli' else 'com.lrj.authz.governance.cli.')+name,'-cp',str(jar),
                 'org.springframework.boot.loader.launch.PropertiesLauncher',*map(str,args)],stdout=out,stderr=subprocess.STDOUT,timeout=30)
         if result.returncode:raise RuntimeError('controlled CLI failed: '+name)
     tenant=str(uuid.uuid4()); app='commerce'; env='p2-'+secrets.token_hex(4)
@@ -120,8 +121,49 @@ def main():
     revoke={**partition,'command_id':str(uuid.uuid4()),'grant_id':grant['id'],'expected_version':1}
     assert call('revoke accepted without graph','/revoke',revoke)['state']=='REVOKED'
     assert call('revoke replay','/revoke',revoke)['state']=='REVOKED'
+    business_token=token(h.ISSUER,fixture,'business','external')
+    if args.with_checks:
+        graph=h.read_private(root/'graph/graph.properties')
+        h.private(run/'projection.properties',db+graph+h.props(access))
+        cli('ProjectionCli',[run/'projection.properties'])
+        service=secrets.token_urlsafe(48)
+        business=fixture['clients']['business']
+        server={'service.count':1,'service.1.id':'commerce-p2','service.1.application-id':app,'service.1.environment':env,
+            'service.1.operation':'context.resolve','service.1.credential-sha256':hashlib.sha256(service.encode()).hexdigest(),'access.check.callers':'commerce-p2'}
+        user_authority={**authority,'audience':business['name'],'client.id':business['name'],'client.secret':business['secret']}
+        server.update({'service.1.user.'+k:v for k,v in user_authority.items()})
+        h.private(run/'server.properties',db+graph+h.props(server))
+        server_jar=next(Path('auth-platform-server/target').glob('auth-platform-server-*.jar'))
+        h.start(server_jar,18101,run/'server.log',config=run/'server.properties',access=True)
+        headers=[('Authorization','Bearer '+service),('X-User-Access-Token',business_token)]
+        endpoint='/internal/governance/v1/access/check'
+        check={'tenant_id':tenant,'expected_membership_generation':1,'request_id':str(uuid.uuid4()),'capability':'commerce.store.read','resource_type':'store'}
+        def check_call(name, payload=check, status=200, code=None, custom=headers, bulk=False):
+            return h.expect(name,18101,endpoint+('-bulk' if bulk else ''),custom,json.dumps(payload).encode(),status,code)
+        assert check_call('no grant is explicit deny')['decision']=='DENY'
+        check_call('principal injection rejected',{**check,'principal_id':owner},400,'INVALID_ARGUMENT')
+        check_call('wrong service rejected',custom=[('Authorization','Bearer '+'x'*48),('X-User-Access-Token',business_token)],status=401,code='INVALID_CREDENTIAL')
+        check_call('wrong user audience rejected',custom=[('Authorization','Bearer '+service),('X-User-Access-Token',tokens['management']['access_token'])],status=401,code='INVALID_CREDENTIAL')
+        check_call('foreign tenant rejected',{**check,'tenant_id':str(uuid.uuid4())},403,'MEMBERSHIP_UNAVAILABLE')
+        check_call('wrong generation rejected',{**check,'expected_membership_generation':2},403,'GENERATION_MISMATCH')
+        second=call('new grant pending','/grants',{**body,'command_id':str(uuid.uuid4()),'source_id':'second'},status=202)
+        check_call('pending partition unavailable',status=503,code='DEPENDENCY_UNAVAILABLE')
+        cli('ProjectionCli',[run/'projection.properties'])
+        assert check_call('real graph and SQL allow')['decision']=='ALLOW'
+        batch={'checks':[check,{**check,'request_id':str(uuid.uuid4()),'capability':'commerce.store.manage'}]}
+        decisions=check_call('bulk real decisions',batch,bulk=True)['results'];assert [d['decision'] for d in decisions]==['ALLOW','DENY']
+        check_call('duplicate batch rejected',{'checks':[check,check]},400,'INVALID_ARGUMENT',bulk=True)
+        call('revoke active grant','/revoke',{**revoke,'command_id':str(uuid.uuid4()),'grant_id':second['id']})
+        check_call('revoked pending cleanup unavailable',status=503,code='DEPENDENCY_UNAVAILABLE')
+        cli('ProjectionCli',[run/'projection.properties'])
+        assert check_call('revoked graph denies')['decision']=='DENY'
+        # 独立来源留给后续商城/页面验收，不复活已撤销来源。
+        active=call('prepare next slice grant','/grants',{**body,'command_id':str(uuid.uuid4()),'source_id':'next-slice'},status=202)
+        cli('ProjectionCli',[run/'projection.properties'])
+        h.private(run/'consumer.properties',h.props({'central.url':'http://127.0.0.1:18101','central.credential':service,'central.application':app,'central.environment':env}))
+        grant=active
     h.private(run/'fixture.json',json.dumps({'tenant':tenant,'application':app,'environment':env,'members':members,'role_id':role['id'],'grant_id':grant['id'],
-        'admin_token':tokens['management']['access_token'],'member_management_token':other_token,'member_business_token':token(h.ISSUER,fixture,'business','external')}))
+        'admin_token':tokens['management']['access_token'],'member_management_token':other_token,'member_business_token':business_token}))
     (run/'result.json').write_text(json.dumps(h.CHECKS,indent=2)+'\n')
     print(json.dumps({'checks':len(h.CHECKS),'result':'PASS','evidence':str(run/'result.json')}))
 

@@ -22,9 +22,12 @@ public final class AccessAuthorization {
         if(caps.stream().noneMatch(c->c.code().equals(capability)&&c.resourceType().equals(resourceType)))return false;
         var grants=projection.eligible(p,context.membershipId(),context.membershipGeneration());
         if(grants.size()>100)throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
+        long deadline=System.nanoTime()+6_000_000_000L;
         for(var grant:grants){
+            if(System.nanoTime()>=deadline)throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
             var role=access.role(p,grant.roleId());if(role==null||!AccessValues.read(role.capabilitiesJson()).contains(capability))continue;
             boolean eligible=graph.check(SubjectRef.of("gov_membership",grant.membershipId()+"_g"+grant.generation()),"eligible",ResourceRef.of("gov_grant",grant.id()),Consistency.atLeastAsFresh(grant.zedToken()));
+            if(System.nanoTime()>=deadline)throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
             if(!eligible)continue;
             // 新SQL语句读取当前状态，图的旧允许不能覆盖完成撤销、到期和成员停用。
             if(projection.pending(p)>0)throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
