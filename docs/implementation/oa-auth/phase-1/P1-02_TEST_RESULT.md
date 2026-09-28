@@ -1,6 +1,6 @@
 # P1-02 独立验证
 
-slice Gate PASS，范围仅 Token 验证和显式 LoginIdentity 适配。绑定当前源码摘要 `b48ffb7301068ac705cf48e9ae42c87052c8629a90c452520f323b4b029aa2d6`，详细路径与摘要见 P1-02-evidence-index.json；结构化结果见 P1-02-test-results.json。
+slice Gate PASS，范围仅 Token 验证和显式 LoginIdentity 适配。绑定当前源码摘要 `31549488c40e9f5a1ca29ff1a2fce5ad62563420ee98ca2323a1d9c0bebe263e`，详细路径与摘要见 P1-02-evidence-index.json；结构化结果见 P1-02-test-results.json。
 
 | 验收 | 实际方法 | 结果 |
 |---|---|---|

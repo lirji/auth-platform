@@ -1,9 +1,14 @@
 # P1-02 CI 隔离环境整改
 
-首个提交 434cf97739ac580400082821ac192e464893f396，远程 [run 36386785526](https://github.com/lirji/auth-platform/actions/runs/36386785526) FAIL：全 reactor 单测/PG 成功，固定 IdP readiness 失败，真实 IdP IT 未运行。没有把该 run 写为通过，main 尚未合并该提交。
+两次远程失败均保留：
 
-镜像是多架构 OCI index：本机 arm64，CI amd64；固定摘要没有改变。镜像默认 UID 1000，Linux runner 的私密 0600 文件属于另一 UID。本机 Docker Desktop 把挂载所有者映射成 1000，掩盖了 Linux UID 差异。
+- 434cf977：[run 36386785526](https://github.com/lirji/auth-platform/actions/runs/36386785526)，单测/PG 成功，IdP readiness 失败，真实 IdP IT 未运行。Linux runner 的 0600 配置 owner=1001，镜像原生 UID=1000 无法读取；本机 Docker Desktop 所有者映射掩盖了差异。
+- c97739a：[run 36387590196](https://github.com/lirji/auth-platform/actions/runs/36387590196)，同样在 readiness 失败。显式改为 runner UID 后能读配置，但不能写镜像 UID 1000 所有的 `/logs`。本机独立命名空间以 UID 1001 复现 `logs/casdoor.log: permission denied`，容器退出 2。
 
-隔离无网络/无凭据的 Linux 容器实测：0600 文件 owner=1001 时 UID 1000 `test -r` 退出 1，UID 1001 退出 0。修复仅在创建自己的隔离 Casdoor 时显式使用配置文件生成者的 UID/GID；不将文件 chmod 成公共可读，不采用容器 root，不更改共享组件或现有任务容器。readiness 失败仅输出容器状态/退出码，不输出可能含 DSN 的日志。
+最终修复保持 Casdoor 原生 UID 1000。配置通过固定镜像的临时 helper 复制到带任务标签的专用 Docker volume，目录 0700、文件 0600、owner 1000；Casdoor 只读挂载 `/conf`。helper 使用 root，但无网络、只读根文件系统，只能写本任务配置卷，不运行 IdP。宿主私密文件权限保持不变。已有文件必须内容一致，非本任务卷拒绝使用。
 
-本机隔离实例重跑与 Python 编译 PASS；API/Token 产品源码不变，P1-03 未提交改动不夹带此整改。修复后的远程精确 SHA CI 待观察，成功前 Delivery Gate HOLD。保留首次失败日志，不修改既有失败记录。此项 CI 故障与独立的 redirect_uri 升级缺陷分别治理。
+独立库与容器在回环 18093 实际启动 PASS，discovery issuer 和认证后的版本 API 均确认 v4.11.0；容器内 `/conf`=700、`app.conf`=600、`/logs`=755，全部 owner 1000。固定多架构 OCI 摘要未改变。默认仍为 18090，18093 仅用于第二个隔离验证命名空间。readiness 失败仅输出状态/退出码和错误类别，不回显可能含 DSN 的日志。
+
+证据保存在忽略目录 `.local/governance/p1-02/ci-uid-repro-container.log`（0600）、`ci-native-user-fixed.log` 与 `.local/governance-ci-runtime/casdoor-isolated/runtime-result.json`。失败容器保留为后缀 `-uid1001-failure`，没有删除现场或改共享组件。重跑与 Python 编译 PASS，限定 runtime 文件的 Hygiene 扫描见 `ci-native-user-hygiene.json`。
+
+本次仅交付 runtime 整改和相应证据，不夹带未验收的 P1-03。新的精确 SHA 远程 CI 成功前，合并门禁继续 HOLD。独立的错误 redirect_uri 升级缺陷仍为 HOLD。

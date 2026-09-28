@@ -17,6 +17,33 @@ COMMAND_TIMEOUT_SECONDS = 30
 INSPECT_TIMEOUT_SECONDS = 10
 
 
+def config_volume(container, config):
+    """保持镜像原生 UID 1000；私密配置复制到本任务卷，避免宿主 UID/日志目录差异。"""
+    volume = container + '-config'
+    owner = subprocess.run(['docker', 'volume', 'inspect', '--format', '{{index .Labels "com.lrj.task"}}', volume],
+                           text=True, capture_output=True, timeout=INSPECT_TIMEOUT_SECONDS)
+    if owner.returncode == 0 and owner.stdout.strip() != 'oa-auth-p1-token-compat':
+        raise RuntimeError('private configuration volume owner conflict')
+    if owner.returncode:
+        command(['docker', 'volume', 'create', '--label', 'com.lrj.task=oa-auth-p1-token-compat', volume])
+    # 该临时 helper 无网络、只读根文件系统，仅可写本任务卷；不运行 IdP 或放宽源文件权限。
+    script = '''set -eu
+umask 077
+if [ -e /private-conf/app.conf ]; then
+  cmp -s /input.conf /private-conf/app.conf
+else
+  cp /input.conf /private-conf/app.conf
+fi
+chown 1000:1000 /private-conf /private-conf/app.conf
+chmod 700 /private-conf
+chmod 600 /private-conf/app.conf
+'''
+    command(['docker', 'run', '--rm', '--network', 'none', '--read-only', '--memory', '32m', '--user', '0',
+             '--entrypoint', 'sh', '--mount', 'type=bind,source=' + str(config) + ',target=/input.conf,readonly',
+             '--mount', 'type=volume,source=' + volume + ',target=/private-conf', IMAGE, '-c', script])
+    return volume
+
+
 def private_file(path, content):
     """私密文件只首次创建，重跑核对一致性而不重置。"""
     if path.exists():
@@ -42,14 +69,16 @@ def sql(database, statement):
 
 
 def main():
-    global POSTGRES_CONTAINER
+    global POSTGRES_CONTAINER, BASE
     parser = argparse.ArgumentParser()
     parser.add_argument('--directory', default='.local/governance')
     parser.add_argument('--postgres-container', default=POSTGRES_CONTAINER)
     parser.add_argument('--postgres-host', default='dev-infra-postgres16-1')
     parser.add_argument('--network', default='dev-infra')
+    parser.add_argument('--port', type=int, choices=[18090, 18093], default=18090)
     args = parser.parse_args()
     POSTGRES_CONTAINER = args.postgres_container
+    BASE = 'http://localhost:' + str(args.port)
     if not re.fullmatch(r'[a-zA-Z0-9_.-]+', args.postgres_host):
         raise RuntimeError('invalid isolated PostgreSQL host')
     base = Path(args.directory).resolve()
@@ -78,10 +107,10 @@ dataSourceName = "user=%s password=%s host=%s port=5432 sslmode=disable dbname=%
 dbName = %s
 tableNamePrefix =
 showSql = false
-origin = "http://localhost:18090"
-originFrontend = "http://localhost:18090"
+origin = "%s"
+originFrontend = "%s"
 isDemoMode = false
-''' % (database['username'], database['password'], args.postgres_host, name, name)
+''' % (database['username'], database['password'], args.postgres_host, name, name, BASE, BASE)
     config = directory / 'app.conf'
     private_file(config, content)
     container = name.replace('auth_casdoor_p1_test_', 'auth-gov-casdoor-p1-')
@@ -91,10 +120,10 @@ isDemoMode = false
         if lookup.stdout.strip() != IMAGE + '|oa-auth-p1-token-compat':
             raise RuntimeError('container owner/image conflict')
     else:
+        volume = config_volume(container, config)
         command(['docker', 'run', '-d', '--name', container, '--label', 'com.lrj.task=oa-auth-p1-token-compat',
-                 '--user', str(os.getuid()) + ':' + str(os.getgid()),
                  '--network', args.network, '--cpus', '1', '--memory', '768m', '--restart', 'no',
-                 '-p', '127.0.0.1:18090:8000', '--mount', 'type=bind,source=' + str(config) + ',target=/conf/app.conf,readonly', IMAGE])
+                 '-p', '127.0.0.1:' + str(args.port) + ':8000', '--mount', 'type=volume,source=' + volume + ',target=/conf,readonly', IMAGE])
     deadline = time.monotonic() + 50
     while True:
         try:
@@ -106,7 +135,9 @@ isDemoMode = false
             if time.monotonic() >= deadline:
                 state = command(['docker', 'inspect', '--format', '{{.State.Status}}|{{.State.ExitCode}}', container])
                 # 只输出状态类别；不能将 Casdoor 启动日志中的 DSN/secret 发到 CI stdout。
-                print(json.dumps({'gate': 'readiness', 'container_state': state, 'result': 'FAIL'}))
+                logs = subprocess.run(['docker', 'logs', container], text=True, capture_output=True, timeout=INSPECT_TIMEOUT_SECONDS)
+                category = 'PERMISSION_DENIED' if 'permission denied' in logs.stdout + logs.stderr else 'STARTUP_OR_DEPENDENCY'
+                print(json.dumps({'gate': 'readiness', 'container_state': state, 'category': category, 'result': 'FAIL'}))
                 raise RuntimeError('isolated IdP readiness timeout') from None
         time.sleep(0.5)
     credentials = json.loads(sql(name, "SELECT json_build_object('client_id',client_id,'client_secret',client_secret) "
