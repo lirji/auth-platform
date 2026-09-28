@@ -62,7 +62,7 @@ PROBATION/ACTIVE/LEAVING 均表示在职，LEFT 表示退出，未知状态拒�
 汇报线保留 source ID、manager employee ID、type 和有效期，时间语义保持 OA 日期含义。
 只投影直接关系，不复制 closure/path 为授权关系。
 
-ORG：OA org ID、parent ID、status；ACTIVE/DISSOLVED 显式代码。
+ORG：OA org ID、parent ID、status；ACTIVE/FROZEN/DISSOLVED 沿用 OA 显式代码，冻结事实不映射为新增授权。
 拒绝同企业部门树环、跨企业引用与自环；未知父节点事实可等待后续完整目录，不能作为授权树使用。
 过深关系有明确处理上限，不能截断后当验证成功。
 
@@ -77,7 +77,8 @@ Inbox、聚合版本、来源事实、主体/成员/LegacyBinding、追加审计
 固定来源映射将 OA tenant 绑定到一个 auth Tenant 和一个精确 issuer。
 员工身份主键为 source + source tenant + employee ID；既有 LegacyBinding 优先且不可重绑。
 有效 userId 仅作为该 issuer 的精确 subject；无绑定时可创建 HUMAN Principal 和 LoginIdentity。
-已有精确登录绑定只复用 ACTIVE HUMAN；SERVICE、全局停用或外部类型冲突不能被来源转成员工。
+首次复用精确登录绑定只允许 ACTIVE HUMAN；SERVICE、全局停用或外部类型冲突不能被来源转成员工。
+已存在同来源员工映射时，全局暂停不阻断离职等来源事实处理；不得改变主体的全局暂停状态。
 同企业同主体不允许无审计地绑定多个 OA employee ID；冲突进入隔离，禁止覆盖已有映射。
 
 userId 缺失时，允许创建来源专属 HUMAN 主体及员工成员，保持无 LoginIdentity，不能通过邮箱补绑定。

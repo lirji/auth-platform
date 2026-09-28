@@ -362,7 +362,9 @@
         "Q-DIR来源确认，或明确隔离源试点"
       ],
       "contract_ref": "CONTRACTS_P1_DIRECTORY.md",
-      "provisioning_decision": "Trusted OA automatically provisions principal/employee membership; exact source identity binding only"
+      "provisioning_decision": "Trusted OA automatically provisions principal/employee membership; exact source identity binding only",
+      "current_pass": "auth-consumer validated; OA source and dual-database integration pending",
+      "consumer_validation_ref": "../../implementation/oa-auth/phase-1/P1-04_CONSUMER_TEST_RESULT.md"
     },
     {
       "id": "P1-05",

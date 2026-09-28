@@ -3,6 +3,7 @@ package com.lrj.authz.governance.persistence;
 import com.lrj.authz.governance.application.IdentityGovernance;
 import com.lrj.authz.governance.application.LifecycleGovernance;
 import com.lrj.authz.governance.application.InvitationGovernance;
+import com.lrj.authz.governance.application.DirectoryGovernance;
 import com.lrj.authz.governance.domain.InvitationModels.InvitationState;
 import com.lrj.authz.governance.domain.IdentityModels.*;
 import com.zaxxer.hikari.HikariConfig;
@@ -22,13 +23,16 @@ public final class GovernanceRuntime implements AutoCloseable {
     private final IdentityGovernance identity;
     private final LifecycleGovernance lifecycle;
     private final InvitationGovernance invitations;
+    private final DirectoryGovernance directory;
 
-    private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle, InvitationGovernance invitations) {
+    private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle,
+                              InvitationGovernance invitations, DirectoryGovernance directory) {
         this.dataSource = dataSource;
         this.mapper = mapper;
         this.identity = identity;
         this.lifecycle = lifecycle;
         this.invitations = invitations;
+        this.directory = directory;
     }
 
     /** 显式 migration owner 才能迁移；读取实例必须通过已存在序列的 validate。 */
@@ -62,6 +66,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             config.getTypeHandlerRegistry().register(MemberKind.class, new IdentityCodeTypeHandler<>(MemberKind.class));
             config.getTypeHandlerRegistry().register(MemberStatus.class, new IdentityCodeTypeHandler<>(MemberStatus.class));
             config.getTypeHandlerRegistry().register(InvitationState.class, new IdentityCodeTypeHandler<>(InvitationState.class));
+            config.getTypeHandlerRegistry().register(com.lrj.authz.protocol.DirectoryEvents.DirectoryAggregateType.class, new DirectoryEventTypeHandler());
             config.setMapUnderscoreToCamelCase(true);
             config.setArgNameBasedConstructorAutoMapping(true);
             config.setCacheEnabled(false);
@@ -76,8 +81,17 @@ public final class GovernanceRuntime implements AutoCloseable {
             IdentityMapper mapper = session.getMapper(IdentityMapper.class);
             TransactionTemplate transaction = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
             transaction.setTimeout(5);
+            // 目录独占事务边界；失败回滚后再用独立事务留下冲突证据，不在失败事务中吞异常提交。
+            TransactionTemplate directoryTransaction = new TransactionTemplate(transaction.getTransactionManager());
+            directoryTransaction.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            directoryTransaction.setTimeout(5);
+            TransactionTemplate conflictTransaction = new TransactionTemplate(transaction.getTransactionManager());
+            conflictTransaction.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            conflictTransaction.setTimeout(5);
             return new GovernanceRuntime(dataSource, mapper, new IdentityGovernance(mapper, transaction), new LifecycleGovernance(mapper, transaction),
-                    new InvitationGovernance(mapper, session.getMapper(InvitationMapper.class), transaction));
+                    new InvitationGovernance(mapper, session.getMapper(InvitationMapper.class), transaction),
+                    new DirectoryGovernance(session.getMapper(DirectoryMapper.class), mapper, session.getMapper(InvitationMapper.class),
+                            directoryTransaction, conflictTransaction));
         } catch (Exception failure) {
             dataSource.close();
             throw new IllegalStateException("治理库装配失败，拒绝启用新路径", failure);
@@ -92,6 +106,9 @@ public final class GovernanceRuntime implements AutoCloseable {
 
     /** 邀请创建/撤销使用受控身份，接受前必须完成独立 Token 验证。 */
     public InvitationGovernance invitations() { return invitations; }
+
+    /** 仅受控目录适配器可登记来源和提交事件，不向普通用户 HTTP 暴露。 */
+    public DirectoryGovernance directory() { return directory; }
 
     IdentityMapper mapper() { return mapper; }
 

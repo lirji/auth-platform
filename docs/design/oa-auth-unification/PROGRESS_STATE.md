@@ -30,6 +30,17 @@ AGENTS 第8条授权验证后正常任务提交、合并、推送 main；无强�
 
 ## 下一步
 
-P1-06 已交付；P1-05 本地验收 DONE（181 单测、29 PG、5 Casdoor、60 HTTP/CLI），精确 CI 36392809729 SUCCESS（47ff9d9）；P1-04 首次绑定策略已获用户确认，契约已冻结，共享事件协议实现中。交付 P1-05 并完成 P1-04 后执行 P1-07 总验收，随后暂停，不开始 P2。每片完成实施、独立验证、文档/进度与 Git 交付，不等待反复继续。
+P1-06 已交付；P1-05 本地验收 DONE（181 单测、29 PG、5 Casdoor、60 HTTP/CLI），精确 CI 36392809729 SUCCESS（47ff9d9）；P1-04 首次绑定策略已获用户确认，契约已冻结，auth 消费事务 pass 已验证（189 单测、44 PG、5 IdP、60 HTTP），OA 源端及双库闭环尚未完成。交付 P1-05 并完成 P1-04 后执行 P1-07 总验收，随后暂停，不开始 P2。每片完成实施、独立验证、文档/进度与 Git 交付，不等待反复继续。
 
 目录收敛证据见 docs/implementation/oa-auth/WORKTREE_CONSOLIDATION.md；Git 只剩主目录工作树，历史资料/私密配置和 P0 基线已保留。
+
+
+## P1-04 跨仓交付顺序
+
+| 仓库/工作目录 | 分支/基线 | 当前拥有路径 | 协议与验证 | 交付/下一步 |
+| --- | --- | --- | --- | --- |
+| auth-platform 原目录 | feat/oa-auth-p1-identity / 9e6766f | protocol、governance 与独立 oa-auth 文档 | DirectoryEvents v1；consumer pass 本地 PASS | 任务分支 CI；完成 P1-04 全片后再合并本片 |
+| oa-platform 原目录 | feat/oa-auth-p1-directory / f07c978 | 后续仅 oa-org 和本片专属文档/验证工具 | 先安装当前 auth protocol 制品，再构建 OA | 源端 Outbox/初始化/受控出口尚未实施 |
+
+OA 原 CODEX_PROGRESS、既有设计 PROGRESS_STATE、DEPLOYMENT_RESULT 和 tmp 是用户原改动，不纳入本片。
+新增 auth 协议没有改变已发布既有 API，治理 HTTP 保持原默认关闭；正式目录接管仍未执行。

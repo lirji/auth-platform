@@ -1,0 +1,21 @@
+{
+  "slice_id": "P1-04",
+  "pass": "auth-consumer",
+  "base": "9e6766fa93d3909ffefdccb26432a5ce99d7e178",
+  "source_files": {
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/DirectoryAuthority.java": "48fded724a321617cbe42486aa1a3999c54d02376e30a6cd4c3d8905e2a82e65",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/DirectoryGovernance.java": "39c5a305228e5195223305e14da65b73933bc59ae360de4d7b731f6241db0044",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/DirectoryJson.java": "0f52fae8af8d2709395f1dcf5674f295611f0764addd1d3d503e85368bd7b4ad",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/domain/DirectoryModels.java": "bf16ed52f25dc9b46d7466243eae7a6a38c926c34ef98a21d99875528da49641",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/DirectoryEventTypeHandler.java": "5874c0837fd20b0b66b8e21e127766d9ea1b382f4ec02c6bd323cd3fcb1a5af2",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/DirectoryMapper.java": "ad091865f157d645c3b70029495363b9cd98b038a42788ec3d558b3cfebc8d86",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/GovernanceRuntime.java": "a293e74b971c4191e3263000273d0c9b9c44d81e1e95aef150627593653f922f",
+    "auth-platform-governance/src/main/resources/db/governance/migration/V5__directory_consumption.sql": "f26f02b90fe7377f2864c1878480fbade3e8bca000612b8d313d4b63d0a9cbdd",
+    "auth-platform-governance/src/main/resources/mappers/governance/DirectoryMapper.xml": "0fb59be6e55f6a827b7fbadddf23d8c0180b8ef1a271dca2be19831af8832e8b",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/application/DirectoryJsonTest.java": "18f74208281067497293bf4f7e49a76fc280e08a5b839a3c26b5bf9f8f849769",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/DirectoryPostgresIT.java": "d3f4352874ada257a52758041f1a19b952922f188b00c2914ca8716da7642f19",
+    "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/DirectoryEvents.java": "d0612f84ffd25ecd28f420d269336c1656b339779bd2ee3be7793614daa7b7e9",
+    "auth-platform-protocol/src/test/java/com/lrj/authz/protocol/DirectoryEventsTest.java": "a1c817c90dd64c5cee94b4324bda58dfccc102b51f838be5b6e72fc41ef40347"
+  },
+  "source_fingerprint": "5476d241c90be33ecc8443f9cb50eb5888a4799a9baa58b6a0678bb0064659cf"
+}
