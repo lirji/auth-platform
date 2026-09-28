@@ -5,6 +5,8 @@ import java.util.List;
 /** 应用清单领域对象，业务能力和菜单来自已发布快照，不读取前端硬编码。 */
 public final class CatalogModels {
     private CatalogModels() {}
+    /** 与不可变清单分离的紧急状态，未创建前使用版本0。 */
+    public record CapabilityState(String capability,boolean disabled,long version) {}
     /** 稳定应用和明确登记的拥有者；入口不从清单自由变更。 */
     public record Application(String applicationId, String ownerPrincipalId, String entryOrigin, long manifestVersion) {}
     /** 能力风险是封闭集合，发布后同编码语义不可改变。 */

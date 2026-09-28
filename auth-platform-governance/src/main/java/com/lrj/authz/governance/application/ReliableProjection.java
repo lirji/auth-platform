@@ -99,14 +99,23 @@ public final class ReliableProjection {
         if (pending != null) { payload(pending); return new Work(null, pending); }
         String after = current.targetEpoch() == fence.desiredEpoch() ? current.scanCursor() : "";
         List<GrantChange> page = target.kind() == Kind.POLICY ? mapper.grants(target, after) : List.of();
-        boolean last = page.size() <= 50;
+        List<GroupChange> groupPage = target.kind() == Kind.DIRECTORY ? mapper.groups(target, after) : List.of();
+        boolean last = page.size() <= 50 && groupPage.size() <= 50;
         List<GrantChange> changes = List.copyOf(page.subList(0, Math.min(page.size(), 50)));
-        List<RelationshipUpdate> relationships = changes.stream().map(g -> {
+        List<GroupChange> groups = List.copyOf(groupPage.subList(0, Math.min(groupPage.size(), 50)));
+        List<RelationshipUpdate> relationships = new ArrayList<>();
+        for (GrantChange g : changes) {
             var resource = ResourceRef.of(ProjectionGraph.GRANT_TYPE, g.id());
-            var subject = SubjectRef.of(ProjectionGraph.MEMBER_TYPE, g.membershipId() + "_g" + g.generation());
-            return g.present() ? RelationshipUpdate.touch(resource, "assignee", subject) : RelationshipUpdate.delete(resource, "assignee", subject);
-        }).toList();
-        String cursor = changes.isEmpty() ? after : changes.getLast().id();
+            var subject = g.groupId()==null?SubjectRef.of(ProjectionGraph.MEMBER_TYPE, g.membershipId() + "_g" + g.generation())
+                    :SubjectRef.ofRelation(ProjectionGraph.GROUP_TYPE,g.groupId(),"member");
+            relationships.add(g.present()?RelationshipUpdate.touch(resource,"assignee",subject):RelationshipUpdate.delete(resource,"assignee",subject));
+        }
+        for (GroupChange g : groups) {
+            var resource=ResourceRef.of(ProjectionGraph.GROUP_TYPE,g.groupId());
+            var subject=SubjectRef.of(ProjectionGraph.MEMBER_TYPE,g.membershipId()+"_g"+g.generation());
+            relationships.add(g.present()?RelationshipUpdate.touch(resource,"member",subject):RelationshipUpdate.delete(resource,"member",subject));
+        }
+        String cursor = !changes.isEmpty()?changes.getLast().id():!groups.isEmpty()?groups.getLast().id():after;
         String json = encode(new Payload(changes, relationships));
         long batch = current.batchCounter() + 1;
         String hash = hash(target.fenceId(), fence.desiredEpoch(), batch, current.marker(), json, cursor, last);
@@ -126,6 +135,7 @@ public final class ReliableProjection {
         for (GrantChange grant : payload.grants()) {
             if (grant.present()) mapper.activate(grant, token);
             mapper.completeLegacy(grant);
+            mapper.grantReceipt(grant,operation.id());
         }
         one(mapper.applied(operation.id())); one(mapper.confirmStream(operation, token));
         // 条件更新会在新desired出现时返回0，继续UPDATING是正常并发结果。

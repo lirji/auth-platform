@@ -14,7 +14,7 @@ public final class AccessDtos {
     /** 角色展示公开字段，能力是结构化数组。 */
     public record RoleView(String id,String roleCode,long version,List<String> capabilities) {}
     /** 状态来自SQL与图确认记录，PENDING不能显示为已生效。 */
-    public record GrantView(String id,String memberId,long memberGeneration,String roleId,String scope,String sourceType,String sourceId,String validFrom,String validTo,String state,long version) {}
+    public record GrantView(String id,String memberId,long memberGeneration,String roleId,String scope,String sourceType,String sourceId,String validFrom,String validTo,String state,long version,String groupId) {}
     /** 分页分别推进角色和授权游标，避免混用集合位置。 */
     public record StateView(List<RoleView> roles,List<GrantView> grants,String nextRoleCursor,String nextGrantCursor) {}
 }

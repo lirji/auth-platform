@@ -33,10 +33,23 @@
  SELECT <include refid="operationColumns"/> FROM auth_governance.projection_operation WHERE fence_id=#{fence} AND id=#{id}
  </select>
  <select id="grants" resultType="com.lrj.authz.governance.domain.ProjectionModels$GrantChange">
- SELECT id,version,membership_id,generation,(state IN ('PENDING','ACTIVE') AND valid_to &gt;clock_timestamp()) AS present
+ SELECT id,version,membership_id,generation,(state IN ('PENDING','ACTIVE') AND valid_to &gt;clock_timestamp()) AS present,group_id
  FROM auth_governance.access_grant WHERE tenant_id=#{t.partition.tenantId} AND application_id=#{t.partition.applicationId}
  AND environment=#{t.partition.environment} AND id &gt; #{after} ORDER BY id LIMIT 51
  </select>
+ <select id="groups" resultType="com.lrj.authz.governance.domain.ProjectionModels$GroupChange">
+ SELECT gm.id,gm.group_id,gm.membership_id,gm.generation,
+ (gm.current AND dg.active AND NOT src.quarantined AND src.business_zone IS NOT NULL
+ AND m.generation=gm.generation AND m.status='ACTIVE' AND u.status='ACTIVE' AND t.status='ACTIVE') present
+ FROM auth_governance.directory_group_member gm
+ JOIN auth_governance.directory_group dg ON dg.id=gm.group_id
+ JOIN auth_governance.directory_source src ON src.id=dg.source_id
+ JOIN auth_governance.membership m ON m.id=gm.membership_id JOIN auth_governance.principal u ON u.id=m.principal_id
+ JOIN auth_governance.tenant t ON t.id=gm.tenant_id
+ WHERE gm.tenant_id=#{t.partition.tenantId} AND gm.id &gt;#{after} ORDER BY gm.id LIMIT 51
+ </select>
+ <insert id="grantReceipt">INSERT INTO auth_governance.projection_grant_receipt(grant_id,grant_version,operation_id)
+ VALUES(#{g.id},#{g.version},#{operation}) ON CONFLICT DO NOTHING</insert>
  <update id="advanceBatch">UPDATE auth_governance.projection_stream SET batch_counter=batch_counter+1
  WHERE fence_id=#{id} AND batch_counter=#{before}</update>
  <insert id="insert">INSERT INTO auth_governance.projection_operation(id,fence_id,target_epoch,batch_no,expected_marker,payload_json,content_hash,after_cursor,last_batch,created_by,lease_generation)

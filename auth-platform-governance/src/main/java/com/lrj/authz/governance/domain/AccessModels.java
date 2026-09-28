@@ -21,7 +21,21 @@ public final class AccessModels {
     /** 时间窗和成员代际固定，撤销只推进状态/版本，不复用旧来源。 */
     public record Grant(String id,String tenantId,String applicationId,String environment,String membershipId,long generation,
                         String roleId,String scope,String sourceType,String sourceId,Instant validFrom,Instant validTo,
-                        GrantState state,long version,String zedToken) {}
+                        GrantState state,long version,String zedToken,String groupId) {
+        /** 明确数据库使用完整构造器，旧DIRECT调用保留兼容。 */
+        @org.apache.ibatis.annotations.AutomapConstructor
+        public Grant {}
+        /** 旧直接授权不携带组织组。 */
+        public Grant(String id,String tenantId,String applicationId,String environment,String membershipId,long generation,
+                     String roleId,String scope,String sourceType,String sourceId,Instant validFrom,Instant validTo,
+                     GrantState state,long version,String zedToken) {
+            this(id,tenantId,applicationId,environment,membershipId,generation,roleId,scope,sourceType,sourceId,validFrom,validTo,state,version,zedToken,null);
+        }
+    }
+    /** 管理回执不把本地REVOKED当成图全局完成。 */
+    public record RevocationReceipt(String grantId,long version,String status,String operationId,long desiredEpoch,long appliedEpoch) {}
+    /** 只展示本分区已确认的OA组。 */
+    public record Group(String id,String orgRef,boolean active,String businessZone) {}
     /** 管理视图稳定游标，有界返回；展示不替代后台实时鉴权。 */
     public record State(List<RoleVersion> roles,List<Grant> grants,String nextRoleCursor,String nextGrantCursor) {}
     /** 可靠投影意图只引用不可变Grant路径及目标版本。 */

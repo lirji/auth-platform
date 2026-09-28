@@ -14,11 +14,13 @@ import static com.lrj.authz.governance.application.GovernanceException.Code.*;
 /** 应用目录唯一写用例；清单发布不产生或修改业务授权。 */
 public final class ApplicationCatalog {
     private final CatalogMapper mapper;
+    private final SafetyMapper safety;
     private final IdentityMapper identities;
     private final IdentityGovernance identity;
     private final TransactionTemplate transaction;
     /** 事务与Mapper由既有治理Runtime提供。 */
-    public ApplicationCatalog(CatalogMapper mapper, IdentityMapper identities, IdentityGovernance identity, TransactionTemplate transaction) {
+    public ApplicationCatalog(CatalogMapper mapper, IdentityMapper identities, IdentityGovernance identity, TransactionTemplate transaction, SafetyMapper safety) {
+        this.safety=safety;
         this.mapper=mapper; this.identities=identities; this.identity=identity; this.transaction=transaction;
     }
     /** 仅受控引导调用；应用拥有者必须已存在且有效，重复登记不能夺取所有权。 */
@@ -63,6 +65,24 @@ public final class ApplicationCatalog {
         Application app=requireOwner(login,application,false);
         Snapshot row=mapper.snapshot(application,app.manifestVersion());
         return row==null ? null : CatalogManifest.read(row.manifestJson());
+    }
+    /** 紧急停用不修改已发布RoleVersion；恢复也必须显式拥有者命令和新版本。 */
+    public CapabilityState changeCapability(VerifiedLogin login,String application,String capability,boolean disabled,long expectedVersion,String reason,String command) {
+        CatalogManifest.code(capability);BootstrapCommand.uuid(command);BootstrapCommand.bounded(reason,500);
+        if(expectedVersion<0)throw new GovernanceException(INVALID_ARGUMENT);
+        return transaction.execute(status->{
+            Application app=requireOwner(login,application,true);
+            var snapshot=mapper.snapshot(application,app.manifestVersion());
+            if(snapshot==null||CatalogManifest.read(snapshot.manifestJson()).capabilities().stream().noneMatch(c->c.code().equals(capability)))throw new GovernanceException(ACCESS_DENIED);
+            String hash=AccessValues.hash(application,capability,disabled,expectedVersion,reason);
+            String previous=safety.commandHash(application,command);
+            if(previous!=null){if(!previous.equals(hash))throw new GovernanceException(COMMAND_CONFLICT);return safety.commandResult(application,command);}
+            var state=safety.capability(application,capability);
+            if((state==null?0:state.version())!=expectedVersion)throw new GovernanceException(VERSION_CONFLICT);
+            requireOne(safety.changeCapability(application,capability,disabled,expectedVersion+1));
+            requireOne(safety.capabilityAudit(application,capability,command,hash,app.ownerPrincipalId(),reason,expectedVersion,disabled));
+            return safety.capability(application,capability);
+        });
     }
     private Application requireOwner(VerifiedLogin login,String application,boolean lock) {
         CatalogManifest.code(application);

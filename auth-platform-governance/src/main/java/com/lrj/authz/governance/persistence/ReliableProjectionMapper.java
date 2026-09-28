@@ -7,6 +7,10 @@ import java.util.List;
 
 /** 所有领取、规划和回执SQL集中在所属治理数据库，不跨服务写表。 */
 public interface ReliableProjectionMapper {
+    /** 目录边同样51项探测、50项执行，包括退出的历史边。 */
+    java.util.List<GroupChange> groups(@Param("t") Target target,@Param("after") String after);
+    /** 真实回执细化到Grant版本，供撤权完成查询。 */
+    int grantReceipt(@Param("g") GrantChange grant,@Param("operation") String operation);
     /** 按真实栅栏外键登记幂等执行流。 */
     int register(@Param("t") Target target);
     /** 数据库时间抢占到期租约并增加代际，返回当前固定领取快照。 */

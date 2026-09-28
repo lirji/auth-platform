@@ -59,7 +59,7 @@ class ReliableAuthorizationIT {
         return runtime.access().grant(f.login, f.p, id(), f.member.membershipId(), 1, f.role.id(), "TENANT_ALL", id(), Instant.now(), Instant.now().plusSeconds(300));
     }
     private String fenceId(Fixture f) { return jdbc.queryForObject("select id from auth_governance.policy_partition where tenant_id=?", String.class, f.p.tenantId()); }
-    private String state(Fixture f) { return jdbc.queryForObject("select state from auth_governance.policy_partition where tenant_id=?", String.class, f.p.tenantId()); }
+    private String state(Fixture f) { return jdbc.queryForObject("select state from auth_governance.policy_partition where tenant_id=? and application_id=? and environment=?", String.class, f.p.tenantId(),f.p.applicationId(),f.p.environment()); }
     private boolean graphAllows(Fixture f, Grant grant) {
         return observer.check(SubjectRef.of(ProjectionGraph.MEMBER_TYPE, f.member.membershipId() + "_g1"), "eligible",
                 ResourceRef.of(ProjectionGraph.GRANT_TYPE, grant.id()), Consistency.fullyConsistent());
@@ -122,6 +122,100 @@ class ReliableAuthorizationIT {
         var f=fixture();grant(f);project(f);var c=context(f);
         StrictGraphReader incomplete=(member,generation,grants,token)->Map.of();
         assertThatThrownBy(()->runtime.reliableAuthorization(incomplete).evaluate(c,f.p.applicationId()+".read","store")).hasMessage("AUTHZ_PROTOCOL_INVALID");
+    }
+    private void awaitAllowed(Fixture f,String store){
+        // 独立双水位允许保守短暂拒绝；等待图量化快照追平，不把旧DENY改为ALLOW。
+        var auth=second.reliableAuthorization(graph);var c=context(f);long deadline=System.nanoTime()+10_000_000_000L;
+        boolean allowed;
+        do{allowed=auth.allowed(c,f.p.applicationId()+".read",store(f,store));if(!allowed)java.util.concurrent.locks.LockSupport.parkNanos(100_000_000L);}while(!allowed&&System.nanoTime()<deadline);
+        assertThat(allowed).isTrue();
+    }
+    private DirectoryAuthority directory(Fixture f){
+        var source=new DirectoryAuthority(id(),"oa-"+id(),f.p.environment(),"1",f.p.tenantId(),f.member.issuer());
+        runtime.directory().register(source,"test");
+        consume(source,1,1,DirectoryEvents.DirectoryAggregateType.ORG,"1",new DirectoryEvents.Payload(null,new DirectoryEvents.Organization("1",null,"ACTIVE"),null));
+        consume(source,2,1,DirectoryEvents.DirectoryAggregateType.ORG,"2",new DirectoryEvents.Payload(null,new DirectoryEvents.Organization("2",null,"ACTIVE"),null));
+        return source;
+    }
+    private void consume(DirectoryAuthority source,long sequence,long version,DirectoryEvents.DirectoryAggregateType type,String aggregate,DirectoryEvents.Payload payload){
+        runtime.directory().accept(source,new DirectoryEvents.Event(1,id(),source.source(),source.environment(),source.sourceTenantRef(),sequence,type,aggregate,version,
+            Instant.now().toString(),null,payload,DirectoryEvents.payloadHash(type,payload)));
+    }
+    private void employee(Fixture f,DirectoryAuthority source,long sequence,long version,String status,String org,String from,String to,String type){
+        consume(source,sequence,version,DirectoryEvents.DirectoryAggregateType.EMPLOYEE,"1",new DirectoryEvents.Payload(
+            new DirectoryEvents.Employee("1",f.member.subject(),status,List.of(new DirectoryEvents.Assignment("1",org,type,false,from,to)),List.of()),null,null));
+    }
+    private Grant groupGrant(Fixture f,String group){
+        return runtime.access().grantGroup(f.login,f.p,id(),group,f.role.id(),new Rule(1,"store",List.of(new Clause(com.lrj.authz.protocol.ScopeDtos.Kind.SPECIFIED_STORES,List.of("S001"),false))),id(),Instant.now(),Instant.now().plusSeconds(300));
+    }
+    private String group(Fixture f,String org){return runtime.access().groups(f.login,f.p,null).stream().filter(g->g.orgRef().equals(org)).findFirst().orElseThrow().id();}
+    @Test void directoryMovementRevokesOldGroupBeforeGraphAndPreservesIndependentGrant(){
+        var f=fixture();var source=directory(f);
+        runtime.access().configureGroupClock(f.login,f.p,id(),source.id(),"UTC");
+        employee(f,source,3,1,"ACTIVE","1","2020-01-01",null,"PRIMARY");
+        var group=groupGrant(f,group(f,"1"));project(f);var c=context(f);var auth=second.reliableAuthorization(graph);
+        assertThat(graphAllows(f,group)).isTrue();
+        awaitAllowed(f,"S001");
+        assertThat(auth.allowed(c,f.p.applicationId()+".read",store(f,"S002"))).isFalse();
+        employee(f,source,4,2,"ACTIVE","2","2020-01-01",null,"PRIMARY");
+        assertThat(graphAllows(f,group)).isTrue();
+        assertThatThrownBy(()->auth.evaluate(c,f.p.applicationId()+".read","store")).hasMessage("AUTHZ_STATE_NOT_READY");
+        project(f);assertThat(auth.allowed(context(f),f.p.applicationId()+".read",store(f,"S001"))).isFalse();assertThat(graphAllows(f,group)).isFalse();
+        grant(f);project(f);awaitAllowed(f,"S001");
+        employee(f,source,5,3,"ACTIVE","1","2020-01-01",null,"PRIMARY");project(f);
+        runtime.access().revoke(f.login,f.p,id(),group.id(),1);project(f);
+        awaitAllowed(f,"S002");
+    }
+    @Test void leftRejoinChangesGenerationAndDoesNotRestoreRevokedGroupGrant(){
+        var f=fixture();var source=directory(f);runtime.access().configureGroupClock(f.login,f.p,id(),source.id(),"UTC");
+        employee(f,source,3,1,"ACTIVE","1","2020-01-01",null,"PRIMARY");var g=groupGrant(f,group(f,"1"));project(f);var old=context(f);
+        employee(f,source,4,2,"LEFT","1","2020-01-01",null,"PRIMARY");project(f);
+        assertThat(graphAllows(f,g)).isFalse();
+        runtime.access().revoke(f.login,f.p,id(),g.id(),1);project(f);
+        employee(f,source,5,3,"ACTIVE","1","2020-01-01",null,"PRIMARY");project(f);
+        assertThat(context(f).membershipGeneration()).isEqualTo(2);
+        assertThatThrownBy(()->runtime.reliableAuthorization(graph).evaluate(old,f.p.applicationId()+".read","store")).isInstanceOf(GovernanceException.class);
+        assertThat(runtime.reliableAuthorization(graph).allowed(context(f),f.p.applicationId()+".read",store(f,"S001"))).isFalse();
+    }
+    @Test void sourceClockAndAssignmentDatesAreAuthoritativeEvenWhenGraphHasRelationship(){
+        var f=fixture();var source=directory(f);
+        employee(f,source,3,1,"ACTIVE","1","2020-01-01",null,"PRIMARY");
+        assertThatThrownBy(()->groupGrant(f,group(f,"1"))).hasMessage("ACCESS_DENIED");
+        runtime.access().configureGroupClock(f.login,f.p,id(),source.id(),"UTC");var g=groupGrant(f,group(f,"1"));
+        employee(f,source,4,2,"ACTIVE","1","2020-01-01",LocalDate.now(ZoneOffset.UTC).toString(),"PRIMARY");project(f);
+        assertThat(graphAllows(f,g)).isTrue();assertThat(runtime.reliableAuthorization(graph).allowed(context(f),f.p.applicationId()+".read",store(f,"S001"))).isFalse();
+        employee(f,source,5,3,"ACTIVE","1",LocalDate.now(ZoneOffset.UTC).plusDays(1).toString(),null,"PRIMARY");project(f);
+        assertThat(runtime.reliableAuthorization(graph).allowed(context(f),f.p.applicationId()+".read",store(f,"S001"))).isFalse();
+        employee(f,source,6,4,"ACTIVE","1","2020-01-01",null,"DOTTED");project(f);
+        assertThat(graphAllows(f,g)).isFalse();
+    }
+    @Test void emergencyCapabilityDisableIsOwnerOnlyAuditedIdempotentAndFencesEveryPartition(){
+        var f=fixture();grant(f);project(f);String cap=f.p.applicationId()+".read",command=id();
+        var owner=runtime.identity().contextForLogin(f.login.issuer(),f.login.subject(),f.p.tenantId(),null);
+        var other=new Partition(f.p.tenantId(),f.p.applicationId(),"second");
+        runtime.access().bootstrap(other,new Delegation(owner.membershipId(),owner.membershipGeneration(),AccessValues.json(List.of(cap)),3600),"test",id());
+        runtime.access().enableStrict(f.login,other,id());
+        assertThat(runtime.reliableProjector(graph).step(other,com.lrj.authz.governance.domain.ProjectionModels.Kind.POLICY,id())).isEqualTo(Step.READY);
+        assertThatThrownBy(()->runtime.catalog().changeCapability(new VerifiedLogin(f.member.issuer(),f.member.subject()),f.p.applicationId(),cap,true,0,"test",id())).hasMessage("ACCESS_DENIED");
+        var result=runtime.catalog().changeCapability(f.login,f.p.applicationId(),cap,true,0,"incident",command);
+        assertThat(jdbc.queryForObject("select count(*) from auth_governance.policy_partition where application_id=? and state='UPDATING'",Integer.class,f.p.applicationId())).isEqualTo(2);
+        assertThat(result.disabled()).isTrue();assertThat(result.version()).isEqualTo(1);assertThat(state(f)).isEqualTo("UPDATING");
+        assertThat(runtime.catalog().changeCapability(f.login,f.p.applicationId(),cap,true,0,"incident",command)).isEqualTo(result);
+        assertThatThrownBy(()->runtime.catalog().changeCapability(f.login,f.p.applicationId(),cap,false,0,"incident",command)).hasMessage("COMMAND_CONFLICT");
+        project(f);assertThat(second.reliableAuthorization(graph).allowed(context(f),cap,store(f,"S001"))).isFalse();
+        runtime.catalog().changeCapability(f.login,f.p.applicationId(),cap,false,1,"resolved",id());project(f);
+        assertThat(second.reliableAuthorization(graph).allowed(context(f),cap,store(f,"S001"))).isTrue();
+        assertThat(jdbc.queryForObject("select count(*) from auth_governance.capability_command where application_id=?",Integer.class,f.p.applicationId())).isEqualTo(2);
+    }
+    @Test void revokeReceiptNeedsGraphConfirmationAndRetryCannotOverwriteUnknownMarker(){
+        var f=fixture();var g=grant(f);project(f);runtime.access().revoke(f.login,f.p,id(),g.id(),1);
+        var accepted=runtime.access().revocationReceipt(f.login,f.p,g.id());assertThat(accepted.status()).isEqualTo("PROCESSING");assertThat(accepted.operationId()).isNull();
+        project(f);var done=runtime.access().revocationReceipt(f.login,f.p,g.id());assertThat(done.status()).isEqualTo("COMPLETED");assertThat(done.operationId()).isNotBlank();
+        String fence=fenceId(f);var marker=graph.readMarker(fence).orElseThrow();graph.compareAndWrite(fence,marker.operationId(),id(),List.of());
+        assertThat(runtime.reliableProjector(graph).step(f.p,com.lrj.authz.governance.domain.ProjectionModels.Kind.POLICY,id())).isEqualTo(Step.BLOCKED);
+        assertThat(runtime.access().revocationReceipt(f.login,f.p,g.id()).status()).isEqualTo("BLOCKED");
+        runtime.access().retryStrict(f.login,f.p,id(),com.lrj.authz.governance.domain.ProjectionModels.Kind.POLICY);
+        assertThat(runtime.reliableProjector(graph).step(f.p,com.lrj.authz.governance.domain.ProjectionModels.Kind.POLICY,id())).isEqualTo(Step.BLOCKED);
     }
     private record Fixture(Partition p,VerifiedLogin login,BootstrapCommand member,RoleVersion role){}
 }

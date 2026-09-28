@@ -31,7 +31,9 @@ public final class ProjectionModels {
                             String payloadJson, String contentHash, String afterCursor, boolean lastBatch,
                             OperationState state, int attempts, String createdBy, long leaseGeneration) {}
     /** 当前Grant版本只用于有条件激活，不允许覆盖新撤销状态。 */
-    public record GrantChange(String id, long version, String membershipId, long generation, boolean present) {}
+    public record GrantChange(String id, long version, String membershipId, long generation, boolean present, String groupId) {}
+    /** 历史目录边保存删除对象，不靠当前成员列表猜测旧图内容。 */
+    public record GroupChange(String id,String groupId,String membershipId,long generation,boolean present) {}
     /** 图关系在规划事务内固定，执行器不能随新marker重新解释旧内容。 */
     public record Payload(List<GrantChange> grants, List<RelationshipUpdate> relationships) {
         public Payload { grants = List.copyOf(grants); relationships = List.copyOf(relationships); }

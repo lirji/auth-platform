@@ -65,7 +65,7 @@ public final class ReliableAuthorization {
 
     private Candidates candidates(AccessContext context,Partition partition,String capability,String resourceType) {
         var app=catalog.application(partition.applicationId());
-        if(app==null||app.manifestVersion()==0)return new Candidates(List.of(),access.now());
+        if(app==null||app.manifestVersion()==0||catalog.disabled(partition.applicationId(),capability))return new Candidates(List.of(),access.now());
         var manifest=CatalogManifest.read(catalog.snapshot(app.applicationId(),app.manifestVersion()).manifestJson());
         if(manifest.capabilities().stream().noneMatch(c->c.code().equals(capability)&&c.resourceType().equals(resourceType)))return new Candidates(List.of(),access.now());
         List<GrantPath> all=scopes.eligible(partition,context.membershipId(),context.membershipGeneration());

@@ -43,3 +43,17 @@ StrictGraphReader只检查gov_access_grant#eligible，主体固定gov_membership
 ReliableAuthorization在ReadFence的A/C新事务内使用一条SQL连接Grant、固定RoleVersion、固定ScopeRule及当前成员，避免N+1。C除了栅栏、身份、目录版本，还核对仍有效的完整候选集合；时间边界导致候选变化时拒绝本次不稳定结果。读取仅使用持久化Token，Runtime重建或不同实例不依赖本地内存。一个请求预算8秒，超过预算没有ALLOW；图每次调用仍受已验证的body总超时保护。
 
 内部Evaluation含decisionId、当前Stamp、完整Grant alternatives和validUntil=min(数据库当前时间+30秒,匹配Grant到期时间)。它是本次请求的后端结果，不是可缓存或浏览器可提交的授权凭据。P3-02将它接到ScopePlan/可信资源Owner接口，每次业务请求重新取得与验证；长任务各检查点重新检查。当前仍不引入跨请求ALLOW缓存。
+
+## P3-06 实施细化
+
+组织组仅来自P1已消费的OA直接组织与PRIMARY/CONCURRENT任职；DOTTED、领导标志和汇报线不推导业务权限。组可以先于ORG事实登记占位，但只有已收到ACTIVE组织事实才允许授予。来源business_zone必须由管理命令显式设置为与OA生产进程一致的IANA时区；未配置拒绝组授权，不默认使用数据库或服务器时区。日期遵循左闭右开，每次主库A/C均核对；组ScopePlan期限不跨来源午夜。
+
+V12以directory_entry事务触发器维护组织组及当前成员代际/任职日期；旧组及旧代际边保留墓碑用于可靠DELETE。每事件最多100任职，目录worker每批50边，策略worker投影Grant→group#member，目录worker投影group→当前membership代际。两者仍独立marker与持久水位；两个atLeastAsFresh快照可能短暂保守DENY，不能提升为ALLOW，实测追平时间在P3-07记录。来源变更与目录epoch原子推进。退组/离职/迁移不能使用旧SQL资格，重新入组只能使用仍有效的独立Grant，不能恢复REVOKED来源。
+
+GROUP Grant使用独立group_id与租户复合外键，成员为空、generation=0表示组受益方，不能伪造成直接成员；DIRECT保持原约束。组Grant只允许已切换严格分区，仍校验管理能力上限、期限、同Grant固定范围、幂等和审计，拒绝管理者向自己当前所在组授予。每组最多100活跃Grant，总候选超过100时失败关闭。
+
+POST /api/governance/v1/access/group-grants返回202；GET /access/groups按末项UUID分页。POST /access/directory-clock显式配置来源时区；POST /access/enable-strict只切换已升级受保护路由；POST /access/retry-strict按POLICY/DIRECTORY清除耗尽次数并审计，活动租约不能强行替换，未知marker仍会再次BLOCKED。各接口沿用P2已验证管理Token和完整tenant/application/environment委派校验。
+
+POST /access/strict-revoke返回202及PROCESSING/BLOCKED/COMPLETED回执；GET /access/revocation-receipt重新检查当前管理范围。只有同Grant当前版本存在真实projection_receipt关联，策略applied覆盖操作target_epoch且策略/目录都READY才COMPLETED。旧/access/revoke继续只表示SQL撤销，不能展示为全局完成。
+
+POST /catalog/capability-state仅应用拥有者可执行，需capability、disabled、expected_version、reason及command_id；独立乐观版本、不可变命令审计与所有应用策略分区epoch同事务。初始不存在记录等于版本0/未停用；同命令同内容返回原结果，改体冲突。紧急停用不修改历史RoleVersion，P2/P3读取都重新检查开关；恢复也必须显式新命令，不能由清单发布自动开启。

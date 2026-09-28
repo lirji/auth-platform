@@ -59,6 +59,55 @@ public class GovernanceAccessController {
         RevokeGrant r=AccessWeb.read(request.getInputStream(),RevokeGrant.class);
         return GovernanceWeb.body(AccessWeb.grant(access.retryProjection(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),r.grantId(),r.expectedVersion())));
     }
+    /** 组来自目录，调用方不能提交组成员或任意组织映射。 */
+    @PostMapping(value="/access/group-grants",consumes="application/json")
+    public ResponseEntity<JsonNode> group(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{
+        var r=AccessWeb.read(request.getInputStream(),com.lrj.authz.protocol.SafetyDtos.GroupGrant.class);
+        return ResponseEntity.accepted().body(GovernanceWeb.body(AccessWeb.grant(access.grantGroup(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),r.groupId(),r.roleId(),r.scopeRule(),r.sourceId(),AccessWeb.instant(r.validFrom()),AccessWeb.instant(r.validTo())))));
+    }
+    /** 受理和全局完成分开；即使SQL已撤销仍返回202及可查询回执。 */
+    @PostMapping(value="/access/strict-revoke",consumes="application/json")
+    public ResponseEntity<JsonNode> strictRevoke(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{
+        RevokeGrant r=AccessWeb.read(request.getInputStream(),RevokeGrant.class);var p=new Partition(r.tenantId(),r.applicationId(),r.environment());
+        return ResponseEntity.accepted().body(GovernanceWeb.body(access.strictRevoke(login,p,r.commandId(),r.grantId(),r.expectedVersion())));
+    }
+    /** 完成回执同样校验当前管理范围。 */
+    @GetMapping("/access/revocation-receipt")
+    public JsonNode receipt(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("tenant_id")String tenant,@RequestParam("application_id")String app,@RequestParam("environment")String env,@RequestParam("grant_id")String grant){
+        return GovernanceWeb.body(access.revocationReceipt(login,new Partition(tenant,app,env),grant));
+    }
+    /** 只有完成升级节点路由的隔离分区才应调用此不可降级切换。 */
+    @PostMapping(value="/access/enable-strict",consumes="application/json")
+    public ResponseEntity<Void> strict(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{
+        var r=AccessWeb.read(request.getInputStream(),com.lrj.authz.protocol.SafetyDtos.PartitionCommand.class);
+        if(r.kind()!=null)throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);
+        access.enableStrict(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId());return ResponseEntity.accepted().build();
+    }
+    /** 耗尽重试经审计恢复为UPDATING，不伪造READY或替换旧payload。 */
+    @PostMapping(value="/access/retry-strict",consumes="application/json")
+    public ResponseEntity<Void> retryStrict(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{
+        var r=AccessWeb.read(request.getInputStream(),com.lrj.authz.protocol.SafetyDtos.PartitionCommand.class);
+        com.lrj.authz.governance.domain.ProjectionModels.Kind kind;
+        try{kind=com.lrj.authz.governance.domain.ProjectionModels.Kind.valueOf(r.kind());}catch(RuntimeException e){throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);}
+        access.retryStrict(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),kind);return ResponseEntity.accepted().build();
+    }
+    /** 未显式设置时区的来源保持拒绝组授权。 */
+    @PostMapping(value="/access/directory-clock",consumes="application/json")
+    public ResponseEntity<Void> clock(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{
+        var r=AccessWeb.read(request.getInputStream(),com.lrj.authz.protocol.SafetyDtos.DirectoryClock.class);
+        access.configureGroupClock(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),r.sourceId(),r.businessZone());return ResponseEntity.noContent().build();
+    }
+    /** 目录组分页仅展示当前管理环境。 */
+    @GetMapping("/access/groups")
+    public JsonNode groups(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("tenant_id")String tenant,@RequestParam("application_id")String app,@RequestParam("environment")String env,@RequestParam(value="after",required=false)String after){
+        return GovernanceWeb.body(access.groups(login,new Partition(tenant,app,env),after));
+    }
+    /** 所有权来自已验证主体；停用与全应用策略epoch、审计同事务。 */
+    @PostMapping(value="/catalog/capability-state",consumes="application/json")
+    public JsonNode capability(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{
+        var r=AccessWeb.read(request.getInputStream(),com.lrj.authz.protocol.SafetyDtos.CapabilityCommand.class);
+        return GovernanceWeb.body(catalog.changeCapability(login,r.applicationId(),r.capability(),r.disabled(),r.expectedVersion(),r.reason(),r.commandId()));
+    }
     /** 查询同样校验管理范围；游标不能改变tenant/app/env过滤。 */
     @GetMapping("/access/state")
     public JsonNode state(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("tenant_id")String tenant,@RequestParam("application_id")String app,

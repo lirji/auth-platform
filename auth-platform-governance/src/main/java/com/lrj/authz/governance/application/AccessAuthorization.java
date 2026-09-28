@@ -16,7 +16,7 @@ public final class AccessAuthorization {
         CatalogManifest.code(capability);CatalogManifest.code(resourceType);
         Partition p=new Partition(context.tenantId(),context.applicationId(),context.environment());AccessValues.partition(p);
         if(access.strict(p))throw new GovernanceException(AUTHZ_STATE_NOT_READY);
-        if(!Boolean.TRUE.equals(access.enabled(p)))return false;
+        if(catalog.disabled(p.applicationId(),capability)||!Boolean.TRUE.equals(access.enabled(p)))return false;
         if(projection.pending(p)>0)throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
         var app=catalog.application(p.applicationId());if(app==null||app.manifestVersion()==0)return false;
         var caps=CatalogManifest.read(catalog.snapshot(p.applicationId(),app.manifestVersion()).manifestJson()).capabilities();
@@ -32,7 +32,7 @@ public final class AccessAuthorization {
             if(!eligible)continue;
             // 新SQL语句读取当前状态，图的旧允许不能覆盖完成撤销、到期和成员停用。
             if(projection.pending(p)>0)throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
-            if(projection.eligible(p,context.membershipId(),context.membershipGeneration()).stream().anyMatch(now->now.id().equals(grant.id())&&now.version()==grant.version()))return true;
+            if(!catalog.disabled(p.applicationId(),capability)&&projection.eligible(p,context.membershipId(),context.membershipGeneration()).stream().anyMatch(now->now.id().equals(grant.id())&&now.version()==grant.version()))return true;
         }
         return false;
     }

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrj.authz.governance.persistence.SafetyMapper">
+ <sql id="groupSelect">SELECT g.id,g.org_ref,g.active,s.business_zone FROM auth_governance.directory_group g
+ JOIN auth_governance.directory_source s ON s.id=g.source_id AND s.tenant_id=g.tenant_id
+ WHERE g.tenant_id=#{p.tenantId} AND s.environment=#{p.environment} AND NOT s.quarantined</sql>
+ <select id="group" resultType="com.lrj.authz.governance.domain.AccessModels$Group"><include refid="groupSelect"/> AND g.id=#{id}</select>
+ <select id="groups" resultType="com.lrj.authz.governance.domain.AccessModels$Group"><include refid="groupSelect"/> AND g.id &gt;#{after} ORDER BY g.id LIMIT 100</select>
+ <update id="clock">UPDATE auth_governance.directory_source SET business_zone=#{zone} WHERE id=#{source} AND tenant_id=#{p.tenantId} AND environment=#{p.environment} AND NOT quarantined</update>
+ <select id="groupMember" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.directory_group_member WHERE group_id=#{group} AND membership_id=#{member} AND generation=#{generation} AND current)</select>
+ <select id="groupCount" resultType="int">SELECT count(*) FROM auth_governance.access_grant
+ WHERE tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment} AND group_id=#{group}
+ AND state IN ('PENDING','ACTIVE') AND valid_to &gt;clock_timestamp()</select>
+ <select id="receipt" resultType="com.lrj.authz.governance.domain.AccessModels$RevocationReceipt">
+ SELECT g.id grant_id,g.version,
+ CASE WHEN p.state='BLOCKED' OR d.state='BLOCKED' THEN 'BLOCKED'
+ WHEN g.state='REVOKED' AND r.operation_id IS NOT NULL AND p.state='READY' AND p.applied_epoch &gt;= o.target_epoch AND d.state='READY' THEN 'COMPLETED'
+ ELSE 'PROCESSING' END status,r.operation_id,p.desired_epoch,p.applied_epoch
+ FROM auth_governance.access_grant g
+ JOIN auth_governance.policy_partition p ON p.tenant_id=g.tenant_id AND p.application_id=g.application_id AND p.environment=g.environment
+ JOIN auth_governance.directory_fence d ON d.tenant_id=g.tenant_id
+ LEFT JOIN auth_governance.projection_grant_receipt r ON r.grant_id=g.id AND r.grant_version=g.version
+ LEFT JOIN auth_governance.projection_operation o ON o.id=r.operation_id AND o.fence_id=p.id
+ WHERE g.id=#{id} AND g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}
+ </select>
+ <sql id="fence"><choose><when test="kind.name() == 'POLICY'">auth_governance.policy_partition</when><otherwise>auth_governance.directory_fence</otherwise></choose></sql>
+ <sql id="fenceWhere">tenant_id=#{p.tenantId}<if test="kind.name() == 'POLICY'"> AND application_id=#{p.applicationId} AND environment=#{p.environment}</if></sql>
+ <update id="retryStream">UPDATE auth_governance.projection_stream SET failures=0,next_attempt_at=clock_timestamp()
+ WHERE fence_id IN (SELECT id FROM <include refid="fence"/> WHERE <include refid="fenceWhere"/>) AND lease_until &lt;=clock_timestamp()</update>
+ <update id="retryFence">UPDATE <include refid="fence"/> SET state='UPDATING',updated_at=clock_timestamp() WHERE <include refid="fenceWhere"/></update>
+ <select id="capability" resultType="com.lrj.authz.governance.domain.CatalogModels$CapabilityState">SELECT capability,disabled,version FROM auth_governance.capability_state WHERE application_id=#{app} AND capability=#{cap}</select>
+ <insert id="changeCapability">INSERT INTO auth_governance.capability_state(application_id,capability,disabled,version) VALUES(#{app},#{cap},#{disabled},#{version})
+ ON CONFLICT(application_id,capability) DO UPDATE SET disabled=EXCLUDED.disabled,version=EXCLUDED.version WHERE auth_governance.capability_state.version=EXCLUDED.version-1</insert>
+ <select id="commandHash" resultType="string">SELECT payload_hash FROM auth_governance.capability_command WHERE application_id=#{app} AND command_id=#{command}</select>
+ <select id="commandResult" resultType="com.lrj.authz.governance.domain.CatalogModels$CapabilityState">SELECT capability,disabled,result_version version FROM auth_governance.capability_command WHERE application_id=#{app} AND command_id=#{command}</select>
+ <insert id="capabilityAudit">INSERT INTO auth_governance.capability_command(application_id,command_id,capability,payload_hash,actor,reason,previous_version,result_version,disabled)
+ VALUES(#{app},#{command},#{cap},#{hash},#{actor},#{reason},#{before},#{before}+1,#{disabled})</insert>
+</mapper>
