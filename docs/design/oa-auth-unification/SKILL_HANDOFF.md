@@ -61,4 +61,4 @@ status=COMPLETED；gate=PASS_WITH_LIMITATIONS。
 
 ## 当前P5交接
 
-P5-01..07均完成实现与真实验收，证据见phase-5各TEST_RESULT和P5_HANDOFF。Q-EXT已确认商城门店/商家协作。Git/CI交付待最终落盘，P6及生产部署未授权。P5_RUNTIME记录独立客户端/同源JAR与开关恢复；之前P4末尾停止点为历史状态。
+P5-01..07均完成实现与真实验收，证据见phase-5各TEST_RESULT和P5_HANDOFF。Q-EXT已确认商城门店/商家协作。Git/CI已全部通过，最终记录在phase-5/P5_DELIVERY_RESULT和CI_RESULT，P6及生产部署未授权。P5_RUNTIME记录独立客户端/同源JAR与开关恢复；之前P4末尾停止点为历史状态。

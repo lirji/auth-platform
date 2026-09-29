@@ -1,6 +1,6 @@
 # 当前状态
 
-P5_VALIDATED_DELIVERY_PENDING。P5-01至07均DONE，真实验收通过；Git合并推送与CI核对进行中。Q-EXT已确认现有commerce门店／商家协作，P6前停止，无生产部署。
+P5_COMPLETE。P5-01至07均DONE，真实验收、三仓正常合并推送main及精确版本CI全部通过。Q-EXT已确认现有commerce门店／商家协作，P6前停止，无生产部署。
 
 原63节点DAG保留，P0—P4历史交付不变；P6-01仅依赖就绪候选，未获本轮执行授权。独立任务分支在三个原项目目录复用，没有新worktree。
 
@@ -13,8 +13,8 @@ P5_VALIDATED_DELIVERY_PENDING。P5-01至07均DONE，真实验收通过；Git合�
 
 ## 交付与边界
 
-当前auth基线89a3537、commerce基线ca4f831、OA基线10c1348。分片本地提交及最终SHA/Actions将记录P5_DELIVERY_RESULT、CI_RESULT。仅提交本任务路径；OA用户已有CODEX_PROGRESS.md、identity-authz-governance进度/部署文档、tmp/.local保持原状。
+当前auth基线89a3537、commerce基线ca4f831、OA基线10c1348。最终产品版本auth e26b256、commerce c7384fe（进度文档后main为0f7bd6b）、OA6385a86。精确SHA/Actions已记录phase-5/P5_DELIVERY_RESULT、CI_RESULT；auth随后只有本次最终记录文档提交。仅提交本任务路径；OA用户已有CODEX_PROGRESS.md、identity-authz-governance进度/部署文档、tmp/.local保持原状。
 
 共享Casdoor8000升级HOLD不变；本轮独有18090测试客户端/数据库/卷保留。没有新中间件，没有生产性能达标声明；无全仓formatter为已披露非阻断限制。未知写结果仍须原幂等命令重试，撤权不补偿已发生业务效果。
 
-下一步：task-git-delivery正常合并推送三仓main，ci-cd-gate核对明确SHA；完成后停止，不进入P6。运行/恢复见phase-5/P5_RUNTIME，后续交接见P5_HANDOFF。
+下一步：本轮结束，在P6前停止；新阶段需另行授权。运行/恢复见phase-5/P5_RUNTIME，后续交接见P5_HANDOFF。

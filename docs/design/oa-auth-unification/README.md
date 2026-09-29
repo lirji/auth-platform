@@ -2,7 +2,7 @@
 
 本计划按用户提供的 `oa-auth-phased-plan` v0.2，落到三个现有仓库。**目标是在原项目中增量改造：auth 管理身份消费模型、应用与授权，OA 保留目录和审批职责，commerce 接入可信身份、页面权限及接口数据权限。**
 
-P0—P4已交付；P5统一入口、内部商品经营及外部门店协作已进入最终验收交付。当前Git/CI状态见[当前进度](PROGRESS_STATE.md)；[P5运行说明](../../implementation/oa-auth/phase-5/P5_RUNTIME.md)包含独立客户端、同源打包和回退边界。本轮在P6前停止，没有生产部署。
+P0—P4已交付；P5统一入口、内部商品经营及外部门店协作已完成，三仓Git/CI交付通过。当前Git/CI状态见[当前进度](PROGRESS_STATE.md)；[P5运行说明](../../implementation/oa-auth/phase-5/P5_RUNTIME.md)包含独立客户端、同源打包和回退边界。本轮在P6前停止，没有生产部署。
 
 | 文档 | 用途 |
 |---|---|
