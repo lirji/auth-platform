@@ -250,7 +250,7 @@ class RequestPostgresIT {
         assertThat(runtime.approvalStarts(never).step(f.p)).isFalse();
     }
     @Test void expiredWindowAndDepartedGenerationAreSettledOnce() throws Exception {
-        var f=fixture();var policy=policy(f);var from=Instant.now();var r=submit(f,policy.id(),id(),from,from.plusMillis(900),"expired");
+        var f=fixture();var policy=policy(f);var from=Instant.now();var r=submit(f,policy.id(),id(),from,from.plusSeconds(3),"expired");
         approve(f,policy,r);runtime.approvalDecisions().step(f.p);
         Thread.sleep(Math.max(1,java.time.Duration.between(Instant.now(),r.validTo()).toMillis()+50));
         assertThat(runtime.requests().execution(login(f.member),f.p,r.id()).displayState()).isEqualTo("EXPIRED");
