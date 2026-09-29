@@ -1,0 +1,16 @@
+{
+  "application": "commerce",
+  "project": "commerce-platform",
+  "environment": "local-p6",
+  "source_database": "commerce_local",
+  "source_tenant": "operations-0abaaae0-6f24-42ea-a187-5093c70b96ad",
+  "source_snapshot": ".local/governance/p6/dry-run-5b47ddd2fa/source.json",
+  "source_sha256": "f26253a9c1af369a573eaeecae417c29ceefb907440b18061c70c283b70e448a",
+  "selection": "用户授权选一个既有运营租户做隔离演练；按tenant_id字典序选第一个",
+  "target": "独立本地演练库，不能对commerce_local执行导入/冻结/切换",
+  "legacy_actor_refs": [
+    "ops-clerk"
+  ],
+  "discovery_snapshot": ".local/governance/p6/snapshots/20260929T212427Z-0002e663/commerce-source.json",
+  "discovery_sha256": "9bf98a27dd7d29e0c0f970b36b60fe88588a5c0e14d9f2e1c44f201b2785fe97"
+}

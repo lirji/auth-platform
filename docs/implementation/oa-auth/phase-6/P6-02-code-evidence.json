@@ -1,0 +1,26 @@
+{
+  "files": [
+    {
+      "path": "deploy/governance-p6-migration.py",
+      "sha256": "fe538a29a905646d562c312db807eead4fcce0968c8321f74a8ebad454f746f3"
+    },
+    {
+      "path": "deploy/tests/test_governance_p6_migration.py",
+      "sha256": "eb7105d262aa0634d7a4c31e8715567c6774bfcf48fd1e609134d53cc3ebcbec"
+    },
+    {
+      "path": ".github/workflows/authz-ci.yml",
+      "sha256": "ccd34007908f30469c1b1e585f2ea268103ea7ac62c713467f93554953095007"
+    }
+  ],
+  "unit_tests": 15,
+  "unit_result": "PASS",
+  "syntax": "PASS",
+  "real_mysql_read_only_snapshot": "PASS",
+  "real_unmapped_dry_run": "PASS_EXPECTED_QUARANTINE_EXIT_2",
+  "hygiene": "IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS",
+  "limitations": [
+    "FORMAT_TOOL_NOT_AVAILABLE"
+  ],
+  "ci": "NOT_RUN"
+}

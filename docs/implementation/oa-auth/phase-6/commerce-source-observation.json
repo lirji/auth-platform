@@ -1,0 +1,18 @@
+{
+  "snapshot_ref": ".local/governance/p6/snapshots/20260929T212427Z-0002e663/commerce-source.json",
+  "sha256": "9bf98a27dd7d29e0c0f970b36b60fe88588a5c0e14d9f2e1c44f201b2785fe97",
+  "source_database": "commerce_local",
+  "source_application": "commerce-platform",
+  "snapshot_at": "2026-09-29T21:24:27.005000Z",
+  "record_counts": {
+    "store_operator_grant": 7,
+    "platform_credential": 21,
+    "store_record": 14,
+    "merchant_record": 7
+  },
+  "tenant_count": 7,
+  "credential_material_exported": false,
+  "approved_migration_batch": false,
+  "central_mapping_available": false,
+  "consistency": "single repeatable-read read-only InnoDB transaction; writers not frozen; no increment/cutover completeness claim"
+}

@@ -1,7 +1,7 @@
 {
   "schema_version": "oa-auth-project-execution-plan/1",
-  "plan_status": "P5_COMPLETE",
-  "scope": "P5 authorized: execute P5-01 through P5-07; stop before P6; no production deployment.",
+  "plan_status": "P6_LOCAL_COMPLETE_DELIVERY_PENDING",
+  "scope": "P6 authorized by user: 开始做P6. Execute P6-01 through P6-07 after required real migration inputs and environment gates; stop before P7; no production deployment.",
   "source_task_count": 58,
   "task_count": 63,
   "topological_order": [
@@ -69,7 +69,7 @@
     "P7-07",
     "P7-08"
   ],
-  "next_design_task": "P6-01",
+  "next_design_task": null,
   "production_authorized": false,
   "tasks": [
     {
@@ -1304,10 +1304,13 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "evidence": "docs/implementation/oa-auth/phase-6/P6_TEST_RESULT.md",
+      "completion_scope": "所选商城运营租户本地隔离演练；1真实到期拒绝+1独立有限时夹具，不宣称生产身份映射/切换",
+      "blockers": []
     },
     {
       "id": "P6-02",
@@ -1326,13 +1329,16 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "additional_gates": [
         "真实企业/角色/身份映射及只读导入快照"
-      ]
+      ],
+      "evidence": "docs/implementation/oa-auth/phase-6/P6_TEST_RESULT.md",
+      "blockers": [],
+      "completion_scope": "所选商城运营租户本地隔离演练；1真实到期拒绝+1独立有限时夹具，不宣称生产身份映射/切换"
     },
     {
       "id": "P6-03",
@@ -1351,10 +1357,13 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "completion_scope": "所选商城运营租户本地隔离演练；1真实到期拒绝+1独立有限时夹具，不宣称生产身份映射/切换",
+      "blockers": [],
+      "evidence": "docs/implementation/oa-auth/phase-6/P6_TEST_RESULT.md"
     },
     {
       "id": "P6-04",
@@ -1373,10 +1382,13 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "completion_scope": "所选商城运营租户本地隔离演练；1真实到期拒绝+1独立有限时夹具，不宣称生产身份映射/切换",
+      "blockers": [],
+      "evidence": "docs/implementation/oa-auth/phase-6/P6_TEST_RESULT.md"
     },
     {
       "id": "P6-05",
@@ -1395,10 +1407,13 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "completion_scope": "所选商城运营租户本地隔离演练；1真实到期拒绝+1独立有限时夹具，不宣称生产身份映射/切换",
+      "blockers": [],
+      "evidence": "docs/implementation/oa-auth/phase-6/P6_TEST_RESULT.md"
     },
     {
       "id": "P6-06",
@@ -1417,13 +1432,16 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "additional_gates": [
         "明确预生产迁移单元及安全回退版本"
-      ]
+      ],
+      "completion_scope": "所选商城运营租户本地隔离演练；1真实到期拒绝+1独立有限时夹具，不宣称生产身份映射/切换",
+      "blockers": [],
+      "evidence": "docs/implementation/oa-auth/phase-6/P6_TEST_RESULT.md"
     },
     {
       "id": "P6-07",
@@ -1442,10 +1460,13 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "completion_scope": "所选商城运营租户本地隔离演练；1真实到期拒绝+1独立有限时夹具，不宣称生产身份映射/切换",
+      "blockers": [],
+      "evidence": "docs/implementation/oa-auth/phase-6/P6-07_CANDIDATE_REPORT.md"
     },
     {
       "id": "P7-01",
@@ -1636,6 +1657,22 @@
       ]
     }
   ],
-  "current_execution_ceiling": "P5",
-  "pause_after_phase": 5
+  "current_execution_ceiling": "P6",
+  "pause_after_phase": 6,
+  "confirmed_inputs": {
+    "directory_authority": "OA",
+    "rehearsal_environment": "local",
+    "source_snapshot_path": ".local/governance/p6/dry-run-5b47ddd2fa/source.json",
+    "first_migration_unit": {
+      "application": "commerce",
+      "environment": "local-p6",
+      "source_tenant": "operations-0abaaae0-6f24-42ea-a187-5093c70b96ad"
+    },
+    "evidence": "用户确认OA、本地、commerce-platform，并选择既有运营租户隔离演练",
+    "first_project": "commerce-platform",
+    "source_snapshot_sha256": "f26253a9c1af369a573eaeecae417c29ceefb907440b18061c70c283b70e448a",
+    "isolation": "用户授权选择既有运营租户做隔离演练；不切换现有商城",
+    "catalog_decision": "2: preserve full legacy CATALOG capability before rehearsal"
+  },
+  "production_gate": "HOLD; P7未执行；见P6-07_CANDIDATE_REPORT"
 }

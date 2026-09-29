@@ -1,20 +1,12 @@
 # 当前状态
 
-P5_COMPLETE。P5-01至07均DONE，真实验收、三仓正常合并推送main及精确版本CI全部通过。Q-EXT已确认现有commerce门店／商家协作，P6前停止，无生产部署。
+P6_LOCAL_COMPLETE_DELIVERY_PENDING。用户选择2已落实，完整CATALOG中央经营与后台任务链路、幂等导入/墓碑、影子比较、单元路由/冻结和安全回退完成本地隔离演练。31项真实跨进程检查通过，最终本地验证通过，当前进行Git/CI交付。P7/生产未执行。
 
-原63节点DAG保留，P0—P4历史交付不变；P6-01仅依赖就绪候选，未获本轮执行授权。独立任务分支在三个原项目目录复用，没有新worktree。
+真实首批：commerce_local / operations-0abaaae0-6f24-42ea-a187-5093c70b96ad。1条旧授权的运营凭据已到期，保留拒绝；1条独立有限时正向夹具证明完整经营，不冒充真实迁移活跃用户。原运行商城8602健康，四类选定来源记录未变化。
 
-## 已完成
+- [验证结果](../../implementation/oa-auth/phase-6/P6_TEST_RESULT.md)
+- [31项跨进程证据](../../implementation/oa-auth/phase-6/P6_REHEARSAL_RESULT.json)
+- [运行与回退](../../implementation/oa-auth/phase-6/P6_RUNTIME.md)
+- [生产候选HOLD与历史退出计划](../../implementation/oa-auth/phase-6/P6-07_CANDIDATE_REPORT.md)
 
-- P501组织应用入口；P502目录/角色/范围授予/实际投影进度；P503邀请、申请通知、OA审批依据；P504独立来源、显式诊断权限、实际回收回执。
-- P505商品Owner真实读写；P506外部S001/P001查询、独立product.export限时审批/持久任务、到期/撤销拒绝旧下载，独立read保留。
-- P507三应用真实交互PKCE/SSO、独立audience、Cookie/CORS负例、深链/错误回调、真实auth停机503恢复、打包同源JAR及关闭双开关拒绝；内部未保存保护和真实商品修订重跑通过。
-- auth全量231单测+101 PG通过；commerce全量388（383通过、5性能profile条件跳过）。P506另72 HTTP、7外部/门户+3OA浏览器、10MySQL通过。证据见phase-5各TEST_RESULT。
-
-## 交付与边界
-
-当前auth基线89a3537、commerce基线ca4f831、OA基线10c1348。最终产品版本auth e26b256、commerce c7384fe（进度文档后main为0f7bd6b）、OA6385a86。精确SHA/Actions已记录phase-5/P5_DELIVERY_RESULT、CI_RESULT；auth随后只有本次最终记录文档提交。仅提交本任务路径；OA用户已有CODEX_PROGRESS.md、identity-authz-governance进度/部署文档、tmp/.local保持原状。
-
-共享Casdoor8000升级HOLD不变；本轮独有18090测试客户端/数据库/卷保留。没有新中间件，没有生产性能达标声明；无全仓formatter为已披露非阻断限制。未知写结果仍须原幂等命令重试，撤权不补偿已发生业务效果。
-
-下一步：本轮结束，在P6前停止；新阶段需另行授权。运行/恢复见phase-5/P5_RUNTIME，后续交接见P5_HANDOFF。
+P0—P5历史交付保持，P5 Git/CI见phase-5/P5_DELIVERY_RESULT.md。两仓复用原目录feat/iam-p6-migration，OA既有用户改动未触碰；无新worktree。auth233单测+1真实PG/图IT、commerce393项（388通过/5可选跳过）、Python17项和31跨进程检查均完成。当前尚待提交/推送与远程CI，不以本地PASS代替它们。私有隔离库、快照、凭据和日志保留，不入库。

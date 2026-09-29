@@ -1,0 +1,296 @@
+{
+  "protocol": "code-hygiene-gate/v1",
+  "finalStatus": "IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS",
+  "checks": [
+    {
+      "checkId": "FORMAT",
+      "status": "SKIPPED",
+      "skipReason": "TOOL_NOT_AVAILABLE",
+      "summary": "no canonical formatter; surrounding-style checks passed"
+    },
+    {
+      "checkId": "STATIC_ANALYSIS",
+      "status": "SKIPPED",
+      "skipReason": "NOT_APPLICABLE",
+      "summary": "no static analysis configured in repository"
+    },
+    {
+      "checkId": "CODE_HYGIENE",
+      "status": "PASS",
+      "skipReason": null,
+      "summary": "no blocking findings"
+    },
+    {
+      "checkId": "REPO_CONVENTION",
+      "status": "PASS",
+      "skipReason": null,
+      "summary": "no blocking findings"
+    },
+    {
+      "checkId": "DIFF_HYGIENE",
+      "status": "PASS",
+      "skipReason": null,
+      "summary": "no blocking findings"
+    },
+    {
+      "checkId": "COMPILE",
+      "status": "PASS",
+      "skipReason": null,
+      "summary": "caller-executed command"
+    },
+    {
+      "checkId": "UNIT_TEST",
+      "status": "PASS",
+      "skipReason": null,
+      "summary": "caller-executed command"
+    }
+  ],
+  "limitations": [
+    {
+      "code": "FORMAT_TOOL_NOT_AVAILABLE",
+      "check": "FORMAT"
+    }
+  ],
+  "findings": [
+    {
+      "findingId": "HF-001",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java",
+      "line": 18,
+      "excerpt": "private static final long MAX_SECONDS = 37 * 86400L + 60;",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    },
+    {
+      "findingId": "HF-002",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java",
+      "line": 79,
+      "excerpt": "private static String write(Object value) { try{return JSON.writeValueAsString(value);}catch(Exception e){throw error(DEPENDENCY_UNAVAILABLE);} }",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-003",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java",
+      "line": 80,
+      "excerpt": "private static <T>T read(String value,Class<T> type) { try{return JSON.readValue(value,type);}catch(Exception e){throw error(AUTHZ_STATE_NOT_READY);} }",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-004",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java",
+      "line": 12,
+      "excerpt": "import org.springframework.transaction.support.TransactionTemplate;",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-005",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java",
+      "line": 21,
+      "excerpt": "private final TransactionTemplate tx;",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-006",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java",
+      "line": 22,
+      "excerpt": "public ExecutionAuthorization(ExecutionMapper mapper, ReliableAuthorization access, TransactionTemplate tx) {",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-007",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/MigrationImport.java",
+      "line": 10,
+      "excerpt": "import org.springframework.transaction.support.TransactionTemplate;",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-008",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/MigrationImport.java",
+      "line": 18,
+      "excerpt": "private final MigrationMapper mapper;private final AccessManagement access;private final AccessMapper grants;private final TransactionTemplate tx;private final ",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-009",
+      "ruleId": "HYG-TRANSACTION-TOUCHED",
+      "check": "CODE_HYGIENE",
+      "area": "transaction",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/MigrationImport.java",
+      "line": 19,
+      "excerpt": "public MigrationImport(MigrationMapper mapper,AccessManagement access,AccessMapper grants,TransactionTemplate tx,IdentityMapper audit){this.mapper=mapper;this.a",
+      "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
+    },
+    {
+      "findingId": "HF-010",
+      "ruleId": "HYG-EXC-GENERIC",
+      "check": "CODE_HYGIENE",
+      "area": "exception",
+      "severity": "ADVISORY",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/MigrationImportCli.java",
+      "line": 33,
+      "excerpt": "catch(Exception e){error.println(\"DEPENDENCY_UNAVAILABLE\");return 3;}",
+      "message": "catching Exception/Throwable requires justification"
+    },
+    {
+      "findingId": "HF-011",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "deploy/governance-p6-migration.py",
+      "line": 16,
+      "excerpt": "MAX_ROWS = 1000",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    },
+    {
+      "findingId": "HF-012",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "deploy/governance-p6-migration.py",
+      "line": 233,
+      "excerpt": "input=';\\n'.join(statements) + ';\\n', text=True, capture_output=True, timeout=30)",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    },
+    {
+      "findingId": "HF-013",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "deploy/governance-p6-rehearsal.py",
+      "line": 37,
+      "excerpt": "result=subprocess.run(['java','-Dloader.main='+package+name,'-cp',str(jars['admin']),'org.springframework.boot.loader.launch.PropertiesLauncher',*map(str,argume",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    },
+    {
+      "findingId": "HF-014",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "deploy/governance-p6-rehearsal.py",
+      "line": 40,
+      "excerpt": "c=http.client.HTTPConnection('127.0.0.1',port,timeout=35)",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    },
+    {
+      "findingId": "HF-015",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "deploy/governance-p6-rehearsal.py",
+      "line": 56,
+      "excerpt": "result=subprocess.run(sql_cmd,input='USE '+database+';\\n'+statement,text=True,capture_output=True,timeout=20)",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    },
+    {
+      "findingId": "HF-016",
+      "ruleId": "HYG-MAGIC-NUMBER",
+      "check": "CODE_HYGIENE",
+      "area": "magic-value",
+      "severity": "ADVISORY",
+      "file": "deploy/governance-p6-rehearsal.py",
+      "line": 66,
+      "excerpt": "create=subprocess.run(sql_cmd,input=f\"CREATE DATABASE {database} CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;CREATE USER '{dbuser}'@'%' IDENTIFIED BY '{password}'",
+      "message": "business-significant number inline; classify as constant / configuration / enum"
+    }
+  ],
+  "report": [
+    {
+      "area": "Repository conventions",
+      "status": "PASS"
+    },
+    {
+      "area": "Formatting",
+      "status": "SKIPPED:TOOL_NOT_AVAILABLE"
+    },
+    {
+      "area": "Error-code governance",
+      "status": "PASS"
+    },
+    {
+      "area": "Enum/domain modeling",
+      "status": "PASS"
+    },
+    {
+      "area": "Magic value inspection",
+      "status": "PASS_WITH_ADVISORY"
+    },
+    {
+      "area": "Exception handling",
+      "status": "PASS_WITH_ADVISORY"
+    },
+    {
+      "area": "Validation",
+      "status": "NOT_AUTOMATED"
+    },
+    {
+      "area": "Logging",
+      "status": "PASS"
+    },
+    {
+      "area": "Transaction review",
+      "status": "REVIEW_REQUIRED"
+    },
+    {
+      "area": "Static analysis",
+      "status": "N/A"
+    },
+    {
+      "area": "Compilation",
+      "status": "PASS"
+    },
+    {
+      "area": "Tests",
+      "status": "PASS"
+    },
+    {
+      "area": "Diff hygiene",
+      "status": "PASS"
+    }
+  ],
+  "canonicalCommands": {
+    "FORMAT": {
+      "status": "NO_FORMATTER",
+      "limitation": "FORMAT_TOOL_NOT_AVAILABLE",
+      "resolutionLevel": "SURROUNDING_SOURCE_STYLE"
+    },
+    "STATIC_ANALYSIS": {
+      "status": "NOT_CONFIGURED"
+    }
+  }
+}

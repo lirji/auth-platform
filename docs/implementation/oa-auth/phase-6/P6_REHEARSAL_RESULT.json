@@ -1,0 +1,150 @@
+{
+  "result": "PASS",
+  "scope": "isolated local rehearsal only",
+  "source_tenant": "operations-0abaaae0-6f24-42ea-a187-5093c70b96ad",
+  "source_sha256": "f26253a9c1af369a573eaeecae417c29ceefb907440b18061c70c283b70e448a",
+  "database": "commerce_iam_p6_a5836d80f8c5",
+  "run": "/Users/liruijun/personal/LLM/auth-platform/.local/governance/p6/rehearsal-a5836d80f8c5",
+  "checks": [
+    {
+      "check": "enable strict partition",
+      "result": "PASS"
+    },
+    {
+      "check": "explicit full CATALOG role",
+      "result": "PASS"
+    },
+    {
+      "check": "migrate with owner then restart without owner credential",
+      "result": "PASS"
+    },
+    {
+      "check": "real snapshot mapped without renewing expired credentials",
+      "result": "PASS"
+    },
+    {
+      "check": "real denial and separate finite proof imported idempotently",
+      "result": "PASS"
+    },
+    {
+      "check": "shadow inverse differences and dependency failures block cutover",
+      "result": "PASS"
+    },
+    {
+      "check": "shadow positive and negative comparison; no OR decision",
+      "result": "PASS"
+    },
+    {
+      "check": "old grant direct SQL frozen before authority cutover",
+      "result": "PASS"
+    },
+    {
+      "check": "single authority CAS switched only isolated selected tenant",
+      "result": "PASS"
+    },
+    {
+      "check": "original expired source identity remains denied",
+      "result": "PASS"
+    },
+    {
+      "check": "old admin cannot bypass central guard",
+      "result": "PASS"
+    },
+    {
+      "check": "central cross-store denied",
+      "result": "PASS"
+    },
+    {
+      "check": "central create product",
+      "result": "PASS"
+    },
+    {
+      "check": "central create sku",
+      "result": "PASS"
+    },
+    {
+      "check": "central publish and price",
+      "result": "PASS"
+    },
+    {
+      "check": "central channel price",
+      "result": "PASS"
+    },
+    {
+      "check": "central category",
+      "result": "PASS"
+    },
+    {
+      "check": "central specification template",
+      "result": "PASS"
+    },
+    {
+      "check": "central merchandising",
+      "result": "PASS"
+    },
+    {
+      "check": "central barcode",
+      "result": "PASS"
+    },
+    {
+      "check": "queued process recovery",
+      "result": "PASS"
+    },
+    {
+      "check": "background reference survives process restart",
+      "result": "PASS"
+    },
+    {
+      "check": "read committed task effect",
+      "result": "PASS"
+    },
+    {
+      "check": "queued before source revoke",
+      "result": "PASS"
+    },
+    {
+      "check": "real background worker stops revoked execution reference",
+      "result": "PASS"
+    },
+    {
+      "check": "central denies after imported revocation",
+      "result": "PASS"
+    },
+    {
+      "check": "old snapshot cannot resurrect newer tombstone",
+      "result": "PASS"
+    },
+    {
+      "check": "safe rollback blocks old admin",
+      "result": "PASS"
+    },
+    {
+      "check": "database rejects rollback that discards central denials",
+      "result": "PASS"
+    },
+    {
+      "check": "resumed central retains denial",
+      "result": "PASS"
+    },
+    {
+      "check": "central outage does not use legacy allow",
+      "result": "PASS"
+    }
+  ],
+  "real_source_records": 1,
+  "synthetic_positive_records": 1,
+  "shadow": [
+    {
+      "store": "brand-store",
+      "legacy_decision": "ALLOW",
+      "central_decision": "ALLOW"
+    },
+    {
+      "store": "p6-outside",
+      "legacy_decision": "DENY",
+      "central_decision": "DENY"
+    }
+  ],
+  "runtime_switched": false,
+  "production_ready": false
+}

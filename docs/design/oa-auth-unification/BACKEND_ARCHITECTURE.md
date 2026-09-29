@@ -50,7 +50,7 @@ admin          业务应用 OA / commerce
 | 凭据、登录会话、issuer 身份 | Casdoor／实际 IdP | 认证提供方受控 API | 不复制密码或重建已有账户 |
 | Principal、LoginIdentity | auth 治理业务库 | 可信身份适配；`(issuer,sub)` 唯一；绑定审计 | OA identity、旧 sub 通过映射关联；冲突隔离 |
 | Tenant、Membership、generation | auth 治理业务库 | 当前租户/主体唯一成员记录，合法状态 CAS | 不把 OA bigint 与 commerce 字符串租户直接相等 |
-| Employment、部门、岗位 | 正式目录来源（OA/HR 待确认） | 来源系统写；auth 通过公开契约消费事实 | 接收版本、检查点和目录 fence；禁止跨库写 OA |
+| Employment、部门、岗位 | OA 正式目录来源（P1已确认，本轮再次确认） | 来源系统写；auth 通过公开契约消费事实 | 接收版本、检查点和目录 fence；禁止跨库写 OA |
 | 受信组 | 选定来源＋auth 成员消费模型 | 同源版本；成员代际 | P3 栅栏前不启用组授权扩展 |
 | Application、Environment、TenantApplication | auth 治理业务库 | 平台/企业应用管理入口 | Casdoor Application 只映射认证客户端，不自动等同业务应用 |
 | Capability、菜单清单 | auth 发布记录；内容由应用 Owner 负责 | manifest 预览、版本、摘要、发布审计 | 旧能力 code 逐项映射，不自动扩权 |

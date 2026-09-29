@@ -62,3 +62,7 @@ status=COMPLETED；gate=PASS_WITH_LIMITATIONS。
 ## 当前P5交接
 
 P5-01..07均完成实现与真实验收，证据见phase-5各TEST_RESULT和P5_HANDOFF。Q-EXT已确认商城门店/商家协作。Git/CI已全部通过，最终记录在phase-5/P5_DELIVERY_RESULT和CI_RESULT，P6及生产部署未授权。P5_RUNTIME记录独立客户端/同源JAR与开关恢复；之前P4末尾停止点为历史状态。
+
+## P6当前交接
+
+用户已选择2，完整CATALOG能力与P6所选单元本地隔离演练31项通过。P6-01..07本地验收证据见phase-6/P6_TEST_RESULT、P6_REHEARSAL_RESULT、P6-07_CANDIDATE_REPORT。当前最终构建验证和Git/CI交付中；生产HOLD、P7未执行。OA用户改动未动，原商城8602及原来源未修改；不再询问已确定输入。

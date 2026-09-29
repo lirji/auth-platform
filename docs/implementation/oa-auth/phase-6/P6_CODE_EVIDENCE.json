@@ -1,0 +1,62 @@
+{
+  "auth": {
+    ".github/workflows/authz-ci.yml": "ccd34007908f30469c1b1e585f2ea268103ea7ac62c713467f93554953095007",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java": "fcb99e8980dd5da513e4c9f7c40ff085f61ecea285fd1e7e6631cbd7f64ff821",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/MigrationImport.java": "02a52c36a600237a299349e1e50faac39248d5789b8128e02eb8d271beec7443",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/MigrationImportCli.java": "0037a9c626f3c498dab1a03f81f8f0b78a3f204d11606599b3109fae64f78abc",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ExecutionMapper.java": "2b9dfaa640a4fdbce38789bdb59c6ff43ef73a1800ae7e41efec4c3ce8a95e57",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/GovernanceRuntime.java": "6c8e9e5ed9927445bbfd3c2b484ace0c0e6646d56cf8f52a83f04dfd4c4d0165",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/MigrationMapper.java": "d05f7956c369299e041317c6b83a813d6cbbd38c5535c364a56838689260ef9d",
+    "auth-platform-governance/src/main/resources/db/governance/migration/V18__execution_reference.sql": "a0b96b14a77afd5f105a841fc04ba231edf09452af897de67566c53f67c833d2",
+    "auth-platform-governance/src/main/resources/db/governance/migration/V19__migration_ledger.sql": "46ac6432b5c940876e890ed31cb3d83c6609a80c3eb8d3fb3801089d11b43e42",
+    "auth-platform-governance/src/main/resources/mappers/governance/ExecutionMapper.xml": "5553062b712c48035b037fabe7cb29472e884103aaf1cc2731e81f2e20a25a43",
+    "auth-platform-governance/src/main/resources/mappers/governance/MigrationMapper.xml": "98d40e91eabe53d00ead96ae59ad3757e8bedbb7e4eddc05f4c78d4807c9244c",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/projection/ExecutionAuthorizationIT.java": "0ca63095894e23716429ed635fd61d902b0e79a491f45c3943a4838a44403b07",
+    "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/ExecutionAccessDtos.java": "f76c121bb6deef773b397479fd4c25c35009f35938fde955bfc07507ca4d353f",
+    "auth-platform-sdk/src/main/java/com/lrj/authz/sdk/CentralAccessClient.java": "4cb06b2f2f1fa695ce6d5431461a74252ef6e1979f9bd765e897dcabbc091133",
+    "auth-platform-sdk/src/test/java/com/lrj/authz/sdk/CentralAccessClientTest.java": "449ac270a40d2f86c28117c89be56b8a43d33eb415a7e571b5293465b272e2cd",
+    "auth-platform-server/src/main/java/com/lrj/authz/server/governance/GovernanceExecutionConfiguration.java": "92ebc21b4d64b99acfee097da3635ce579940e25c72730ad56330911bff82058",
+    "auth-platform-server/src/main/java/com/lrj/authz/server/governance/GovernanceExecutionController.java": "1043180bfb7bc9387959b59b0bf2e9b0037d3f309d7d678f9a9c7d64cf07dbe7",
+    "auth-platform-server/src/test/java/com/lrj/authz/server/governance/GovernanceExecutionControllerTest.java": "dcd4e1962cc20d4f4455f5d37beed2e6cdfeb722c9cb8ce223c36a5be06e6f86",
+    "deploy/governance-context-smoke.py": "83ef8e83ab0c73429aae5e21d30c98e2ab2e1a4543b4811710320a6ac1d11a2f",
+    "deploy/governance-p6-migration.py": "caa0f8bc4495ba870ea1f67ffdbe834e56abeab10d76c95f57775e652c1c6020",
+    "deploy/governance-p6-rehearsal.py": "44f28f77536237ec32ab6ba422e5fe6904bad55f7b9bba8e59ce1952a5883166",
+    "deploy/tests/test_governance_p6_migration.py": "30beebd677c2263ac9d4f61dd9c6752b8431bfdf71b1d3f9a886123a2d8c12f5"
+  },
+  "commerce": {
+    "catalog/src/main/java/com/lrj/commerce/catalog/job/application/CatalogJobService.java": "3d759199baef43ac3d0088fd7fbb005e1c987284ed49ea4f846da468358f2bac",
+    "commerce-app/src/main/java/com/lrj/commerce/app/iam/CentralCatalogConfiguration.java": "b6199c8aac5661f02c540b592f280191d0ef04eb155a24da4aa616f8dceab6dc",
+    "commerce-app/src/main/java/com/lrj/commerce/app/iam/CentralCatalogService.java": "651cf35da837d2f3db96814816576057004ef25b760e06981d94069ca9dcd2ed",
+    "commerce-app/src/main/java/com/lrj/commerce/app/iam/CentralStoreErrors.java": "aa4d432acdefb0167532caa008e0630ba17a36900cc3de7acc97efff498ef1a2",
+    "commerce-app/src/main/resources/db/migration/V48__catalog_authority_route.sql": "6d0f3492e2ea9fe12a3098e435c92ab28921c7562267fe947e5c00fdeb175416",
+    "commerce-app/src/test/java/com/lrj/commerce/app/CentralCatalogMySqlTest.java": "a3e25b53d9600dc580e580b0a3e41388fe2aa9dd2f7f182437c21fa10213ac0d",
+    "platform-runtime/src/main/java/com/lrj/commerce/runtime/api/identity/Actor.java": "b1bbe3483bb5d0ad57402353d9ba0b0476578f2cf7860e825fc0b37fb370d949",
+    "scripts/ci-configure.py": "1f97e29bafa3d03c4b0c34fe46f3d9f726abf9801a421aed2f5f17a765adb418",
+    "store/src/main/java/com/lrj/commerce/store/access/api/CatalogAuthorityRoutes.java": "1282d81752a41da32e0538b4daf72b8bd29368cf81c5c6f9081eba01ac50ff47",
+    "store/src/main/java/com/lrj/commerce/store/access/api/CentralCatalogCheck.java": "f495c6c6746c3e08268c99ddca1e6b525c145ec7669ec17e344bdb829e663d05",
+    "store/src/main/java/com/lrj/commerce/store/access/application/CatalogAuthority.java": "5cfa917902e8fafc881ff7a991bde7869313cc9f4ecf7d19a8a6f5388238d8de",
+    "store/src/main/java/com/lrj/commerce/store/access/application/StoreAccessService.java": "9ff2cf34e81cbe0e292473eae143cedef29196c92f9f2044333a3cfea9db39c5",
+    "store/src/main/java/com/lrj/commerce/store/access/infrastructure/persistence/CatalogAuthorityMapper.java": "2bedce23a549b425f5ca827d916a09367c69d090fdfe33bd3d8b7db0f2bc42d1",
+    "store/src/main/resources/mappers/store/CatalogAuthorityMapper.xml": "c24f13b76730d150745bd591093dd0a9d2da5087633ef194be502ea1897ef955"
+  },
+  "scope": "implementation and validation inputs; docs excluded to avoid recursive hashes",
+  "validation": {
+    "auth_unit_tests": 233,
+    "auth_pg_spicedb_it": {
+      "tests": 1,
+      "errors": 0,
+      "failures": 0,
+      "covers": [
+        "execution directory version invalidation",
+        "concurrent import idempotency",
+        "rollback after invalid input",
+        "tombstone ordering"
+      ]
+    },
+    "commerce_tests": 393,
+    "commerce_passed": 388,
+    "commerce_skipped_optional_performance": 5,
+    "python_tests": 17,
+    "real_cross_process_checks": 31
+  }
+}

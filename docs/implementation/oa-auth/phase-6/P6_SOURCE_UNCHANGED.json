@@ -1,0 +1,12 @@
+{
+  "source_tenant": "operations-0abaaae0-6f24-42ea-a187-5093c70b96ad",
+  "before_sha256": "f26253a9c1af369a573eaeecae417c29ceefb907440b18061c70c283b70e448a",
+  "after_sha256": "d52f47848cd2a435534b26e09ef4cc0e5f340523f17dbd5dafa6d4c4f82f142a",
+  "tables_equal": {
+    "store_operator_grant": true,
+    "platform_credential": true,
+    "store_record": true,
+    "merchant_record": true
+  },
+  "scope": "selected tenant only; no source write or freeze"
+}

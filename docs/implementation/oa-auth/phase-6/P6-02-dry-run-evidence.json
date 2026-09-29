@@ -1,0 +1,28 @@
+{
+  "source_tenant": "operations-0abaaae0-6f24-42ea-a187-5093c70b96ad",
+  "snapshot_ref": ".local/governance/p6/dry-run-5b47ddd2fa/source.json",
+  "snapshot_sha256": "f26253a9c1af369a573eaeecae417c29ceefb907440b18061c70c283b70e448a",
+  "mapping_ref": ".local/governance/p6/dry-run-5b47ddd2fa/mapping.json",
+  "report_ref": ".local/governance/p6/dry-run-5b47ddd2fa/report.json",
+  "report_sha256": "9db7cddb1469e2246a843fa60a4ed73bbb138b81b35f6dac6115b3fbd270ccee",
+  "exit_code": 2,
+  "counts": {
+    "IMPORT_CANDIDATE": 0,
+    "PRESERVE_DENIAL": 0,
+    "QUARANTINED_MAPPING": 1
+  },
+  "errors": [
+    "EXACT_IDENTITY_MAPPING_REQUIRED",
+    "CAPABILITY_MAPPING_REQUIRED",
+    "SCOPE_CHANGE_DECISION_REQUIRED"
+  ],
+  "deny_constraints": [
+    "LOCAL_OPERATOR_CREDENTIAL_UNAVAILABLE"
+  ],
+  "database_writes": false,
+  "source_credential_renewed": false,
+  "tests": {
+    "unit": 15,
+    "result": "PASS"
+  }
+}

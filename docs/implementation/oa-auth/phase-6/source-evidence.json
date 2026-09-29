@@ -1,0 +1,335 @@
+{
+  "scope": "P6-01 source inventory only; no runtime writer completeness or real migration acceptance",
+  "sources": [
+    {
+      "repository": "auth-platform",
+      "revision": "a70197089d6ff2f3e0fd57523bf1454a5867c4b0",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/AdminController.java",
+      "sha256": "ecb5c7e9b9b9208b48cf46d526175f7276d459a64cb9d292077aa19afc551f88"
+    },
+    {
+      "repository": "auth-platform",
+      "revision": "a70197089d6ff2f3e0fd57523bf1454a5867c4b0",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/CasdoorSyncController.java",
+      "sha256": "46f808cd8c3f4078ca1a03c691bca4c8badd4eadedc263817ce42f451e699ce8"
+    },
+    {
+      "repository": "auth-platform",
+      "revision": "a70197089d6ff2f3e0fd57523bf1454a5867c4b0",
+      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/AuthzController.java",
+      "sha256": "f566c6e767ebca26a230d85d48f09a9d9ce21f17156227228a7121396a73ea21"
+    },
+    {
+      "repository": "auth-platform",
+      "revision": "a70197089d6ff2f3e0fd57523bf1454a5867c4b0",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/GovernanceAccessController.java",
+      "sha256": "c7354fb3df10380c11905ab85f4b8a947b17f61c0c5500d488d8943ecbd07c43"
+    },
+    {
+      "repository": "auth-platform",
+      "revision": "a70197089d6ff2f3e0fd57523bf1454a5867c4b0",
+      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/governance/GovernanceAccessController.java",
+      "sha256": "9e0274385678d569d754ecc10c2aa30afdcf4ccde52ff09f2201c269e7fa881d"
+    },
+    {
+      "repository": "auth-platform",
+      "revision": "a70197089d6ff2f3e0fd57523bf1454a5867c4b0",
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/GovernanceCli.java",
+      "sha256": "71a6b25486d716abdecec503198b4286e5524e1783c20c850880af885d421374"
+    },
+    {
+      "repository": "auth-platform",
+      "revision": "a70197089d6ff2f3e0fd57523bf1454a5867c4b0",
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/LifecycleCli.java",
+      "sha256": "fe37b043b2bb55490eb85146c90dd67f4725070acfcd03698a4173b0b02b20c0"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/web/GrantController.java",
+      "sha256": "f4370400679297bab9619060c3ada4c386ceaf32973c2937b0cd51711e720ac9"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/GrantService.java",
+      "sha256": "539b52c0e280f7b4d13e6e16adb10631e0e44e5d4c8e90ab928ce5c9d27032b1"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/web/RoleController.java",
+      "sha256": "e8987b4e668c8b6b3c3947126be7ed0035eb09f93691518cb03a6e2158e64a16"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/web/RoleAdminController.java",
+      "sha256": "02917b0e778f70ab6927b5af55d69b30a200e12bbd73486b952a0b79090c33b3"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/RoleAdminService.java",
+      "sha256": "7a44e01ba587e2cc0f3d3a46c891d68328081273cb5c53e60b71d146109e49d0"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/AccessRequestService.java",
+      "sha256": "5a5f552bced75f8fc5fb8a3d8d41fc78f0cba72fbbfaae885cd195e844ed4c29"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/BootstrapAdminInitializer.java",
+      "sha256": "cf5916590dd402d2857c9c612a1a4f5a571a7123b882e79290cb4add9e5f382b"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/OrgChangeListener.java",
+      "sha256": "de2e721b7753e89f91460235d8633af9f8118b66812749df303259b747825194"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-job-service/src/main/java/com/lrj/oa/job/application/OaJobs.java",
+      "sha256": "32d497384ecfde49615bfff51aeae8efe408e4d8001d450afbbbd206f3f0d138"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/UserGroupService.java",
+      "sha256": "199b4db51db02077ea23d50bb6f9450b7a35603be1a473fb5b9a2113283141ab"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/PermissionDelegationService.java",
+      "sha256": "43925c4acf5c86c753bef9dc1314cd7841b7483b0b22acb871f36b1757942907"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/AbacPolicyService.java",
+      "sha256": "8c6e54386342b7af71ceb416fc8e2bde7853b37d13815485f21227be3ad41d28"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/IdentityService.java",
+      "sha256": "b15030981d1e130aa5c5c7ca97399f7f77fa7dfa25762cb5eff357c9ac9babb7"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/IdentitySyncService.java",
+      "sha256": "afa5385282c3bd1817138aade1a1b33b82f72d0d22d84a6758408dea9f768537"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/IdentityProjectionListener.java",
+      "sha256": "652cd4f0b4273726d739ec0fce75931e9a21761ab6a1e971174af536e4db27f9"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/CredentialService.java",
+      "sha256": "d6648da8f99ea303b23d0d9d91f797396294d2e79e184f7c3cb0064315cd6a37"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/infrastructure/cache/PermissionEngine.java",
+      "sha256": "0126ba2a003f67c73fc23b3a9794e2672d81d75d385cc860839b960ef10c449e"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/PermissionSnapshotBuilder.java",
+      "sha256": "d43299bd498a5b0d4821c719cf1d46190bf9ca585e792670b2e0e6cc9285cddf"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/aspect/RequiresPermAspect.java",
+      "sha256": "d3049b6d3008d6d4044b2aeea9abb62a6038d45f3847b48d5f05b76f36b563e4"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/aspect/DataScopeAspect.java",
+      "sha256": "1b33e749476cdca4dffa0ad3c91b441f4e72873d954362bfa15c3a799ab5a732"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/infrastructure/datascope/OaDataPermissionHandler.java",
+      "sha256": "f6748e5c2b49ddc3283bb507985d15cf38d76f1c56bf256ea358d21e28cca8ff"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-iam/src/main/java/com/lrj/oa/iam/application/IamInvalidationService.java",
+      "sha256": "df7b76549117513a1d91b2c1a0775e2fb65b27d4be7861ee3ab7d2bc2cc07cc2"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-app/src/main/java/com/lrj/oa/app/iam/IamRoleEventPublisher.java",
+      "sha256": "a0acd20588bf95c78fb7c631100a04436c0e34ff7382359f2f817174dd5ca4a8"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-org/src/main/java/com/lrj/oa/org/application/directory/IdentityDirectoryInitializer.java",
+      "sha256": "bc01259adfd7260275da6c48ce2c8c5ed3e8bd5c32d6308fcd41863c23398f45"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-org/src/main/java/com/lrj/oa/org/application/directory/IdentityDirectoryPublisher.java",
+      "sha256": "14b84ce3066c0e612817dc8e2f4c11c8835feb85ac1454194d7ae59f61ed651f"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-org/src/main/java/com/lrj/oa/org/application/directory/IdentityDirectoryExport.java",
+      "sha256": "5f8fd3e92ca54f848ac842589b5fa6a374b69e5c053d5b1f4334468e85b1792b"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "oa-org/src/main/java/com/lrj/oa/org/infrastructure/directory/IdentityDirectoryAdminCli.java",
+      "sha256": "a8824d626630fdb5370e5cab15e33cd8de4768fa1241dfdfb43d160f876c3492"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "deploy/scripts/phase2-perm-smoke.sh",
+      "sha256": "6631c5b37b6743a173e05c048403f526bf8500210093eaadd68e89be70a8905f"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "deploy/scripts/phase9-iam-policy-smoke.sh",
+      "sha256": "94c6a696157fa4ce0f15718995afe7541b444c0fb5d8ab6d27fbbbe5df74745f"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "deploy/scripts/seed-console-fixture.sh",
+      "sha256": "72c8b62eeb0ec39fb6e08d87f6cb5cd7784fd740e36a54b02ebc93c0f9423d0f"
+    },
+    {
+      "repository": "oa-platform",
+      "revision": "6385a869e234b635c44e5b96f75e48133b3a1390",
+      "path": "deploy/sql/seed-demo-data.sql",
+      "sha256": "98f91fccd2fe7184bea4f09d2cdefdfc9070985ebae8570d11553703c14ae5ac"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/StoreAccessController.java",
+      "sha256": "fbd202baf2652e7b11d6ab8cf163e11bcd1f624f2259b5534944917f51cd1d98"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "store/src/main/java/com/lrj/commerce/store/access/application/StoreAccessService.java",
+      "sha256": "dbc48b3e841ddb5f003ff4ca876b25c6230a867632cd99bea98ffedfeaf2c121"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "store/src/main/resources/mappers/store/StoreAccessMapper.xml",
+      "sha256": "3feefc1798af6cb99d647106e2e6b9c51cc73fbb406d7089263deec74f00f639"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "catalog/src/main/java/com/lrj/commerce/catalog/product/application/ProductOperationsService.java",
+      "sha256": "534f2b0fd41fd1f3d29e2edac5808953219483bf77cdb1cfa011ad4e8baa1ea4"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "catalog/src/main/java/com/lrj/commerce/catalog/pricing/application/ChannelPriceService.java",
+      "sha256": "de56057e3643d0a6ddcdc3d6c634c6f09c974abe406ab68b05eb2ac5396d364f"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "catalog/src/main/java/com/lrj/commerce/catalog/job/application/CatalogJobService.java",
+      "sha256": "9bd22c384263f1c6ac2a86df683575d7fa1ef7fe97cc0008a8cd02c961184eb2"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralScopeController.java",
+      "sha256": "d0bc714e181fa38778400b83a3bc7d7a800abaeff156f90fe9e4b11d8dd547ae"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "platform-runtime/src/main/java/com/lrj/commerce/runtime/identity/persistence/CredentialMapper.java",
+      "sha256": "f8eb04916c19e1cb3cf9d913d649d4cc2624e8e2772ff07d7a6d2e08c160f830"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "platform-runtime/src/main/resources/mappers/runtime/CredentialMapper.xml",
+      "sha256": "28c21bcdc4172f9b55bf834fdb3065303e206e0a6166656b881fdf8bf95ab1d5"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "commerce-app/src/main/java/com/lrj/commerce/app/configuration/security/SecurityConfiguration.java",
+      "sha256": "5dc091b147b33dd502d0fd561c9724f514de267b0f4e851382a671d37cbd621c"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "scripts/seed-local.py",
+      "sha256": "35bafd50c58aa1dd13010d6986f9eec22339516cbd2690f8f2b3e74eb92389ed"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "scripts/seed-operations.py",
+      "sha256": "e2f1eba26220ebf76f180151bf74929e6ead7c1b8b6d9bf0172eba9cdeccd146"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "scripts/seed-member-suite.py",
+      "sha256": "9b8df1cdabb4c6b0b896e5ac28f0dc0060b4240234a6061fcc5854a943194d61"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "scripts/prepare-e2e.py",
+      "sha256": "1bed853b771c26e2a1efe6caa5e9c780ccdd2d0e7f3cc5c6edd1643ca5dc5e49"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "scripts/iam-store-smoke.py",
+      "sha256": "1aa175ea332c622d2a52a6844d9b6657b8baad7b6414e1d00598914ce43707cf"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "scripts/iam-scope-smoke.py",
+      "sha256": "492d04b8b68bb4dbed28cc7bd65f05dad9ef1837b78e62ec2c6387f7f079f714"
+    },
+    {
+      "repository": "commerce-platform",
+      "revision": "0f7bd6b3aee3c740037e00aef831528e0938403e",
+      "path": "commerce-app/src/main/resources/db/migration/V17__store_operator_grants.sql",
+      "sha256": "54715c4f5f2874de5ee654a257e19a4eb7bc79365ef74df324d71baafaa7f52d"
+    }
+  ]
+}

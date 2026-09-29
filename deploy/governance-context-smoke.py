@@ -69,7 +69,7 @@ def expect(name, port, path, headers=(), body=None, status=200, code=None):
     return result
 
 
-def start(jar, port, log, config=None, missing=False, invitations=False, access=False, presentation=False, scope=False, requests=False):
+def start(jar, port, log, config=None, missing=False, invitations=False, access=False, presentation=False, scope=False, requests=False, executions=False):
     """仅启动本任务回环进程；退出时只终止本工具持有的 Popen。"""
     with socket.socket() as probe:
         # Linux 的已退出进程连接可能仍处 TIME_WAIT；允许地址重用但不启用 SO_REUSEPORT，
@@ -89,6 +89,8 @@ def start(jar, port, log, config=None, missing=False, invitations=False, access=
         args += ['--authz.governance.scope.enabled=true']
     if requests:
         args += ['--authz.governance.requests.enabled=true']
+    if executions:
+        args += ['--authz.governance.executions.enabled=true']
     if invitations:
         args += ['--authz.governance.invitations.enabled=true']
     descriptor = os.open(log, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
