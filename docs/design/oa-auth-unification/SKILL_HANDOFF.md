@@ -65,4 +65,6 @@ P5-01..07均完成实现与真实验收，证据见phase-5各TEST_RESULT和P5_HA
 
 ## P6当前交接
 
-用户已选择2，完整CATALOG能力与P6所选单元本地隔离演练31项通过。P6-01..07本地验收证据见phase-6/P6_TEST_RESULT、P6_REHEARSAL_RESULT、P6-07_CANDIDATE_REPORT。当前最终构建验证和Git/CI交付中；生产HOLD、P7未执行。OA用户改动未动，原商城8602及原来源未修改；不再询问已确定输入。
+用户已选择2，完整CATALOG能力与P6所选单元本地隔离演练31项通过。P6-01..07本地验收证据见phase-6/P6_TEST_RESULT、P6_REHEARSAL_RESULT、P6-07_CANDIDATE_REPORT。最终本地验证与两仓Git/CI交付全部通过，精确提交/运行ID见phase-6/P6_DELIVERY_RESULT和CI_RESULT；生产HOLD、P7未执行。OA用户改动未动，原商城8602及原来源未修改；不再询问已确定输入。
+
+P6最终Handoff：backend-implementation/runtime-and-deploy完成已授权本地范围；implementation-validation=PASS（实现者复核，不冒充独立代理审查）；task-git-delivery=COMPLETED/PASS；ci-cd-gate=COMPLETED/PASS；update-progress-docs已将DAG与进度同步为P6_LOCAL_COMPLETE_GIT_CI_PASS。P6七节点本地DONE，P7八节点TODO，生产候选HOLD；没有后续自动执行任务。

@@ -1,6 +1,6 @@
 # P6 实施与验证结果
 
-范围：已选commerce-platform运营租户的本地隔离演练。实现与本地最终验证PASS。auth指定reactor单测233项及真实PG/SpiceDB综合IT1项通过；commerce完整reactor393项（388通过、5个可选性能测试跳过）；Python17项；跨进程31项。源码摘要见P6_CODE_EVIDENCE.json。远程CI仍待交付后核验。
+范围：已选commerce-platform运营租户的本地隔离演练。实现与本地最终验证PASS。auth指定reactor单测233项及真实PG/SpiceDB综合IT1项通过；commerce完整reactor393项（388通过、5个可选性能测试跳过）；Python17项；跨进程31项。源码摘要见P6_CODE_EVIDENCE.json。最终两仓远程CI全部PASS，精确提交及运行链接见CI_RESULT.md。
 
 | 验收 | 证据 |
 |---|---|
