@@ -26,6 +26,7 @@ public final class GovernanceRuntime implements AutoCloseable {
     private final DirectoryGovernance directory;
     private com.lrj.authz.governance.application.ApplicationCatalog catalog;
     private com.lrj.authz.governance.application.AccessManagement access;
+    private com.lrj.authz.governance.application.AccessRequests requests;
     private AccessMapper accessMapper;
     private CatalogMapper catalogMapper;
     private ProjectionMapper projectionMapper;
@@ -79,6 +80,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.ProjectionModels.OperationState.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.ProjectionModels.OperationState.class));
             config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.FenceModels.State.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.FenceModels.State.class));
             config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.AccessModels.GrantState.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.AccessModels.GrantState.class));
+            config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.RequestModels.State.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.RequestModels.State.class));
             config.setMapUnderscoreToCamelCase(true);
             config.setArgNameBasedConstructorAutoMapping(true);
             config.setCacheEnabled(false);
@@ -109,6 +111,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             runtime.accessMapper=session.getMapper(AccessMapper.class); runtime.catalogMapper=session.getMapper(CatalogMapper.class);
             runtime.projectionMapper=session.getMapper(ProjectionMapper.class); runtime.transaction=transaction;
             runtime.fenceMapper=session.getMapper(FenceMapper.class);runtime.reliableMapper=session.getMapper(ReliableProjectionMapper.class);runtime.scopeMapper=session.getMapper(ScopeMapper.class);
+            runtime.requests=new com.lrj.authz.governance.application.AccessRequests(session.getMapper(RequestMapper.class),runtime.accessMapper,runtime.catalogMapper,mapper,runtime.identity,transaction);
             return runtime;
         } catch (Exception failure) {
             dataSource.close();
@@ -157,6 +160,9 @@ public final class GovernanceRuntime implements AutoCloseable {
     public com.lrj.authz.governance.application.ReliableAuthorization reliableAuthorization(com.lrj.authz.protocol.StrictGraphReader graph){
         return new com.lrj.authz.governance.application.ReliableAuthorization(readFence(),scopeMapper,catalogMapper,accessMapper,graph);
     }
+
+    /** 自助申请仍强制当前成员和显式申请策略。 */
+    public com.lrj.authz.governance.application.AccessRequests requests() { return requests; }
 
     IdentityMapper mapper() { return mapper; }
 

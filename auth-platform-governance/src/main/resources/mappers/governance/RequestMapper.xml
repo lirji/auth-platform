@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrj.authz.governance.persistence.RequestMapper">
+ <sql id="partition">tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment}</sql>
+ <sql id="policyColumns">id,tenant_id,application_id,environment,role_id,scope_json,max_duration_seconds,approver_membership_id,approver_generation,delegation_hash,policy_version,content_hash,enabled</sql>
+ <sql id="requestColumns">id,tenant_id,application_id,environment,requester_principal,membership_id,generation,policy_id,role_id,capabilities_json,scope_json,policy_hash,member_valid_to,valid_from,valid_to,reason,request_version,snapshot_hash,state,state_version,approval_instance_id,grant_id,command_id</sql>
+ <insert id="insertPolicy">INSERT INTO auth_governance.request_policy(id,tenant_id,application_id,environment,role_id,scope_json,max_duration_seconds,approver_membership_id,approver_generation,delegation_hash,policy_version,content_hash,enabled,created_by)
+ VALUES(#{v.id},#{v.tenantId},#{v.applicationId},#{v.environment},#{v.roleId},#{v.scopeJson},#{v.maxDurationSeconds},#{v.approverMembershipId},#{v.approverGeneration},#{v.delegationHash},#{v.policyVersion},#{v.contentHash},#{v.enabled},#{actor})</insert>
+ <select id="policy" resultType="com.lrj.authz.governance.domain.RequestModels$Policy">SELECT <include refid="policyColumns"/> FROM auth_governance.request_policy WHERE <include refid="partition"/> AND id=#{id}</select>
+ <select id="policies" resultType="com.lrj.authz.governance.domain.RequestModels$Policy">
+ SELECT <include refid="policyColumns"/> FROM auth_governance.request_policy p WHERE <include refid="partition"/>
+ AND enabled AND id &gt; #{after} AND approver_membership_id &lt;&gt; #{member}
+ AND EXISTS(SELECT 1 FROM auth_governance.membership m WHERE m.id=p.approver_membership_id AND m.generation=p.approver_generation AND m.status='ACTIVE')
+ ORDER BY id LIMIT 100
+ </select>
+ <insert id="insertRequest">INSERT INTO auth_governance.access_request(id,tenant_id,application_id,environment,requester_principal,membership_id,generation,policy_id,role_id,capabilities_json,scope_json,policy_hash,member_valid_to,valid_from,valid_to,reason,request_version,snapshot_hash,state,state_version,approval_instance_id,grant_id,command_id) VALUES(#{v.id},#{v.tenantId},#{v.applicationId},#{v.environment},#{v.requesterPrincipal},#{v.membershipId},#{v.generation},#{v.policyId},#{v.roleId},#{v.capabilitiesJson},#{v.scopeJson},#{v.policyHash},#{v.memberValidTo},#{v.validFrom},#{v.validTo},#{v.reason},#{v.requestVersion},#{v.snapshotHash},#{v.state},#{v.stateVersion},#{v.approvalInstanceId},#{v.grantId},#{v.commandId})</insert>
+ <select id="owned" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND id=#{id} AND membership_id=#{member} AND generation=#{generation}</select>
+ <select id="request" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND id=#{id}</select>
+ <insert id="enqueueStart">INSERT INTO auth_governance.request_start_outbox(request_id) VALUES(#{id})</insert>
+ <select id="pendingCount" resultType="int">SELECT count(*) FROM auth_governance.access_request WHERE <include refid="partition"/> AND membership_id=#{member} AND generation=#{generation} AND state IN ('SUBMITTED','IN_REVIEW') AND valid_to &gt; clock_timestamp()</select>
+</mapper>
