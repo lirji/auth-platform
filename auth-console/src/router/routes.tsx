@@ -20,6 +20,7 @@ import GovernanceRequestsPage from '../pages/GovernanceRequestsPage'
 import GovernanceInvitationsPage from '../pages/GovernanceInvitationsPage'
 import GovernancePoliciesPage from '../pages/GovernancePoliciesPage'
 import InvitationAcceptPage from '../pages/InvitationAcceptPage'
+import GovernancePermissionsPage, { GovernanceAuditPage, GovernanceGrantDiagnostic } from '../pages/GovernancePermissionsPage'
 
 function guarded(feature: string, page: ReactNode) {
   return <FeatureGuard feature={feature}>{page}</FeatureGuard>
@@ -45,6 +46,9 @@ export const router = createBrowserRouter([
     { path: 'requests', element: <GovernanceRequestsPage /> },
     { path: 'invitations', element: <GovernanceInvitationsPage /> },
     { path: 'policies', element: <GovernancePoliciesPage /> },
+    { path: 'permissions', element: <GovernancePermissionsPage /> },
+    { path: 'diagnostic', element: <GovernanceGrantDiagnostic /> },
+    { path: 'audit', element: <GovernanceAuditPage /> },
   ] },
   {
     path: '/',

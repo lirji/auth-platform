@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Alert, Button, Card, Descriptions, Drawer, Form, Input, InputNumber, Modal, Select, Space, Table, Tag, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { accessState, createRole, grantScoped, management, members, roleImpact, type Grant, type Management, type Role, type ScopeRule } from '../api/governance'
@@ -16,6 +17,7 @@ const grantLabels: Record<string, string> = { PENDING: '待生效', ACTIVE: '图
 export default function GovernanceAccessPage() {
   const { partition, queryKey } = useGovernanceContext()
   const qc = useQueryClient()
+  const [params] = useSearchParams()
   const [cursors, setCursors] = useState<{ role?: string; grant?: string }>({})
   const [roleOpen, setRoleOpen] = useState(false)
   const [grantOpen, setGrantOpen] = useState(false)
@@ -47,6 +49,7 @@ export default function GovernanceAccessPage() {
       <Typography.Title level={5}>成员授权</Typography.Title>
       <Table<Grant> rowKey="id" dataSource={result.data?.grants} pagination={false} scroll={{ x: 1000 }} columns={[
         { title: '成员 / 代际', render: (_, row) => <><Typography.Text className="mono" copyable>{row.member_id}</Typography.Text><div>第 {row.member_generation} 代</div></> },
+        { title: '操作', render: (_, row) => { const next = new URLSearchParams(params); next.set('grant', row.id); return <Link to={`/governance/diagnostic?${next}`}>解释 / 撤权</Link> } },
         { title: '来源', dataIndex: 'source_type' }, { title: '范围', dataIndex: 'scope', render: value => value === 'TENANT_ALL' ? '当前企业全部资源' : '指定资源范围' },
         { title: '有效期（本地时间）', render: (_, row) => <Space direction="vertical" size={0}><span>{new Date(row.valid_from).toLocaleString()}</span><span>至 {new Date(row.valid_to).toLocaleString()}</span></Space> },
         { title: '授权记录', dataIndex: 'state', render: value => <Tag color={value === 'PENDING' ? 'warning' : 'default'}>{grantLabels[value] ?? '未知状态'}</Tag> },

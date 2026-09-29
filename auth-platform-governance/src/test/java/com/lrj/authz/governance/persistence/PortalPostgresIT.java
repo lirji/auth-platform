@@ -191,4 +191,50 @@ class PortalPostgresIT {
         assertThatThrownBy(() -> runtime.portalManagement().policies(login(member),p,null)).hasMessage("ACCESS_DENIED");
     }
 
+    private PortalPermissions diagnostics(BootstrapCommand owner, Partition p) {
+        return runtime.portalPermissions(List.of(new PortalDiagnosticAuthority(p,owner.membershipId(),1)));
+    }
+    @Test void ownExplanationsKeepSourcesSeparateAndDoNotInferActiveBeforeProjection() {
+        var owner=person(id(),"tenant-"+id());var member=person(owner.tenantId(),owner.tenantCode());var other=person(owner.tenantId(),owner.tenantCode());var p=application(owner);
+        runtime.access().enableStrict(login(owner),p,id());
+        var role=runtime.access().createRole(login(owner),p,id(),"reader",1,List.of(p.applicationId()+".read"));
+        var rule=new com.lrj.authz.protocol.ScopeDtos.Rule(1,"store",List.of(new com.lrj.authz.protocol.ScopeDtos.Clause(com.lrj.authz.protocol.ScopeDtos.Kind.SPECIFIED_STORES,List.of("S1"),false)));
+        var first=runtime.access().grantScoped(login(owner),p,id(),member.membershipId(),1,role.id(),rule,"source-A",Instant.now(),Instant.now().plusSeconds(500));
+        var second=runtime.access().grantScoped(login(owner),p,id(),member.membershipId(),1,role.id(),rule,"source-B",Instant.now(),Instant.now().plusSeconds(500));
+        var portal=runtime.portalPermissions(List.of());var list=portal.mine(login(member),p,null).items();
+        assertThat(list).hasSize(2);assertThat(list).extracting(com.lrj.authz.protocol.PermissionDtos.Explanation::effectiveState).containsOnly("PENDING_APPLY");
+        assertThat(list).extracting(com.lrj.authz.protocol.PermissionDtos.Explanation::sourceId).containsExactlyInAnyOrder("source-A","source-B");
+        assertThat(list.getFirst().scopeRule()).isEqualTo(rule);
+        assertThat(portal.mine(login(other),p,null).items()).isEmpty();
+        runtime.access().strictRevoke(login(owner),p,id(),first.id(),1);
+        var remaining=portal.mine(login(member),p,null).items();
+        assertThat(remaining.stream().filter(g -> g.grantId().equals(first.id())).findFirst().orElseThrow().effectiveState()).isEqualTo("REVOKING");
+        assertThat(remaining.stream().filter(g -> g.grantId().equals(second.id())).findFirst().orElseThrow().effectiveState()).isEqualTo("PENDING_APPLY");
+        jdbc.update("update auth_governance.membership set status='SUSPENDED',version=version+1 where id=?",member.membershipId());
+        assertThatThrownBy(() -> portal.mine(login(member),p,null)).hasMessage("MEMBERSHIP_UNAVAILABLE");
+    }
+    @Test void diagnosticRequiresSeparateAuthorityAndDenialAuditSurvivesException() {
+        var owner=person(id(),"tenant-"+id());var member=person(owner.tenantId(),owner.tenantCode());var p=application(owner);
+        var role=runtime.access().createRole(login(owner),p,id(),"reader",1,List.of(p.applicationId()+".read"));
+        var grant=runtime.access().grant(login(owner),p,id(),member.membershipId(),1,role.id(),"TENANT_ALL",id(),Instant.now(),Instant.now().plusSeconds(500));
+        assertThatThrownBy(() -> runtime.portalPermissions(List.of()).explain(login(owner),p,grant.id())).hasMessage("ACCESS_DENIED");
+        assertThat(jdbc.queryForObject("select count(*) from auth_governance.portal_diagnostic_audit where tenant_id=? and target_id=? and outcome='DENIED'",Integer.class,p.tenantId(),grant.id())).isEqualTo(1);
+        var result=diagnostics(owner,p).explain(login(owner),p,grant.id());assertThat(result.scope()).isEqualTo("TENANT_ALL");assertThat(result.scopeRule()).isNull();
+        assertThatThrownBy(() -> diagnostics(owner,p).explain(login(member),p,grant.id())).hasMessage("ACCESS_DENIED");
+        assertThatThrownBy(() -> runtime.portalPermissions(List.of(new PortalDiagnosticAuthority(p,owner.membershipId(),2))).explain(login(owner),p,grant.id())).hasMessage("ACCESS_DENIED");
+    }
+    @Test void diagnosticsAndAuditNeverRevealForeignApplicationAndRecordAttemptedCrossScope() {
+        var owner=person(id(),"tenant-"+id());var member=person(owner.tenantId(),owner.tenantCode());var p=application(owner);var foreign=application(owner);
+        var role=runtime.access().createRole(login(owner),p,id(),"reader",1,List.of(p.applicationId()+".read"));
+        var otherRole=runtime.access().createRole(login(owner),foreign,id(),"private",1,List.of(foreign.applicationId()+".read"));
+        var other=runtime.access().grant(login(owner),foreign,id(),member.membershipId(),1,otherRole.id(),"TENANT_ALL",id(),Instant.now(),Instant.now().plusSeconds(500));
+        var portal=diagnostics(owner,p);
+        assertThatThrownBy(() -> portal.explain(login(owner),p,other.id())).hasMessage("ACCESS_DENIED");
+        var events=portal.audit(login(owner),p,null).items();
+        assertThat(events).anyMatch(e -> role.id().equals(e.targetId()) && e.operation().equals("CREATE_ROLE"));
+        assertThat(events).noneMatch(e -> otherRole.id().equals(e.targetId()));
+        assertThat(events).anyMatch(e -> other.id().equals(e.targetId()) && e.outcome().equals("DENIED") && e.operation().equals("READ_GRANT_EXPLANATION"));
+        assertThatThrownBy(() -> portal.audit(login(owner),foreign,null)).hasMessage("ACCESS_DENIED");
+    }
+
 }

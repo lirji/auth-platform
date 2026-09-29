@@ -29,3 +29,7 @@ python3 deploy/governance-p4-e2e.py --oa <oa-platform> --infra-env <dev-infra/.e
 前者启动auth18522、console15275，UI真实创建角色/授予/策略/申请/邀请，不模拟响应；丢响应试验先真实提交然后中断首个响应。后者复用P4跨进程整链，只在已有真实审批节点启用OA console15276，JWT方式，不使用DEV身份。测试实例单独允许Origin `http://127.0.0.1:15276`；默认CORS拒绝此端口是首次UI办理403的原因，不通过浏览器请求截获改写Origin绕过。
 
 所有测试JVM/Vite退出时关闭；P4基础容器在阶段完成后停止保留卷。此处启动属于授权隔离验证，不等于生产部署。P5-07仍须另行验证完整交互式OIDC登录与应用SSO。邮件/短信未配置，不声称已验证。
+
+## 诊断与审计
+
+V17为新增表/索引迁移，旧应用lookup已验证可共存。私密配置`portal.diagnostic.count`默认0，最多100；每项使用`portal.diagnostic.<1-based index>.tenant-id/application-id/environment/membership-id/generation`，仅允许当前代际且仍具当前分区委派的显式成员诊断。移除配置并重启或撤销委派后拒绝后续读取。普通本人解释不依赖此管理配置。禁止将令牌、邀请证明或凭据放入配置示例及审计。

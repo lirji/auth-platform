@@ -76,9 +76,9 @@ export default function GovernancePage() {
             {item.menus.some(menu => safeEntry(menu.href)) ? <Space direction="vertical" style={{ width: '100%' }}>
               {item.menus.filter(menu => safeEntry(menu.href)).map(menu => <Button key={menu.code} href={safeEntry(menu.href)} target="_blank" rel="noopener noreferrer">进入 {menu.code}</Button>)}
             </Space> : <Typography.Paragraph type="secondary">{item.entry_state === EntryState.UNAVAILABLE ? '暂时无法确认业务权限，业务入口已关闭。可继续查看申请或管理进度。' : '当前暂无可用业务入口'}</Typography.Paragraph>}
-            <div style={{ marginTop: 16 }}><Button onClick={() => choose(item, '/governance/requests')}>我的申请与通知</Button></div>
+            <Space wrap style={{ marginTop: 16 }}><Button onClick={() => choose(item, '/governance/permissions')}>我的权限来源</Button><Button onClick={() => choose(item, '/governance/requests')}>我的申请与通知</Button></Space>
             {item.management && <Button style={{ marginTop: 16 }} onClick={() => choose(item, '/governance/access')}>查看授权管理</Button>}
-            {item.management && <Space wrap style={{ marginTop: 12 }}><Button onClick={() => choose(item, '/governance/policies')}>申请策略</Button><Button onClick={() => choose(item, '/governance/invitations')}>外部邀请</Button></Space>}
+            {item.management && <Space wrap style={{ marginTop: 12 }}><Button onClick={() => choose(item, '/governance/policies')}>申请策略</Button><Button onClick={() => choose(item, '/governance/invitations')}>外部邀请</Button><Button onClick={() => choose(item, '/governance/audit')}>授权审计</Button></Space>}
           </Card>)}
         </div>
         <Space style={{ marginTop: 20 }}>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrj.authz.governance.persistence.PermissionMapper">
+ <sql id="partition">tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment}</sql>
+ <sql id="grantView">
+ SELECT g.id grant_id,g.membership_id member_id,g.generation,g.group_id,g.role_id,r.role_code,r.version role_version,r.capabilities_json,
+ g.scope,s.rule_json,g.source_type,g.source_id,g.valid_from::text,g.valid_to::text,g.state grant_state,
+ CASE WHEN g.state='REVOKED' THEN CASE WHEN rec.operation_id IS NOT NULL AND p.state='READY' AND d.state='READY' THEN 'REVOKED' ELSE 'REVOKING' END
+ WHEN g.valid_to &lt;=clock_timestamp() THEN 'EXPIRED'
+ WHEN NOT a.enabled OR t.status&lt;&gt;'ACTIVE' THEN 'UNAVAILABLE'
+ WHEN g.source_type&lt;&gt;'GROUP' AND (m.status&lt;&gt;'ACTIVE' OR m.generation&lt;&gt;g.generation OR u.status&lt;&gt;'ACTIVE' OR m.valid_from&gt;clock_timestamp() OR m.valid_to&lt;=clock_timestamp()) THEN 'UNAVAILABLE'
+ WHEN EXISTS(SELECT 1 FROM auth_governance.capability_state c JOIN jsonb_array_elements_text(r.capabilities_json::jsonb) cap ON cap.value=c.capability WHERE c.application_id=g.application_id AND c.disabled) THEN 'UNAVAILABLE'
+ WHEN EXISTS(SELECT 1 FROM auth_governance.directory_source src WHERE src.tenant_id=g.tenant_id AND src.quarantined) THEN 'UNAVAILABLE'
+ WHEN p.state='BLOCKED' OR d.state='BLOCKED' THEN 'APPLY_FAILED'
+ WHEN g.state&lt;&gt;'ACTIVE' OR g.zed_token IS NULL OR rec.operation_id IS NULL OR p.state IS DISTINCT FROM 'READY' OR d.state IS DISTINCT FROM 'READY'
+ OR p.desired_epoch&lt;&gt;p.applied_epoch OR d.desired_epoch&lt;&gt;d.applied_epoch OR g.valid_from&gt;clock_timestamp() THEN 'PENDING_APPLY'
+ WHEN g.source_type='GROUP' THEN 'GROUP_CHECK_REQUIRED' ELSE 'ACTIVE' END effective_state,
+ g.version grant_version,rec.operation_id,coalesce(p.state,'LEGACY') policy_state,coalesce(d.state,'LEGACY') directory_state
+ FROM auth_governance.access_grant g
+ JOIN auth_governance.role_version r ON r.id=g.role_id AND r.tenant_id=g.tenant_id AND r.application_id=g.application_id AND r.environment=g.environment
+ JOIN auth_governance.tenant_application a ON a.tenant_id=g.tenant_id AND a.application_id=g.application_id AND a.environment=g.environment
+ JOIN auth_governance.tenant t ON t.id=g.tenant_id
+ LEFT JOIN auth_governance.grant_scope s ON s.grant_id=g.id AND s.tenant_id=g.tenant_id AND s.application_id=g.application_id AND s.environment=g.environment
+ LEFT JOIN auth_governance.membership m ON m.id=g.membership_id AND m.tenant_id=g.tenant_id
+ LEFT JOIN auth_governance.principal u ON u.id=m.principal_id
+ LEFT JOIN auth_governance.policy_partition p ON p.tenant_id=g.tenant_id AND p.application_id=g.application_id AND p.environment=g.environment
+ LEFT JOIN auth_governance.directory_fence d ON d.tenant_id=g.tenant_id
+ LEFT JOIN auth_governance.projection_grant_receipt rec ON rec.grant_id=g.id AND rec.grant_version=g.version
+ WHERE g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}
+ </sql>
+ <select id="mine" resultType="com.lrj.authz.governance.persistence.PermissionMapper$Row">
+ <include refid="grantView"/>
+ AND (g.membership_id=#{member} AND g.generation=#{generation} OR g.source_type='GROUP' AND EXISTS(
+ SELECT 1 FROM auth_governance.directory_group_member gm WHERE gm.tenant_id=g.tenant_id AND gm.group_id=g.group_id AND gm.membership_id=#{member} AND gm.generation=#{generation} AND gm.current))
+ AND g.id &gt;#{after} ORDER BY g.id LIMIT 101
+ </select>
+ <select id="explanation" resultType="com.lrj.authz.governance.persistence.PermissionMapper$Row"><include refid="grantView"/> AND g.id=#{id}</select>
+ <select id="audit" resultType="com.lrj.authz.protocol.PermissionDtos$Audit">
+ SELECT id,operator_ref,operation,target_id,target_version,occurred_at,outcome FROM (
+ SELECT e.id,e.operator_ref,e.operation,e.target_id,e.target_version,e.occurred_at::text,'COMMITTED' outcome FROM auth_governance.audit_event e
+ WHERE e.tenant_id=#{p.tenantId} AND e.id &gt;#{after} AND (
+ EXISTS(SELECT 1 FROM auth_governance.access_grant g WHERE g.id=e.target_id AND g.tenant_id=e.tenant_id AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}) OR
+ EXISTS(SELECT 1 FROM auth_governance.role_version r WHERE r.id=e.target_id AND r.tenant_id=e.tenant_id AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}) OR
+ EXISTS(SELECT 1 FROM auth_governance.access_request r WHERE r.id=e.target_id AND r.tenant_id=e.tenant_id AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}) OR
+ EXISTS(SELECT 1 FROM auth_governance.request_policy r WHERE r.id=e.target_id AND r.tenant_id=e.tenant_id AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}))
+ UNION ALL
+ SELECT id,operator_ref,operation,target_id,0 target_version,occurred_at::text,outcome FROM auth_governance.portal_diagnostic_audit WHERE <include refid="partition"/> AND id &gt;#{after}
+ ) events ORDER BY id LIMIT 101
+ </select>
+ <insert id="record">INSERT INTO auth_governance.portal_diagnostic_audit(id,tenant_id,application_id,environment,operator_ref,operation,target_id,outcome)
+ VALUES(#{id},#{p.tenantId},#{p.applicationId},#{p.environment},#{actor},#{operation},#{target},#{outcome})</insert>
+</mapper>

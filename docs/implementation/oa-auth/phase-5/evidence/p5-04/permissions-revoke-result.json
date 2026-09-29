@@ -1,0 +1,14 @@
+[
+  {
+    "check": "explicit diagnostic authority reads one scoped grant; foreign partition ID and ordinary member are denied",
+    "result": "PASS"
+  },
+  {
+    "check": "real admin revoke returns 202; page and reload retain processing instead of false completion",
+    "result": "PASS"
+  },
+  {
+    "check": "protected audit includes committed revoke and denied diagnostic attempts",
+    "result": "PASS"
+  }
+]

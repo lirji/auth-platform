@@ -35,3 +35,13 @@ P5-02验收发现投影故障会阻断管理/申请进度入口，因此上述en
 浏览器为每个创建意图生成256位随机证明并冻结命令；原样重试，证明只在本次页面内显示供受控交付，不放URL、持久化浏览器缓存或自动发送。邀请接受使用原POST `/invitations/accept`，独立受保护路由`/invitations/accept`不依赖已有组织；要求用户输入邀请ID和证明，登录身份必须与邀请精确匹配。接受成功只说明已加入组织。
 
 我的申请按URL request/after保留详情与分页，仅本人当前代际；申请详情分列原固定能力/范围/期限、审批事实和实际执行状态。未知结果重试复用原命令，取消202显示取消/回收受理，明确其他合法来源不会一并撤销。通知只显示安全模板与本人详情，不复制员工待办。OA已有待办页面增加中央权限申请依据抽屉，GET `/api/v1/flow/central-access/tasks/{taskId}`原接口逐条验证当前办理人；读取失败不在该抽屉提供审批按钮。
+
+## P5-04 来源解释、撤权与审计
+
+GET `/me/permissions`（完整partition，after=Grant UUID）分页返回本人当前代际的直接/OA或当前目录组关联Grant，每页最多100。字段grant_id/member_id/generation/group_id/role_id/role_code/role_version/capabilities/scope/scope_rule/source_type/source_id/valid_from/valid_to/grant_state/effective_state/grant_version/operation_id/policy_state/directory_state。状态来自当前SQL事实、双栅栏与当前Grant版本回执；ACTIVE表示投影已确认且SQL条件仍有效，不替代业务每次实时图检查。能力/范围/来源始终按同一Grant显示，不能拼接成额外权限。TENANT_ALL时scope_rule为空并显式返回scope，不臆造资源类型；组授权返回GROUP_CHECK_REQUIRED，组资格与时段继续由真实业务请求确认。
+
+GET `/access/explanations?grant_id=...`、GET `/access/audit?after=...`另需显式诊断授权。私密配置`portal.diagnostic.count=0..100`及条目的tenant-id/application-id/environment/membership-id/generation；默认0。每次同时核对当前成员代际及应用管理委派。普通应用管理员不自动取得他人诊断/审计。说明读取只返回请求分区内Grant；跨分区ID拒绝并追加诊断审计。
+
+审计页合并当前分区的角色/Grant/申请/策略相关既有审计与门户诊断访问记录，不展示其他应用或全企业日志；字段id/operator_ref/operation/target_id/target_version/occurred_at/outcome。诊断读取成功/拒绝落独立追加表V17（不记录Token、证明或任意业务正文），拒绝证据在独立短事务提交，不因随后抛出拒绝异常回滚。查审计本身也校验同一诊断范围；不提供修改/删除审计接口。
+
+管理撤权沿用POST `/access/strict-revoke`与GET `/access/revocation-receipt`，202显示回收处理中；仅COMPLETED及实际operation_id显示该来源回收完成，不宣称所有来源均撤销。本人解释列表继续列出其他合法Grant。申请来源本人回收仍走原cancel接口；管理者回收单条Grant走原委派检查和版本命令。

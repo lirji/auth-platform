@@ -80,3 +80,13 @@ export const invitations = async (p: Partition, after?: string): Promise<Page<In
 export const issueInvitation = async (command: IssueInvitation): Promise<Invitation> => (await apiClient.post('/api/governance/v1/portal-invitations', command)).data
 export const revokeInvitation = async ({ id, ...command }: RevokeInvitation): Promise<Invitation> => (await apiClient.post(`/api/governance/v1/portal-invitations/${id}/revoke`, command)).data
 export const acceptInvitation = async (command: { invitation_id: string; token: string }): Promise<{ membership_id: string; membership_generation: number; membership_status: string }> => (await apiClient.post('/api/governance/v1/invitations/accept', command)).data
+
+export interface PermissionExplanation { grant_id: string; member_id: string | null; generation: number | null; group_id: string | null; role_id: string; role_code: string; role_version: number; capabilities: string[]; scope: string; scope_rule: ScopeRule | null; source_type: string; source_id: string; valid_from: string; valid_to: string; grant_state: string; effective_state: string; grant_version: number; operation_id: string | null; policy_state: string; directory_state: string }
+export interface AccessAudit { id: string; operator_ref: string; operation: string; target_id: string | null; target_version: number; occurred_at: string; outcome: string }
+export interface RevocationReceipt { grant_id: string; version: number; status: string; operation_id: string | null; desired_epoch: number; applied_epoch: number }
+export interface RevokeGrant extends Partition { command_id: string; grant_id: string; expected_version: number }
+export const myPermissions = async (p: Partition, after?: string): Promise<Page<PermissionExplanation>> => (await apiClient.get('/api/governance/v1/me/permissions', { params: { ...p, after } })).data
+export const grantExplanation = async (p: Partition, grant: string): Promise<PermissionExplanation> => (await apiClient.get('/api/governance/v1/access/explanations', { params: { ...p, grant_id: grant } })).data
+export const accessAudit = async (p: Partition, after?: string): Promise<Page<AccessAudit>> => (await apiClient.get('/api/governance/v1/access/audit', { params: { ...p, after } })).data
+export const revokeGrant = async (command: RevokeGrant): Promise<RevocationReceipt> => (await apiClient.post('/api/governance/v1/access/strict-revoke', command)).data
+export const revocationReceipt = async (p: Partition, grant: string): Promise<RevocationReceipt> => (await apiClient.get('/api/governance/v1/access/revocation-receipt', { params: { ...p, grant_id: grant } })).data

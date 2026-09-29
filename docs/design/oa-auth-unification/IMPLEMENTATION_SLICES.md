@@ -50,9 +50,9 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 | P5-01 | 工作台壳层、组织选择、应用卡片 | P1-03, P2-07 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 多组织切换与应用隔离 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P5-02 | 角色版本、成员授权、状态查询 | P2-03, P3-06 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 权限差异与待生效展示 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P5-03 | 邀请、我的申请、审批进度 | P1-05, P4-06 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 外部最小可见范围 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
-| P5-04 | 授权解释、撤权与审计 | P3-06, P4-05 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 多来源撤销解释 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | IN_PROGRESS |
-| P5-05 | 内部真实业务接入验收 | P2-06, P3-07, P4-07 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 后端直调不能绕过 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
-| P5-06 | 外部供应商真实验收 | P1-07, P3-07, P4-07 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 全流程及越权反例 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
+| P5-04 | 授权解释、撤权与审计 | P3-06, P4-05 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 多来源撤销解释 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
+| P5-05 | 内部真实业务接入验收 | P2-06, P3-07, P4-07 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 后端直调不能绕过 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | IN_PROGRESS |
+| P5-06 | 外部门店/商家协作真实验收 | P1-07, P3-07, P4-07 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 全流程及越权反例 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P5-07 | 可用性与部署演练 | P5-01, P5-02, P5-03, P5-04, P5-05, P5-06 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 登录回调、CORS、Cookie、错误提示 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P6-01 | 迁移单元及旧写入方清单 | P5-07 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 无遗漏旧授权入口 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P6-02 | 身份／角色／范围映射及dry-run | P6-01 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 无未知规则自动放宽 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
@@ -72,7 +72,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 
 ## 当前下一片
 
-P0—P3已交付；P4全部7节点DONE，真实验收通过。最终Git/CI见phase-4/P4_DELIVERY_RESULT及CI_RESULT。用户已授权P5，P5-01至03已完成、P5-04进行中，P6及之后未授权；Q-EXT已确认真实commerce门店/商家协作。
+P0—P3已交付；P4全部7节点DONE，真实验收通过。最终Git/CI见phase-4/P4_DELIVERY_RESULT及CI_RESULT。用户已授权P5，P5-01至04已完成、P5-05进行中，P6及之后未授权；Q-EXT已确认真实commerce门店/商家协作。
 
 ## 依赖与外部条件
 
