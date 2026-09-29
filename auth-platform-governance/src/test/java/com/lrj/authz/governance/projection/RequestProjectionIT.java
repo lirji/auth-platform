@@ -1,4 +1,6 @@
-package com.lrj.authz.governance.persistence;
+package com.lrj.authz.governance.projection;
+
+import com.lrj.authz.governance.persistence.*;
 
 import com.lrj.authz.governance.application.*;
 import com.lrj.authz.governance.authentication.VerifiedLogin;

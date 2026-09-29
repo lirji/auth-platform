@@ -291,5 +291,14 @@ class RequestPostgresIT {
         assertThat(page.items()).isEmpty();assertThat(page.nextCursor()).isNotNull();
         assertThat(runtime.requests().policyPage(login(f.member),f.p,page.nextCursor()).nextCursor()).isNull();
     }
+    @Test void emergencyCapabilityDisableRejectsApprovalAndStopsActiveDisplay() throws Exception {
+        var f=fixture();var policy=policy(f);var r=submit(f,policy.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"disabled");approve(f,policy,r);
+        runtime.catalog().changeCapability(login(f.owner),f.p.applicationId(),f.p.applicationId()+".read",true,0,"incident",id());
+        runtime.approvalDecisions().step(f.p);
+        assertThat(runtime.requests().owned(login(f.member),f.p,r.id()).state().code()).isEqualTo("REJECTED");
+        var g=fixture();var gp=policy(g);var gr=submit(g,gp.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"after grant");approve(g,gp,gr);runtime.approvalDecisions().step(g.p);
+        runtime.catalog().changeCapability(login(g.owner),g.p.applicationId(),g.p.applicationId()+".read",true,0,"incident",id());
+        assertThat(runtime.requests().execution(login(g.member),g.p,gr.id()).displayState()).isEqualTo("UNAVAILABLE");
+    }
     private record Fixture(BootstrapCommand owner,BootstrapCommand member,Partition p,RoleVersion role){}
 }

@@ -12,6 +12,7 @@ import secrets
 import subprocess
 import time
 import uuid
+from datetime import datetime, timedelta, timezone
 
 
 def private(path, content):
@@ -87,7 +88,7 @@ def main():
         start={**lookup,'policy_id':str(uuid.uuid4()),'policy_version':1,'policy_hash':'b'*64,'membership_id':state['member'],'generation':1,
                'approver_membership_id':state['approver'],'approver_generation':1,'role_id':str(uuid.uuid4()),'capabilities':['commerce.store.read'],
                'scope_rule':{'version':1,'resource_type':'store','clauses':[{'kind':'TENANT_ALL','values':[],'include_root':False}]},
-               'valid_from':'2026-09-29T00:00:00Z','valid_to':'2026-09-30T00:00:00Z','reason':'isolated P4 start test'}
+               'valid_from':datetime.now(timezone.utc).isoformat().replace('+00:00','Z'),'valid_to':(datetime.now(timezone.utc)+timedelta(hours=1)).isoformat().replace('+00:00','Z'),'reason':'isolated P4 start test'}
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
             responses=list(pool.map(lambda _:call(state['key'],'/internal/iam-approval/v1/start',start),range(3)))
         assert all(r[0]==200 for r in responses),[r[0] for r in responses]

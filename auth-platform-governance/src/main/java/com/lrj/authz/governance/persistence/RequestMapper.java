@@ -7,6 +7,8 @@ import java.util.List;
 
 /** 申请聚合唯一SQL边界，所有用户查询绑定完整分区和成员代际。 */
 public interface RequestMapper {
+    /** 批量核对固定能力当前紧急开关，避免逐能力回源。 */
+    boolean disabledCapabilities(@Param("p") Partition p,@Param("capabilities") List<String> capabilities);
     /** 策略内容只插入，数据库拒绝改写。 */
     int insertPolicy(@Param("v") Policy policy, @Param("actor") String actor);
     /** 策略不能跨分区引用。 */

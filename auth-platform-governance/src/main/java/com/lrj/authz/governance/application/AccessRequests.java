@@ -234,7 +234,7 @@ public final class AccessRequests {
 
     private void requireResource(Partition p, RoleVersion role, String resource) {
         var app=catalog.application(p.applicationId());
-        if(app==null || app.manifestVersion()<1) throw denied();
+        if(app==null || app.manifestVersion()<1 || requests.disabledCapabilities(p,AccessValues.read(role.capabilitiesJson()))) throw denied();
         var definitions=CatalogManifest.read(catalog.snapshot(p.applicationId(),app.manifestVersion()).manifestJson()).capabilities();
         if(AccessValues.read(role.capabilitiesJson()).stream().anyMatch(cap -> definitions.stream()
                 .noneMatch(c -> c.code().equals(cap) && c.resourceType().equals(resource)))) throw denied();

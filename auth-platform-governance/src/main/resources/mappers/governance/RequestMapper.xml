@@ -4,6 +4,8 @@
  <sql id="partition">tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment}</sql>
  <sql id="policyColumns">id,tenant_id,application_id,environment,role_id,scope_json,max_duration_seconds,approver_membership_id,approver_generation,delegation_hash,policy_version,content_hash,enabled</sql>
  <sql id="requestColumns">id,tenant_id,application_id,environment,requester_principal,membership_id,generation,policy_id,role_id,capabilities_json,scope_json,policy_hash,member_valid_to,valid_from,valid_to,reason,request_version,snapshot_hash,state,state_version,approval_instance_id,grant_id,command_id</sql>
+ <select id="disabledCapabilities" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.capability_state WHERE application_id=#{p.applicationId} AND disabled AND capability IN
+ <foreach collection="capabilities" item="cap" open="(" separator="," close=")">#{cap}</foreach>)</select>
  <insert id="insertPolicy">INSERT INTO auth_governance.request_policy(id,tenant_id,application_id,environment,role_id,scope_json,max_duration_seconds,approver_membership_id,approver_generation,delegation_hash,policy_version,content_hash,enabled,created_by)
  VALUES(#{v.id},#{v.tenantId},#{v.applicationId},#{v.environment},#{v.roleId},#{v.scopeJson},#{v.maxDurationSeconds},#{v.approverMembershipId},#{v.approverGeneration},#{v.delegationHash},#{v.policyVersion},#{v.contentHash},#{v.enabled},#{actor})</insert>
  <select id="policy" resultType="com.lrj.authz.governance.domain.RequestModels$Policy">SELECT <include refid="policyColumns"/> FROM auth_governance.request_policy WHERE <include refid="partition"/> AND id=#{id}</select>
@@ -70,6 +72,7 @@
  WHEN g.valid_to &lt;=clock_timestamp() THEN 'EXPIRED'
  WHEN m.status&lt;&gt;'ACTIVE' OR m.generation&lt;&gt;r.generation OR u.status&lt;&gt;'ACTIVE' OR t.status&lt;&gt;'ACTIVE' OR NOT a.enabled
  OR (m.valid_to IS NOT NULL AND m.valid_to &lt;=clock_timestamp()) THEN 'UNAVAILABLE'
+ WHEN EXISTS(SELECT 1 FROM auth_governance.capability_state c JOIN jsonb_array_elements_text(r.capabilities_json::jsonb) cap ON cap.value=c.capability WHERE c.application_id=r.application_id AND c.disabled) THEN 'UNAVAILABLE'
  WHEN p.state='BLOCKED' OR d.state='BLOCKED' THEN 'APPLY_FAILED'
  WHEN g.state='ACTIVE' AND g.zed_token IS NOT NULL AND rec.operation_id IS NOT NULL AND p.state='READY' AND p.desired_epoch=p.applied_epoch
  AND d.state='READY' AND d.desired_epoch=d.applied_epoch AND g.valid_from &lt;=clock_timestamp() THEN 'ACTIVE'

@@ -29,3 +29,9 @@ OA使用request_id:request_version作为business key，接收固定快照；OA�
 ## 本人列表、状态和站内通知
 
 GET requests、requests/policies、requests/notifications返回`{items,next_cursor}`，固定最多100条，`after`为服务端返回游标。策略游标来自过滤前扫描页。GET requests/{id}/execution包含启动/回调技术状态、真实投影operation_id和other_active_grant_count（仅提示存在其他来源，不等于同一权限仍可用）。所有本人入口强制当前成员代际，不接受代查身份。通知仅站内渠道，安全模板REQUEST_PROGRESS_UPDATED由页面映射为“申请进度已更新，请查看详情”。RequestNotificationCli单轮最多20条，独立五次退避后DEAD，申请/Grant保持原状态。
+
+## OA审批依据
+
+OA `GET /api/v1/flow/central-access/tasks/{taskId}`沿用真实JWT及oa:flow:todo:view，再验证当前实际指派、固定审批人桥接及分区，返回原固定Start快照；OA沿用camelCase Result封装。外部申请人即使知道taskId也不能读取。实际办理继续使用原todos/{taskId}/complete，首版仅指定本人批准，不支持代理批准。
+
+能力紧急停用在申请策略、批准重新校验和执行展示时检查，停用后不能创建新Grant或继续显示ACTIVE。P3实时判权仍是业务执行权威。
