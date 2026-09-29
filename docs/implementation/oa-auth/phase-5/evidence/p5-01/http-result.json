@@ -1,0 +1,34 @@
+[
+  {
+    "check": "accept real partner invitation",
+    "result": "PASS"
+  },
+  {
+    "check": "enable strict partition",
+    "result": "PASS"
+  },
+  {
+    "check": "create fixed product role",
+    "result": "PASS"
+  },
+  {
+    "check": "grant specified stores",
+    "result": "PASS"
+  },
+  {
+    "check": "accept real partner invitation",
+    "result": "PASS"
+  },
+  {
+    "check": "enable strict partition",
+    "result": "PASS"
+  },
+  {
+    "check": "create fixed product role",
+    "result": "PASS"
+  },
+  {
+    "check": "grant specified stores",
+    "result": "PASS"
+  }
+]

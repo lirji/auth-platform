@@ -1,99 +1,88 @@
-import { useRef, useState } from 'react'
-import { Alert, Button, Card, Empty, Form, Input, Space, Table, Tag, Typography } from 'antd'
-import type { MenuProps } from 'antd'
-import { Menu } from 'antd'
+import { createContext, useContext, useEffect } from 'react'
+import { Alert, Button, Card, Empty, Select, Space, Spin, Tag, Typography } from 'antd'
 import { useAuth } from 'react-oidc-context'
-import { isAxiosError, HttpStatusCode } from 'axios'
-import { accessState, presentation, type AccessState, type Partition, type Presentation, type Grant } from '../api/governance'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { applications, organizations, type Organization, type Partition, type PortalApplication } from '../api/governance'
 import { PageHeader } from '../components/layout/PageHeader'
+import { contextKey, organizationSearch, safeEntry } from '../governance/context'
+import { Failure } from '../governance/feedback'
 
-const stateLabels = { PENDING: '待生效', ACTIVE: '图已确认', REVOKED: '已撤销' }
-const stateColors = { PENDING: 'warning', ACTIVE: 'success', REVOKED: 'default' }
-function failure(error: unknown) {
-  const status = isAxiosError(error) ? error.response?.status : undefined
-  if (status === HttpStatusCode.Forbidden) return '无权查看此范围，请核对当前企业成员关系或管理委派。'
-  if (status === HttpStatusCode.Conflict) return '当前状态已变化，请重新查询。'
-  if (status === HttpStatusCode.NotFound) return '当前环境尚未开启此功能。'
-  if (status === HttpStatusCode.BadRequest) return '查询条件无效，请检查企业、应用和环境。'
-  return '暂时无法确认授权状态，请稍后重试。'
+export interface GovernanceContext { organization: Organization; application: PortalApplication; partition: Partition; queryKey: readonly unknown[] }
+const Context = createContext<GovernanceContext | undefined>(undefined)
+export function useGovernanceContext() {
+  const context = useContext(Context)
+  if (!context) throw new Error('当前应用上下文尚未加载')
+  return context
 }
+const kindLabels: Record<string, string> = { EMPLOYEE: '内部成员', PARTNER: '合作成员', GUEST: '访客' }
 
-/** P2最小只读工作台；未授权菜单隐藏，失败或切换范围时立即清除旧结果。 */
+/** 以本人组织为入口；每个标签页独立URL，切换后旧查询/表单整个卸载。 */
 export default function GovernancePage() {
   const auth = useAuth()
-  const [form] = Form.useForm<Partition>()
-  const [partition, setPartition] = useState<Partition>()
-  const [view, setView] = useState<Presentation>()
-  const [state, setState] = useState<AccessState>()
-  const [error, setError] = useState<string>()
-  const [managementError, setManagementError] = useState<string>()
-  const [loading, setLoading] = useState(false)
-  const [managementLoading, setManagementLoading] = useState(false)
-  const [cursors, setCursors] = useState<{ role?: string; grant?: string }>({})
-  // 请求代次阻止旧范围的慢响应覆盖新选择；不把过期允许内容留在屏幕上。
-  const revision = useRef(0)
-  const invalidate = () => {
-    revision.current++; setPartition(undefined); setView(undefined); setState(undefined)
-    setError(undefined); setManagementError(undefined); setLoading(false); setManagementLoading(false); setCursors({})
+  const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const qc = useQueryClient()
+  const subject = `${auth.user?.profile.iss ?? ''}:${auth.user?.profile.sub ?? ''}`
+  const tenant = params.get('tenant') ?? ''
+  const orgs = useQuery({ queryKey: ['governance', subject, 'organizations'], queryFn: ({ signal }) => organizations(signal), staleTime: 0, gcTime: 0, retry: false })
+  const org = !orgs.error && orgs.data?.find(item => item.tenant_id === tenant)
+  const directoryKey = contextKey(subject, org ? org.membership_id : '', org ? org.generation : 0, { tenant_id: tenant, application_id: '', environment: '' })
+  const after = params.get('after') ?? undefined
+  const apps = useQuery({ queryKey: [...directoryKey, 'applications', after], queryFn: ({ signal }) => applications(tenant, after, signal), enabled: !!org, staleTime: 0, gcTime: 0, retry: false })
+  const entries = !apps.error ? apps.data?.items ?? [] : []
+  const app = entries.find(item => item.application_id === params.get('application') && item.environment === params.get('environment'))
+  const partition = { tenant_id: tenant, application_id: app?.application_id ?? '', environment: app?.environment ?? '' }
+  const scopedKey = contextKey(subject, org ? org.membership_id : '', org ? org.generation : 0, partition)
+  const scope = org && app ? { organization: org, application: app, partition, queryKey: scopedKey } : undefined
+  const home = location.pathname === '/governance' || location.pathname === '/governance/'
+
+  useEffect(() => {
+    if (!tenant && orgs.data?.length) setParams(organizationSearch(orgs.data[0].tenant_id), { replace: true })
+  }, [tenant, orgs.data, setParams])
+  const changeOrganization = (id: string) => {
+    void qc.cancelQueries({ queryKey: ['governance', subject] })
+    qc.removeQueries({ queryKey: ['governance', subject], predicate: query => query.queryKey[2] !== 'organizations' })
+    navigate(`/governance?${organizationSearch(id)}`)
   }
-  const load = async (values: Partition) => {
-    invalidate(); const current = revision.current; setLoading(true); setPartition(values)
-    try { const result = await presentation(values); if (current === revision.current) setView(result) }
-    catch (err) { if (current === revision.current) setError(failure(err)) }
-    finally { if (current === revision.current) setLoading(false) }
+  const choose = (item: PortalApplication, path: string) => {
+    const next = new URLSearchParams(params)
+    next.set('application', item.application_id); next.set('environment', item.environment)
+    navigate(`${path}?${next}`)
   }
-  const management = async (next: typeof cursors = {}) => {
-    if (!partition) return
-    const current = revision.current; setState(undefined); setManagementError(undefined); setManagementLoading(true)
-    try { const result = await accessState(partition, next.role, next.grant)
-      if (current === revision.current) { setState(result); setCursors(next) }
-    } catch (err) { if (current === revision.current) setManagementError(failure(err)) }
-    finally { if (current === revision.current) setManagementLoading(false) }
-  }
-  const menus = (parent: string | null): MenuProps['items'] => view?.menus.filter(item => item.parent === parent).map(item => {
-    const children = menus(item.code)
-    return { key: item.code, label: item.href ? <a href={item.href} target="_blank" rel="noopener noreferrer">{item.code}</a> : item.code,
-      children: children?.length ? children : undefined, disabled: !item.href && !children?.length }
-  })
-  return <main className="app-content" style={{ maxWidth: 1320, margin: '0 auto' }}>
-    <PageHeader title="企业应用权限" description="查询当前企业和应用下的可见入口与授权状态。"
+  return <main className="app-content" style={{ width: '100%', boxSizing: 'border-box' }}>
+    <PageHeader title="我的工作台" description="在当前组织内查看应用、权限和申请进度。"
       extra={<Button onClick={() => void auth.signoutRedirect()}>退出登录</Button>} />
-    <Card title="查询范围" style={{ marginBottom: 20 }}>
-      <Form form={form} layout="vertical" onFinish={values => void load(values)} onValuesChange={invalidate}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
-          <Form.Item name="tenant_id" label="企业标识" rules={[{ required: true, message: '请输入企业标识' }, { pattern: /^[0-9a-f-]{36}$/, message: '请输入有效的企业标识' }]}><Input placeholder="企业 UUID" /></Form.Item>
-          <Form.Item name="application_id" label="应用编码" rules={[{ required: true, message: '请输入应用编码' }]}><Input placeholder="已登记的应用编码" /></Form.Item>
-          <Form.Item name="environment" label="环境" rules={[{ required: true, message: '请输入环境' }]}><Input placeholder="已启用的环境" /></Form.Item>
+    <Card style={{ marginBottom: 20 }}>
+      <Space wrap size="middle">
+        <Typography.Text strong>当前组织</Typography.Text>
+        <Select aria-label="当前组织" placeholder="选择组织" value={org ? tenant : undefined} loading={orgs.isFetching}
+          style={{ width: 260, maxWidth: '100%' }} onChange={changeOrganization}
+          options={orgs.data?.map(item => ({ value: item.tenant_id, label: item.tenant_code }))} />
+        {org && <Tag>{kindLabels[org.member_kind] ?? org.member_kind}</Tag>}
+        {!home && <Link to={`/governance?${params}`}>返回我的应用</Link>}
+      </Space>
+    </Card>
+    {orgs.error ? <Failure error={orgs.error} retry={() => void orgs.refetch()} /> : orgs.isPending ? <Spin aria-label="正在加载组织" />
+      : !org ? <Empty description={tenant ? '当前组织不可用，请重新选择有效组织' : '当前没有有效组织'} />
+      : apps.error ? <Failure error={apps.error} retry={() => void apps.refetch()} /> : apps.isPending ? <Spin aria-label="正在加载应用" />
+      : home ? <>
+        <PageHeader title="我的应用" description="业务入口按当前权限展示；权限管理与业务访问分别授权。" extra={<Button loading={apps.isFetching} onClick={() => void apps.refetch()}>刷新应用</Button>} />
+        {!entries.length && <Empty description="当前没有关联应用" />}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 16 }}>
+          {entries.map(item => <Card key={`${item.application_id}/${item.environment}`} title={<span style={{ overflowWrap: 'anywhere' }}>{item.application_id}</span>} extra={<Tag>{item.environment}</Tag>}>
+            {item.menus.some(menu => safeEntry(menu.href)) ? <Space direction="vertical" style={{ width: '100%' }}>
+              {item.menus.filter(menu => safeEntry(menu.href)).map(menu => <Button key={menu.code} href={safeEntry(menu.href)} target="_blank" rel="noopener noreferrer">进入 {menu.code}</Button>)}
+            </Space> : <Typography.Paragraph type="secondary">当前暂无可用业务入口</Typography.Paragraph>}
+            {item.management && <Button style={{ marginTop: 16 }} onClick={() => choose(item, '/governance/access')}>查看授权管理</Button>}
+          </Card>)}
         </div>
-        <Space wrap><Button type="primary" htmlType="submit" loading={loading}>查询我的应用</Button>
-          <Button disabled={!partition || loading} loading={managementLoading} onClick={() => void management()}>查看管理授权状态</Button></Space>
-      </Form>
-    </Card>
-    {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}
-    <Card title="我的可见入口" loading={loading} style={{ marginBottom: 20 }}>
-      {!view ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="请选择范围并查询" /> : <>
-        {view.menus.length ? <Menu mode="inline" items={menus(null)} /> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="当前没有可见入口" />}
-        <Typography.Paragraph type="secondary" style={{ marginTop: 16 }}>入口仅用于导航，实际操作会重新校验权限。</Typography.Paragraph>
-        <Space wrap>{view.capability_hints.map(code => <Tag key={code}>{code}</Tag>)}</Space>
-      </>}
-    </Card>
-    {managementError && <Alert type="error" showIcon message={managementError} style={{ marginBottom: 16 }} />}
-    {(state || managementLoading) && <Card title="管理授权状态" loading={managementLoading}>
-      <Alert type="info" showIcon message="图已确认表示授权已完成投影；当前有效期、成员状态和业务检查仍决定是否允许访问。" style={{ marginBottom: 16 }} />
-      <Typography.Title level={5}>固定角色版本</Typography.Title>
-      <Table rowKey="id" dataSource={state?.roles} pagination={false} scroll={{ x: 660 }} columns={[
-        { title: '角色', dataIndex: 'role_code' }, { title: '版本', dataIndex: 'version' },
-        { title: '能力', dataIndex: 'capabilities', render: (caps: string[]) => caps.join('、') },
-      ]} />
-      <Button style={{ marginTop: 12 }} disabled={!state?.next_role_cursor} onClick={() => void management({ ...cursors, role: state?.next_role_cursor ?? undefined })}>下一页角色</Button>
-      <Typography.Title level={5}>成员授权</Typography.Title>
-      <Table<Grant> rowKey="id" dataSource={state?.grants} pagination={false} scroll={{ x: 1100 }} columns={[
-        { title: '成员 / 代际', render: (_, grant) => <span>{grant.member_id}<br />第 {grant.member_generation} 代</span> },
-        { title: '来源', dataIndex: 'source_id' }, { title: '范围', render: () => '当前企业全部资源' },
-        { title: '有效期', render: (_, grant) => <span>{grant.valid_from}<br />至 {grant.valid_to}</span> },
-        { title: '状态', dataIndex: 'state', render: (value: Grant['state']) => <Tag color={stateColors[value]}>{stateLabels[value] ?? '未知状态'}</Tag> },
-      ]} />
-      <Button style={{ marginTop: 12 }} disabled={!state?.next_grant_cursor} onClick={() => void management({ ...cursors, grant: state?.next_grant_cursor ?? undefined })}>下一页授权</Button>
-    </Card>}
+        <Space style={{ marginTop: 20 }}>
+          {after && <Button onClick={() => setParams(organizationSearch(tenant))}>返回首页</Button>}
+          {apps.data?.next_cursor && <Button onClick={() => { const next = organizationSearch(tenant); next.set('after', apps.data!.next_cursor!); setParams(next) }}>下一页应用</Button>}
+        </Space>
+      </> : scope ? <Context.Provider key={JSON.stringify(scopedKey)} value={scope}><Outlet /></Context.Provider>
+        : <Alert type="warning" showIcon message="当前应用不在本组织的关联目录中，请返回我的应用重新选择。" />}
   </main>
 }

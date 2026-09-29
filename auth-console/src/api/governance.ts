@@ -18,3 +18,15 @@ export async function accessState(partition: Partition, role?: string, grant?: s
     params: { ...partition, after_role: role, after_grant: grant },
   })).data
 }
+
+export interface Organization { membership_id: string; tenant_id: string; tenant_code: string; member_kind: string; generation: number }
+export interface PortalApplication extends Presentation { application_id: string; environment: string; management: boolean }
+export interface Page<T> { items: T[]; next_cursor: string | null }
+/** 本人组织来自当前权威成员关系，浏览器不能指定其他主体。 */
+export async function organizations(signal?: AbortSignal): Promise<Organization[]> {
+  return (await apiClient.get<Organization[]>('/api/governance/v1/me/organizations', { signal })).data
+}
+/** 应用候选关联与真实业务入口分开，管理权不会带来业务菜单。 */
+export async function applications(tenant: string, after?: string, signal?: AbortSignal): Promise<Page<PortalApplication>> {
+  return (await apiClient.get<Page<PortalApplication>>('/api/governance/v1/me/applications', { params: { tenant_id: tenant, after }, signal })).data
+}

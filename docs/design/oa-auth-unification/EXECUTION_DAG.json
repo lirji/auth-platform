@@ -1,7 +1,7 @@
 {
   "schema_version": "oa-auth-project-execution-plan/1",
-  "plan_status": "P4_COMPLETE_PAUSED",
-  "scope": "P4 authorized: execute P4-01 through P4-07; stop before P5; no production deployment.",
+  "plan_status": "P5_IN_PROGRESS",
+  "scope": "P5 authorized: execute P5-01 through P5-07; stop before P6; no production deployment.",
   "source_task_count": 58,
   "task_count": 63,
   "topological_order": [
@@ -69,7 +69,7 @@
     "P7-07",
     "P7-08"
   ],
-  "next_design_task": "P5-01 (NOT_AUTHORIZED; stop after P4 delivery)",
+  "next_design_task": "P5-02",
   "production_authorized": false,
   "tasks": [
     {
@@ -1117,10 +1117,11 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "evidence": "docs/implementation/oa-auth/phase-5/P5-01_TEST_RESULT.md"
     },
     {
       "id": "P5-02",
@@ -1142,8 +1143,8 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "IN_PROGRESS",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1168,7 +1169,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": false,
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1193,7 +1194,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": false,
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1219,7 +1220,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": false,
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1245,11 +1246,11 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": false,
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "additional_gates": [
-        "Q-EXT真实场景与资源归属实现"
+        "Q-EXT confirmed: existing commerce store/merchant collaboration; invited member accesses assigned-store products and requests time-limited export"
       ]
     },
     {
@@ -1277,7 +1278,7 @@
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
       "status": "TODO",
-      "execution_authorized_this_task": false,
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
     },
@@ -1630,6 +1631,6 @@
       ]
     }
   ],
-  "current_execution_ceiling": "P4",
-  "pause_after_phase": 4
+  "current_execution_ceiling": "P5",
+  "pause_after_phase": 5
 }

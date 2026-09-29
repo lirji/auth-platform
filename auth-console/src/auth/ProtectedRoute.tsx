@@ -20,9 +20,9 @@ export default function ProtectedRoute({ children, requireWorkspaceGroups = true
 
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated && !auth.activeNavigator && !auth.error) {
-      void auth.signinRedirect({ state: { returnTo: location.pathname } })
+      void auth.signinRedirect({ state: { returnTo: location.pathname + location.search } })
     }
-  }, [auth.isLoading, auth.isAuthenticated, auth.activeNavigator, auth.error, location.pathname])
+  }, [auth.isLoading, auth.isAuthenticated, auth.activeNavigator, auth.error, location.pathname, location.search])
 
   if (auth.isLoading || auth.activeNavigator) {
     return (

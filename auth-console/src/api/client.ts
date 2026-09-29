@@ -46,7 +46,7 @@ apiClient.interceptors.response.use(
       } catch {
         // 续期失败,落到交互式登录
       }
-      await userManager.signinRedirect({ state: { returnTo: window.location.pathname } })
+      await userManager.signinRedirect({ state: { returnTo: window.location.pathname + window.location.search } })
     }
     return Promise.reject(error)
   },

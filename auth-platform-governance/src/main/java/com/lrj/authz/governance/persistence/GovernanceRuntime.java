@@ -29,6 +29,7 @@ public final class GovernanceRuntime implements AutoCloseable {
     private com.lrj.authz.governance.application.AccessRequests requests;
     private ApprovalInboxMapper inboxMapper;
     private RequestMapper requestMapper;
+    private PortalMapper portalMapper;
     private AccessMapper accessMapper;
     private CatalogMapper catalogMapper;
     private ProjectionMapper projectionMapper;
@@ -110,6 +111,7 @@ public final class GovernanceRuntime implements AutoCloseable {
                             directoryTransaction, conflictTransaction));
             runtime.catalog = new com.lrj.authz.governance.application.ApplicationCatalog(session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(SafetyMapper.class));
             runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(FenceMapper.class), session.getMapper(SafetyMapper.class));
+            runtime.portalMapper=session.getMapper(PortalMapper.class);
             runtime.accessMapper=session.getMapper(AccessMapper.class); runtime.catalogMapper=session.getMapper(CatalogMapper.class);
             runtime.projectionMapper=session.getMapper(ProjectionMapper.class); runtime.transaction=transaction;
             runtime.fenceMapper=session.getMapper(FenceMapper.class);runtime.reliableMapper=session.getMapper(ReliableProjectionMapper.class);runtime.scopeMapper=session.getMapper(ScopeMapper.class);
@@ -199,6 +201,11 @@ public final class GovernanceRuntime implements AutoCloseable {
             var p=new com.lrj.authz.governance.domain.AccessModels.Partition(context.tenantId(),context.applicationId(),context.environment());
             return accessMapper.strict(p)?!current.evaluate(context,capability,resource).alternatives().isEmpty():old.allowed(context,capability,resource);
         });
+    }
+
+    /** 门户复用本进程现有身份与展示装配，组织/应用目录不依赖OA。 */
+    public com.lrj.authz.governance.application.PortalDirectory portal(com.lrj.authz.governance.application.AccessPresentation presentation) {
+        return new com.lrj.authz.governance.application.PortalDirectory(identity, mapper, portalMapper, presentation);
     }
 
     /** 所属进程停止或 CLI 退出时释放连接池，不清理数据库。 */

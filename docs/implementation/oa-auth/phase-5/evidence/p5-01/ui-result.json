@@ -1,0 +1,22 @@
+[
+  {
+    "check": "PARTNER sees own real application; business entry contains no token; management action absent",
+    "result": "PASS"
+  },
+  {
+    "check": "two tabs retain independent tenant parameters; organization switch clears previous application",
+    "result": "PASS"
+  },
+  {
+    "check": "narrow viewport has no horizontal page overflow",
+    "result": "PASS"
+  },
+  {
+    "check": "direct API bypass of hidden management action is forbidden",
+    "result": "PASS"
+  },
+  {
+    "check": "manager can open protected current-partition view without acquiring business access",
+    "result": "PASS"
+  }
+]

@@ -2,7 +2,7 @@
 
 保留源方案全部 58 个任务 ID；新增 P1-00 契约冻结、P2-05a SDK兼容验证，并将 P3-04 分为三个有界 pass，原 ID 作为汇总。机器依赖以 EXECUTION_DAG.json 为准；执行范围遵循最新用户指令和 PROGRESS_STATE，生产操作独立授权。
 
-P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真实集成测试通过**。P1-00 已冻结当前薄路径契约；继续实施已授权，产品片须有对应冻结契约。P1—P4全部DONE；本轮执行上限为P4，P5前停止，交付状态以PROGRESS_STATE和DAG为准。
+P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真实集成测试通过**。P1-00 已冻结当前薄路径契约；继续实施已授权，产品片须有对应冻结契约。P1—P4全部DONE；本轮执行上限为P5，P6前停止，交付状态以PROGRESS_STATE和DAG为准。
 
 | ID | 可观察结果 | Needs | Owner／主要路径 | 验收 | Pass／Runtime | 状态 |
 |---|---|---|---|---|---|---|
@@ -47,8 +47,8 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 | P4-05 | 取消／撤销／到期／离职 | P4-04 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 竞态收敛且来源隔离 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P4-06 | 待办、状态查询与通知 | P4-05 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 外部只能看自己允许的内容 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P4-07 | 真实跨进程E2E和故障恢复 | P4-06 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 停OA不影响已有日常授权检查 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
-| P5-01 | 工作台壳层、组织选择、应用卡片 | P1-03, P2-07 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 多组织切换与应用隔离 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
-| P5-02 | 角色版本、成员授权、状态查询 | P2-03, P3-06 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 权限差异与待生效展示 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
+| P5-01 | 工作台壳层、组织选择、应用卡片 | P1-03, P2-07 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 多组织切换与应用隔离 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
+| P5-02 | 角色版本、成员授权、状态查询 | P2-03, P3-06 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 权限差异与待生效展示 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | IN_PROGRESS |
 | P5-03 | 邀请、我的申请、审批进度 | P1-05, P4-06 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 外部最小可见范围 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P5-04 | 授权解释、撤权与审计 | P3-06, P4-05 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 多来源撤销解释 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P5-05 | 内部真实业务接入验收 | P2-06, P3-07, P4-07 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 后端直调不能绕过 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
@@ -72,7 +72,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 
 ## 当前下一片
 
-P0—P3已交付；P4全部7节点DONE，真实验收通过。最终Git/CI见phase-4/P4_DELIVERY_RESULT及CI_RESULT。P5及之后未授权，下一节点P5-01仅为交接入口。
+P0—P3已交付；P4全部7节点DONE，真实验收通过。最终Git/CI见phase-4/P4_DELIVERY_RESULT及CI_RESULT。用户已授权P5，P5-01已完成、P5-02进行中，P6及之后未授权；Q-EXT已确认真实commerce门店/商家协作。
 
 ## 依赖与外部条件
 
