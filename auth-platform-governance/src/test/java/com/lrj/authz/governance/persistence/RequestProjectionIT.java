@@ -75,6 +75,13 @@ class RequestProjectionIT {
         assertThat(runtime.reliableAuthorization(graph).allowed(context,f.p.applicationId()+".read",other)).isFalse();
         runtime.access().createRole(login(f.owner),f.p,id(),"reader",2,List.of(f.p.applicationId()+".read",f.p.applicationId()+".refund"));
         assertThat(runtime.reliableAuthorization(graph).allowed(context,f.p.applicationId()+".refund",one)).isFalse();
+        String constraint="p4_active_notice_"+id().replace("-","");
+        jdbc.execute("alter table auth_governance.request_site_notice add constraint "+constraint+" check(request_id <> '"+r.id()+"')");
+        try {
+            assertThat(runtime.requestNotifications().step(f.p)).isTrue();
+            assertThat(runtime.requests().execution(login(f.member),f.p,r.id()).displayState()).isEqualTo("ACTIVE");
+            assertThat(runtime.reliableAuthorization(graph).allowed(context,f.p.applicationId()+".read",one)).isTrue();
+        } finally {jdbc.execute("alter table auth_governance.request_site_notice drop constraint "+constraint);}
         runtime.requests().cancel(login(f.member),f.p,id(),r.id(),r.stateVersion());
         assertThat(runtime.requests().execution(login(f.member),f.p,r.id()).displayState()).isEqualTo("REVOKING");
         assertThatThrownBy(()->runtime.reliableAuthorization(graph).evaluate(context,f.p.applicationId()+".read","store")).hasMessage("AUTHZ_STATE_NOT_READY");

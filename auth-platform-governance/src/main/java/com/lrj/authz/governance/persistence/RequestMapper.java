@@ -36,6 +36,20 @@ public interface RequestMapper {
     int stopStart(@Param("id") String id);
     /** 扫描最多100条到期或当前成员失效记录，已回收来源不重复领取。 */
     List<String> expired(@Param("p") Partition p);
+    /** 本人所有状态有界分页，数据库过滤当前成员代际。 */
+    List<Request> mine(@Param("p") Partition p,@Param("member") String member,@Param("generation") long generation,@Param("after") String after);
+    /** 站内通知不返回内部审批人或权限清单。 */
+    List<com.lrj.authz.protocol.RequestDtos.Notice> notices(@Param("p") Partition p,@Param("member") String member,@Param("generation") long generation,@Param("after") String after);
+    /** 耗尽崩溃租约进入可查死信。 */
+    int exhaustNotices(@Param("p") Partition p);
+    /** 独立事务领取一条通知，最多五次。 */
+    String claimNotice(@Param("p") Partition p,@Param("lease") String lease);
+    /** 同通知ID只投递一次站内消息。 */
+    int insertNotice(@Param("id") String id,@Param("lease") String lease);
+    /** 只有当前租约可提交投递回执。 */
+    int finishNotice(@Param("id") String id,@Param("lease") String lease);
+    /** 通知失败只更新通知任务，不更新申请或Grant。 */
+    int failNotice(@Param("id") String id,@Param("lease") String lease);
     /** 最后一次尝试崩溃后也收敛为耗尽，不留永久RUNNING。 */
     int exhaustStarts(@Param("p") Partition p);
     /** 实例绑定与申请状态推进审计原子提交。 */

@@ -25,3 +25,7 @@ OA使用request_id:request_version作为business key，接收固定快照；OA�
 ## 取消与回收
 
 `POST /api/governance/v1/requests/{id}/cancel`接收完整分区、command_id和state_version。只允许当前代际本人；旧视图针对不可变同一申请的取消仍有效，若批准先提交自动回收对应OA_REQUEST来源。APPROVED保留历史事实，由execution返回REVOKING/REVOKED。调用方不能指定其他Grant。RequestLifecycleCli每轮最多100条，按数据库时间及当前成员资格收敛到期/离职，实时鉴权不依赖此任务。
+
+## 本人列表、状态和站内通知
+
+GET requests、requests/policies、requests/notifications返回`{items,next_cursor}`，固定最多100条，`after`为服务端返回游标。策略游标来自过滤前扫描页。GET requests/{id}/execution包含启动/回调技术状态、真实投影operation_id和other_active_grant_count（仅提示存在其他来源，不等于同一权限仍可用）。所有本人入口强制当前成员代际，不接受代查身份。通知仅站内渠道，安全模板REQUEST_PROGRESS_UPDATED由页面映射为“申请进度已更新，请查看详情”。RequestNotificationCli单轮最多20条，独立五次退避后DEAD，申请/Grant保持原状态。

@@ -21,5 +21,10 @@ public final class RequestDtos {
     /** 可申请项目不包含审批人目录或管理委派原文。 */
     public record PolicyView(String id,String roleId,ScopeDtos.Rule scopeRule,long maxDurationSeconds,long policyVersion) {}
     /** 审批与执行分离，operationId仅在真实投影回执存在时返回。 */
-    public record Execution(String requestId,String grantId,String grantState,String displayState,String operationId) {}
+    public record Execution(String requestId,String grantId,String grantState,String displayState,String operationId,
+                            String startState,int startAttempts,String startError,String callbackStatus,String callbackResult,long otherActiveGrantCount) {}
+    /** 显式下一页游标基于扫描页，过滤不可用策略时也不会丢失后续页。 */
+    public record Page<T>(List<T> items,String nextCursor) {}
+    /** 只提示本人查看权威申请进度，不在通知中复制敏感范围。 */
+    public record Notice(String id,String requestId,long stateVersion,String messageKey,String deliveredAt) {}
 }

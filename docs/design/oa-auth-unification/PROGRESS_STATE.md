@@ -6,11 +6,11 @@ P4_IN_PROGRESS。最新用户授权“继续做P4”，完成P4后正常Git交�
 
 ## 已完成
 
-P0至P3历史交付见phase-3/P3_DELIVERY_RESULT。P4-01/02/03/04/05 DONE：不可变申请、真实OA幂等启动、可信回调/持久Inbox/冲突隔离，证据分别见phase-4对应TEST_RESULT。
+P0至P3历史交付见phase-3/P3_DELIVERY_RESULT。P4-01至06 DONE：不可变申请、真实OA幂等启动、可信回调/持久Inbox/冲突隔离，证据分别见phase-4对应TEST_RESULT。
 
 ## 当前工作
 
-P4-06 IN_PROGRESS：状态/站内通知；随后P4-07真实引擎与跨进程故障。
+P4-07 IN_PROGRESS：真实引擎与跨进程故障。
 
 ## 环境与交付
 

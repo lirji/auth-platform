@@ -99,10 +99,31 @@ public final class AccessRequests {
     public List<Policy> policies(VerifiedLogin login, Partition p, String after) {
         CurrentContext actor=context(login,p,false);
         if(after==null) after=""; else if(!after.isEmpty()) BootstrapCommand.uuid(after);
-        return requests.policies(p,actor.membershipId(),after).stream().filter(policy -> {
-            try { usablePolicy(p,policy.id(),actor.membershipId()); return true; }
-            catch(GovernanceException unavailable) { return false; }
+        return policyPage(login,p,after).items();
+    }
+
+    /** 策略过滤前保存扫描游标，避免整页失效策略使后续有效项不可达。 */
+    public com.lrj.authz.protocol.RequestDtos.Page<Policy> policyPage(VerifiedLogin login,Partition p,String after) {
+        var actor=context(login,p,false);var page=requests.policies(p,actor.membershipId(),cursor(after));
+        var items=page.stream().filter(policy -> {
+            try { usablePolicy(p,policy.id(),actor.membershipId());return true; }
+            catch(GovernanceException unavailable){return false;}
         }).toList();
+        return new com.lrj.authz.protocol.RequestDtos.Page<>(items,page.size()==100?page.getLast().id():null);
+    }
+
+    /** 本人申请分页，禁止调用方传入受益成员身份。 */
+    public List<Request> mine(VerifiedLogin login,Partition p,String after) {
+        var actor=context(login,p,false);return requests.mine(p,actor.membershipId(),actor.membershipGeneration(),cursor(after));
+    }
+
+    /** 站内通知沿用本人当前代际权限，不提供通用员工检索入口。 */
+    public List<com.lrj.authz.protocol.RequestDtos.Notice> notices(VerifiedLogin login,Partition p,String after) {
+        var actor=context(login,p,false);return requests.notices(p,actor.membershipId(),actor.membershipGeneration(),cursor(after));
+    }
+
+    private String cursor(String after) {
+        if(after==null || after.isEmpty())return "";BootstrapCommand.uuid(after);return after;
     }
 
     /** 仅在本人读取之后返回执行视图；它不替代实时业务授权检查。 */

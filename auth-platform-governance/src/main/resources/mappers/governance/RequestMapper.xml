@@ -73,8 +73,13 @@
  WHEN p.state='BLOCKED' OR d.state='BLOCKED' THEN 'APPLY_FAILED'
  WHEN g.state='ACTIVE' AND g.zed_token IS NOT NULL AND rec.operation_id IS NOT NULL AND p.state='READY' AND p.desired_epoch=p.applied_epoch
  AND d.state='READY' AND d.desired_epoch=d.applied_epoch AND g.valid_from &lt;=clock_timestamp() THEN 'ACTIVE'
- ELSE 'PENDING_APPLY' END display_state,rec.operation_id
+ ELSE 'PENDING_APPLY' END display_state,rec.operation_id,o.state start_state,o.attempts start_attempts,o.last_error start_error,
+ (SELECT i.status FROM auth_governance.approval_inbox i WHERE i.request_id=r.id AND i.tenant_id=r.tenant_id AND i.application_id=r.application_id AND i.environment=r.environment ORDER BY i.received_at DESC,i.event_id DESC LIMIT 1) callback_status,
+ (SELECT i.result FROM auth_governance.approval_inbox i WHERE i.request_id=r.id AND i.tenant_id=r.tenant_id AND i.application_id=r.application_id AND i.environment=r.environment ORDER BY i.received_at DESC,i.event_id DESC LIMIT 1) callback_result,
+ (SELECT count(*) FROM auth_governance.access_grant other WHERE other.tenant_id=r.tenant_id AND other.application_id=r.application_id AND other.environment=r.environment
+ AND other.membership_id=r.membership_id AND other.generation=r.generation AND other.id&lt;&gt;coalesce(g.id,'') AND other.state='ACTIVE' AND other.valid_from&lt;=clock_timestamp() AND other.valid_to&gt;clock_timestamp()) other_active_grant_count
  FROM auth_governance.access_request r
+ JOIN auth_governance.request_start_outbox o ON o.request_id=r.id
  JOIN auth_governance.membership m ON m.id=r.membership_id
  JOIN auth_governance.principal u ON u.id=m.principal_id JOIN auth_governance.tenant t ON t.id=r.tenant_id
  JOIN auth_governance.tenant_application a ON a.tenant_id=r.tenant_id AND a.application_id=r.application_id AND a.environment=r.environment
@@ -84,4 +89,27 @@
  LEFT JOIN auth_governance.projection_grant_receipt rec ON rec.grant_id=g.id AND rec.grant_version=g.version
  WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment} AND r.id=#{id}
  </select>
+ <select id="mine" resultType="com.lrj.authz.governance.domain.RequestModels$Request">
+ SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/>
+ AND membership_id=#{member} AND generation=#{generation} AND id &gt; #{after} ORDER BY id LIMIT 100</select>
+ <select id="notices" resultType="com.lrj.authz.protocol.RequestDtos$Notice">
+ SELECT n.id,n.request_id,n.state_version,n.message_key,n.delivered_at::text FROM auth_governance.request_site_notice n
+ JOIN auth_governance.access_request r ON r.id=n.request_id WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
+ AND r.membership_id=#{member} AND r.generation=#{generation} AND n.id &gt; #{after} ORDER BY n.id LIMIT 100</select>
+ <update id="exhaustNotices">WITH due AS (SELECT o.id FROM auth_governance.request_notice_outbox o JOIN auth_governance.access_request r ON r.id=o.request_id
+ WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment} AND o.state='RUNNING' AND o.attempts=5 AND o.lease_until &lt; clock_timestamp()
+ ORDER BY o.id LIMIT 100 FOR UPDATE OF o SKIP LOCKED)
+ UPDATE auth_governance.request_notice_outbox o SET state='DEAD',lease_until=NULL FROM due WHERE o.id=due.id</update>
+ <select id="claimNotice" resultType="string" affectData="true" flushCache="true">
+ WITH due AS (SELECT o.id FROM auth_governance.request_notice_outbox o JOIN auth_governance.access_request r ON r.id=o.request_id
+ WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
+ AND o.attempts &lt; 5 AND o.next_attempt_at &lt;=clock_timestamp() AND (o.state='PENDING' OR o.state='RUNNING' AND o.lease_until &lt;clock_timestamp())
+ ORDER BY o.next_attempt_at,o.id LIMIT 1 FOR UPDATE OF o SKIP LOCKED)
+ UPDATE auth_governance.request_notice_outbox o SET state='RUNNING',attempts=attempts+1,lease_token=#{lease},lease_until=clock_timestamp()+interval '30 seconds'
+ FROM due WHERE o.id=due.id RETURNING o.id</select>
+ <insert id="insertNotice">INSERT INTO auth_governance.request_site_notice(id,request_id,state_version,message_key)
+ SELECT id,request_id,state_version,'REQUEST_PROGRESS_UPDATED' FROM auth_governance.request_notice_outbox WHERE id=#{id} AND state='RUNNING' AND lease_token=#{lease} AND lease_until &gt;clock_timestamp() ON CONFLICT DO NOTHING</insert>
+ <update id="finishNotice">UPDATE auth_governance.request_notice_outbox SET state='DONE',lease_until=NULL WHERE id=#{id} AND state='RUNNING' AND lease_token=#{lease} AND lease_until &gt;clock_timestamp()</update>
+ <update id="failNotice">UPDATE auth_governance.request_notice_outbox SET state=CASE WHEN attempts=5 THEN 'DEAD' ELSE 'PENDING' END,lease_until=NULL,
+ next_attempt_at=clock_timestamp()+make_interval(secs=&gt;power(2,attempts)::int) WHERE id=#{id} AND state='RUNNING' AND lease_token=#{lease} AND lease_until &gt;clock_timestamp()</update>
 </mapper>

@@ -262,5 +262,34 @@ class RequestPostgresIT {
         assertThatThrownBy(()->runtime.requests().owned(login(g.member),g.p,gr.id())).hasMessage("ACCESS_DENIED");
         assertThat(jdbc.queryForObject("select state from auth_governance.access_grant where tenant_id=?",String.class,g.p.tenantId())).isEqualTo("REVOKED");
     }
+    @Test void noticeFailureRetriesIndependentlyAndOnlyCurrentOwnerCanRead() throws Exception {
+        var f=fixture();var policy=policy(f);var r=submit(f,policy.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"notify");
+        approve(f,policy,r);runtime.approvalDecisions().step(f.p);
+        String constraint="p4_notice_"+id().replace("-","");
+        jdbc.execute("alter table auth_governance.request_site_notice add constraint "+constraint+" check(request_id <> '"+r.id()+"')");
+        try {
+            assertThat(runtime.requestNotifications().step(f.p)).isTrue();
+            assertThat(runtime.requests().owned(login(f.member),f.p,r.id()).state().code()).isEqualTo("APPROVED");
+            assertThat(runtime.requests().notices(login(f.member),f.p,null)).isEmpty();
+        }finally{jdbc.execute("alter table auth_governance.request_site_notice drop constraint "+constraint);}
+        jdbc.update("update auth_governance.request_notice_outbox set next_attempt_at=clock_timestamp() where request_id=?",r.id());
+        for(int i=0;i<5;i++)runtime.requestNotifications().step(f.p);
+        assertThat(runtime.requests().notices(login(f.member),f.p,null)).hasSize(3).allSatisfy(n->assertThat(n.messageKey()).isEqualTo("REQUEST_PROGRESS_UPDATED"));
+        assertThat(runtime.requestNotifications().step(f.p)).isFalse();
+        assertThat(runtime.requests().notices(login(f.owner),f.p,null)).isEmpty();
+        assertThat(runtime.requests().mine(login(f.owner),f.p,null)).isEmpty();
+        assertThat(runtime.requests().mine(login(f.member),f.p,null)).extracting(com.lrj.authz.governance.domain.RequestModels.Request::id).containsExactly(r.id());
+        assertThat(runtime.requests().mine(login(f.member),f.p,r.id())).isEmpty();
+        var execution=runtime.requests().execution(login(f.member),f.p,r.id());assertThat(execution.startState()).isEqualTo("DONE");assertThat(execution.callbackStatus()).isEqualTo("APPLIED");
+    }
+    @Test void filteredPolicyPageKeepsCursorToLaterValidPolicies() {
+        var f=fixture();var policy=policy(f);
+        // 保留真实不可变策略内容，批量夹具只替换唯一ID；当前上限被移除后整页仍给扫描游标。
+        jdbc.update("insert into auth_governance.request_policy select gen_random_uuid()::text,tenant_id,application_id,environment,role_id,scope_json,max_duration_seconds,approver_membership_id,approver_generation,delegation_hash,policy_version,content_hash,enabled,created_by,created_at from auth_governance.request_policy cross join generate_series(1,100) where id=?",policy.id());
+        jdbc.update("update auth_governance.access_delegation set enabled=false where membership_id=?",f.owner.membershipId());
+        var page=runtime.requests().policyPage(login(f.member),f.p,null);
+        assertThat(page.items()).isEmpty();assertThat(page.nextCursor()).isNotNull();
+        assertThat(runtime.requests().policyPage(login(f.member),f.p,page.nextCursor()).nextCursor()).isNull();
+    }
     private record Fixture(BootstrapCommand owner,BootstrapCommand member,Partition p,RoleVersion role){}
 }

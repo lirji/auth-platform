@@ -63,8 +63,26 @@ public class GovernanceRequestController {
     public JsonNode policies(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("tenant_id") String tenant,
                              @RequestParam("application_id") String app,@RequestParam("environment") String env,
                              @RequestParam(value="after",required=false) String after) {
-        return GovernanceWeb.body(requests.policies(login,new Partition(tenant,app,env),after).stream()
-                .map(GovernanceRequestController::policyView).toList());
+        var page=requests.policyPage(login,new Partition(tenant,app,env),after);
+        return GovernanceWeb.body(new Page<>(page.items().stream().map(GovernanceRequestController::policyView).toList(),page.nextCursor()));
+    }
+
+    /** 所有申请状态均可找到；只返回本人当前成员代际。 */
+    @GetMapping
+    public JsonNode mine(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("tenant_id") String tenant,
+                         @RequestParam("application_id") String app,@RequestParam("environment") String env,
+                         @RequestParam(value="after",required=false) String after) {
+        var items=requests.mine(login,new Partition(tenant,app,env),after);
+        return GovernanceWeb.body(new Page<>(items.stream().map(GovernanceRequestController::view).toList(),items.size()==100?items.getLast().id():null));
+    }
+
+    /** 站内通知仅含安全模板和本人详情链接标识。 */
+    @GetMapping("/notifications")
+    public JsonNode notifications(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("tenant_id") String tenant,
+                                  @RequestParam("application_id") String app,@RequestParam("environment") String env,
+                                  @RequestParam(value="after",required=false) String after) {
+        var items=requests.notices(login,new Partition(tenant,app,env),after);
+        return GovernanceWeb.body(new Page<>(items,items.size()==100?items.getLast().id():null));
     }
 
     /** 执行状态不由OA的APPROVED推断，只有实际双栅栏与投影回执可展示ACTIVE。 */

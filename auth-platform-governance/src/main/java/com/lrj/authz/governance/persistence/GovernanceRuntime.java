@@ -165,6 +165,8 @@ public final class GovernanceRuntime implements AutoCloseable {
         return new com.lrj.authz.governance.application.ReliableAuthorization(readFence(),scopeMapper,catalogMapper,accessMapper,graph);
     }
 
+    /** 独立通知worker不会更改已提交的申请或授权状态。 */
+    public com.lrj.authz.governance.application.RequestNotifications requestNotifications() { return new com.lrj.authz.governance.application.RequestNotifications(requestMapper,transaction); }
     /** 自助申请仍强制当前成员和显式申请策略。 */
     public com.lrj.authz.governance.application.AccessRequests requests() { return requests; }
 
