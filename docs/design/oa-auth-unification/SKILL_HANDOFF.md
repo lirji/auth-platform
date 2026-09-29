@@ -4,7 +4,7 @@
 
 ## 历史 P0 设计交接
 
-以下保留规划时的状态，当前结果以下面的 P1 完成交接为准。
+以下保留规划时的状态，当前结果以末尾的 P4 交接与PROGRESS_STATE为准。
 
 ### backend-architecture-design
 
@@ -38,7 +38,7 @@ status=COMPLETED；gate=PASS_WITH_LIMITATIONS。
 
 输入：P0 TEST_RESULT、正式状态、当前范围与验证结果。精确提交、push、main 观察及各动作实际结果写入 `.local/p0-evidence/delivery-result.json`；生产部署、tag、release、PR 均不由本轮授权推导。
 
-## 当前 P1 完成交接
+## 历史 P1 完成交接
 
 - session-handoff / continue-approved-delivery：复用原任务、原目录和63节点DAG，P1范围连续完成；未启动Claude模型或子代理。
 - backend-implementation / runtime-and-deploy：P1-00—P1-06实现完成，固定隔离环境验证；产品默认新路径关闭。
@@ -49,3 +49,12 @@ status=COMPLETED；gate=PASS_WITH_LIMITATIONS。
 - 未解决：共享Casdoor升级HOLD、后续正式最小权限探针/浏览器回调、Q-EXT等。它们不冒充本次完成或生产就绪。
 
 产物、源码摘要与真实验证均可追溯。相同执行者完成实现后的验证pass，不声明独立代理审查。FORMAT工具缺失与独立静态分析N/A已在报告中记录。Git交付不代表生产部署；未执行生产发布。
+
+## 当前 P4 交接
+
+- session-handoff / continue-approved-delivery：沿用原63节点DAG与原目录分支，执行上限P4；未使用子代理。
+- backend-implementation / runtime-and-deploy：P4-01至07完成，固定快照、OA可靠启动、签名Inbox、Grant投影衔接、来源回收、站内通知及独立运行环境。
+- implementation-validation：本地G4=PASS，真实Casdoor/OA/REMOTE Flowable/Kafka/PG/图服务与跨进程故障恢复见phase-4/P4-07_TEST_RESULT。实现者验证和复核不冒充独立人员审查。
+- task-git-delivery / ci-cd-gate：精确ref、CI和保留的用户改动见phase-4/P4_DELIVERY_RESULT及CI_RESULT，未执行生产部署。
+- update-progress-docs：P4七节点DONE，原DAG结构不改，P5起保持TODO且未授权；下一步停止。
+- 后续生产容量、共享Casdoor升级、生产TLS/ACL、保留期限与正式试点限制继续保留。

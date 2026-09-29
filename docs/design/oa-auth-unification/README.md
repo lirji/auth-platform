@@ -2,7 +2,7 @@
 
 本计划按用户提供的 `oa-auth-phased-plan` v0.2，落到三个现有仓库。**目标是在原项目中增量改造：auth 管理身份消费模型、应用与授权，OA 保留目录和审批职责，commerce 接入可信身份、页面权限及接口数据权限。**
 
-P0/P1/P2已交付；用户本轮授权P3后，全部10个P3节点完成实现与本地验收。最终Git/CI状态见[当前进度](PROGRESS_STATE.md)及[P3交付记录](../../implementation/oa-auth/phase-3/P3_DELIVERY_RESULT.md)。用户已授权继续P4，当前P4-01/02/03完成、P4-04进行中；没有生产部署。
+P0—P3已交付；P4全部7节点实现和真实验收完成。最终Git/CI状态见[当前进度](PROGRESS_STATE.md)及[P4交付记录](../../implementation/oa-auth/phase-4/P4_DELIVERY_RESULT.md)。本轮在P5前停止，没有生产部署。
 
 | 文档 | 用途 |
 |---|---|
@@ -27,3 +27,5 @@ P0/P1/P2已交付；用户本轮授权P3后，全部10个P3节点完成实现与
 用户 v0.2 是本轮目标方向。commerce 的 `docs/design/enterprise-iam-integration/` 是此前的候选计划，仍保留作为历史分析；其中 **OA 主持授权治理** 的建议由本轮 **auth 业务库主持授权治理** 的目标替代。旧 `IAM-00..17` 没有被伪装为完成或重新编号；对应关系在整体计划中。
 
 OA 的 D-GOV-002／004／005 是现有实现的历史决策。它们继续约束尚未切换的旧链路；新目标通过扩展、映射、影子验证和分批接管生效，不直接修改这些历史记录，也不一次性替换旧 subject。
+
+P4契约见[CONTRACTS_P4_REQUEST](CONTRACTS_P4_REQUEST.md)，后续入口见[P4交接](../../implementation/oa-auth/phase-4/P4_HANDOFF.md)。
