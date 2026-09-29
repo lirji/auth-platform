@@ -12,7 +12,7 @@
  JOIN auth_governance.principal u ON u.id=m.principal_id
  WHERE g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}
  AND g.state='ACTIVE' AND (
- (g.source_type='DIRECT' AND g.membership_id=m.id AND g.generation=m.generation) OR
+ (g.source_type IN ('DIRECT','OA_REQUEST') AND g.membership_id=m.id AND g.generation=m.generation) OR
  (g.source_type='GROUP' AND dg.active AND src.environment=g.environment AND NOT src.quarantined AND src.business_zone IS NOT NULL
  AND EXISTS(SELECT 1 FROM auth_governance.directory_group_member gm
  WHERE gm.group_id=dg.id AND gm.tenant_id=m.tenant_id AND gm.membership_id=m.id AND gm.generation=m.generation AND gm.current

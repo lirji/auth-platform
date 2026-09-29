@@ -2,20 +2,18 @@
 
 ## 当前状态
 
-**P3_COMPLETE_PAUSED**。P0/P1/P2已交付；本轮用户授权的P3全部10节点DONE，两仓代码正常合并推送main且远程CI SUCCESS。按要求暂停在P4之前，未执行生产部署。
+P4_VALIDATED_DELIVERY_PENDING。最新用户授权“继续做P4”，完成P4后正常Git交付，P5前停止，不生产部署。原63节点DAG不变。
 
-## 完成证据
+## 已完成
 
-- 同Grant范围、ScopePlan、门店/商品真实Owner SQL、列表/计数/统计/详情/搜索/私密分批导出与下载复核完成。
-- 主库PolicyPartition/DirectoryFence、A/C二次快照、远端marker CAS、持久租约/批次/receipt及真实进程恢复完成。
-- 组任职/期限/代际、owner能力紧急停用、可靠撤权回执及目录运维时区边界完成。
-- 本地auth228单测/PG67/P3图24/P2图7/Boot4通过；商城383项零失败（5既有条件跳过），新增MySQL6项、跨仓HTTP48项及双节点性能基线通过。
-- auth程序/测试提交e55368a的CI36441586619 SUCCESS；commerce最终main ca4f831的CI36441627523 SUCCESS。auth后续纯文档同步不变更已验证程序/构建树。
+P0至P3历史交付见phase-3/P3_DELIVERY_RESULT。P4-01至07 DONE：不可变申请、真实OA幂等启动、可信回调/持久Inbox/冲突隔离，证据分别见phase-4对应TEST_RESULT。
 
-详细事实见[交付记录](../../implementation/oa-auth/phase-3/P3_DELIVERY_RESULT.md)、[CI_RESULT](../../implementation/oa-auth/phase-3/CI_RESULT.md)、[Handoff](../../implementation/oa-auth/phase-3/P3_HANDOFF.md)。首轮auth Linux测试时钟精度失败已修正并全CI复验，不隐去失败历史。
+## 当前工作
 
-## 未完成与停止点
+P4 G4真实链路已通过；当前正常Git交付和远程CI待完成，P5未授权。
 
-P3范围无剩余实施/验证/交付事项。P4及之后未授权，下一候选P4-01仅为恢复入口，不能自动执行。原63节点DAG及依赖保持，全部后续节点仍TODO。
+## 环境与交付
 
-OA用户既有修改未动；两仓私密.local证据、隔离PG/MySQL/图和既有P0 detached基线保留，未清理。共享Casdoor升级HOLD、生产容量与保留治理前置仍保留，不影响已冻结P3隔离试点完成，也不构成生产就绪承诺。
+auth基线9140426，OA基线4ea8be9；两仓原目录分支feat/iam-p4-oa-access-lifecycle。仅本任务分批本地提交，阶段最终合并/推送尚未执行。OA四项用户改动保留，不改其恢复文档。专用auth PG至V14；专用OA PG包含V25/V26（沿用模块迁移序列outOfOrder）。
+
+P4使用独立Kafka/Flowable/PG完成真实审批，未改共享来源信任；所有本轮应用进程已由脚本退出。隔离卷与私密复验配置保留。共享Casdoor升级、生产容量/保留期限限制继续保留。

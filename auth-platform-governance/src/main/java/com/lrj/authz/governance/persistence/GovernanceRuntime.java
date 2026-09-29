@@ -26,6 +26,9 @@ public final class GovernanceRuntime implements AutoCloseable {
     private final DirectoryGovernance directory;
     private com.lrj.authz.governance.application.ApplicationCatalog catalog;
     private com.lrj.authz.governance.application.AccessManagement access;
+    private com.lrj.authz.governance.application.AccessRequests requests;
+    private ApprovalInboxMapper inboxMapper;
+    private RequestMapper requestMapper;
     private AccessMapper accessMapper;
     private CatalogMapper catalogMapper;
     private ProjectionMapper projectionMapper;
@@ -79,6 +82,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.ProjectionModels.OperationState.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.ProjectionModels.OperationState.class));
             config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.FenceModels.State.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.FenceModels.State.class));
             config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.AccessModels.GrantState.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.AccessModels.GrantState.class));
+            config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.RequestModels.State.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.RequestModels.State.class));
             config.setMapUnderscoreToCamelCase(true);
             config.setArgNameBasedConstructorAutoMapping(true);
             config.setCacheEnabled(false);
@@ -109,6 +113,9 @@ public final class GovernanceRuntime implements AutoCloseable {
             runtime.accessMapper=session.getMapper(AccessMapper.class); runtime.catalogMapper=session.getMapper(CatalogMapper.class);
             runtime.projectionMapper=session.getMapper(ProjectionMapper.class); runtime.transaction=transaction;
             runtime.fenceMapper=session.getMapper(FenceMapper.class);runtime.reliableMapper=session.getMapper(ReliableProjectionMapper.class);runtime.scopeMapper=session.getMapper(ScopeMapper.class);
+            runtime.inboxMapper=session.getMapper(ApprovalInboxMapper.class);
+            runtime.requestMapper=session.getMapper(RequestMapper.class);
+            runtime.requests=new com.lrj.authz.governance.application.AccessRequests(session.getMapper(RequestMapper.class),runtime.accessMapper,runtime.catalogMapper,mapper,runtime.identity,transaction);
             return runtime;
         } catch (Exception failure) {
             dataSource.close();
@@ -156,6 +163,26 @@ public final class GovernanceRuntime implements AutoCloseable {
     /** 严格授权使用持久双水位和同Grant范围，没有跨请求允许缓存。 */
     public com.lrj.authz.governance.application.ReliableAuthorization reliableAuthorization(com.lrj.authz.protocol.StrictGraphReader graph){
         return new com.lrj.authz.governance.application.ReliableAuthorization(readFence(),scopeMapper,catalogMapper,accessMapper,graph);
+    }
+
+    /** 独立通知worker不会更改已提交的申请或授权状态。 */
+    public com.lrj.authz.governance.application.RequestNotifications requestNotifications() { return new com.lrj.authz.governance.application.RequestNotifications(requestMapper,transaction); }
+    /** 自助申请仍强制当前成员和显式申请策略。 */
+    public com.lrj.authz.governance.application.AccessRequests requests() { return requests; }
+
+    /** OA启动投递不进入日常授权读取链路。 */
+    public com.lrj.authz.governance.application.ApprovalStartDelivery approvalStarts(com.lrj.authz.governance.application.ApprovalGateway gateway) {
+        return new com.lrj.authz.governance.application.ApprovalStartDelivery(requestMapper,transaction,gateway);
+    }
+
+    /** 回调接收只持久化消息；日常判权从不依赖OA。 */
+    public com.lrj.authz.governance.application.ApprovalInbox approvalInbox() {
+        return new com.lrj.authz.governance.application.ApprovalInbox(inboxMapper,requestMapper,transaction);
+    }
+
+    /** 审批消费与申请用例复用权威事务与分区串行锁。 */
+    public com.lrj.authz.governance.application.ApprovalDecisionConsumer approvalDecisions() {
+        return new com.lrj.authz.governance.application.ApprovalDecisionConsumer(requests,accessMapper,inboxMapper,transaction);
     }
 
     IdentityMapper mapper() { return mapper; }

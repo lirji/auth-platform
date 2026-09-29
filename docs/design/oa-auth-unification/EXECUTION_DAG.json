@@ -1,7 +1,7 @@
 {
   "schema_version": "oa-auth-project-execution-plan/1",
   "plan_status": "P3_COMPLETE_PAUSED",
-  "scope": "P3 completed and delivered; paused before P4 per user stop boundary. No production deployment.",
+  "scope": "P4 authorized: execute P4-01 through P4-07; stop before P5; no production deployment.",
   "source_task_count": 58,
   "task_count": 63,
   "topological_order": [
@@ -69,7 +69,7 @@
     "P7-07",
     "P7-08"
   ],
-  "next_design_task": "P4-01",
+  "next_design_task": "P5-01 (NOT_AUTHORIZED; stop after P4 delivery)",
   "production_authorized": false,
   "tasks": [
     {
@@ -947,10 +947,11 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "evidence": "docs/implementation/oa-auth/phase-4/P4-01_TEST_RESULT.md"
     },
     {
       "id": "P4-02",
@@ -970,10 +971,11 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "evidence": "docs/implementation/oa-auth/phase-4/P4-02_TEST_RESULT.md"
     },
     {
       "id": "P4-03",
@@ -993,10 +995,11 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "evidence": "docs/implementation/oa-auth/phase-4/P4-03_TEST_RESULT.md"
     },
     {
       "id": "P4-04",
@@ -1016,10 +1019,11 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "evidence": "docs/implementation/oa-auth/phase-4/P4-04_TEST_RESULT.md"
     },
     {
       "id": "P4-05",
@@ -1039,10 +1043,11 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "evidence": "docs/implementation/oa-auth/phase-4/P4-05_TEST_RESULT.md"
     },
     {
       "id": "P4-06",
@@ -1062,10 +1067,11 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "evidence": "docs/implementation/oa-auth/phase-4/P4-06_TEST_RESULT.md"
     },
     {
       "id": "P4-07",
@@ -1085,10 +1091,11 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "evidence": "docs/implementation/oa-auth/phase-4/P4-07_TEST_RESULT.md"
     },
     {
       "id": "P5-01",
@@ -1623,6 +1630,6 @@
       ]
     }
   ],
-  "current_execution_ceiling": "P2",
-  "pause_after_phase": 2
+  "current_execution_ceiling": "P4",
+  "pause_after_phase": 4
 }
