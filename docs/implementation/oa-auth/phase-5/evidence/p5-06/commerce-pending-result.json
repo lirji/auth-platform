@@ -1,0 +1,6 @@
+[
+  {
+    "check": "approved but failed projection remains visibly pending/failed; actual commerce cannot export",
+    "result": "PASS"
+  }
+]

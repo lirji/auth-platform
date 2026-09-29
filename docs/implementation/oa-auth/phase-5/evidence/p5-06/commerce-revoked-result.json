@@ -1,0 +1,6 @@
+[
+  {
+    "check": "actual source revoke denies historical job/download and new export while independent product read remains",
+    "result": "PASS"
+  }
+]

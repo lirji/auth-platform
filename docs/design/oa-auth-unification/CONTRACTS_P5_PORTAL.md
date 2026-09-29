@@ -61,3 +61,11 @@ GET `/access/explanations?grant_id=...`、GET `/access/audit?after=...`另需显
 既有product导出路径`/v1/operations/scoped/product/exports`（提交/开始/推进/状态/下载）全部改为显式`commerce.product.export`判权；不会从product.read拼范围。GET `/export-access`只返回`{export:boolean}`体验提示，依赖故障仍503。过滤器仍需当前合法product.read入口，随后导出用例逐次检查export和当前上下文。每批最多50、单任务最多1000、原幂等/配额/持久检查点/下载资源版本复核不变。只有read的旧调用者会失去导出，属安全收紧；上线先登记固定export能力、审批策略、客户端/服务范围，再切业务后端；不能回滚为read代替export。已有product旧任务fingerprint含read能力，与新export不匹配，拒绝续用，需当前授权下新建。store范围试点保留P3契约，不扩大本轮业务范围。
 
 页面保持组织/检索/任务在URL，详情刷新重新检查；通过固定配置的统一工作台Origin跳到本人申请页，不接受浏览器任意跳转目标。无导出权限明确提示申请；提交202只显示排队，开始和每次推进显式触发，完成后下载仍重新判权。到期/撤销使旧任务与旧下载链接拒绝；独立read Grant继续提供合法商品查询。取消申请只撤该OA来源。商品已下载到用户设备的内容不宣称能远程回收。
+
+## P5-07 登录和运行验收边界
+
+使用隔离Casdoor18090的本任务新客户端验证交互式授权码+PKCE与同IdP登录会话；保持共享8000升级HOLD及原P1/P2夹具客户端不变。精确注册auth/commerce/OA各自回调Origin，普通浏览器端不持有client_secret。沿用已验证Casdoor镜像，不以官网当前版本替代本地实测。SSO表示后续应用使用各自客户端和授权码获得对应受众Token，无需重复输入密码；允许IdP显示已有账户确认，不能跨应用转发Access Token。
+
+验收含初次真实输入登录、回调清除code/state、应用跳转不含Token、跨受众API拒绝、各应用深链刷新、错误state回调拒绝、标签页组织独立、会话失效及依赖503明确提示。Vite代理只用于本地开发；商城同源打包静态壳与固定深链需要实际验证。后台试点开关关闭可停止数据入口，不通过回退read替代export或撤销已执行业务效果。Cookie仅IdP会话，业务API仍显式Bearer；不使用iframe或无限跨域Cookie。
+
+官方核对：[Casdoor应用回调配置](https://casdoor.ai/docs/application/config/)、[OIDC客户端PKCE/UserManager](https://authts.github.io/oidc-client-ts/)、[Casdoor SSO](https://casdoor.org/docs/how-to-connect/single-sign-on/)。最终以本地版本交互结果为准。

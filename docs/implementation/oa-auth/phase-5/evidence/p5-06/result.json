@@ -1,0 +1,301 @@
+{
+  "result": "PASS",
+  "run": "e2e-b74400d225",
+  "request_id": "2c96d804-95e5-41aa-8ca2-527619dd47a6",
+  "approval_instance_id": "30",
+  "grant_id": "579a7d33-ad7b-457e-8ea8-e401fea1b9eb",
+  "operation_id": "e61bc22d-1bd3-4d80-bc02-ccf636f820c2",
+  "revocation_operation_id": "a187938a-84a9-4818-8f09-2193297891c5",
+  "short_request_id": "2302639f-92be-4ae7-ab3f-a91456ecf19f",
+  "checks": [
+    {
+      "check": "real commerce browser invitation",
+      "result": "PASS"
+    },
+    {
+      "check": "enable strict partition",
+      "result": "PASS"
+    },
+    {
+      "check": "fixed export role",
+      "result": "PASS"
+    },
+    {
+      "check": "registered fixed approval policy",
+      "result": "PASS"
+    },
+    {
+      "check": "unapproved export denied",
+      "result": "PASS"
+    },
+    {
+      "check": "independent query role",
+      "result": "PASS"
+    },
+    {
+      "check": "independent direct query source",
+      "result": "PASS"
+    },
+    {
+      "check": "independent product query active",
+      "result": "PASS"
+    },
+    {
+      "check": "independent product query active",
+      "result": "PASS"
+    },
+    {
+      "check": "independent product query active",
+      "result": "PASS"
+    },
+    {
+      "check": "real commerce browser request",
+      "result": "PASS"
+    },
+    {
+      "check": "other member detail denied",
+      "result": "PASS"
+    },
+    {
+      "check": "other member list has no applicant data",
+      "result": "PASS"
+    },
+    {
+      "check": "own list includes request",
+      "result": "PASS"
+    },
+    {
+      "check": "role version expansion",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "actual OA approver todos",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "actual OA approver todos",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "external cannot open OA workbench",
+      "result": "PASS"
+    },
+    {
+      "check": "still cannot export during approval",
+      "result": "PASS"
+    },
+    {
+      "check": "approver reads exact immutable approval basis",
+      "result": "PASS"
+    },
+    {
+      "check": "external cannot read approval basis",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "graph failure denies export",
+      "result": "PASS"
+    },
+    {
+      "check": "real commerce browser pending",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "real completed approval allows fixed store export",
+      "result": "PASS"
+    },
+    {
+      "check": "other store remains denied",
+      "result": "PASS"
+    },
+    {
+      "check": "real commerce browser active",
+      "result": "PASS"
+    },
+    {
+      "check": "site notification visible",
+      "result": "PASS"
+    },
+    {
+      "check": "lost callback ACK retries same business payload with fresh signature; only one Grant",
+      "result": "PASS"
+    },
+    {
+      "check": "one request one grant",
+      "result": "PASS"
+    },
+    {
+      "check": "short fixed policy",
+      "result": "PASS"
+    },
+    {
+      "check": "short lifetime request",
+      "result": "PASS"
+    },
+    {
+      "check": "short binding",
+      "result": "PASS"
+    },
+    {
+      "check": "short real todos",
+      "result": "PASS"
+    },
+    {
+      "check": "short binding",
+      "result": "PASS"
+    },
+    {
+      "check": "short real todos",
+      "result": "PASS"
+    },
+    {
+      "check": "short actual approval",
+      "result": "PASS"
+    },
+    {
+      "check": "short execution",
+      "result": "PASS"
+    },
+    {
+      "check": "short execution",
+      "result": "PASS"
+    },
+    {
+      "check": "short grant initially active",
+      "result": "PASS"
+    },
+    {
+      "check": "short grant initially active",
+      "result": "PASS"
+    },
+    {
+      "check": "short product export submitted",
+      "result": "PASS"
+    },
+    {
+      "check": "short product export starts",
+      "result": "PASS"
+    },
+    {
+      "check": "short product export completes",
+      "result": "PASS"
+    },
+    {
+      "check": "short product download currently allowed",
+      "result": "PASS"
+    },
+    {
+      "check": "OA stopped existing authorization unaffected",
+      "result": "PASS"
+    },
+    {
+      "check": "expired grant denied with OA and cleanup stopped",
+      "result": "PASS"
+    },
+    {
+      "check": "expired product download denied without cleanup",
+      "result": "PASS"
+    },
+    {
+      "check": "OA down and short export expiry preserve independent query",
+      "result": "PASS"
+    },
+    {
+      "check": "cancel approved request becomes source revoke",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "only request export source revoked",
+      "result": "PASS"
+    },
+    {
+      "check": "independent query remains allowed",
+      "result": "PASS"
+    },
+    {
+      "check": "real commerce browser revoked",
+      "result": "PASS"
+    },
+    {
+      "check": "final binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    }
+  ],
+  "runtime": "real Casdoor JWT, auth HTTP/worker processes, OA HTTP, isolated Kafka/Flowable, PostgreSQL, SpiceDB"
+}

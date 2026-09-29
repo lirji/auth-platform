@@ -58,10 +58,14 @@ def wait_for(name,condition,timeout=45):
     raise RuntimeError('bounded wait failed: '+name)
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--oa',required=True);parser.add_argument('--infra-env',required=True);parser.add_argument('--p5-playwright-module')
+    parser=argparse.ArgumentParser();parser.add_argument('--oa',required=True);parser.add_argument('--infra-env',required=True);parser.add_argument('--p5-playwright-module');parser.add_argument('--p5-commerce')
     args=parser.parse_args();root=Path('.local/governance').resolve();p4=root/'p4';run=p4/('e2e-'+secrets.token_hex(5));run.mkdir(mode=0o700)
     fixture=json.loads(h.read_private(root/'p2/identity/casdoor.json'));ops=json.loads(h.read_private(root/'casdoor-isolated/management-client.json'))
-    authdb=h.read_private(p4/'runtime-auth-db/database.properties');oadb=properties(p4/'runtime-oa-db/database.properties');oa_dbname=oadb['jdbc.url'].rsplit('/',1)[1]
+    authdbfile=p4/'runtime-auth-db/database.properties'
+    if args.p5_commerce:
+        subprocess.run(['python3','deploy/governance-test-db.py','--container','auth-governance-p4-postgres-1','--port','15434','--directory',str(run/'database')],check=True,stdout=subprocess.DEVNULL)
+        authdbfile=run/'database/database.properties'
+    authdb=h.read_private(authdbfile);oadb=properties(p4/'runtime-oa-db/database.properties');oa_dbname=oadb['jdbc.url'].rsplit('/',1)[1]
     jar=next(Path('auth-platform-admin/target').glob('auth-platform-admin-*.jar')).resolve()
     serverjar=next(Path('auth-platform-server/target').glob('auth-platform-server-*.jar')).resolve()
     shutil.copy2(jar,run/'admin.jar');shutil.copy2(serverjar,run/'server.jar');jar=run/'admin.jar';serverjar=run/'server.jar'
@@ -71,18 +75,20 @@ def main():
             result=subprocess.run(['java','-Xmx256m','-Dloader.main='+package+name,'-cp',str(jar),'org.springframework.boot.loader.launch.PropertiesLauncher',*map(str,params)],stdout=out,stderr=subprocess.STDOUT,timeout=40)
         if result.returncode not in allowed:raise RuntimeError('CLI failed: '+name)
         return result.returncode
-    tenant=uid();app='p4-'+secrets.token_hex(5);environment='test';members={};principals={}
+    tenant=uid();app='commerce' if args.p5_commerce else 'p4-'+secrets.token_hex(5);environment='test';members={};principals={}
+    resource_type='product' if args.p5_commerce else 'store';capbase=app+'.product' if args.p5_commerce else app;pilot=None
     for kind in ['internal']:
         principal=str(uuid.uuid5(uuid.NAMESPACE_URL,'p2:'+fixture['users'][kind]['id']));principals[kind]=principal;members[kind]=uid()
         values={'command.id':uid(),'operator.ref':'p4-fixture','tenant.id':tenant,'tenant.code':'p4-'+tenant,'principal.id':principal,'issuer':h.ISSUER,
             'subject':fixture['users'][kind]['id'],'membership.id':members[kind],'valid.from':'2020-01-01T00:00:00Z','source.system':'p4-fixture','source.tenant.ref':tenant,'source.subject.ref':kind}
-        path=run/(kind+'.properties');h.private(path,h.props(values));cli('GovernanceCli',['bootstrap',p4/'runtime-auth-db/database.properties',path])
-    cat={'catalog.application':app,'catalog.owner-principal':principals['internal'],'catalog.entry-origin':'http://127.0.0.1:18600','catalog.operator':'p4-fixture','catalog.command':uid(),
+        path=run/(kind+'.properties');h.private(path,h.props(values));cli('GovernanceCli',['bootstrap',authdbfile,path])
+    cat={'catalog.application':app,'catalog.owner-principal':principals['internal'],'catalog.entry-origin':'http://127.0.0.1:18605' if args.p5_commerce else 'http://127.0.0.1:18600','catalog.operator':'p4-fixture','catalog.command':uid(),
         'catalog.owner-issuer':h.ISSUER,'catalog.owner-subject':fixture['users']['internal']['id']}
     h.private(run/'catalog.properties',authdb+h.props(cat));cli('CatalogCli',['register',run/'catalog.properties','configured'])
-    manifest={'schema_version':'1','application':app,'manifest_version':1,'capabilities':[{'code':app+'.read','resource_type':'store','risk_level':'NORMAL'},{'code':app+'.export','resource_type':'store','risk_level':'HIGH'}],'menus':[]}
+    manifest={'schema_version':'1','application':app,'manifest_version':1,'capabilities':[{'code':capbase+'.read','resource_type':resource_type,'risk_level':'NORMAL'},{'code':capbase+'.export','resource_type':resource_type,'risk_level':'HIGH'}],'menus':[{'code':'products','parent':None,'route':'/collaboration/products','any_of':[capbase+'.read']}] if args.p5_commerce else []}
+    if args.p5_commerce:manifest['capabilities'].append({'code':capbase+'.update','resource_type':resource_type,'risk_level':'HIGH'})
     (run/'manifest.json').write_text(json.dumps(manifest));cli('CatalogCli',['publish',run/'catalog.properties',run/'manifest.json'])
-    access={'access.tenant':tenant,'access.application':app,'access.environment':environment,'access.manager':members['internal'],'access.generation':1,'access.capabilities':app+'.read,'+app+'.export','access.max-duration-seconds':3600,'access.operator':'p4-fixture','access.command':uid()}
+    access={'access.tenant':tenant,'access.application':app,'access.environment':environment,'access.manager':members['internal'],'access.generation':1,'access.capabilities':capbase+'.read,'+capbase+'.export','access.max-duration-seconds':3600,'access.operator':'p4-fixture','access.command':uid()}
     outbound=secrets.token_urlsafe(36);inbound=secrets.token_urlsafe(36)
     graph=properties(root/'p3/graph/graph.properties')
     worker={**access,**graph,'approval.oa-url':'http://127.0.0.1:18420','approval.outbound-key':outbound}
@@ -93,43 +99,53 @@ def main():
     authority={'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':mgmt['name'],'client.id':mgmt['name'],'client.secret':mgmt['secret'],
         'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
     callback={'approval.tenant':tenant,'approval.application':app,'approval.environment':environment,'approval.inbound-key':inbound,'approval.allow-loopback-http':'true'}
-    h.private(run/'admin.properties',authdb+h.props({**authority,**callback,**{'invitation.user.'+k:v for k,v in authority.items()}}))
-    admin=h.start(jar,18422,run/'admin.log',config=run/'admin.properties',access=True,requests=True,invitations=True)
+    h.private(run/'admin.properties',authdb+h.props({**authority,**callback,**graph,'scope.graph.http':graph['graph.http'],'scope.graph.key':graph['graph.key'],**{'invitation.user.'+k:v for k,v in authority.items()}}))
+    admin=h.start(jar,18422,run/'admin.log',config=run/'admin.properties',access=True,requests=True,invitations=True,presentation=bool(args.p5_commerce),scope=bool(args.p5_commerce))
     manager=[('Authorization','Bearer '+a.token(h.ISSUER,fixture,'management','internal'))]
     member=[('Authorization','Bearer '+a.token(h.ISSUER,fixture,'management','external'))]
+    if args.p5_commerce:
+        pspec=importlib.util.spec_from_file_location('p5_commerce',Path(__file__).with_name('governance-p5-commerce.py'));pm=importlib.util.module_from_spec(pspec);pspec.loader.exec_module(pm)
+        pilot=pm.CommercePilot(run,args.p5_commerce,h,fixture,tenant,member[0][1].removeprefix('Bearer '))
     invitation=uid()
     h.private(run/'invitation-authority.properties',authdb+h.props({'invitation.operator-ref':'p4-fixture','invitation.tenant-id':tenant,'invitation.sponsor-membership-id':members['internal']}))
     h.private(run/'invitation-command.properties',h.props({'command.id':uid(),'invitation.id':invitation,'issuer':h.ISSUER,'subject':fixture['users']['external']['id'],'member.kind':'PARTNER','expires.at':timestamp(600),'membership.valid.to':timestamp(3600),'reason':'P4 external partner fixture'}))
     cli('InvitationCli',['issue',run/'invitation-authority.properties',run/'invitation-command.properties',run/'invitation-proof.properties'])
     proof=properties(run/'invitation-proof.properties')
-    accepted=h.expect('real external identity accepts PARTNER invitation',18422,'/api/governance/v1/invitations/accept',member,json.dumps({'invitation_id':invitation,'token':proof['token']}).encode())
+    accepted=pilot.invitation(invitation,proof['token']) if pilot else h.expect('real external identity accepts PARTNER invitation',18422,'/api/governance/v1/invitations/accept',member,json.dumps({'invitation_id':invitation,'token':proof['token']}).encode())
     members['external']=accepted['membership_id']
     part={'tenant_id':tenant,'application_id':app,'environment':environment};query=urllib.parse.urlencode(part)
     def req(name,path,body=None,headers=member,status=200):return h.expect(name,18422,'/api/governance/v1'+path,headers,None if body is None else json.dumps(body).encode(),status)
     req('enable strict partition','/access/enable-strict',{**part,'command_id':uid()},manager,202)
-    role=req('fixed export role','/access/roles',{**part,'command_id':uid(),'role_code':'exporter','role_version':1,'capabilities':[app+'.export']},manager)
-    scope={'version':1,'resource_type':'store','clauses':[{'kind':'SPECIFIED_STORES','values':['S001'],'include_root':False}]}
+    role=req('fixed export role','/access/roles',{**part,'command_id':uid(),'role_code':'exporter','role_version':1,'capabilities':[capbase+'.export']},manager)
+    scope={'version':1,'resource_type':resource_type,'clauses':[{'kind':'SPECIFIED_STORES','values':['S001'],'include_root':False}]}
     policy=req('registered fixed approval policy','/requests/policies',{**part,'command_id':uid(),'role_id':role['id'],'scope_rule':scope,'max_duration_seconds':600,'approver_membership_id':members['internal'],'approver_generation':1,'policy_version':1},manager)
     service=secrets.token_urlsafe(48);serviceid='p4-probe'
     server={'service.count':1,'service.1.id':serviceid,'service.1.application-id':app,'service.1.environment':environment,'service.1.operation':'context.resolve',
-        'service.1.credential-sha256':hashlib.sha256(service.encode()).hexdigest(),'access.check.callers':serviceid,'scope.check.callers':serviceid,'scope.owner.'+app:'store',
+        'service.1.credential-sha256':hashlib.sha256(service.encode()).hexdigest(),'access.check.callers':serviceid,'scope.check.callers':serviceid,'scope.owner.'+app:'store,product' if pilot else 'store',
         'scope.graph.http':graph['graph.http'],'scope.graph.key':graph['graph.key'],**graph}
     user_authority={**authority,'audience':business['name'],'client.id':business['name'],'client.secret':business['secret']}
     server.update({'service.1.user.'+k:v for k,v in user_authority.items()});h.private(run/'server.properties',authdb+h.props(server))
     authserver=h.start(serverjar,18421,run/'server.log',config=run/'server.properties',access=True,scope=True)
     usertoken=a.token(h.ISSUER,fixture,'business','external');checkheaders=[('Authorization','Bearer '+service),('X-User-Access-Token',usertoken)]
     def check(name,cap='export',store='S001',status=200):
-        body={'check':{'tenant_id':tenant,'expected_membership_generation':1,'request_id':uid(),'capability':app+'.'+cap,'resource_type':'store'},'facts':{'tenant_id':tenant,'resource_type':'store','resource_id':store,'resource_version':1,'owner_principal_id':None,'department_id':None,'department_ancestors':[],'store_id':store,'supplier_id':None}}
+        body={'check':{'tenant_id':tenant,'expected_membership_generation':1,'request_id':uid(),'capability':capbase+'.'+cap,'resource_type':resource_type},'facts':{'tenant_id':tenant,'resource_type':resource_type,'resource_id':store,'resource_version':1,'owner_principal_id':None,'department_id':None,'department_ancestors':[],'store_id':store,'supplier_id':None}}
         return h.expect(name,18421,'/internal/governance/v1/access/check-resource',checkheaders,json.dumps(body).encode(),status)
     def project():
         for kind in ['POLICY','DIRECTORY']:cli('ReliableProjectionCli',[run/(kind+'.properties')])
     project();assert check('unapproved export denied')['decision']=='DENY'
-    submitted=req('self request accepted','/requests',{**part,'command_id':uid(),'policy_id':policy['id'],'valid_from':timestamp(-2),'valid_to':timestamp(300),'reason':'P4 isolated external export'},status=202)
+    if pilot:
+        readrole=req('independent query role','/access/roles',{**part,'command_id':uid(),'role_code':'reader','role_version':1,'capabilities':[capbase+'.read']},manager)
+        req('independent direct query source','/access/scoped-grants',{**part,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':readrole['id'],'scope_rule':scope,'source_id':'p5-independent','valid_from':timestamp(-1),'valid_to':timestamp(1800)},manager,202)
+        project();wait_for('initial product query catches up',lambda:check('independent product query active',cap='read')['decision']=='ALLOW',15)
+        authdbname=properties(authdbfile)['jdbc.url'].rsplit('/',1)[1]
+        principal=sql(authdbname,"SELECT principal_id FROM auth_governance.membership WHERE id='"+members['external']+"';")
+        uuid.UUID(principal);pilot.business(service,principal,members['external'],usertoken)
+    submitted=pilot.submitted() if pilot else req('self request accepted','/requests',{**part,'command_id':uid(),'policy_id':policy['id'],'valid_from':timestamp(-2),'valid_to':timestamp(300),'reason':'P4 isolated external export'},status=202)
     rid=submitted['id'];execution=lambda:req('request execution','/requests/'+rid+'/execution?'+query)
     req('other member detail denied','/requests/'+rid+'?'+query,headers=manager,status=403)
     req('other member list has no applicant data','/requests?'+query,headers=manager)
     assert req('own list includes request','/requests?'+query)['items'][0]['id']==rid
-    req('role version expansion','/access/roles',{**part,'command_id':uid(),'role_code':'exporter','role_version':2,'capabilities':[app+'.export',app+'.read']},manager)
+    req('role version expansion','/access/roles',{**part,'command_id':uid(),'role_code':'exporter','role_version':2,'capabilities':[capbase+'.export',capbase+'.read']},manager)
     # 此时OA未运行：未知启动结果进入可靠重试；恢复后先按业务键查询。
     cli('ApprovalStartCli',[run/'worker.properties']);assert execution()['start_state']=='PENDING'
     infra=dict(line.split('=',1) for line in Path(args.infra_env).read_text().splitlines() if '=' in line and not line.startswith('#'))
@@ -201,21 +217,23 @@ INSERT INTO oa_iam.grant_record(subject_type,subject_id,role_id,scope_type,valid
     cli('ApprovalDecisionCli',[run/'worker.properties']);assert execution()['display_state']=='PENDING_APPLY'
     cli('ReliableProjectionCli',[run/'broken-graph.properties'],allowed=(2,));assert execution()['display_state']!='ACTIVE'
     check('graph failure denies export',status=503)
+    if pilot:pilot.browser('pending')
     # 图调用失败的退避由真实持久operation恢复，不改表伪造回执。
     wait_for('real graph recovery',lambda:cli('ReliableProjectionCli',[run/'POLICY.properties'],allowed=(0,2))==0,50)
     cli('ReliableProjectionCli',[run/'DIRECTORY.properties']);active=execution();assert active['display_state']=='ACTIVE' and active['operation_id']
     wait_for('fixed store graph read catches up',lambda:check('real completed approval allows fixed store export')['decision']=='ALLOW',10)
     assert check('other store remains denied',store='S002')['decision']=='DENY'
-    assert check('expanded role capability remains denied',cap='read')['decision']=='DENY'
+    if pilot:pilot.browser('active')
+    else:assert check('expanded role capability remains denied',cap='read')['decision']=='DENY'
     cli('RequestNotificationCli',[run/'worker.properties']);assert req('site notification visible','/requests/notifications?'+query)['items']
     wait_for('same event reliably retried after lost callback ACK',lambda:any(len(rows)>=2 for rows in CALLBACKS.values()))
     assert all(len({row[0] for row in rows})==1 and len({row[1] for row in rows})==len(rows) for rows in CALLBACKS.values())
     h.CHECKS.append({'check':'lost callback ACK retries same business payload with fresh signature; only one Grant','result':'PASS'})
-    assert len(req('one request one grant','/access/state?'+query,headers=manager)['grants'])==1
+    assert len([g for g in req('one request one grant','/access/state?'+query,headers=manager)['grants'] if not pilot or g['role_id']==role['id']])==1
     # 第二条短窗口申请只允许S003；第一条S001不能掩盖它的到期拒绝。
     shortscope={**scope,'clauses':[{'kind':'SPECIFIED_STORES','values':['S003'],'include_root':False}]}
     shortpolicy=req('short fixed policy','/requests/policies',{**part,'command_id':uid(),'role_id':role['id'],'scope_rule':shortscope,'max_duration_seconds':60,'approver_membership_id':members['internal'],'approver_generation':1,'policy_version':1},manager)
-    short=req('short lifetime request','/requests',{**part,'command_id':uid(),'policy_id':shortpolicy['id'],'valid_from':timestamp(-1),'valid_to':timestamp(25),'reason':'expiry without cleanup'},status=202)
+    short=req('short lifetime request','/requests',{**part,'command_id':uid(),'policy_id':shortpolicy['id'],'valid_from':timestamp(-1),'valid_to':timestamp(45 if pilot else 25),'reason':'expiry without cleanup'},status=202)
     cli('ApprovalStartCli',[run/'worker.properties'])
     shortid=short['id']
     def short_todo():
@@ -226,18 +244,30 @@ INSERT INTO oa_iam.grant_record(subject_type,subject_id,role_id,scope_type,valid
     assert h.expect('short actual approval',18420,'/api/v1/flow/todos/'+st['taskId']+'/complete',manager,body)['code']==0
     wait_for('short callback',lambda:req('short execution','/requests/'+shortid+'/execution?'+query).get('callback_status')=='RECEIVED')
     cli('ApprovalDecisionCli',[run/'worker.properties']);project();wait_for('short graph read catches up',lambda:check('short grant initially active',store='S003')['decision']=='ALLOW',10)
+    if pilot:
+        business_headers=[('Authorization','Bearer '+usertoken),('X-Tenant-Id',tenant)]
+        def business_call(name,path,body=None,status=200):return h.expect(name,18603,'/v1/operations/scoped/product'+path,business_headers+[('Idempotency-Key',uid())],None if body is None else json.dumps(body).encode(),status)
+        shortjob=business_call('short product export submitted','/exports?search=Expiry',{},202)
+        shortstart=business_call('short product export starts','/exports/'+shortjob['id']+'/start?version='+str(shortjob['version']),{})
+        shortcomplete=business_call('short product export completes','/exports/'+shortjob['id']+'/advance?version='+str(shortstart['version']),{})
+        shortdownload=business_call('short product download currently allowed','/exports/'+shortjob['id']+'/download');assert [r['resourceId'] for r in shortdownload['rows']]==['P003']
     h.stop(oa);assert check('OA stopped existing authorization unaffected')['decision']=='ALLOW'
     end=datetime.fromisoformat(short['valid_to'].replace('Z','+00:00'))
-    wait_for('fixed short window passes without lifecycle worker',lambda:datetime.now(timezone.utc)>=end,30)
+    wait_for('fixed short window passes without lifecycle worker',lambda:datetime.now(timezone.utc)>=end,50 if pilot else 30)
     assert check('expired grant denied with OA and cleanup stopped',store='S003')['decision']=='DENY'
+    if pilot:
+        business_call('expired product download denied without cleanup','/exports/'+shortjob['id']+'/download',status=403)
+        assert business_call('OA down and short export expiry preserve independent query','')['items'][0]['resourceId']=='P001'
     cli('RequestLifecycleCli',[run/'worker.properties']);project()
-    readrole=req('independent query role','/access/roles',{**part,'command_id':uid(),'role_code':'reader','role_version':1,'capabilities':[app+'.read']},manager)
-    req('independent direct query source','/access/scoped-grants',{**part,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':readrole['id'],'scope_rule':scope,'source_id':'p4-independent','valid_from':timestamp(-1),'valid_to':timestamp(120)},manager,202)
-    project();wait_for('independent query catches up',lambda:check('independent query active',cap='read')['decision']=='ALLOW',10)
+    if not pilot:
+        readrole=req('independent query role','/access/roles',{**part,'command_id':uid(),'role_code':'reader','role_version':1,'capabilities':[capbase+'.read']},manager)
+        req('independent direct query source','/access/scoped-grants',{**part,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':readrole['id'],'scope_rule':scope,'source_id':'p4-independent','valid_from':timestamp(-1),'valid_to':timestamp(120)},manager,202)
+        project();wait_for('independent query catches up',lambda:check('independent query active',cap='read')['decision']=='ALLOW',10)
     req('cancel approved request becomes source revoke','/requests/'+rid+'/cancel',{**part,'command_id':uid(),'state_version':submitted['state_version']},status=202)
     assert execution()['display_state']=='REVOKING';project();assert execution()['display_state']=='REVOKED'
     assert check('only request export source revoked')['decision']=='DENY'
     assert check('independent query remains allowed',cap='read')['decision']=='ALLOW'
+    if pilot:pilot.browser('revoked')
     result={'result':'PASS','run':run.name,'request_id':rid,'approval_instance_id':req('final binding','/requests/'+rid+'?'+query)['approval_instance_id'],'grant_id':active['grant_id'],'operation_id':active['operation_id'],'revocation_operation_id':execution()['operation_id'],'short_request_id':shortid,'checks':h.CHECKS,'runtime':'real Casdoor JWT, auth HTTP/worker processes, OA HTTP, isolated Kafka/Flowable, PostgreSQL, SpiceDB'}
     (run/'result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');(p4/'latest-e2e.txt').write_text(str(run)+'\n')
     print(json.dumps({k:v for k,v in result.items() if k!='checks'},ensure_ascii=False))

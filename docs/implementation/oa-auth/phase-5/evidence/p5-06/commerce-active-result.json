@@ -1,0 +1,6 @@
+[
+  {
+    "check": "real ACTIVE approval enables durable export submit/start/batch/download; file contains only assigned-store product and URL reload restores job",
+    "result": "PASS"
+  }
+]

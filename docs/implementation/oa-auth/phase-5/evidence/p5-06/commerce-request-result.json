@@ -1,0 +1,10 @@
+[
+  {
+    "check": "partner sees only assigned-store product; direct other-store/tenant reads, edit and unapproved export denied",
+    "result": "PASS"
+  },
+  {
+    "check": "business application links to real self request form; immutable store export policy submitted through browser",
+    "result": "PASS"
+  }
+]

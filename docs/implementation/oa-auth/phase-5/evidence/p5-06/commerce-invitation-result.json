@@ -1,0 +1,6 @@
+[
+  {
+    "check": "exact invited identity accepts PARTNER membership in browser without implicit app access",
+    "result": "PASS"
+  }
+]
