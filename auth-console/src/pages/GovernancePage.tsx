@@ -6,6 +6,7 @@ import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-r
 import { applications, organizations, type Organization, type Partition, type PortalApplication } from '../api/governance'
 import { PageHeader } from '../components/layout/PageHeader'
 import { contextKey, organizationSearch, safeEntry } from '../governance/context'
+import { EntryState } from '../governance/codes'
 import { Failure } from '../governance/feedback'
 
 export interface GovernanceContext { organization: Organization; application: PortalApplication; partition: Partition; queryKey: readonly unknown[] }
@@ -74,7 +75,7 @@ export default function GovernancePage() {
           {entries.map(item => <Card key={`${item.application_id}/${item.environment}`} title={<span style={{ overflowWrap: 'anywhere' }}>{item.application_id}</span>} extra={<Tag>{item.environment}</Tag>}>
             {item.menus.some(menu => safeEntry(menu.href)) ? <Space direction="vertical" style={{ width: '100%' }}>
               {item.menus.filter(menu => safeEntry(menu.href)).map(menu => <Button key={menu.code} href={safeEntry(menu.href)} target="_blank" rel="noopener noreferrer">进入 {menu.code}</Button>)}
-            </Space> : <Typography.Paragraph type="secondary">当前暂无可用业务入口</Typography.Paragraph>}
+            </Space> : <Typography.Paragraph type="secondary">{item.entry_state === EntryState.UNAVAILABLE ? '暂时无法确认业务权限，业务入口已关闭。可继续查看申请或管理进度。' : '当前暂无可用业务入口'}</Typography.Paragraph>}
             {item.management && <Button style={{ marginTop: 16 }} onClick={() => choose(item, '/governance/access')}>查看授权管理</Button>}
           </Card>)}
         </div>

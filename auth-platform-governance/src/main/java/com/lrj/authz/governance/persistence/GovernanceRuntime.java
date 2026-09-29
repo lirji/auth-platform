@@ -203,6 +203,11 @@ public final class GovernanceRuntime implements AutoCloseable {
         });
     }
 
+    /** 管理展示复用与写入相同的身份/委派边界。 */
+    public com.lrj.authz.governance.application.PortalManagement portalManagement() {
+        return new com.lrj.authz.governance.application.PortalManagement(access, identity, accessMapper, catalogMapper, portalMapper);
+    }
+
     /** 门户复用本进程现有身份与展示装配，组织/应用目录不依赖OA。 */
     public com.lrj.authz.governance.application.PortalDirectory portal(com.lrj.authz.governance.application.AccessPresentation presentation) {
         return new com.lrj.authz.governance.application.PortalDirectory(identity, mapper, portalMapper, presentation);

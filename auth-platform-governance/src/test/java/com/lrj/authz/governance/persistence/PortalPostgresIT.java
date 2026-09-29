@@ -90,9 +90,50 @@ class PortalPostgresIT {
         });
         assertThatThrownBy(() -> portal.applications(login(owner), owner.tenantId(), null)).hasMessage("VERSION_CONFLICT");
     }
-    @Test void dependencyErrorNeverReturnsPartialAllowedDirectory() {
+    @Test void dependencyErrorKeepsOwnedProgressContextButClosesEveryBusinessEntry() {
         var owner = person(id(), "tenant-" + id()); application(owner);
-        var portal = portal((context, cap, resource) -> { throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE); });
-        assertThatThrownBy(() -> portal.applications(login(owner), owner.tenantId(), null)).hasMessage("DEPENDENCY_UNAVAILABLE");
+        for (var code : List.of(GovernanceException.Code.DEPENDENCY_UNAVAILABLE, GovernanceException.Code.AUTHZ_STATE_NOT_READY)) {
+        var portal = portal((context, cap, resource) -> { throw new GovernanceException(code); });
+        var application = portal.applications(login(owner), owner.tenantId(), null).items().getFirst();
+        assertThat(application.entryState()).isEqualTo(PortalDirectory.EntryState.UNAVAILABLE);
+        assertThat(application.menus()).isEmpty(); assertThat(application.capabilityHints()).isEmpty();
+        assertThat(application.management()).isTrue();
+        }
     }
+    @Test void managementReadModelsRequireCurrentDelegationAndFilterTenantMembers() {
+        var owner = person(id(), "tenant-" + id()); var member = person(owner.tenantId(), owner.tenantCode());
+        var foreign = person(id(), "tenant-" + id()); var p = application(owner);
+        var view = runtime.portalManagement();
+        assertThat(view.management(login(owner), p).catalogOwner()).isTrue();
+        assertThat(view.management(login(owner), p).capabilities()).extracting(com.lrj.authz.protocol.PortalDtos.Capability::code).containsExactly(p.applicationId() + ".read");
+        assertThat(view.members(login(owner), p, null).items()).extracting(com.lrj.authz.protocol.PortalDtos.Member::membershipId)
+                .containsExactlyInAnyOrder(owner.membershipId(), member.membershipId()).doesNotContain(foreign.membershipId());
+        assertThatThrownBy(() -> view.management(login(member), p)).hasMessage("ACCESS_DENIED");
+        assertThatThrownBy(() -> view.members(login(foreign), p, null)).hasMessage("MEMBERSHIP_UNAVAILABLE");
+        jdbc.update("update auth_governance.access_delegation set enabled=false where membership_id=?", owner.membershipId());
+        assertThatThrownBy(() -> view.members(login(owner), p, null)).hasMessage("ACCESS_DENIED");
+    }
+    @Test void fixedRoleImpactDoesNotMigrateExistingGrantsAndRejectsForeignIds() {
+        var owner = person(id(), "tenant-" + id()); var member = person(owner.tenantId(), owner.tenantCode()); var p = application(owner);
+        var first = runtime.access().createRole(login(owner), p, id(), "reader", 1, List.of(p.applicationId() + ".read"));
+        runtime.access().grant(login(owner), p, id(), member.membershipId(), 1, first.id(), "TENANT_ALL", id(), Instant.now(), Instant.now().plusSeconds(300));
+        var second = runtime.access().createRole(login(owner), p, id(), "reader", 2, List.of(p.applicationId() + ".read"));
+        var view = runtime.portalManagement();
+        assertThat(view.roleImpact(login(owner), p, first.id()).referencingGrantCount()).isEqualTo(1);
+        var impact = view.roleImpact(login(owner), p, second.id());
+        assertThat(impact.previousRoleId()).isEqualTo(first.id()); assertThat(impact.added()).isEmpty();
+        assertThat(impact.removed()).isEmpty(); assertThat(impact.referencingGrantCount()).isZero();
+        assertThat(runtime.access().state(login(owner), p, null, null).grants()).singleElement().extracting(Grant::roleId).isEqualTo(first.id());
+        var other = application(owner);
+        assertThatThrownBy(() -> view.roleImpact(login(owner), other, first.id())).hasMessage("ACCESS_DENIED");
+    }
+    @Test void managementProgressAndDisabledCapabilityComeFromDatabase() {
+        var owner = person(id(), "tenant-" + id()); var p = application(owner);
+        runtime.access().enableStrict(login(owner), p, id());
+        var view = runtime.portalManagement();
+        assertThat(view.management(login(owner), p).policyState()).isEqualTo("UPDATING");
+        runtime.catalog().changeCapability(login(owner), p.applicationId(), p.applicationId() + ".read", true, 0, "emergency", id());
+        assertThat(view.management(login(owner), p).capabilities()).singleElement().extracting(com.lrj.authz.protocol.PortalDtos.Capability::disabled).isEqualTo(true);
+    }
+
 }

@@ -48,8 +48,8 @@ def main():
     run = base / ('shell-' + secrets.token_hex(5))
     run.mkdir(mode=0o700, parents=True)
     (base / 'latest-shell.txt').write_text(str(run))
-    subprocess.run(['python3', 'deploy/governance-test-db.py', '--container', 'auth-governance-p4-postgres-1', '--port', '15434', '--directory', str(base / 'database')], check=True, stdout=subprocess.DEVNULL)
-    db = h.read_private(base / 'database/database.properties')
+    subprocess.run(['python3', 'deploy/governance-test-db.py', '--container', 'auth-governance-p4-postgres-1', '--port', '15434', '--directory', str(run / 'database')], check=True, stdout=subprocess.DEVNULL)
+    db = h.read_private(run / 'database/database.properties')
     fixture = json.loads(h.read_private(root / 'p2/identity/casdoor.json'))
     ops = json.loads(h.read_private(root / 'casdoor-isolated/management-client.json'))
     graph = properties(root / 'p3/graph/graph.properties')
@@ -72,7 +72,7 @@ def main():
                   'principal.id': owner, 'issuer': h.ISSUER, 'subject': fixture['users']['internal']['id'], 'membership.id': member,
                   'valid.from': '2020-01-01T00:00:00Z', 'source.system': 'p5-fixture', 'source.tenant.ref': tenant, 'source.subject.ref': 'internal'}
         path = run / ('owner-' + str(number) + '.properties'); h.private(path, h.props(values))
-        cli('GovernanceCli', ['bootstrap', base / 'database/database.properties', path])
+        cli('GovernanceCli', ['bootstrap', run / 'database/database.properties', path])
     cat = {'catalog.application': app, 'catalog.owner-principal': owner, 'catalog.entry-origin': 'http://127.0.0.1:18605', 'catalog.operator': 'p5-fixture',
            'catalog.command': uid(), 'catalog.owner-issuer': h.ISSUER, 'catalog.owner-subject': fixture['users']['internal']['id']}
     h.private(run / 'catalog.properties', db + h.props(cat)); cli('CatalogCli', ['register', run / 'catalog.properties', 'configured'])

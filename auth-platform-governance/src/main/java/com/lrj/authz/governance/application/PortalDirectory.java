@@ -44,8 +44,16 @@ public final class PortalDirectory {
         long deadline = System.nanoTime() + PAGE_BUDGET_NANOS;
         for (var candidate : candidates.subList(0, Math.min(PAGE_SIZE, candidates.size()))) {
             if (System.nanoTime() >= deadline) throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE);
-            var view = presentation.current(login, new Partition(tenant, candidate.applicationId(), candidate.environment()));
-            result.add(new Application(candidate.applicationId(), candidate.environment(), candidate.management(), view.menus(), view.capabilityHints()));
+            try {
+                var view = presentation.current(login, new Partition(tenant, candidate.applicationId(), candidate.environment()));
+                result.add(new Application(candidate.applicationId(), candidate.environment(), candidate.management(), view.menus(), view.capabilityHints(),
+                        view.capabilityHints().isEmpty() ? EntryState.NO_ACCESS : EntryState.AVAILABLE));
+            } catch (GovernanceException failure) {
+                if (failure.code() != GovernanceException.Code.DEPENDENCY_UNAVAILABLE
+                        && failure.code() != GovernanceException.Code.AUTHZ_STATE_NOT_READY) throw failure;
+                // 只保留已验证的本人关联，业务入口全部关闭；申请/管理进度不能因投影故障而消失。
+                result.add(new Application(candidate.applicationId(), candidate.environment(), candidate.management(), List.of(), List.of(), EntryState.UNAVAILABLE));
+            }
         }
         if (System.nanoTime() >= deadline) throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE);
         // 图调用期间可能停用或重建成员；迟到结果不能带回旧身份上下文的入口。
@@ -64,7 +72,9 @@ public final class PortalDirectory {
     public record Candidate(String applicationId, String environment, boolean management) {}
     /** 应用卡片只包含当前允许的菜单链接，不发放Token或服务密钥。 */
     public record Application(String applicationId, String environment, boolean management,
-                              List<AccessPresentation.Menu> menus, List<String> capabilityHints) {}
+                              List<AccessPresentation.Menu> menus, List<String> capabilityHints, EntryState entryState) {}
+    /** 错误不能变成无权限，更不能沿用旧入口；显式状态仅影响展示。 */
+    public enum EntryState { AVAILABLE, NO_ACCESS, UNAVAILABLE }
     /** 当前页和有界游标，不推断不可见目录总数。 */
     public record Applications(List<Application> items, String nextCursor) {}
 }

@@ -172,6 +172,9 @@ public final class AccessManagement {
         return new State(List.copyOf(roles.subList(0,Math.min(100,roles.size()))),List.copyOf(grants.subList(0,Math.min(100,grants.size()))),
                 roles.size()>100?roles.get(99).id():null,grants.size()>100?grants.get(99).id():null);
     }
+    /** 门户选项只读当前委派；返回它不代替每次写操作的重新校验。 */
+    public Delegation authority(VerifiedLogin login, Partition p) { return manager(login, p, false).delegation(); }
+
     private Manager manager(VerifiedLogin login,Partition p,boolean lock){
         AccessValues.partition(p);CurrentContext current=identity.contextForLogin(login.issuer(),login.subject(),p.tenantId(),null);
         if(!Boolean.TRUE.equals(lock?mapper.lockPartition(p):mapper.enabled(p)))throw new GovernanceException(ACCESS_DENIED);

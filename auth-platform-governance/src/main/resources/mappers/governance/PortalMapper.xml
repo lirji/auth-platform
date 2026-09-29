@@ -15,4 +15,23 @@
  AND gm.membership_id=#{member} AND gm.generation=#{generation} AND gm.current)))))
  ORDER BY a.application_id,a.environment LIMIT 21
  </select>
+ <select id="members" resultType="com.lrj.authz.protocol.PortalDtos$Member">
+ SELECT m.id membership_id,m.generation,m.member_kind,m.valid_to::text FROM auth_governance.membership m
+ JOIN auth_governance.principal u ON u.id=m.principal_id JOIN auth_governance.tenant t ON t.id=m.tenant_id
+ WHERE m.tenant_id=#{tenant} AND m.id &gt; #{after} AND m.status='ACTIVE' AND u.status='ACTIVE' AND u.kind='HUMAN' AND t.status='ACTIVE'
+ AND m.valid_from &lt;=clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to &gt;clock_timestamp()) ORDER BY m.id LIMIT 101
+ </select>
+ <select id="disabledCapabilities" resultType="string">SELECT capability FROM auth_governance.capability_state WHERE application_id=#{application} AND disabled ORDER BY capability LIMIT 201</select>
+ <select id="progress" resultType="com.lrj.authz.protocol.PortalDtos$Progress">
+ SELECT p.state policy_state,d.state directory_state,p.desired_epoch,p.applied_epoch FROM auth_governance.policy_partition p
+ JOIN auth_governance.directory_fence d ON d.tenant_id=p.tenant_id
+ WHERE p.tenant_id=#{p.tenantId} AND p.application_id=#{p.applicationId} AND p.environment=#{p.environment}
+ </select>
+ <select id="previousRole" resultType="com.lrj.authz.governance.domain.AccessModels$RoleVersion">
+ SELECT id,tenant_id,application_id,environment,role_code,version,capabilities_json,content_hash FROM auth_governance.role_version
+ WHERE tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment} AND role_code=#{code} AND version &lt; #{version} ORDER BY version DESC LIMIT 1
+ </select>
+ <select id="referencingGrants" resultType="long">
+ SELECT count(*) FROM auth_governance.access_grant WHERE tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment} AND role_id=#{role}
+ </select>
 </mapper>

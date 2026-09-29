@@ -1,0 +1,46 @@
+[
+  {
+    "check": "PARTNER sees own real application; business entry contains no token; management action absent",
+    "result": "PASS"
+  },
+  {
+    "check": "two tabs retain independent tenant parameters; organization switch clears previous application",
+    "result": "PASS"
+  },
+  {
+    "check": "narrow viewport has no horizontal page overflow",
+    "result": "PASS"
+  },
+  {
+    "check": "direct API bypass of hidden management action is forbidden",
+    "result": "PASS"
+  },
+  {
+    "check": "manager can open protected current-partition view without acquiring business access",
+    "result": "PASS"
+  },
+  {
+    "check": "role form validates required fields, protects dirty close, and creates a real immutable version",
+    "result": "PASS"
+  },
+  {
+    "check": "real committed grant response dropped; browser retries byte-equivalent payload with same command id",
+    "result": "PASS"
+  },
+  {
+    "check": "real scoped grant submits with 202 and remains pending while projection worker is stopped",
+    "result": "PASS"
+  },
+  {
+    "check": "full-page reload retains management progress while business entry state is unavailable",
+    "result": "PASS"
+  },
+  {
+    "check": "version impact drawer reads real reference count and closes without losing list context",
+    "result": "PASS"
+  },
+  {
+    "check": "catalog owner previews and publishes real manifest without upgrading existing role or grants",
+    "result": "PASS"
+  }
+]
