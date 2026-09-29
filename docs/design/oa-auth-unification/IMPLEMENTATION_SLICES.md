@@ -42,8 +42,8 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 | P3-07 | 故障注入与性能基线 | P3-02, P3-06 | IAM／业务 Mapper Owner；auth: governance（候选）, core, server、commerce: StoreAccessMapper.xml、OA: OaDataPermissionHandler | 保存真实kill、双实例和延迟结果 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P4-01 | AccessRequest及不可变快照 | P3-07 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 角色修改不改变原申请内容 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P4-02 | 既有OA流程适配和幂等启动 | P4-01 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 超时重试只生成一个实例 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
-| P4-03 | 可信回调、Inbox和冲突隔离 | P4-02 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 伪造、重复、同ID改体、旧版本 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | IN_PROGRESS |
-| P4-04 | 审批结果→Grant→投影衔接 | P4-03 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 审批成功但图失败不显示ACTIVE | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
+| P4-03 | 可信回调、Inbox和冲突隔离 | P4-02 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 伪造、重复、同ID改体、旧版本 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
+| P4-04 | 审批结果→Grant→投影衔接 | P4-03 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 审批成功但图失败不显示ACTIVE | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | IN_PROGRESS |
 | P4-05 | 取消／撤销／到期／离职 | P4-04 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 竞态收敛且来源隔离 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P4-06 | 待办、状态查询与通知 | P4-05 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 外部只能看自己允许的内容 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
 | P4-07 | 真实跨进程E2E和故障恢复 | P4-06 | IAM／OA 流程 Owner；auth: governance（候选）/admin、OA: oa-flow/工作流适配/待办/通知 | 停OA不影响已有日常授权检查 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |

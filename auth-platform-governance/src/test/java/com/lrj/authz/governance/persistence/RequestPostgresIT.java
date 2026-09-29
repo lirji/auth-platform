@@ -144,5 +144,35 @@ class RequestPostgresIT {
         assertThat(runtime.approvalStarts(gateway).step(f.p)).isFalse();
         assertThat(jdbc.queryForObject("select state from auth_governance.request_start_outbox where request_id=?",String.class,request.id())).isEqualTo("DEAD");
     }
+    @Test void signedInboxDeduplicatesBusinessEventsAndKeepsConflictEvidence() throws Exception {
+        var f=fixture();var policy=policy(f);var request=submit(f,policy.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"callback");
+        var json=new com.fasterxml.jackson.databind.ObjectMapper().setPropertyNamingStrategy(com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE);
+        String key="k".repeat(43),event=id();
+        var decision=new com.lrj.authz.protocol.ApprovalDtos.Decision(event,"ACCESS_REQUEST_DECIDED",1,"oa-platform",f.p.tenantId(),f.p.applicationId(),f.p.environment(),request.id(),1,request.snapshotHash(),"123",policy.id(),1,1,"APPROVED",f.owner.membershipId(),1,Instant.now().toString(),id());
+        byte[] body=json.writeValueAsBytes(decision);
+        String signature=com.lrj.authz.protocol.ApprovalSignature.sign(key,"oa-platform","test",ApprovalInbox.PATH,body,Instant.now());
+        assertThat(runtime.approvalInbox().receive(f.p,key,signature,body).status()).isEqualTo("RECEIVED");
+        assertThatThrownBy(()->runtime.approvalInbox().receive(f.p,key,signature,body)).hasMessage("COMMAND_CONFLICT");
+        String retry=com.lrj.authz.protocol.ApprovalSignature.sign(key,"oa-platform","test",ApprovalInbox.PATH,body,Instant.now());
+        assertThat(runtime.approvalInbox().receive(f.p,key,retry,body).status()).isEqualTo("RECEIVED");
+        byte[] changed=new String(body,java.nio.charset.StandardCharsets.UTF_8).replace("APPROVED","REJECTED").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        String altered=com.lrj.authz.protocol.ApprovalSignature.sign(key,"oa-platform","test",ApprovalInbox.PATH,changed,Instant.now());
+        assertThat(runtime.approvalInbox().receive(f.p,key,altered,changed).status()).isEqualTo("CONFLICT");
+        assertThat(jdbc.queryForObject("select count(*) from auth_governance.approval_conflict where event_id=?",Integer.class,event)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select payload_json from auth_governance.approval_inbox where event_id=?",String.class,event)).contains("APPROVED");
+        assertThatThrownBy(()->runtime.approvalInbox().receive(f.p,key,signature,changed)).hasMessage("INVALID_CREDENTIAL");
+        assertThat(runtime.requests().owned(login(f.member),f.p,request.id()).grantId()).isNull();
+    }
+    @Test void oldRequestVersionAndWrongApproverArePersistentlyRejected() throws Exception {
+        var f=fixture();var policy=policy(f);var r=submit(f,policy.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"old event");
+        var json=new com.fasterxml.jackson.databind.ObjectMapper().setPropertyNamingStrategy(com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE);
+        for(int n=0;n<2;n++){
+            var event=new com.lrj.authz.protocol.ApprovalDtos.Decision(id(),"ACCESS_REQUEST_DECIDED",1,"oa-platform",f.p.tenantId(),f.p.applicationId(),f.p.environment(),r.id(),n==0?2:1,r.snapshotHash(),"123",policy.id(),1,1,"APPROVED",n==0?f.owner.membershipId():f.member.membershipId(),1,Instant.now().toString(),id());
+            byte[] body=json.writeValueAsBytes(event);String key="k".repeat(43);
+            String signature=com.lrj.authz.protocol.ApprovalSignature.sign(key,"oa-platform","test",ApprovalInbox.PATH,body,Instant.now());
+            assertThat(runtime.approvalInbox().receive(f.p,key,signature,body).status()).isEqualTo("REJECTED");
+            assertThat(jdbc.queryForObject("select status from auth_governance.approval_inbox where event_id=?",String.class,event.eventId())).isEqualTo("REJECTED");
+        }
+    }
     private record Fixture(BootstrapCommand owner,BootstrapCommand member,Partition p,RoleVersion role){}
 }

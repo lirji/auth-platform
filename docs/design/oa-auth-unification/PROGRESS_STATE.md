@@ -2,14 +2,18 @@
 
 ## 当前状态
 
-**P4_IN_PROGRESS**。用户最新“继续做P4”授权原P4七节点实施和验证。P3及之前已交付，历史证据见phase-3/P3_DELIVERY_RESULT.md。P4-01已完成（phase-4/P4-01_TEST_RESULT.md），P4-02已完成（phase-4/P4-02_TEST_RESULT.md），P4-03进行中，P4-04至07尚未实施。不进入P5，不生产部署。
+P4_IN_PROGRESS。最新用户授权“继续做P4”，完成P4后正常Git交付，P5前停止，不生产部署。原63节点DAG不变。
 
-## 执行现场
+## 已完成
 
-- auth基线9140426；分支feat/iam-p4-oa-access-lifecycle；原目录实施。
-- OA原工作区四项用户改动保留，不能混入任务提交。
-- 保留原63节点与依赖，后续状态以DAG与phase-4测试证据同步。
+P0至P3历史交付见phase-3/P3_DELIVERY_RESULT。P4-01/02/03 DONE：不可变申请、真实OA幂等启动、可信回调/持久Inbox/冲突隔离，证据分别见phase-4对应TEST_RESULT。
 
-## 下一步
+## 当前工作
 
-P4-03：可信回调、Inbox去重与冲突隔离；共享workflow未登记OA来源，P4-07使用受控隔离运行，不能改共享信任或使用LOCAL冒充。
+P4-04 IN_PROGRESS：消费审批事件，事务内重新校验并创建固定来源Grant；随后P4-05取消/回收、P4-06状态/通知、P4-07真实引擎与跨进程故障。
+
+## 环境与交付
+
+auth基线9140426，OA基线4ea8be9；两仓原目录分支feat/iam-p4-oa-access-lifecycle。仅本任务分批本地提交，阶段最终合并/推送尚未执行。OA四项用户改动保留，不改其恢复文档。专用auth PG至V14；专用OA PG包含V25/V26（沿用模块迁移序列outOfOrder）。
+
+共享workflow已启用Kafka来源信任，缺OA来源登记；P4-07须使用受控隔离引擎/总线，不改共享信任。P4-02真实HTTP测试已停止自有OA进程，未发共享Kafka审批命令。共享Casdoor升级、生产容量/保留期限限制继续保留。
