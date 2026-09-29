@@ -17,3 +17,5 @@
 限制：无仓库统一formatter，静态分析未配置；只按既有风格和架构测试检查。性能profile的5项测试未开启，不能宣称生产容量或SLO。P6-07报告明确生产HOLD；P7未执行。
 
 两仓Code Hygiene均IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS，限制为缺统一formatter/静态分析未配置；事务检查结论见本报告。未通过删除测试、放宽断言或修改共享中间件配置来取得PASS。
+
+最终精度复核：执行到期时间契约为UTC微秒，SDK对纳秒输入规范化，服务端拒绝超精度直接调用，避免PostgreSQL持久化后幂等响应变化。指定reactor及真实PG/图IT重新通过；SDK补充纳秒输入回归通过。

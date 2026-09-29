@@ -85,11 +85,13 @@ public final class CentralAccessClient {
     /** 用户签发的执行引用不含Token；TTL不代替后续实时授权检查。 */
     public com.lrj.authz.protocol.ExecutionAccessDtos.Reference issueExecution(String user,Check request,Instant expiresAt) {
         validate(request);if(expiresAt==null)throw new IllegalArgumentException("invalid expiry");
-        var ref=post("executions",user,new com.lrj.authz.protocol.ExecutionAccessDtos.Issue(request,expiresAt.toString()),com.lrj.authz.protocol.ExecutionAccessDtos.Reference.class);
+        // PostgreSQL持久化为微秒精度，签发前规范化，避免重放响应因精度截断被误判。
+        Instant target=expiresAt.truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        var ref=post("executions",user,new com.lrj.authz.protocol.ExecutionAccessDtos.Issue(request,target.toString()),com.lrj.authz.protocol.ExecutionAccessDtos.Reference.class);
         if(ref==null||!"1".equals(ref.schemaVersion())||!request.requestId().equals(ref.requestId())||!uuid(ref.executionId())
             ||!request.capability().equals(ref.capability())||!request.resourceType().equals(ref.resourceType())||ref.context()==null)throw unavailable();
         validateContext(request,ref.context());
-        try { if(!Instant.parse(ref.expiresAt()).equals(expiresAt)||!expiresAt.isAfter(Instant.now()))throw unavailable(); }
+        try { if(!Instant.parse(ref.expiresAt()).equals(target)||!target.isAfter(Instant.now()))throw unavailable(); }
         catch(RuntimeException e) { throw unavailable(); }
         return ref;
     }

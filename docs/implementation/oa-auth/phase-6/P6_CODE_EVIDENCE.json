@@ -1,7 +1,7 @@
 {
   "auth": {
     ".github/workflows/authz-ci.yml": "ccd34007908f30469c1b1e585f2ea268103ea7ac62c713467f93554953095007",
-    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java": "fcb99e8980dd5da513e4c9f7c40ff085f61ecea285fd1e7e6631cbd7f64ff821",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java": "0b8d04de49e4b1ccbf4e00d7c60888189e48a4f17fd8248b35dadbd2eb11cb48",
     "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/MigrationImport.java": "02a52c36a600237a299349e1e50faac39248d5789b8128e02eb8d271beec7443",
     "auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/MigrationImportCli.java": "0037a9c626f3c498dab1a03f81f8f0b78a3f204d11606599b3109fae64f78abc",
     "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ExecutionMapper.java": "2b9dfaa640a4fdbce38789bdb59c6ff43ef73a1800ae7e41efec4c3ce8a95e57",
@@ -11,10 +11,10 @@
     "auth-platform-governance/src/main/resources/db/governance/migration/V19__migration_ledger.sql": "46ac6432b5c940876e890ed31cb3d83c6609a80c3eb8d3fb3801089d11b43e42",
     "auth-platform-governance/src/main/resources/mappers/governance/ExecutionMapper.xml": "5553062b712c48035b037fabe7cb29472e884103aaf1cc2731e81f2e20a25a43",
     "auth-platform-governance/src/main/resources/mappers/governance/MigrationMapper.xml": "98d40e91eabe53d00ead96ae59ad3757e8bedbb7e4eddc05f4c78d4807c9244c",
-    "auth-platform-governance/src/test/java/com/lrj/authz/governance/projection/ExecutionAuthorizationIT.java": "0ca63095894e23716429ed635fd61d902b0e79a491f45c3943a4838a44403b07",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/projection/ExecutionAuthorizationIT.java": "5fef960e6190c7534449d4b8962034e5360cfe88caa792eddf618d275cd636a0",
     "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/ExecutionAccessDtos.java": "f76c121bb6deef773b397479fd4c25c35009f35938fde955bfc07507ca4d353f",
-    "auth-platform-sdk/src/main/java/com/lrj/authz/sdk/CentralAccessClient.java": "4cb06b2f2f1fa695ce6d5431461a74252ef6e1979f9bd765e897dcabbc091133",
-    "auth-platform-sdk/src/test/java/com/lrj/authz/sdk/CentralAccessClientTest.java": "449ac270a40d2f86c28117c89be56b8a43d33eb415a7e571b5293465b272e2cd",
+    "auth-platform-sdk/src/main/java/com/lrj/authz/sdk/CentralAccessClient.java": "12b090c38c8a6492317ee125e4d46f55dce4219d57a595417f2cdbbbb871b559",
+    "auth-platform-sdk/src/test/java/com/lrj/authz/sdk/CentralAccessClientTest.java": "9b79107fca84d546d216f5608be7861f3dd5167d569047538f510d4fa754d8b3",
     "auth-platform-server/src/main/java/com/lrj/authz/server/governance/GovernanceExecutionConfiguration.java": "92ebc21b4d64b99acfee097da3635ce579940e25c72730ad56330911bff82058",
     "auth-platform-server/src/main/java/com/lrj/authz/server/governance/GovernanceExecutionController.java": "1043180bfb7bc9387959b59b0bf2e9b0037d3f309d7d678f9a9c7d64cf07dbe7",
     "auth-platform-server/src/test/java/com/lrj/authz/server/governance/GovernanceExecutionControllerTest.java": "dcd4e1962cc20d4f4455f5d37beed2e6cdfeb722c9cb8ce223c36a5be06e6f86",
@@ -57,6 +57,7 @@
     "commerce_passed": 388,
     "commerce_skipped_optional_performance": 5,
     "python_tests": 17,
-    "real_cross_process_checks": 31
+    "real_cross_process_checks": 31,
+    "precision_followup": "PASS: 233 selected reactor unit tests, real PG/SpiceDB ExecutionAuthorizationIT and additional SDK nanosecond normalization regression"
   }
 }

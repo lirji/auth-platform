@@ -94,7 +94,7 @@ class ExecutionAuthorizationIT {
             var latest=runtime.identity().contextForLogin(member.issuer(),member.subject(),tenant,1L);
             var newContext=new AccessContext(latest.principalId(),latest.membershipId(),latest.membershipGeneration(),latest.membershipVersion(),latest.principalVersion(),tenant,app,"test","commerce-p6","HUMAN",id());
             project(runtime,graph,partition);
-            var fresh=executions.issue(newContext,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),capability,"store"),Instant.now().plusSeconds(60).toString()));
+            var fresh=executions.issue(newContext,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),capability,"store"),Instant.now().plusSeconds(60).truncatedTo(java.time.temporal.ChronoUnit.MICROS).toString()));
             assertThat(executions.check(caller,check(fresh,tenant,"S002")).decision()).isEqualTo("ALLOW");
             person(runtime,tenant,code);project(runtime,graph,partition);
             assertThatThrownBy(()->executions.check(caller,check(fresh,tenant,"S002"))).hasMessage("ACCESS_DENIED");

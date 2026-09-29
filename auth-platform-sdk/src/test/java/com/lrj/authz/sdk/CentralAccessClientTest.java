@@ -38,9 +38,9 @@ class CentralAccessClientTest {
         var captured=new AtomicReference<String>();
         server.removeContext("/internal/governance/v1/access");
         server.createContext("/internal/governance/v1/access",exchange->{captured.set(exchange.getRequestHeaders().getFirst("X-User-Access-Token"));exchange.getRequestBody().readAllBytes();byte[] bytes=response.get().getBytes(StandardCharsets.UTF_8);exchange.getResponseHeaders().set("Content-Type","application/json");exchange.sendResponseHeaders(status.get(),bytes.length);exchange.getResponseBody().write(bytes);exchange.close();});
-        var c=decision(request,"ALLOW").context();String execution=UUID.randomUUID().toString();Instant until=Instant.now().plusSeconds(60);
+        var c=decision(request,"ALLOW").context();String execution=UUID.randomUUID().toString();Instant until=Instant.now().plusSeconds(60).truncatedTo(java.time.temporal.ChronoUnit.MICROS);
         var ref=new com.lrj.authz.protocol.ExecutionAccessDtos.Reference("1",request.requestId(),execution,c,request.capability(),request.resourceType(),until.toString());
-        response.set(json.writeValueAsString(ref));assertThat(client.issueExecution("user-token",request,until).executionId()).isEqualTo(execution);assertThat(captured.get()).isEqualTo("user-token");
+        response.set(json.writeValueAsString(ref));assertThat(client.issueExecution("user-token",request,until.plusNanos(1)).executionId()).isEqualTo(execution);assertThat(captured.get()).isEqualTo("user-token");
         response.set(json.writeValueAsString(ref).replace(tenant,UUID.randomUUID().toString()));assertThatThrownBy(()->client.issueExecution("user-token",request,until)).isInstanceOf(CentralAccessException.class);
         var facts=new Facts(tenant,"store","S001",2,null,null,List.of(),"S001",null);
         var decision=new ResourceDecision("1",request.requestId(),request.capability(),"store","S001",2,"ALLOW",UUID.randomUUID().toString(),c,Instant.now().plusSeconds(25).toString());

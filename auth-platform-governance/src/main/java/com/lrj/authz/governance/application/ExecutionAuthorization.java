@@ -32,7 +32,7 @@ public final class ExecutionAuthorization {
         Instant until;
         try { until=Instant.parse(input.expiresAt()); } catch(RuntimeException e) { throw error(INVALID_ARGUMENT); }
         Instant now=mapper.now();
-        if(!until.isAfter(now)||until.isAfter(now.plusSeconds(MAX_SECONDS)))throw error(INVALID_ARGUMENT);
+        if(until.getNano()%1000!=0||!until.isAfter(now)||until.isAfter(now.plusSeconds(MAX_SECONDS)))throw error(INVALID_ARGUMENT);
         var result=access.evaluate(context,check.capability(),check.resourceType());
         if(result.alternatives().isEmpty())throw error(ACCESS_DENIED);
         String fingerprint=AccessValues.hash(context.principalId(),context.membershipId(),context.membershipGeneration(),context.membershipVersion(),context.principalVersion(),
