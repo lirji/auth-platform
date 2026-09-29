@@ -1,0 +1,10 @@
+[
+  {
+    "check": "read-only: authorized product remains readable; hidden edit and direct write denied; other store/tenant denied",
+    "result": "PASS"
+  },
+  {
+    "check": "URL reload restores resource detail through fresh authorization",
+    "result": "PASS"
+  }
+]

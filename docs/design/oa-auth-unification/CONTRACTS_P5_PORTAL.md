@@ -45,3 +45,19 @@ GET `/access/explanations?grant_id=...`、GET `/access/audit?after=...`另需显
 审计页合并当前分区的角色/Grant/申请/策略相关既有审计与门户诊断访问记录，不展示其他应用或全企业日志；字段id/operator_ref/operation/target_id/target_version/occurred_at/outcome。诊断读取成功/拒绝落独立追加表V17（不记录Token、证明或任意业务正文），拒绝证据在独立短事务提交，不因随后抛出拒绝异常回滚。查审计本身也校验同一诊断范围；不提供修改/删除审计接口。
 
 管理撤权沿用POST `/access/strict-revoke`与GET `/access/revocation-receipt`，202显示回收处理中；仅COMPLETED及实际operation_id显示该来源回收完成，不宣称所有来源均撤销。本人解释列表继续列出其他合法Grant。申请来源本人回收仍走原cancel接口；管理者回收单条Grant走原委派检查和版本命令。
+
+## P5-05 商城内部试点
+
+中央入口在既有commerce前端新增`/operations/products`；复用React/AntD主题，独立OIDC business客户端使用授权码+PKCE，sessionStorage限本标签页，不进入旧凭据登录壳。固定`/iam/callback`仅恢复允许的内部/协作路由及URL上下文；无Token跳转或浏览器client_secret。OIDC复用auth已使用的oidc-client-ts 3.5.0（Apache-2.0；官方UserManager/PKCE文档https://authts.github.io/oidc-client-ts/），不新增认证服务。
+
+业务Bearer/X-Tenant-Id只作为待验证输入；本地身份桥仍要求匹配当前principal/member/generation，旧本地ADMIN不可回退。`GET /v1/operations/scoped/product`及`/resources/{id}`复用P3真实商品Owner范围查询。新增GET `/resources/{id}/actions`返回`{update:boolean}`，当前read允许后检查同资源`commerce.product.update`，无权false、依赖错误503不伪装无权。POST `/resources/{id}`为受控商品元资料修订，body仅expectedVersion/title/category/brand，Idempotency-Key必填。中央用例重新读取真实资源事实并检查update，限定同一plan/context；Owner事务以tenant/store/id/version及完整范围谓词条件更新、检查影响行数、命令与审计原子落库。不得由浏览器指定Owner事实/本地actor/范围。无效输入400，越权403，版本/资源/范围变化409或403，授权依赖失败503。
+
+网络判权在本地事务前完成；SQL仅接受最多5秒且不超过plan validUntil的在途决策，超时拒绝。撤权完成后的新请求必须拒绝；不承诺跨数据库原子取消已进入提交的请求，代码回滚不撤销已经修订的商品。原legacy商品接口及未试点功能保持原规则，不给中央JWT建立旧管理员凭据。
+
+## P5-06 指定门店协作与限时导出
+
+同一商城使用隔离路由`/collaboration/products`，从真实商品Owner范围查询获取数据，不生成供应商订单。邀请仍经P1/P5入口接受，独立read Grant绑定指定门店；申请固定product.export策略，经OA审批/回执后才能导出。外部身份不自动取得OA员工待办或商品update。
+
+既有product导出路径`/v1/operations/scoped/product/exports`（提交/开始/推进/状态/下载）全部改为显式`commerce.product.export`判权；不会从product.read拼范围。GET `/export-access`只返回`{export:boolean}`体验提示，依赖故障仍503。过滤器仍需当前合法product.read入口，随后导出用例逐次检查export和当前上下文。每批最多50、单任务最多1000、原幂等/配额/持久检查点/下载资源版本复核不变。只有read的旧调用者会失去导出，属安全收紧；上线先登记固定export能力、审批策略、客户端/服务范围，再切业务后端；不能回滚为read代替export。已有product旧任务fingerprint含read能力，与新export不匹配，拒绝续用，需当前授权下新建。store范围试点保留P3契约，不扩大本轮业务范围。
+
+页面保持组织/检索/任务在URL，详情刷新重新检查；通过固定配置的统一工作台Origin跳到本人申请页，不接受浏览器任意跳转目标。无导出权限明确提示申请；提交202只显示排队，开始和每次推进显式触发，完成后下载仍重新判权。到期/撤销使旧任务与旧下载链接拒绝；独立read Grant继续提供合法商品查询。取消申请只撤该OA来源。商品已下载到用户设备的内容不宣称能远程回收。

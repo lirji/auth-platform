@@ -18,3 +18,13 @@ export function safeEntry(href: string | null): string | undefined {
     return url.href
   } catch { return undefined }
 }
+
+/** 跳转只附当前租户与环境选择，业务应用仍以独立OIDC身份重新验证。 */
+export function contextualEntry(href: string | null, tenant: string, environment: string): string | undefined {
+  const safe = safeEntry(href)
+  if (!safe) return undefined
+  const url = new URL(safe)
+  url.searchParams.set('tenant_id', tenant)
+  url.searchParams.set('environment', environment)
+  return url.href
+}

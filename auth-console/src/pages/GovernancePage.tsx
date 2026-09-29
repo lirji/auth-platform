@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { applications, organizations, type Organization, type Partition, type PortalApplication } from '../api/governance'
 import { PageHeader } from '../components/layout/PageHeader'
-import { contextKey, organizationSearch, safeEntry } from '../governance/context'
+import { contextKey, organizationSearch, safeEntry, contextualEntry } from '../governance/context'
 import { EntryState } from '../governance/codes'
 import { Failure } from '../governance/feedback'
 
@@ -74,7 +74,7 @@ export default function GovernancePage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 16 }}>
           {entries.map(item => <Card key={`${item.application_id}/${item.environment}`} title={<span style={{ overflowWrap: 'anywhere' }}>{item.application_id}</span>} extra={<Tag>{item.environment}</Tag>}>
             {item.menus.some(menu => safeEntry(menu.href)) ? <Space direction="vertical" style={{ width: '100%' }}>
-              {item.menus.filter(menu => safeEntry(menu.href)).map(menu => <Button key={menu.code} href={safeEntry(menu.href)} target="_blank" rel="noopener noreferrer">进入 {menu.code}</Button>)}
+              {item.menus.filter(menu => safeEntry(menu.href)).map(menu => <Button key={menu.code} href={contextualEntry(menu.href, tenant, item.environment)} target="_blank" rel="noopener noreferrer">进入 {menu.code}</Button>)}
             </Space> : <Typography.Paragraph type="secondary">{item.entry_state === EntryState.UNAVAILABLE ? '暂时无法确认业务权限，业务入口已关闭。可继续查看申请或管理进度。' : '当前暂无可用业务入口'}</Typography.Paragraph>}
             <Space wrap style={{ marginTop: 16 }}><Button onClick={() => choose(item, '/governance/permissions')}>我的权限来源</Button><Button onClick={() => choose(item, '/governance/requests')}>我的申请与通知</Button></Space>
             {item.management && <Button style={{ marginTop: 16 }} onClick={() => choose(item, '/governance/access')}>查看授权管理</Button>}

@@ -1,0 +1,10 @@
+[
+  {
+    "check": "browser edits real authorized product; MySQL version advances; stale version and other store write denied",
+    "result": "PASS"
+  },
+  {
+    "check": "URL reload restores resource detail through fresh authorization",
+    "result": "PASS"
+  }
+]
