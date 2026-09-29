@@ -30,7 +30,7 @@ public class GovernanceAdminConfiguration {
                 .forEach(name -> invitation.setProperty(name.substring("invitation.user.".length()), props.getProperty(name)));
         Optional<TokenAuthority> invitationAuthority = Boolean.TRUE.equals(environment.getProperty("authz.governance.invitations.enabled", Boolean.class, false))
                 ? Optional.of(TokenAuthority.from(invitation)) : Optional.empty();
-        return new Settings(GovernanceDatabase.from(props), TokenAuthority.from(props), invitationAuthority);
+        return new Settings(GovernanceDatabase.from(props), TokenAuthority.from(props), invitationAuthority, com.lrj.authz.governance.application.PortalInvitationAuthority.from(props));
     }
 
     /** HTTP 服务只 validate 已初始化迁移，不隐式成为 migration owner。 */
@@ -54,5 +54,5 @@ public class GovernanceAdminConfiguration {
         return http.build();
     }
 
-    record Settings(GovernanceDatabase database, TokenAuthority authority, Optional<TokenAuthority> invitationAuthority) {}
+    record Settings(GovernanceDatabase database, TokenAuthority authority, Optional<TokenAuthority> invitationAuthority, java.util.List<com.lrj.authz.governance.application.PortalInvitationAuthority> portalInvitations) {}
 }

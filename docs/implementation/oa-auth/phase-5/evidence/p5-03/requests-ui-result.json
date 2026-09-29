@@ -1,0 +1,30 @@
+[
+  {
+    "check": "manager registers immutable store-scoped export policy through real UI; details preserve role and scope",
+    "result": "PASS"
+  },
+  {
+    "check": "partner submits real request, sees original scope and pending workflow, reload retains owned detail",
+    "result": "PASS"
+  },
+  {
+    "check": "same-user cross-tenant replay and manager reading another beneficiary request both denied",
+    "result": "PASS"
+  },
+  {
+    "check": "cancel uses original request and backend confirms cancelled; detail supports narrow viewport",
+    "result": "PASS"
+  },
+  {
+    "check": "explicit manager creates invitation; exact external user accepts; new membership has no implicit business grant",
+    "result": "PASS"
+  },
+  {
+    "check": "manager revokes pending invitation through real UI without affecting accepted member",
+    "result": "PASS"
+  },
+  {
+    "check": "external cannot query invitation management even by direct route",
+    "result": "PASS"
+  }
+]

@@ -52,3 +52,31 @@ export interface CatalogManifest { schema_version: string; application: string; 
 export const previewCatalog = async (manifest: CatalogManifest): Promise<CatalogPreview> => (await apiClient.post('/api/governance/v1/catalog/preview', manifest)).data
 export const publishCatalog = async (command: { manifest: CatalogManifest; commandId: string }): Promise<CatalogPreview> =>
   (await apiClient.post('/api/governance/v1/catalog/publish', command.manifest, { headers: { 'X-Command-Id': command.commandId } })).data
+
+export interface RequestPolicy { id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; policy_version: number; role_code: string; role_version: number; capabilities: string[] }
+export interface PolicyConfiguration { policy: RequestPolicy; approver_membership_id: string; approver_generation: number; enabled: boolean }
+export interface PolicyCommand extends Partition { command_id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; approver_membership_id: string; approver_generation: number; policy_version: number }
+export interface AccessRequest { id: string; policy_id: string; role_id: string; capabilities: string[]; scope_rule: ScopeRule; valid_from: string; valid_to: string; reason: string; request_version: number; snapshot_hash: string; state: string; state_version: number; approval_instance_id: string | null; grant_id: string | null }
+export interface RequestExecution { request_id: string; grant_id: string | null; grant_state: string | null; display_state: string; operation_id: string | null; start_state: string; start_attempts: number; start_error: string | null; callback_status: string | null; callback_result: string | null; other_active_grant_count: number }
+export interface RequestNotice { id: string; request_id: string; state_version: number; message_key: string; delivered_at: string }
+export interface SubmitRequest extends Partition { command_id: string; policy_id: string; valid_from: string; valid_to: string; reason: string }
+export interface CancelRequest extends Partition { command_id: string; id: string; state_version: number }
+export const requestPolicies = async (p: Partition, after?: string): Promise<Page<RequestPolicy>> => (await apiClient.get('/api/governance/v1/requests/policies', { params: { ...p, after } })).data
+export const managedPolicies = async (p: Partition, after?: string): Promise<Page<PolicyConfiguration>> => (await apiClient.get('/api/governance/v1/access/request-policies', { params: { ...p, after } })).data
+export const registerPolicy = async (command: PolicyCommand): Promise<RequestPolicy> => (await apiClient.post('/api/governance/v1/requests/policies', command)).data
+export const myRequests = async (p: Partition, after?: string): Promise<Page<AccessRequest>> => (await apiClient.get('/api/governance/v1/requests', { params: { ...p, after } })).data
+export const requestDetail = async (p: Partition, id: string): Promise<AccessRequest> => (await apiClient.get(`/api/governance/v1/requests/${id}`, { params: p })).data
+export const requestExecution = async (p: Partition, id: string): Promise<RequestExecution> => (await apiClient.get(`/api/governance/v1/requests/${id}/execution`, { params: p })).data
+export const requestNotices = async (p: Partition, after?: string): Promise<Page<RequestNotice>> => (await apiClient.get('/api/governance/v1/requests/notifications', { params: { ...p, after } })).data
+export const submitRequest = async (command: SubmitRequest): Promise<AccessRequest> => (await apiClient.post('/api/governance/v1/requests', command)).data
+export const cancelRequest = async ({ id, ...command }: CancelRequest): Promise<AccessRequest> => (await apiClient.post(`/api/governance/v1/requests/${id}/cancel`, command)).data
+
+export interface InvitationAuthority { issuer: string; max_invitation_seconds: number; max_membership_seconds: number }
+export interface Invitation { id: string; target_issuer: string; target_subject: string; member_kind: string; expires_at: string; membership_valid_to: string; state: string; version: number }
+export interface IssueInvitation extends Partition { command_id: string; invitation_id: string; target_subject: string; member_kind: string; token: string; expires_at: string; membership_valid_to: string; reason: string }
+export interface RevokeInvitation extends Partition { id: string; command_id: string; expected_version: number; reason: string }
+export const invitationAuthority = async (p: Partition): Promise<InvitationAuthority> => (await apiClient.get('/api/governance/v1/portal-invitations/authority', { params: p })).data
+export const invitations = async (p: Partition, after?: string): Promise<Page<Invitation>> => (await apiClient.get('/api/governance/v1/portal-invitations', { params: { ...p, after } })).data
+export const issueInvitation = async (command: IssueInvitation): Promise<Invitation> => (await apiClient.post('/api/governance/v1/portal-invitations', command)).data
+export const revokeInvitation = async ({ id, ...command }: RevokeInvitation): Promise<Invitation> => (await apiClient.post(`/api/governance/v1/portal-invitations/${id}/revoke`, command)).data
+export const acceptInvitation = async (command: { invitation_id: string; token: string }): Promise<{ membership_id: string; membership_generation: number; membership_status: string }> => (await apiClient.post('/api/governance/v1/invitations/accept', command)).data

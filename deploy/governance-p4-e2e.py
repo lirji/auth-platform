@@ -58,7 +58,7 @@ def wait_for(name,condition,timeout=45):
     raise RuntimeError('bounded wait failed: '+name)
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--oa',required=True);parser.add_argument('--infra-env',required=True)
+    parser=argparse.ArgumentParser();parser.add_argument('--oa',required=True);parser.add_argument('--infra-env',required=True);parser.add_argument('--p5-playwright-module')
     args=parser.parse_args();root=Path('.local/governance').resolve();p4=root/'p4';run=p4/('e2e-'+secrets.token_hex(5));run.mkdir(mode=0o700)
     fixture=json.loads(h.read_private(root/'p2/identity/casdoor.json'));ops=json.loads(h.read_private(root/'casdoor-isolated/management-client.json'))
     authdb=h.read_private(p4/'runtime-auth-db/database.properties');oadb=properties(p4/'runtime-oa-db/database.properties');oa_dbname=oadb['jdbc.url'].rsplit('/',1)[1]
@@ -140,6 +140,7 @@ def main():
         'oa.flow.outbox.poll-ms':'500','oa.flow.todo.reconcile-ms':'1000','oa.flow.instance.reconcile-ms':'1000','oa.flow.central-approval.enabled':'true','oa.flow.central-approval.tenant-id':tenant,'oa.flow.central-approval.application-id':app,'oa.flow.central-approval.environment':environment,
         'oa.flow.central-approval.oa-tenant-id':'1','oa.flow.central-approval.inbound-key':outbound,'oa.flow.central-approval.allow-loopback-http':'true','oa.flow.central-approval.callback-enabled':'true',
         'oa.flow.central-approval.callback-url':'http://127.0.0.1:18423/internal/oa-approval/v1/events','oa.flow.central-approval.outbound-key':inbound,'oa.flow.central-approval.capture-ms':'500','oa.flow.central-approval.delivery-ms':'500'}
+    if args.p5_playwright_module:settings['oa.security.allowed-origins[0]']='http://127.0.0.1:15276'
     for kind in ['internal','external']:
         prefix='oa.flow.central-approval.members.'+members[kind]+'.';settings.update({prefix+'generation':'1',prefix+'user-id':fixture['users'][kind]['id'],prefix+'org-id':'1',prefix+'org-path':'/1/'})
     h.private(run/'oa.properties',h.props(settings));oajar=Path(args.oa).resolve()/'oa-app/target/oa-app-0.1.0-SNAPSHOT.jar'
@@ -175,7 +176,27 @@ INSERT INTO oa_iam.grant_record(subject_type,subject_id,role_id,scope_type,valid
     assert basis['requestId']==rid and basis['snapshotHash']==submitted['snapshot_hash'] and basis['roleId']==role['id']
     h.expect('external cannot read approval basis',18420,'/api/v1/flow/central-access/tasks/'+task,member,status=403)
     body=json.dumps({'outcome':'APPROVE','comment':'P4 real approval','onBehalfOf':None}).encode()
-    completed=h.expect('assigned approver completes real task',18420,'/api/v1/flow/todos/'+task+'/complete',manager,body);assert completed.get('code') in (0,'00000','200',200)
+    if args.p5_playwright_module:
+        # P5复用此真实审批节点做UI验收；默认P4命令仍使用原HTTP检查。
+        import socket
+        env=dict(os.environ,OA_CONSOLE_PORT='15276',VITE_AUTH_ENABLED='true',VITE_API_TARGET='http://127.0.0.1:18420',
+                 VITE_NOTIFY_TARGET='http://127.0.0.1:18420',VITE_CASDOOR_AUTHORITY=h.ISSUER,VITE_CASDOOR_CLIENT_ID=mgmt['name'],
+                 P5_OA_FIXTURE=str(run),P5_PLAYWRIGHT_MODULE=str(Path(args.p5_playwright_module).resolve()))
+        h.private(run/'oa-ui.json',json.dumps({'manager_token':manager[0][1].removeprefix('Bearer '),'member_token':member[0][1].removeprefix('Bearer '),
+                  'request_id':rid,'snapshot_hash':submitted['snapshot_hash'],'task_id':task}))
+        with socket.socket() as guard:guard.bind(('127.0.0.1',15276))
+        with os.fdopen(os.open(run/'oa-vite.log',os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600),'w') as out:
+            ui=subprocess.Popen(['node','node_modules/vite/bin/vite.js','--host','127.0.0.1','--strictPort'],cwd=Path(args.oa)/'oa-console',env=env,stdout=out,stderr=subprocess.STDOUT)
+        h.PROCESSES.append(ui)
+        def ui_ready():
+            try:
+                with socket.create_connection(('127.0.0.1',15276),timeout=1):return True
+            except OSError:return False
+        wait_for('OA console ready',ui_ready,30)
+        subprocess.run(['node','deploy/governance-p5-oa-review.mjs'],env=env,check=True,timeout=90)
+        h.stop(ui)
+    else:
+        completed=h.expect('assigned approver completes real task',18420,'/api/v1/flow/todos/'+task+'/complete',manager,body);assert completed.get('code') in (0,'00000','200',200)
     wait_for('trusted OA result received',lambda:execution().get('callback_status')=='RECEIVED',45)
     cli('ApprovalDecisionCli',[run/'worker.properties']);assert execution()['display_state']=='PENDING_APPLY'
     cli('ReliableProjectionCli',[run/'broken-graph.properties'],allowed=(2,));assert execution()['display_state']!='ACTIVE'

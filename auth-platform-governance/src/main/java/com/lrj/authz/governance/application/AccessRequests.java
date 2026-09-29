@@ -112,6 +112,13 @@ public final class AccessRequests {
         return new com.lrj.authz.protocol.RequestDtos.Page<>(items,page.size()==100?page.getLast().id():null);
     }
 
+    /** 同分区固定角色的显示字段，调用者必须先通过策略目录或管理范围校验。 */
+    public com.lrj.authz.protocol.RequestDtos.PolicyView policyView(Policy p) {
+        var role=access.role(new Partition(p.tenantId(),p.applicationId(),p.environment()),p.roleId());
+        if(role==null) throw denied();
+        return new com.lrj.authz.protocol.RequestDtos.PolicyView(p.id(),p.roleId(),ScopeRules.decode(p.scopeJson()),p.maxDurationSeconds(),p.policyVersion(),role.roleCode(),role.version(),AccessValues.read(role.capabilitiesJson()));
+    }
+
     /** 本人申请分页，禁止调用方传入受益成员身份。 */
     public List<Request> mine(VerifiedLogin login,Partition p,String after) {
         var actor=context(login,p,false);return requests.mine(p,actor.membershipId(),actor.membershipGeneration(),cursor(after));

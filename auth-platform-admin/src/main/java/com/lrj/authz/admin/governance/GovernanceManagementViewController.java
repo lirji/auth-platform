@@ -17,8 +17,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/governance/v1/access")
 public class GovernanceManagementViewController {
     private final PortalManagement management;
+    private final com.lrj.authz.governance.application.AccessRequests requests;
     /** 只复用既有治理Runtime，没有独立BFF存储。 */
-    public GovernanceManagementViewController(GovernanceRuntime runtime) { management = runtime.portalManagement(); }
+    public GovernanceManagementViewController(GovernanceRuntime runtime) { management = runtime.portalManagement(); requests=runtime.requests(); }
     /** 表单选项是当前上限的只读提示，最终提交仍重新判权。 */
     @GetMapping("/management")
     public JsonNode management(@AuthenticationPrincipal VerifiedLogin login, @RequestParam("tenant_id") String tenant,
@@ -31,6 +32,14 @@ public class GovernanceManagementViewController {
             @RequestParam("application_id") String app, @RequestParam("environment") String env,
             @RequestParam(value="after", required=false) String after) {
         return GovernanceWeb.body(management.members(login, new Partition(tenant, app, env), after));
+    }
+    /** 管理策略的审批成员仅对当前有委派管理员开放。 */
+    @GetMapping("/request-policies")
+    public JsonNode policies(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("tenant_id") String tenant,
+            @RequestParam("application_id") String app,@RequestParam("environment") String env,@RequestParam(value="after",required=false) String after) {
+        var page=management.policies(login,new Partition(tenant,app,env),after);
+        return GovernanceWeb.body(new com.lrj.authz.protocol.RequestDtos.Page<>(page.items().stream().map(p ->
+                new com.lrj.authz.protocol.PortalDtos.PolicyConfiguration(requests.policyView(p),p.approverMembershipId(),p.approverGeneration(),p.enabled())).toList(),page.nextCursor()));
     }
     /** 差异和引用数量均从固定角色版本计算。 */
     @GetMapping("/role-impact")

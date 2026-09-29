@@ -4,3 +4,9 @@ export const ProjectionState = { READY: 'READY', UPDATING: 'UPDATING', BLOCKED: 
 
 /** 应用目录显式区分无权限和暂不可判定。 */
 export const EntryState = { AVAILABLE: 'AVAILABLE', NO_ACCESS: 'NO_ACCESS', UNAVAILABLE: 'UNAVAILABLE' } as const
+/** 审批事实和实际执行分别显示，批准不会自动映射为生效。 */
+export const RequestState = { SUBMITTED: 'SUBMITTED', IN_REVIEW: 'IN_REVIEW', APPROVED: 'APPROVED', REJECTED: 'REJECTED', CANCELLED: 'CANCELLED' } as const
+export const InvitationState = { PENDING: 'PENDING', ACCEPTED: 'ACCEPTED', REVOKED: 'REVOKED' } as const
+export const MemberKind = { EMPLOYEE: 'EMPLOYEE', PARTNER: 'PARTNER', GUEST: 'GUEST' } as const
+export const requestLabels: Record<string, string> = { SUBMITTED: '已提交，等待流程启动', IN_REVIEW: '审批中', APPROVED: '已批准', REJECTED: '已驳回', CANCELLED: '已取消' }
+export const executionLabels: Record<string, string> = { ...requestLabels, ACTIVE: '已实际生效', PENDING_APPLY: '等待权限生效', APPLY_FAILED: '权限同步失败', EXPIRED: '已到期', UNAVAILABLE: '当前不可用', REVOKING: '正在回收', REVOKED: '本来源已回收' }

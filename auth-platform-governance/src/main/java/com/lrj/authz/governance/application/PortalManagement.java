@@ -45,6 +45,13 @@ public final class PortalManagement {
         return new Page<>(List.copyOf(rows.subList(0, Math.min(rows.size(), PAGE_SIZE))), rows.size() > PAGE_SIZE ? rows.get(PAGE_SIZE - 1).membershipId() : null);
     }
 
+    /** 管理配置目录与普通申请目录分开；不会把审批人员返回给普通成员。 */
+    public Page<com.lrj.authz.governance.domain.RequestModels.Policy> policies(VerifiedLogin login, Partition p, String after) {
+        access.authority(login,p); if(after!=null && !after.isEmpty()) BootstrapCommand.uuid(after);
+        var rows=mapper.policies(p,after==null?"":after);
+        return new Page<>(rows.subList(0,Math.min(100,rows.size())),rows.size()>100?rows.get(99).id():null);
+    }
+
     /** 固定版本比较限定同一分区与角色编码，不能通过UUID探测其他应用角色。 */
     public RoleImpact roleImpact(VerifiedLogin login, Partition p, String roleId) {
         access.authority(login, p); BootstrapCommand.uuid(roleId);

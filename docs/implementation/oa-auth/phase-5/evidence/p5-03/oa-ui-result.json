@@ -1,0 +1,14 @@
+[
+  {
+    "check": "actual assigned OA task displays exact immutable request hash, capabilities, scope and time",
+    "result": "PASS"
+  },
+  {
+    "check": "external has no employee todo and cannot query approval basis directly",
+    "result": "PASS"
+  },
+  {
+    "check": "assigned approver completes real Flowable task from reviewed basis; downstream P4 verifies signed result and actual grant",
+    "result": "PASS"
+  }
+]

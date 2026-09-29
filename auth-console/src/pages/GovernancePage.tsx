@@ -54,7 +54,7 @@ export default function GovernancePage() {
   }
   return <main className="app-content" style={{ width: '100%', boxSizing: 'border-box' }}>
     <PageHeader title="我的工作台" description="在当前组织内查看应用、权限和申请进度。"
-      extra={<Button onClick={() => void auth.signoutRedirect()}>退出登录</Button>} />
+      extra={<Space wrap><Link to="/invitations/accept">接受邀请</Link><Button onClick={() => void auth.signoutRedirect()}>退出登录</Button></Space>} />
     <Card style={{ marginBottom: 20 }}>
       <Space wrap size="middle">
         <Typography.Text strong>当前组织</Typography.Text>
@@ -76,7 +76,9 @@ export default function GovernancePage() {
             {item.menus.some(menu => safeEntry(menu.href)) ? <Space direction="vertical" style={{ width: '100%' }}>
               {item.menus.filter(menu => safeEntry(menu.href)).map(menu => <Button key={menu.code} href={safeEntry(menu.href)} target="_blank" rel="noopener noreferrer">进入 {menu.code}</Button>)}
             </Space> : <Typography.Paragraph type="secondary">{item.entry_state === EntryState.UNAVAILABLE ? '暂时无法确认业务权限，业务入口已关闭。可继续查看申请或管理进度。' : '当前暂无可用业务入口'}</Typography.Paragraph>}
+            <div style={{ marginTop: 16 }}><Button onClick={() => choose(item, '/governance/requests')}>我的申请与通知</Button></div>
             {item.management && <Button style={{ marginTop: 16 }} onClick={() => choose(item, '/governance/access')}>查看授权管理</Button>}
+            {item.management && <Space wrap style={{ marginTop: 12 }}><Button onClick={() => choose(item, '/governance/policies')}>申请策略</Button><Button onClick={() => choose(item, '/governance/invitations')}>外部邀请</Button></Space>}
           </Card>)}
         </div>
         <Space style={{ marginTop: 20 }}>

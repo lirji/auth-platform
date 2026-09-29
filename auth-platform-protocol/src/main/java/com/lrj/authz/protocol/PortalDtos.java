@@ -17,4 +17,6 @@ public final class PortalDtos {
     public record RoleImpact(String roleId, String previousRoleId, List<String> added, List<String> removed, long referencingGrantCount) {}
     /** 数据库投影栅栏状态，不以浏览器轮询推断回执。 */
     public record Progress(String policyState, String directoryState, Long desiredEpoch, Long appliedEpoch) {}
+    /** 管理者核对固定审批配置，不出现在普通策略目录中。 */
+    public record PolicyConfiguration(RequestDtos.PolicyView policy, String approverMembershipId, long approverGeneration, boolean enabled) {}
 }

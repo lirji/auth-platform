@@ -34,4 +34,13 @@
  <select id="referencingGrants" resultType="long">
  SELECT count(*) FROM auth_governance.access_grant WHERE tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment} AND role_id=#{role}
  </select>
+ <select id="invitations" resultType="com.lrj.authz.protocol.PortalInvitationDtos$View">
+ SELECT id,target_issuer,target_subject,member_kind,expires_at::text,membership_valid_to::text,state,version FROM auth_governance.invitation
+ WHERE tenant_id=#{a.tenantId} AND operator_ref=#{a.operatorRef} AND sponsor_membership_id=#{a.sponsorMembershipId} AND id &gt; #{after}
+ ORDER BY id LIMIT 101
+ </select>
+ <select id="policies" resultType="com.lrj.authz.governance.domain.RequestModels$Policy">
+ SELECT id,tenant_id,application_id,environment,role_id,scope_json,max_duration_seconds,approver_membership_id,approver_generation,delegation_hash,policy_version,content_hash,enabled
+ FROM auth_governance.request_policy WHERE tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment} AND id &gt; #{after} ORDER BY id LIMIT 101
+ </select>
 </mapper>

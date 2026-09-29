@@ -21,4 +21,8 @@ public interface PortalMapper {
     /** 引用数始终带完整分区谓词。 */
     long referencingGrants(@Param("p") com.lrj.authz.governance.domain.AccessModels.Partition p, @Param("role") String role);
 
+    /** 当前操作者自己的邀请记录，不查询其他应用或同租户其他管理员。 */
+    List<com.lrj.authz.protocol.PortalInvitationDtos.View> invitations(@Param("a") com.lrj.authz.governance.application.InvitationCommands.Authority authority, @Param("after") String after);
+    /** 管理策略页带完整分区，不套用普通用户的审批者自申请过滤。 */
+    List<com.lrj.authz.governance.domain.RequestModels.Policy> policies(@Param("p") com.lrj.authz.governance.domain.AccessModels.Partition p, @Param("after") String after);
 }

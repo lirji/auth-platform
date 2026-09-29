@@ -16,6 +16,10 @@ import IdentitySyncPage from '../pages/IdentitySyncPage'
 import AuditPage from '../pages/AuditPage'
 import GovernancePage from '../pages/GovernancePage'
 import GovernanceAccessPage from '../pages/GovernanceAccessPage'
+import GovernanceRequestsPage from '../pages/GovernanceRequestsPage'
+import GovernanceInvitationsPage from '../pages/GovernanceInvitationsPage'
+import GovernancePoliciesPage from '../pages/GovernancePoliciesPage'
+import InvitationAcceptPage from '../pages/InvitationAcceptPage'
 
 function guarded(feature: string, page: ReactNode) {
   return <FeatureGuard feature={feature}>{page}</FeatureGuard>
@@ -35,8 +39,12 @@ const workspacePages = [
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/callback', element: <CallbackPage /> },
+  { path: '/invitations/accept', element: <ProtectedRoute requireWorkspaceGroups={false}><InvitationAcceptPage /></ProtectedRoute> },
   { path: '/governance', element: <ProtectedRoute requireWorkspaceGroups={false}><GovernancePage /></ProtectedRoute>, children: [
     { path: 'access', element: <GovernanceAccessPage /> },
+    { path: 'requests', element: <GovernanceRequestsPage /> },
+    { path: 'invitations', element: <GovernanceInvitationsPage /> },
+    { path: 'policies', element: <GovernancePoliciesPage /> },
   ] },
   {
     path: '/',

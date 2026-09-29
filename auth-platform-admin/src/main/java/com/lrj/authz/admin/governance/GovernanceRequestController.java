@@ -31,7 +31,7 @@ public class GovernanceRequestController {
         var r=AccessWeb.read(request.getInputStream(),RegisterPolicy.class);
         var policy=requests.registerPolicy(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),
                 r.roleId(),r.scopeRule(),r.maxDurationSeconds(),r.approverMembershipId(),r.approverGeneration(),r.policyVersion());
-        return GovernanceWeb.body(policyView(policy));
+        return GovernanceWeb.body(requests.policyView(policy));
     }
 
     /** 202只表示申请已持久化，不表示OA已启动或Grant生效。 */
@@ -64,7 +64,7 @@ public class GovernanceRequestController {
                              @RequestParam("application_id") String app,@RequestParam("environment") String env,
                              @RequestParam(value="after",required=false) String after) {
         var page=requests.policyPage(login,new Partition(tenant,app,env),after);
-        return GovernanceWeb.body(new Page<>(page.items().stream().map(GovernanceRequestController::policyView).toList(),page.nextCursor()));
+        return GovernanceWeb.body(new Page<>(page.items().stream().map(requests::policyView).toList(),page.nextCursor()));
     }
 
     /** 所有申请状态均可找到；只返回本人当前成员代际。 */
@@ -92,9 +92,6 @@ public class GovernanceRequestController {
         return GovernanceWeb.body(requests.execution(login,new Partition(tenant,app,env),id));
     }
 
-    private static PolicyView policyView(Policy p) {
-        return new PolicyView(p.id(),p.roleId(),ScopeRules.decode(p.scopeJson()),p.maxDurationSeconds(),p.policyVersion());
-    }
     private static View view(Request r) {
         return new View(r.id(),r.policyId(),r.roleId(),AccessValues.read(r.capabilitiesJson()),ScopeRules.decode(r.scopeJson()),
                 r.validFrom().toString(),r.validTo().toString(),r.reason(),r.requestVersion(),r.snapshotHash(),r.state().code(),

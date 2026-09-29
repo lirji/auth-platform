@@ -23,3 +23,15 @@ GET `/access/role-impact?...&role_id=<UUID>` 返回`{role_id,previous_role_id,ad
 写操作仍使用原`/access/roles`、`/access/scoped-grants`与`/catalog/preview|publish`。UI在一次提交时固定command_id与原payload；未知结果提供原样重试，不默默换键重提。精确范围用结构化资源类型/范围类型/值列表编辑；不把SCOPED显示成TENANT_ALL，不使用JSON输入框作为普通授予表单。投影UPDATING/BLOCKED及202不能显示实际生效；分区进度单独展示，列表ACTIVE仅标识原图确认事实。
 
 P5-02验收发现投影故障会阻断管理/申请进度入口，因此上述entry_state兼容字段明确区分应用不可达与无权限；这是展示契约修正，原`/me/access`与业务判权的503/拒绝语义不变。
+
+## P5-03 邀请与申请
+
+原 `/requests`、`/{id}/execution`、`/{id}/cancel`、`/policies`、`/notifications` 继续作为权威；PolicyView兼容新增role_code/role_version/capabilities，均来自同分区固定RoleVersion。新增GET `/access/request-policies` 返回管理者当前分区的策略页（包含固定审批成员/代际、enabled），只供配置核对，不让普通申请人读取审批人员目录。注册继续使用原POST `/requests/policies`；发布新策略不修改已提交快照。
+
+邀请新增 `/api/governance/v1/portal-invitations`：GET `/authority`返回受控issuer/max_invitation_seconds/max_membership_seconds；GET根路径按当前操作者分页；POST根路径创建，POST `/{id}/revoke`撤销待接受邀请。所有请求含当前完整partition，查询游标after最多100项。创建字段command_id/invitation_id/target_subject/member_kind(PARTNER或GUEST)/token/expires_at/membership_valid_to/reason；撤销字段command_id/expected_version/reason。返回id/target_issuer/target_subject/member_kind/expires_at/membership_valid_to/state/version，不返回证明或其摘要。
+
+邀请管理权限默认关闭。私密治理配置`portal.invitation.count=0..100`及1起下标条目的tenant-id/application-id/environment/membership-id/generation/max-invitation-seconds/max-membership-seconds明确委派；上限分别7天/365天。当前成员必须是同租户有效EMPLOYEE，代际匹配配置且仍具当前应用管理委派。issuer固定为invitation.user.issuer；操作者/负责人由服务端派生，浏览器不可指定。关闭配置或撤销管理委派立即拒绝。邀请只建立成员，不自动授予应用能力。
+
+浏览器为每个创建意图生成256位随机证明并冻结命令；原样重试，证明只在本次页面内显示供受控交付，不放URL、持久化浏览器缓存或自动发送。邀请接受使用原POST `/invitations/accept`，独立受保护路由`/invitations/accept`不依赖已有组织；要求用户输入邀请ID和证明，登录身份必须与邀请精确匹配。接受成功只说明已加入组织。
+
+我的申请按URL request/after保留详情与分页，仅本人当前代际；申请详情分列原固定能力/范围/期限、审批事实和实际执行状态。未知结果重试复用原命令，取消202显示取消/回收受理，明确其他合法来源不会一并撤销。通知只显示安全模板与本人详情，不复制员工待办。OA已有待办页面增加中央权限申请依据抽屉，GET `/api/v1/flow/central-access/tasks/{taskId}`原接口逐条验证当前办理人；读取失败不在该抽屉提供审批按钮。

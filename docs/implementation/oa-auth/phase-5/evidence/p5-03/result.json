@@ -1,0 +1,261 @@
+{
+  "result": "PASS",
+  "run": "e2e-44c5f7f6f2",
+  "request_id": "3a98203a-61f2-47f9-9f63-d0fbf31711c9",
+  "approval_instance_id": "28",
+  "grant_id": "10694d83-8ee8-4b2d-a295-6262b4beb4a4",
+  "operation_id": "a122d224-3332-437b-b179-fa0ab05f1cb3",
+  "revocation_operation_id": "31ad821d-99af-4f84-9b3b-5744afb8f3d5",
+  "short_request_id": "945a713a-22e6-42fd-bdbb-414c7ac1c52f",
+  "checks": [
+    {
+      "check": "real external identity accepts PARTNER invitation",
+      "result": "PASS"
+    },
+    {
+      "check": "enable strict partition",
+      "result": "PASS"
+    },
+    {
+      "check": "fixed export role",
+      "result": "PASS"
+    },
+    {
+      "check": "registered fixed approval policy",
+      "result": "PASS"
+    },
+    {
+      "check": "unapproved export denied",
+      "result": "PASS"
+    },
+    {
+      "check": "self request accepted",
+      "result": "PASS"
+    },
+    {
+      "check": "other member detail denied",
+      "result": "PASS"
+    },
+    {
+      "check": "other member list has no applicant data",
+      "result": "PASS"
+    },
+    {
+      "check": "own list includes request",
+      "result": "PASS"
+    },
+    {
+      "check": "role version expansion",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "actual OA approver todos",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request binding",
+      "result": "PASS"
+    },
+    {
+      "check": "external cannot open OA workbench",
+      "result": "PASS"
+    },
+    {
+      "check": "still cannot export during approval",
+      "result": "PASS"
+    },
+    {
+      "check": "approver reads exact immutable approval basis",
+      "result": "PASS"
+    },
+    {
+      "check": "external cannot read approval basis",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "graph failure denies export",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "real completed approval allows fixed store export",
+      "result": "PASS"
+    },
+    {
+      "check": "other store remains denied",
+      "result": "PASS"
+    },
+    {
+      "check": "expanded role capability remains denied",
+      "result": "PASS"
+    },
+    {
+      "check": "site notification visible",
+      "result": "PASS"
+    },
+    {
+      "check": "lost callback ACK retries same business payload with fresh signature; only one Grant",
+      "result": "PASS"
+    },
+    {
+      "check": "one request one grant",
+      "result": "PASS"
+    },
+    {
+      "check": "short fixed policy",
+      "result": "PASS"
+    },
+    {
+      "check": "short lifetime request",
+      "result": "PASS"
+    },
+    {
+      "check": "short binding",
+      "result": "PASS"
+    },
+    {
+      "check": "short real todos",
+      "result": "PASS"
+    },
+    {
+      "check": "short binding",
+      "result": "PASS"
+    },
+    {
+      "check": "short real todos",
+      "result": "PASS"
+    },
+    {
+      "check": "short binding",
+      "result": "PASS"
+    },
+    {
+      "check": "short real todos",
+      "result": "PASS"
+    },
+    {
+      "check": "short actual approval",
+      "result": "PASS"
+    },
+    {
+      "check": "short execution",
+      "result": "PASS"
+    },
+    {
+      "check": "short execution",
+      "result": "PASS"
+    },
+    {
+      "check": "short grant initially active",
+      "result": "PASS"
+    },
+    {
+      "check": "short grant initially active",
+      "result": "PASS"
+    },
+    {
+      "check": "short grant initially active",
+      "result": "PASS"
+    },
+    {
+      "check": "short grant initially active",
+      "result": "PASS"
+    },
+    {
+      "check": "OA stopped existing authorization unaffected",
+      "result": "PASS"
+    },
+    {
+      "check": "expired grant denied with OA and cleanup stopped",
+      "result": "PASS"
+    },
+    {
+      "check": "independent query role",
+      "result": "PASS"
+    },
+    {
+      "check": "independent direct query source",
+      "result": "PASS"
+    },
+    {
+      "check": "independent query active",
+      "result": "PASS"
+    },
+    {
+      "check": "independent query active",
+      "result": "PASS"
+    },
+    {
+      "check": "independent query active",
+      "result": "PASS"
+    },
+    {
+      "check": "cancel approved request becomes source revoke",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    },
+    {
+      "check": "only request export source revoked",
+      "result": "PASS"
+    },
+    {
+      "check": "independent query remains allowed",
+      "result": "PASS"
+    },
+    {
+      "check": "final binding",
+      "result": "PASS"
+    },
+    {
+      "check": "request execution",
+      "result": "PASS"
+    }
+  ],
+  "runtime": "real Casdoor JWT, auth HTTP/worker processes, OA HTTP, isolated Kafka/Flowable, PostgreSQL, SpiceDB"
+}

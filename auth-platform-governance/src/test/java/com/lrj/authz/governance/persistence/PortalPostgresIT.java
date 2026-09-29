@@ -136,4 +136,59 @@ class PortalPostgresIT {
         assertThat(view.management(login(owner), p).capabilities()).singleElement().extracting(com.lrj.authz.protocol.PortalDtos.Capability::disabled).isEqualTo(true);
     }
 
+    private PortalInvitations invitationPortal(BootstrapCommand owner, Partition p) {
+        return runtime.portalInvitations(List.of(new PortalInvitationAuthority(p,owner.membershipId(),1,3600,86400)),owner.issuer());
+    }
+    private com.lrj.authz.protocol.PortalInvitationDtos.Issue invitationInput(Partition p, String subject, String kind, String proof) {
+        return new com.lrj.authz.protocol.PortalInvitationDtos.Issue(p.tenantId(),p.applicationId(),p.environment(),id(),id(),subject,kind,proof,null,null,"真实PG门户邀请");
+    }
+    @Test void portalInvitationRequiresExplicitScopeAndCurrentGenerationNotJustAppManagement() {
+        var owner=person(id(),"tenant-"+id());var p=application(owner);
+        assertThatThrownBy(() -> runtime.portalInvitations(List.of(),owner.issuer()).authority(login(owner),p)).hasMessage("ACCESS_DENIED");
+        var portal=invitationPortal(owner,p);
+        assertThat(portal.authority(login(owner),p).maxInvitationSeconds()).isEqualTo(3600);
+        var other=application(owner);
+        assertThatThrownBy(() -> portal.authority(login(owner),other)).hasMessage("ACCESS_DENIED");
+        assertThatThrownBy(() -> runtime.portalInvitations(List.of(new PortalInvitationAuthority(p,owner.membershipId(),2,3600,86400)),owner.issuer()).authority(login(owner),p)).hasMessage("ACCESS_DENIED");
+        jdbc.update("update auth_governance.access_delegation set enabled=false where membership_id=?",owner.membershipId());
+        assertThatThrownBy(() -> portal.authority(login(owner),p)).hasMessage("ACCESS_DENIED");
+    }
+    @Test void invitationPortalKeepsProofPrivateReplaysAndRejectsPrivilegeOrDeadlineExpansion() {
+        var owner=person(id(),"tenant-"+id());var p=application(owner);var portal=invitationPortal(owner,p);
+        String proof=InvitationCommands.newToken();var input=invitationInput(p,id(),"PARTNER",proof);
+        Instant expires=Instant.now().plusSeconds(120).truncatedTo(java.time.temporal.ChronoUnit.MICROS), valid=expires.plusSeconds(600);
+        var created=portal.issue(login(owner),p,input,expires,valid);
+        assertThat(portal.issue(login(owner),p,input,expires,valid)).isEqualTo(created);
+        assertThat(portal.list(login(owner),p,null).items()).singleElement().extracting(com.lrj.authz.protocol.PortalInvitationDtos.View::id).isEqualTo(created.id());
+        assertThat(created.toString()).doesNotContain(proof,InvitationCommands.tokenHash(proof));
+        assertThatThrownBy(() -> portal.issue(login(owner),p,invitationInput(p,id(),"EMPLOYEE",InvitationCommands.newToken()),expires,valid)).hasMessage("INVALID_ARGUMENT");
+        assertThatThrownBy(() -> portal.issue(login(owner),p,invitationInput(p,id(),"GUEST",InvitationCommands.newToken()),expires.plusSeconds(7200),valid.plusSeconds(7200))).hasMessage("INVALID_ARGUMENT");
+        assertThat(runtime.invitations().accept(created.id(),proof,new VerifiedLogin(owner.issuer(),input.targetSubject())).membershipStatus()).isEqualTo("ACTIVE");
+        assertThatThrownBy(() -> portal.revoke(login(owner),p,created.id(),new com.lrj.authz.protocol.PortalInvitationDtos.Revoke(p.tenantId(),p.applicationId(),p.environment(),id(),created.version(),"撤销"))).hasMessage("VERSION_CONFLICT");
+    }
+    @Test void invitationPortalListAndRevocationCannotCrossOperatorOrPartition() {
+        var owner=person(id(),"tenant-"+id());var other=person(owner.tenantId(),owner.tenantCode());var p=application(owner);
+        runtime.access().bootstrap(p,new Delegation(other.membershipId(),1,AccessValues.json(List.of(p.applicationId()+".read")),3600),"test",id());
+        var portals=runtime.portalInvitations(List.of(new PortalInvitationAuthority(p,owner.membershipId(),1,3600,86400),new PortalInvitationAuthority(p,other.membershipId(),1,3600,86400)),owner.issuer());
+        var input=invitationInput(p,id(),"GUEST",InvitationCommands.newToken());var expires=Instant.now().plusSeconds(120).truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        var created=portals.issue(login(owner),p,input,expires,expires.plusSeconds(600));
+        assertThat(portals.list(login(other),p,null).items()).isEmpty();
+        var revoke=new com.lrj.authz.protocol.PortalInvitationDtos.Revoke(p.tenantId(),p.applicationId(),p.environment(),id(),1,"不再协作");
+        assertThatThrownBy(() -> portals.revoke(login(other),p,created.id(),revoke)).hasMessage("MEMBERSHIP_UNAVAILABLE");
+        assertThat(portals.revoke(login(owner),p,created.id(),revoke).state()).isEqualTo("REVOKED");
+        assertThat(portals.revoke(login(owner),p,created.id(),revoke).state()).isEqualTo("REVOKED");
+    }
+    @Test void policyDisplayUsesImmutableRoleAndManagementReadNeedsDelegation() {
+        var owner=person(id(),"tenant-"+id());var member=person(owner.tenantId(),owner.tenantCode());var p=application(owner);
+        runtime.access().enableStrict(login(owner),p,id());
+        var role=runtime.access().createRole(login(owner),p,id(),"reader",1,List.of(p.applicationId()+".read"));
+        var rule=new com.lrj.authz.protocol.ScopeDtos.Rule(1,"store",List.of(new com.lrj.authz.protocol.ScopeDtos.Clause(com.lrj.authz.protocol.ScopeDtos.Kind.SPECIFIED_STORES,List.of("S1"),false)));
+        var policy=runtime.requests().registerPolicy(login(owner),p,id(),role.id(),rule,600,owner.membershipId(),1,1);
+        var page=runtime.portalManagement().policies(login(owner),p,null);
+        assertThat(page.items()).singleElement().extracting(com.lrj.authz.governance.domain.RequestModels.Policy::id).isEqualTo(policy.id());
+        var view=runtime.requests().policyView(policy);assertThat(view.roleCode()).isEqualTo("reader");assertThat(view.roleVersion()).isEqualTo(1);
+        assertThat(runtime.requests().policyPage(login(member),p,null).items()).hasSize(1);
+        assertThatThrownBy(() -> runtime.portalManagement().policies(login(member),p,null)).hasMessage("ACCESS_DENIED");
+    }
+
 }

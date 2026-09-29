@@ -30,6 +30,7 @@ public final class GovernanceRuntime implements AutoCloseable {
     private ApprovalInboxMapper inboxMapper;
     private RequestMapper requestMapper;
     private PortalMapper portalMapper;
+    private InvitationMapper invitationMapper;
     private AccessMapper accessMapper;
     private CatalogMapper catalogMapper;
     private ProjectionMapper projectionMapper;
@@ -112,6 +113,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             runtime.catalog = new com.lrj.authz.governance.application.ApplicationCatalog(session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(SafetyMapper.class));
             runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(FenceMapper.class), session.getMapper(SafetyMapper.class));
             runtime.portalMapper=session.getMapper(PortalMapper.class);
+            runtime.invitationMapper=session.getMapper(InvitationMapper.class);
             runtime.accessMapper=session.getMapper(AccessMapper.class); runtime.catalogMapper=session.getMapper(CatalogMapper.class);
             runtime.projectionMapper=session.getMapper(ProjectionMapper.class); runtime.transaction=transaction;
             runtime.fenceMapper=session.getMapper(FenceMapper.class);runtime.reliableMapper=session.getMapper(ReliableProjectionMapper.class);runtime.scopeMapper=session.getMapper(ScopeMapper.class);
@@ -123,6 +125,11 @@ public final class GovernanceRuntime implements AutoCloseable {
             dataSource.close();
             throw new IllegalStateException("治理库装配失败，拒绝启用新路径", failure);
         }
+    }
+
+    /** 门户邀请授权来自宿主受控配置，默认空集合不会授权任何管理者。 */
+    public com.lrj.authz.governance.application.PortalInvitations portalInvitations(java.util.List<com.lrj.authz.governance.application.PortalInvitationAuthority> authorities, String issuer) {
+        return new com.lrj.authz.governance.application.PortalInvitations(identity,access,accessMapper,mapper,portalMapper,invitationMapper,invitations,transaction,authorities,issuer);
     }
 
     /** 唯一应用入口，读取与写入共享同一专用治理数据源。 */

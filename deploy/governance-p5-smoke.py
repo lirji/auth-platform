@@ -61,7 +61,7 @@ def main():
         with os.fdopen(os.open(run / (name + '-' + secrets.token_hex(3) + '.log'), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600), 'w') as log:
             subprocess.run(['java', '-Xmx256m', '-Dloader.main=' + package + name, '-cp', str(jar), 'org.springframework.boot.loader.launch.PropertiesLauncher', *map(str, params)], stdout=log, stderr=subprocess.STDOUT, check=True, timeout=45)
 
-    tenants = [uid(), uid()]
+    tenants = [uid(), uid(), uid()]
     owner = str(uuid.uuid5(uuid.NAMESPACE_URL, 'p5:' + fixture['users']['internal']['id']))
     owners = []
     app = 'commerce'
@@ -91,7 +91,10 @@ def main():
                  'client.secret': management['secret'], 'version-probe.client.id': ops['client_id'], 'version-probe.client.secret': ops['client_secret']}
     # 回调入口只绑定首个试点分区；随机密钥与显式loopback不影响共享环境。
     callback = {'approval.tenant': tenants[0], 'approval.application': app, 'approval.environment': 'test', 'approval.inbound-key': secrets.token_urlsafe(36), 'approval.allow-loopback-http': 'true'}
-    h.private(run / 'admin.properties', db + h.props({**authority, **graph, **callback, 'scope.graph.http': graph['graph.http'], 'scope.graph.key': graph['graph.key'], **{'invitation.user.' + k: v for k, v in authority.items()}}))
+    invite_config = {'portal.invitation.count': len(tenants)}
+    for number, tenant in enumerate(tenants, 1):
+        invite_config.update({f'portal.invitation.{number}.' + k: v for k, v in {'tenant-id': tenant, 'application-id': app, 'environment': 'test', 'membership-id': owners[number - 1], 'generation': 1, 'max-invitation-seconds': 3600, 'max-membership-seconds': 86400}.items()})
+    h.private(run / 'admin.properties', db + h.props({**authority, **invite_config, **graph, **callback, 'scope.graph.http': graph['graph.http'], 'scope.graph.key': graph['graph.key'], **{'invitation.user.' + k: v for k, v in authority.items()}}))
     process = None
     try:
         h.start(jar, ADMIN_PORT, run / 'admin.log', config=run / 'admin.properties', access=True, presentation=True, scope=True, invitations=True, requests=True)
@@ -103,6 +106,9 @@ def main():
         members = []
         for number, tenant in enumerate(tenants):
             part = {'tenant_id': tenant, 'application_id': app, 'environment': 'test'}
+            if number == 2:
+                request('enable invitation target partition', '/access/enable-strict', {**part, 'command_id': uid()}, status=202)
+                continue
             invitation = uid()
             h.private(run / ('invitation-authority-' + str(number) + '.properties'), db + h.props({'invitation.operator-ref': 'p5-fixture', 'invitation.tenant-id': tenant, 'invitation.sponsor-membership-id': owners[number]}))
             h.private(run / ('invitation-' + str(number) + '.properties'), h.props({'command.id': uid(), 'invitation.id': invitation, 'issuer': h.ISSUER, 'subject': fixture['users']['external']['id'], 'member.kind': 'PARTNER', 'expires.at': timestamp(600), 'membership.valid.to': timestamp(7200), 'reason': 'P5 store collaboration'}))
@@ -116,7 +122,8 @@ def main():
                     'scope_rule': {'version': 1, 'resource_type': 'product', 'clauses': [{'kind': 'SPECIFIED_STORES', 'values': ['STORE-A' if number == 0 else 'STORE-B'], 'include_root': False}]},
                     'source_id': 'p5-query-' + uid(), 'valid_from': timestamp(-1), 'valid_to': timestamp(3600)}, status=202)
             for kind in ['POLICY', 'DIRECTORY']: cli('ReliableProjectionCli', [run / (str(number) + '-' + kind + '.properties')])
-        h.private(run / 'fixture.json', json.dumps({'tenants': tenants, 'owners': owners, 'members': members, 'application': app, 'environment': 'test', 'manager_token': manager, 'member_token': external}))
+        request('create requestable fixed export role', '/access/roles', {'tenant_id': tenants[0], 'application_id': app, 'environment': 'test', 'command_id': uid(), 'role_code': 'temporary-exporter', 'role_version': 1, 'capabilities': [capabilities[1]]})
+        h.private(run / 'fixture.json', json.dumps({'tenants': tenants, 'owners': owners, 'members': members, 'application': app, 'environment': 'test', 'manager_token': manager, 'member_token': external, 'external_subject': fixture['users']['external']['id']}))
         env = dict(os.environ, AUTH_CONSOLE_UI_PORT=str(UI_PORT), VITE_GOVERNANCE_TARGET='http://127.0.0.1:' + str(ADMIN_PORT),
                    VITE_CASDOOR_AUTHORITY=h.ISSUER, VITE_CASDOOR_CLIENT_ID=management['name'], P5_UI_FIXTURE=str(run), P5_PLAYWRIGHT_MODULE=str(Path(args.playwright_module).resolve()))
         with socket.socket() as guard: guard.bind(('127.0.0.1', UI_PORT))
@@ -129,6 +136,7 @@ def main():
             except OSError: time.sleep(.5)
         else: raise RuntimeError('console startup timeout')
         subprocess.run(['node', 'deploy/governance-p5-shell.mjs'], env=env, check=True, timeout=180)
+        subprocess.run(['node', 'deploy/governance-p5-requests.mjs'], env=env, check=True, timeout=180)
         (run / 'http-result.json').write_text(json.dumps(h.CHECKS, indent=2))
         print('PASS P5 shell: ' + str(run))
     finally:
