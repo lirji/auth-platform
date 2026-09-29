@@ -1,0 +1,14 @@
+{
+  "checks": [
+    "three concurrent starts and result lookup return one persisted OA instance",
+    "changed body conflict",
+    "transport replay rejected",
+    "forged signature rejected",
+    "foreign partition rejected"
+  ],
+  "engine_approval": "UNVERIFIED",
+  "runtime": "real oa-app / dedicated PostgreSQL / signed HTTP",
+  "request_id": "08d6231c-dc99-473d-bb54-7913a06a3b70",
+  "approval_instance_id": "4",
+  "result": "PASS"
+}

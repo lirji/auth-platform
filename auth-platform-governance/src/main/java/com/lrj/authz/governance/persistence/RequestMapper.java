@@ -24,4 +24,16 @@ public interface RequestMapper {
     int enqueueStart(@Param("id") String id);
     /** 同一代成员待处理申请数量有界。 */
     int pendingCount(@Param("p") Partition partition, @Param("member") String member, @Param("generation") long generation);
+    /** 最后一次尝试崩溃后也收敛为耗尽，不留永久RUNNING。 */
+    int exhaustStarts(@Param("p") Partition p);
+    /** 实例绑定与申请状态推进审计原子提交。 */
+    int auditStart(@Param("id") String id,@Param("audit") String audit,@Param("lease") String lease);
+    /** 原子领取单条到期意图；跳过他人锁且最多重试五次。 */
+    String claimStart(@Param("p") Partition p,@Param("lease") String lease);
+    /** 只有当前有效租约可提交远端结果。 */
+    int finishStart(@Param("id") String id,@Param("lease") String lease);
+    /** 失败指数退避并最终隔离，不无限重试。 */
+    int failStart(@Param("id") String id,@Param("lease") String lease,@Param("error") String error);
+    /** 只绑定一个实例；取消终态不能被启动回执恢复。 */
+    int bindInstance(@Param("p") Partition p,@Param("id") String id,@Param("instance") String instance);
 }

@@ -18,4 +18,32 @@
  <select id="request" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND id=#{id}</select>
  <insert id="enqueueStart">INSERT INTO auth_governance.request_start_outbox(request_id) VALUES(#{id})</insert>
  <select id="pendingCount" resultType="int">SELECT count(*) FROM auth_governance.access_request WHERE <include refid="partition"/> AND membership_id=#{member} AND generation=#{generation} AND state IN ('SUBMITTED','IN_REVIEW') AND valid_to &gt; clock_timestamp()</select>
+ <update id="exhaustStarts">
+ WITH expired AS (SELECT o.request_id FROM auth_governance.request_start_outbox o JOIN auth_governance.access_request r ON r.id=o.request_id
+ WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
+ AND o.state='RUNNING' AND o.attempts=5 AND o.lease_until &lt; clock_timestamp()
+ ORDER BY o.request_id LIMIT 100 FOR UPDATE OF o SKIP LOCKED)
+ UPDATE auth_governance.request_start_outbox o SET state='DEAD',last_error='OA_START_UNCONFIRMED',updated_at=clock_timestamp()
+ FROM expired e WHERE o.request_id=e.request_id</update>
+ <insert id="auditStart">INSERT INTO auth_governance.audit_event(id,operator_ref,tenant_id,operation,target_id,target_version,command_id)
+ SELECT #{audit},'OA_START_WORKER',tenant_id,'OA_START_BOUND',id,state_version,#{lease} FROM auth_governance.access_request WHERE id=#{id}</insert>
+ <select id="claimStart" resultType="string" affectData="true" flushCache="true">
+ WITH candidate AS (
+ SELECT o.request_id FROM auth_governance.request_start_outbox o JOIN auth_governance.access_request r ON r.id=o.request_id
+ WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
+ AND o.attempts &lt; 5 AND o.next_attempt_at &lt;= clock_timestamp()
+ AND (o.state='PENDING' OR (o.state='RUNNING' AND o.lease_until &lt; clock_timestamp()))
+ ORDER BY o.next_attempt_at,o.request_id LIMIT 1 FOR UPDATE OF o SKIP LOCKED)
+ UPDATE auth_governance.request_start_outbox o SET state='RUNNING',attempts=attempts+1,lease_token=#{lease},
+ lease_until=clock_timestamp()+interval '30 seconds',updated_at=clock_timestamp()
+ FROM candidate c WHERE o.request_id=c.request_id RETURNING o.request_id
+ </select>
+ <update id="finishStart">UPDATE auth_governance.request_start_outbox SET state='DONE',lease_until=NULL,last_error=NULL,updated_at=clock_timestamp()
+ WHERE request_id=#{id} AND state='RUNNING' AND lease_token=#{lease} AND lease_until &gt; clock_timestamp()</update>
+ <update id="failStart">UPDATE auth_governance.request_start_outbox SET state=CASE WHEN attempts=5 THEN 'DEAD' ELSE 'PENDING' END,
+ lease_until=NULL,last_error=#{error},next_attempt_at=clock_timestamp()+make_interval(secs=&gt;power(2,attempts)::int),updated_at=clock_timestamp()
+ WHERE request_id=#{id} AND state='RUNNING' AND lease_token=#{lease} AND lease_until &gt; clock_timestamp()</update>
+ <update id="bindInstance">UPDATE auth_governance.access_request SET approval_instance_id=#{instance},
+ state=CASE WHEN state='SUBMITTED' THEN 'IN_REVIEW' ELSE state END,state_version=state_version+1,updated_at=clock_timestamp()
+ WHERE <include refid="partition"/> AND id=#{id} AND (approval_instance_id IS NULL OR approval_instance_id=#{instance})</update>
 </mapper>

@@ -108,5 +108,41 @@ class RequestPostgresIT {
         assertThatThrownBy(()->jdbc.update("insert into auth_governance.access_request select ?,tenant_id,application_id,environment,requester_principal,membership_id,generation,?,role_id,capabilities_json,scope_json,policy_hash,member_valid_to,valid_from,valid_to,reason,request_version,snapshot_hash,state,state_version,approval_instance_id,grant_id,?,created_at,updated_at from auth_governance.access_request where id=?",id(),foreign.id(),id(),request.id()))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
     }
+    @Test void startTimeoutQueriesBeforeRetryAndBindsOriginalInstance(){
+        var f=fixture();var policy=policy(f);
+        var request=submit(f,policy.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"timeout");
+        var created=new java.util.concurrent.atomic.AtomicReference<com.lrj.authz.protocol.ApprovalDtos.Instance>();
+        var starts=new java.util.concurrent.atomic.AtomicInteger();
+        ApprovalGateway gateway=new ApprovalGateway(){
+            public Optional<com.lrj.authz.protocol.ApprovalDtos.Instance> find(com.lrj.authz.protocol.ApprovalDtos.Lookup q){return Optional.ofNullable(created.get());}
+            public com.lrj.authz.protocol.ApprovalDtos.Instance start(com.lrj.authz.protocol.ApprovalDtos.Start command){
+                starts.incrementAndGet();created.set(new com.lrj.authz.protocol.ApprovalDtos.Instance(command.requestId(),command.requestVersion(),command.snapshotHash(),"100"));
+                throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE);
+            }
+        };
+        assertThat(runtime.approvalStarts(gateway).step(f.p)).isTrue();
+        assertThat(runtime.requests().owned(login(f.member),f.p,request.id()).approvalInstanceId()).isNull();
+        jdbc.update("update auth_governance.request_start_outbox set next_attempt_at=clock_timestamp() where request_id=?",request.id());
+        assertThat(runtime.approvalStarts(gateway).step(f.p)).isTrue();
+        assertThat(starts.get()).isEqualTo(1);
+        var bound=runtime.requests().owned(login(f.member),f.p,request.id());
+        assertThat(bound.approvalInstanceId()).isEqualTo("100");
+        assertThat(bound.state().code()).isEqualTo("IN_REVIEW");
+        assertThat(bound.grantId()).isNull();
+    }
+    @Test void failedLookupNeverCreatesAndEventuallyExhausts(){
+        var f=fixture();var policy=policy(f);
+        var request=submit(f,policy.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"offline");
+        ApprovalGateway gateway=new ApprovalGateway(){
+            public Optional<com.lrj.authz.protocol.ApprovalDtos.Instance> find(com.lrj.authz.protocol.ApprovalDtos.Lookup q){throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE);}
+            public com.lrj.authz.protocol.ApprovalDtos.Instance start(com.lrj.authz.protocol.ApprovalDtos.Start command){throw new AssertionError("must not start on unknown lookup");}
+        };
+        for(int i=0;i<5;i++){
+            jdbc.update("update auth_governance.request_start_outbox set next_attempt_at=clock_timestamp() where request_id=?",request.id());
+            assertThat(runtime.approvalStarts(gateway).step(f.p)).isTrue();
+        }
+        assertThat(runtime.approvalStarts(gateway).step(f.p)).isFalse();
+        assertThat(jdbc.queryForObject("select state from auth_governance.request_start_outbox where request_id=?",String.class,request.id())).isEqualTo("DEAD");
+    }
     private record Fixture(BootstrapCommand owner,BootstrapCommand member,Partition p,RoleVersion role){}
 }
