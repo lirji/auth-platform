@@ -1,0 +1,34 @@
+[
+  {
+    "check": "external password login completes actual portal PKCE callback and restores selected tenant",
+    "result": "PASS"
+  },
+  {
+    "check": "portal application link carries context only; commerce SSO obtains its own audience without second password",
+    "result": "PASS"
+  },
+  {
+    "check": "commerce deep-linked drawer survives browser reload at desktop and mobile widths",
+    "result": "PASS"
+  },
+  {
+    "check": "same IdP session reaches OA under separate audience; partner remains denied employee todo; Cookie-only and cross-audience business API calls return 401",
+    "result": "PASS"
+  },
+  {
+    "check": "second portal tab cannot change first tab tenant or enumerate unassociated tenant applications",
+    "result": "PASS"
+  },
+  {
+    "check": "unmatched callback state is rejected and code/state cleared with explicit login recovery",
+    "result": "PASS"
+  },
+  {
+    "check": "fresh internal account authenticates interactively into its legitimate OA workbench",
+    "result": "PASS"
+  },
+  {
+    "check": "all three browser token exchanges use PKCE verifier and no client secret; exact-origin cross-origin token exchange succeeds",
+    "result": "PASS"
+  }
+]

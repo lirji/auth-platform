@@ -1,0 +1,10 @@
+{
+  "deploy/governance-p5-login.py": "fb58e2f38ea16cd006863843bf179dee0161be9b962d83a344fd07a6d52e60e3",
+  "deploy/governance-p5-login.mjs": "175eaff83a93e3dcf11c981b07f3a1848b3ef3dbb40c26477a9354ff5b90c348",
+  "deploy/governance-p5-packaged.py": "d849be86cfbead52c092f0cb449fc48119ff4bc38bab2746d5c27bbfee3b0599",
+  "deploy/governance-p5-packaged.mjs": "eac1a00b7fb678cc74d3eb12f76c69eecc9e2b807659f72f3c8eb8fff4112a2c",
+  "commerce/frontend/src/iam/api.ts": "0bfe2ef564bd56376657560af73e525d37bd2e7f88aeda189750e83c07e9deb5",
+  "commerce/frontend/src/iam/session.ts": "ba8bb98166d40c924afd01b5f799c51cbdcacf519b2aeaa7fe9126645e7fa658",
+  "commerce/frontend/src/iam/CentralProducts.tsx": "7d7fdda435e83e4713326b9a61c23c68406245bd417a55d982d171f53b854951",
+  "commerce/scripts/iam-pilot-browser.mjs": "14d0eb581f237b618a093f2964d3c58c1f94574567f057ed7faf27f9c367f7b5"
+}

@@ -9,7 +9,10 @@ class CommercePilot:
         self.env=dict(os.environ,AUTH_CONSOLE_UI_PORT='15275',VITE_GOVERNANCE_TARGET='http://127.0.0.1:18422',VITE_CASDOOR_AUTHORITY=h.ISSUER,VITE_CASDOOR_CLIENT_ID=fixture['clients']['management']['name'],P5_COMMERCE_RUN=str(run),P5_PLAYWRIGHT_MODULE=str(self.commerce/'frontend/node_modules/@playwright/test'))
         self.start(['node','node_modules/vite/bin/vite.js','--host','127.0.0.1','--strictPort'],Path('auth-console'),'portal-vite',15275,self.env)
     def start(self,command,cwd,label,port,env):
-        with socket.socket() as guard:guard.bind(('127.0.0.1',port))
+        with socket.socket() as guard:
+            # 仅重用已退出进程留下的TIME_WAIT；不启用SO_REUSEPORT，活动监听者仍会阻止启动。
+            guard.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+            guard.bind(('127.0.0.1',port))
         with os.fdopen(os.open(self.run/(label+'.log'),os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600),'w') as log:
             process=subprocess.Popen(command,cwd=cwd,env=env,stdout=log,stderr=subprocess.STDOUT)
         self.h.PROCESSES.append(process)

@@ -4,7 +4,7 @@
 
 ## 历史 P0 设计交接
 
-以下保留规划时的状态，当前结果以末尾的 P4 交接与PROGRESS_STATE为准。
+以下保留规划时的状态，当前结果以末尾的 P5 交接与PROGRESS_STATE为准。
 
 ### backend-architecture-design
 
@@ -58,3 +58,7 @@ status=COMPLETED；gate=PASS_WITH_LIMITATIONS。
 - task-git-delivery / ci-cd-gate：精确ref、CI和保留的用户改动见phase-4/P4_DELIVERY_RESULT及CI_RESULT，未执行生产部署。
 - update-progress-docs：P4七节点DONE，原DAG结构不改，P5起保持TODO且未授权；下一步停止。
 - 后续生产容量、共享Casdoor升级、生产TLS/ACL、保留期限与正式试点限制继续保留。
+
+## 当前P5交接
+
+P5-01..07均完成实现与真实验收，证据见phase-5各TEST_RESULT和P5_HANDOFF。Q-EXT已确认商城门店/商家协作。Git/CI交付待最终落盘，P6及生产部署未授权。P5_RUNTIME记录独立客户端/同源JAR与开关恢复；之前P4末尾停止点为历史状态。

@@ -1,0 +1,22 @@
+[
+  {
+    "check": "packaged Spring Boot serves SPA deep link, real OIDC callback and authenticated same-origin resource API",
+    "result": "PASS"
+  },
+  {
+    "check": "packaged desktop/mobile detail reload returns real data; no development proxy required",
+    "result": "PASS"
+  },
+  {
+    "check": "OA rejects unregistered cross-origin preflight; no wildcard credential CORS",
+    "result": "PASS"
+  },
+  {
+    "check": "browser clock expiry removes data and returns to explicit login without automatic write retry",
+    "result": "PASS"
+  },
+  {
+    "check": "restart with both central pilot flags disabled removes business entry authorization; former valid central token cannot fall back to legacy ACL",
+    "result": "PASS"
+  }
+]
