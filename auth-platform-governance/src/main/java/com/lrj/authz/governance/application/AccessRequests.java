@@ -105,6 +105,48 @@ public final class AccessRequests {
         }).toList();
     }
 
+    /** 仅在本人读取之后返回执行视图；它不替代实时业务授权检查。 */
+    public com.lrj.authz.protocol.RequestDtos.Execution execution(VerifiedLogin login,Partition p,String id) {
+        owned(login,p,id);return requests.execution(p,id);
+    }
+
+    /** Inbox消费者持有分区锁后调用；无HTTP入口，不能由普通用户直接提交批准。 */
+    com.lrj.authz.protocol.ApprovalDtos.Receipt decide(Partition p,com.lrj.authz.protocol.ApprovalDtos.Decision event) {
+        var r=requests.request(p,event.requestId());
+        var status=com.lrj.authz.protocol.ApprovalDtos.Status.IGNORED;
+        if(r==null || r.state()==State.CANCELLED || r.state()==State.APPROVED || r.state()==State.REJECTED)
+            return new com.lrj.authz.protocol.ApprovalDtos.Receipt(event.eventId(),status.code(),"REQUEST_TERMINAL");
+        if(r.state()!=State.IN_REVIEW || !event.approvalInstanceId().equals(r.approvalInstanceId()))
+            return new com.lrj.authz.protocol.ApprovalDtos.Receipt(event.eventId(),com.lrj.authz.protocol.ApprovalDtos.Status.REJECTED.code(),"INSTANCE_MISMATCH");
+        boolean approved=com.lrj.authz.protocol.ApprovalDtos.Outcome.APPROVED.code().equals(event.outcome());
+        String result=approved?"GRANT_PENDING_APPLY":"OA_REJECTED";
+        Policy policy=requests.policy(p,r.policyId());
+        try {
+            if(!Boolean.TRUE.equals(access.enabled(p)) || !access.strict(p) || event.requestVersion()!=r.requestVersion()
+                    || !event.snapshotHash().equals(r.snapshotHash()) || event.aggregateVersion()!=1
+                    || policy==null || !event.policyId().equals(policy.id()) || event.policyVersion()!=policy.policyVersion()
+                    || !event.approverMembershipId().equals(policy.approverMembershipId()) || event.approverGeneration()!=policy.approverGeneration()) throw denied();
+            usablePolicy(p,r.policyId(),r.membershipId());
+            var member=identities.membership(r.membershipId());
+            if(!access.memberActive(p,r.membershipId(),r.generation()) || !r.validTo().isAfter(access.now())
+                    || member.validTo()!=null && r.validTo().isAfter(member.validTo())
+                    || access.liveCount(p,r.membershipId(),r.generation())>=100) throw denied();
+        } catch(GovernanceException rejected) {
+            approved=false;result="APPROVAL_REVALIDATION_FAILED";
+        }
+        String grant=null;
+        if(approved) {
+            Grant g=new Grant(id(),p.tenantId(),p.applicationId(),p.environment(),r.membershipId(),r.generation(),r.roleId(),"SCOPED",
+                    "OA_REQUEST",r.id()+":single:"+r.requestVersion(),r.validFrom(),r.validTo(),GrantState.PENDING,1,null);
+            one(access.insertGrant(g,policy.approverMembershipId()));
+            var rule=ScopeRules.decode(r.scopeJson());one(access.insertScope(g,rule.resourceType(),r.scopeJson(),AccessValues.hash(r.scopeJson())));
+            one(access.enqueue(g.id(),1,"UPSERT"));grant=g.id();
+        }
+        one(requests.decide(p,r.id(),r.stateVersion(),approved?State.APPROVED:State.REJECTED,grant));
+        audit(event.approverMembershipId(),p,approved?"APPROVE_ACCESS_REQUEST":"REJECT_ACCESS_REQUEST",r.id(),r.stateVersion()+1,event.eventId());
+        return new com.lrj.authz.protocol.ApprovalDtos.Receipt(event.eventId(),com.lrj.authz.protocol.ApprovalDtos.Status.APPLIED.code(),result);
+    }
+
     private Policy usablePolicy(Partition p, String id, String beneficiary) {
         Policy policy=requests.policy(p,id);
         if(policy==null || !policy.enabled() || policy.approverMembershipId().equals(beneficiary)) throw denied();

@@ -174,5 +174,52 @@ class RequestPostgresIT {
             assertThat(jdbc.queryForObject("select status from auth_governance.approval_inbox where event_id=?",String.class,event.eventId())).isEqualTo("REJECTED");
         }
     }
+    private String approve(Fixture f,com.lrj.authz.governance.domain.RequestModels.Policy policy,com.lrj.authz.governance.domain.RequestModels.Request r) throws Exception {
+        ApprovalGateway gateway=new ApprovalGateway(){
+            public Optional<com.lrj.authz.protocol.ApprovalDtos.Instance> find(com.lrj.authz.protocol.ApprovalDtos.Lookup q){return Optional.empty();}
+            public com.lrj.authz.protocol.ApprovalDtos.Instance start(com.lrj.authz.protocol.ApprovalDtos.Start command){return new com.lrj.authz.protocol.ApprovalDtos.Instance(command.requestId(),1,command.snapshotHash(),"123");}
+        };
+        runtime.approvalStarts(gateway).step(f.p);
+        var event=new com.lrj.authz.protocol.ApprovalDtos.Decision(id(),"ACCESS_REQUEST_DECIDED",1,"oa-platform",f.p.tenantId(),f.p.applicationId(),f.p.environment(),r.id(),1,r.snapshotHash(),"123",policy.id(),1,1,"APPROVED",f.owner.membershipId(),1,Instant.now().toString(),id());
+        var json=new com.fasterxml.jackson.databind.ObjectMapper().setPropertyNamingStrategy(com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE);
+        byte[] body=json.writeValueAsBytes(event);String key="k".repeat(43);
+        String signature=com.lrj.authz.protocol.ApprovalSignature.sign(key,"oa-platform","test",ApprovalInbox.PATH,body,Instant.now());
+        runtime.approvalInbox().receive(f.p,key,signature,body);return event.eventId();
+    }
+    @Test void approvedRequestCreatesOneFixedGrantAndCannotClaimActiveWithoutGraph() throws Exception {
+        var f=fixture();var policy=policy(f);var r=submit(f,policy.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"apply");
+        approve(f,policy,r);assertThat(runtime.approvalDecisions().step(f.p)).isEqualTo(1);
+        var approved=runtime.requests().owned(login(f.member),f.p,r.id());assertThat(approved.state().code()).isEqualTo("APPROVED");
+        var grants=runtime.access().state(login(f.owner),f.p,null,null).grants();assertThat(grants).hasSize(1);
+        assertThat(grants.getFirst().sourceType()).isEqualTo("OA_REQUEST");assertThat(grants.getFirst().roleId()).isEqualTo(r.roleId());
+        assertThat(runtime.requests().execution(login(f.member),f.p,r.id()).displayState()).isEqualTo("PENDING_APPLY");
+        approve(f,policy,r);runtime.approvalDecisions().step(f.p);
+        assertThat(runtime.access().state(login(f.owner),f.p,null,null).grants()).hasSize(1);
+        jdbc.update("update auth_governance.policy_partition set state='BLOCKED' where tenant_id=?",f.p.tenantId());
+        assertThat(runtime.requests().execution(login(f.member),f.p,r.id()).displayState()).isEqualTo("APPLY_FAILED");
+    }
+    @Test void failedApprovalAuditRollsBackInboxRequestGrantScopeAndProjection() throws Exception {
+        var f=fixture();var policy=policy(f);var r=submit(f,policy.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"atomic apply");
+        String event=approve(f,policy,r),constraint="p4_atomic_"+id().replace("-","");
+        jdbc.execute("alter table auth_governance.audit_event add constraint "+constraint+" check(tenant_id <> '"+f.p.tenantId()+"' or operation <> 'APPROVE_ACCESS_REQUEST')");
+        try{
+            assertThatThrownBy(()->runtime.approvalDecisions().step(f.p)).isInstanceOf(RuntimeException.class);
+            assertThat(jdbc.queryForObject("select status from auth_governance.approval_inbox where event_id=?",String.class,event)).isEqualTo("RECEIVED");
+            assertThat(runtime.requests().owned(login(f.member),f.p,r.id()).state().code()).isEqualTo("IN_REVIEW");
+            assertThat(runtime.access().state(login(f.owner),f.p,null,null).grants()).isEmpty();
+            assertThat(jdbc.queryForObject("select count(*) from auth_governance.grant_scope where tenant_id=?",Integer.class,f.p.tenantId())).isZero();
+        }finally{jdbc.execute("alter table auth_governance.audit_event drop constraint "+constraint);}
+        assertThat(runtime.approvalDecisions().step(f.p)).isEqualTo(1);
+        assertThat(runtime.requests().owned(login(f.member),f.p,r.id()).grantId()).isNotNull();
+    }
+    @Test void approvedEventCannotOutliveCurrentManagementCeiling() throws Exception {
+        var f=fixture();var policy=policy(f);var r=submit(f,policy.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"revalidate");
+        String event=approve(f,policy,r);
+        jdbc.update("update auth_governance.access_delegation set enabled=false where membership_id=?",f.owner.membershipId());
+        assertThat(runtime.approvalDecisions().step(f.p)).isEqualTo(1);
+        assertThat(runtime.requests().owned(login(f.member),f.p,r.id()).state().code()).isEqualTo("REJECTED");
+        assertThat(jdbc.queryForObject("select result from auth_governance.approval_inbox where event_id=?",String.class,event)).isEqualTo("APPROVAL_REVALIDATION_FAILED");
+        assertThat(jdbc.queryForObject("select count(*) from auth_governance.access_grant where tenant_id=?",Integer.class,f.p.tenantId())).isZero();
+    }
     private record Fixture(BootstrapCommand owner,BootstrapCommand member,Partition p,RoleVersion role){}
 }

@@ -18,4 +18,6 @@ public final class RequestDtos {
                        String state,long stateVersion,String approvalInstanceId,String grantId) {}
     /** 可申请项目不包含审批人目录或管理委派原文。 */
     public record PolicyView(String id,String roleId,ScopeDtos.Rule scopeRule,long maxDurationSeconds,long policyVersion) {}
+    /** 审批与执行分离，operationId仅在真实投影回执存在时返回。 */
+    public record Execution(String requestId,String grantId,String grantState,String displayState,String operationId) {}
 }

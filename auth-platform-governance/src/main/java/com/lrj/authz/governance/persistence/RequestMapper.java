@@ -24,6 +24,11 @@ public interface RequestMapper {
     int enqueueStart(@Param("id") String id);
     /** 同一代成员待处理申请数量有界。 */
     int pendingCount(@Param("p") Partition partition, @Param("member") String member, @Param("generation") long generation);
+    /** 申请状态CAS与Grant/Inbox同事务；不会覆盖取消终态。 */
+    int decide(@Param("p") Partition p,@Param("id") String id,@Param("version") long version,
+               @Param("state") com.lrj.authz.governance.domain.RequestModels.State state,@Param("grant") String grant);
+    /** 展示状态必须合并SQL资格、实际投影回执与双READY栅栏。 */
+    com.lrj.authz.protocol.RequestDtos.Execution execution(@Param("p") Partition p,@Param("id") String id);
     /** 最后一次尝试崩溃后也收敛为耗尽，不留永久RUNNING。 */
     int exhaustStarts(@Param("p") Partition p);
     /** 实例绑定与申请状态推进审计原子提交。 */

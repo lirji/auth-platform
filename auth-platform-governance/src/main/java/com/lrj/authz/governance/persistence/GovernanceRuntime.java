@@ -178,6 +178,11 @@ public final class GovernanceRuntime implements AutoCloseable {
         return new com.lrj.authz.governance.application.ApprovalInbox(inboxMapper,requestMapper,transaction);
     }
 
+    /** 审批消费与申请用例复用权威事务与分区串行锁。 */
+    public com.lrj.authz.governance.application.ApprovalDecisionConsumer approvalDecisions() {
+        return new com.lrj.authz.governance.application.ApprovalDecisionConsumer(requests,accessMapper,inboxMapper,transaction);
+    }
+
     IdentityMapper mapper() { return mapper; }
 
     /** 本人菜单与业务判权共用SQL/图资格，不能靠前端角色集合推断。 */

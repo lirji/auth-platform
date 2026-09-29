@@ -60,6 +60,13 @@ public class GovernanceRequestController {
                 .map(GovernanceRequestController::policyView).toList());
     }
 
+    /** 执行状态不由OA的APPROVED推断，只有实际双栅栏与投影回执可展示ACTIVE。 */
+    @GetMapping("/{id}/execution")
+    public JsonNode execution(@AuthenticationPrincipal VerifiedLogin login,@PathVariable("id") String id,
+                              @RequestParam("tenant_id") String tenant,@RequestParam("application_id") String app,@RequestParam("environment") String env) {
+        return GovernanceWeb.body(requests.execution(login,new Partition(tenant,app,env),id));
+    }
+
     private static PolicyView policyView(Policy p) {
         return new PolicyView(p.id(),p.roleId(),ScopeRules.decode(p.scopeJson()),p.maxDurationSeconds(),p.policyVersion());
     }

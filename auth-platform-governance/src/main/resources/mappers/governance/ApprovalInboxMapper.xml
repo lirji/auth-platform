@@ -7,4 +7,8 @@
  <insert id="conflict">INSERT INTO auth_governance.approval_conflict(producer,event_id,payload_hash,original_hash) VALUES(#{producer},#{event},#{hash},#{original}) ON CONFLICT DO NOTHING</insert>
  <insert id="nonce">INSERT INTO auth_governance.approval_nonce(producer,nonce) VALUES(#{producer},#{nonce}) ON CONFLICT DO NOTHING</insert>
  <update id="finish">UPDATE auth_governance.approval_inbox SET status=#{status},result=#{result},processed_at=clock_timestamp() WHERE producer=#{producer} AND event_id=#{event} AND status='RECEIVED'</update>
+ <select id="ready" resultType="string">SELECT i.event_id FROM auth_governance.approval_inbox i
+ JOIN auth_governance.access_request r ON r.id=i.request_id AND r.tenant_id=i.tenant_id AND r.application_id=i.application_id AND r.environment=i.environment
+ WHERE i.tenant_id=#{p.tenantId} AND i.application_id=#{p.applicationId} AND i.environment=#{p.environment} AND i.status='RECEIVED'
+ AND (r.approval_instance_id IS NOT NULL OR r.state IN ('CANCELLED','REJECTED') OR r.valid_to &lt;=clock_timestamp()) ORDER BY i.event_id LIMIT 20</select>
 </mapper>

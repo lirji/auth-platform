@@ -5,6 +5,8 @@ import org.apache.ibatis.annotations.Param;
 
 /** 回调与投递消费者共用同库Inbox，业务事件去重和传输nonce分开。 */
 public interface ApprovalInboxMapper {
+    /** 单轮最多20个已绑定实例或终态申请，未绑定事件不饿死其他请求。 */
+    java.util.List<String> ready(@Param("p") Partition p);
     /** 原事件体唯一插入，重复由锁后比对处理。 */
     int insert(@Param("p") Partition p,@Param("producer") String producer,@Param("event") String event,
                @Param("request") String request,@Param("hash") String hash,@Param("body") String body);

@@ -46,4 +46,28 @@
  <update id="bindInstance">UPDATE auth_governance.access_request SET approval_instance_id=#{instance},
  state=CASE WHEN state='SUBMITTED' THEN 'IN_REVIEW' ELSE state END,state_version=state_version+1,updated_at=clock_timestamp()
  WHERE <include refid="partition"/> AND id=#{id} AND (approval_instance_id IS NULL OR approval_instance_id=#{instance})</update>
+ <update id="decide">UPDATE auth_governance.access_request SET state=#{state},grant_id=#{grant},state_version=state_version+1,updated_at=clock_timestamp()
+ WHERE <include refid="partition"/> AND id=#{id} AND state_version=#{version} AND state='IN_REVIEW'</update>
+ <select id="execution" resultType="com.lrj.authz.protocol.RequestDtos$Execution">
+ SELECT r.id request_id,g.id grant_id,g.state grant_state,
+ CASE WHEN r.state IN ('CANCELLED','REJECTED') AND g.id IS NULL THEN r.state
+ WHEN g.id IS NULL THEN r.state
+ WHEN g.state='REVOKED' THEN CASE WHEN p.state='READY' AND d.state='READY' AND rec.operation_id IS NOT NULL THEN 'REVOKED' ELSE 'REVOKING' END
+ WHEN g.valid_to &lt;=clock_timestamp() THEN 'EXPIRED'
+ WHEN m.status&lt;&gt;'ACTIVE' OR m.generation&lt;&gt;r.generation OR u.status&lt;&gt;'ACTIVE' OR t.status&lt;&gt;'ACTIVE' OR NOT a.enabled
+ OR (m.valid_to IS NOT NULL AND m.valid_to &lt;=clock_timestamp()) THEN 'UNAVAILABLE'
+ WHEN p.state='BLOCKED' OR d.state='BLOCKED' THEN 'APPLY_FAILED'
+ WHEN g.state='ACTIVE' AND g.zed_token IS NOT NULL AND rec.operation_id IS NOT NULL AND p.state='READY' AND p.desired_epoch=p.applied_epoch
+ AND d.state='READY' AND d.desired_epoch=d.applied_epoch AND g.valid_from &lt;=clock_timestamp() THEN 'ACTIVE'
+ ELSE 'PENDING_APPLY' END display_state,rec.operation_id
+ FROM auth_governance.access_request r
+ JOIN auth_governance.membership m ON m.id=r.membership_id
+ JOIN auth_governance.principal u ON u.id=m.principal_id JOIN auth_governance.tenant t ON t.id=r.tenant_id
+ JOIN auth_governance.tenant_application a ON a.tenant_id=r.tenant_id AND a.application_id=r.application_id AND a.environment=r.environment
+ LEFT JOIN auth_governance.access_grant g ON g.id=r.grant_id
+ LEFT JOIN auth_governance.policy_partition p ON p.tenant_id=r.tenant_id AND p.application_id=r.application_id AND p.environment=r.environment
+ LEFT JOIN auth_governance.directory_fence d ON d.tenant_id=r.tenant_id
+ LEFT JOIN auth_governance.projection_grant_receipt rec ON rec.grant_id=g.id AND rec.grant_version=g.version
+ WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment} AND r.id=#{id}
+ </select>
 </mapper>
