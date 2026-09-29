@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrj.authz.governance.persistence.ExecutionMapper">
+ <select id="now" resultType="java.time.Instant">SELECT clock_timestamp()</select>
+ <select id="lock" resultType="java.lang.String">SELECT pg_advisory_xact_lock(hashtextextended(#{member}, 0))</select>
+ <select id="active" resultType="long">SELECT count(*) FROM auth_governance.execution_reference WHERE member=#{member} AND expires_at &gt; clock_timestamp()</select>
+ <select id="find" resultType="com.lrj.authz.governance.persistence.ExecutionMapper$Row">SELECT * FROM auth_governance.execution_reference WHERE id=#{id}</select>
+ <select id="request" resultType="com.lrj.authz.governance.persistence.ExecutionMapper$Row">SELECT * FROM auth_governance.execution_reference WHERE caller=#{caller} AND request_id=#{request}</select>
+ <insert id="insert">
+ INSERT INTO auth_governance.execution_reference(id,caller,application,environment,member,request_id,fingerprint,context_json,capability,resource_type,paths_json,expires_at)
+ VALUES(#{r.id},#{r.caller},#{r.application},#{r.environment},#{r.member},#{r.requestId},#{r.fingerprint},#{r.contextJson},#{r.capability},#{r.resourceType},#{r.pathsJson},#{r.expiresAt})
+ </insert>
+</mapper>

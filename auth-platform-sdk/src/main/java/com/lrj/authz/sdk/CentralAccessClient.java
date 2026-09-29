@@ -82,6 +82,25 @@ public final class CentralAccessClient {
         if(d==null)throw unavailable();validateEnvelope(request,d.schemaVersion(),d.requestId(),d.capability(),d.resourceType(),d.decision(),d.decisionId(),d.context());
         validUntil(d.validUntil());if(!facts.resourceId().equals(d.resourceId())||facts.resourceVersion()!=d.resourceVersion())throw unavailable();return d;
     }
+    /** 用户签发的执行引用不含Token；TTL不代替后续实时授权检查。 */
+    public com.lrj.authz.protocol.ExecutionAccessDtos.Reference issueExecution(String user,Check request,Instant expiresAt) {
+        validate(request);if(expiresAt==null)throw new IllegalArgumentException("invalid expiry");
+        var ref=post("executions",user,new com.lrj.authz.protocol.ExecutionAccessDtos.Issue(request,expiresAt.toString()),com.lrj.authz.protocol.ExecutionAccessDtos.Reference.class);
+        if(ref==null||!"1".equals(ref.schemaVersion())||!request.requestId().equals(ref.requestId())||!uuid(ref.executionId())
+            ||!request.capability().equals(ref.capability())||!request.resourceType().equals(ref.resourceType())||ref.context()==null)throw unavailable();
+        validateContext(request,ref.context());
+        try { if(!Instant.parse(ref.expiresAt()).equals(expiresAt)||!expiresAt.isAfter(Instant.now()))throw unavailable(); }
+        catch(RuntimeException e) { throw unavailable(); }
+        return ref;
+    }
+    /** 服务只能复核既有引用，不能用服务凭据重新指定用户；拒绝和依赖故障均不回退。 */
+    public ResourceDecision checkExecution(String executionId,Check request,ScopeDtos.Facts facts) {
+        validate(request);if(!uuid(executionId)||facts==null||!request.tenantId().equals(facts.tenantId())||!request.resourceType().equals(facts.resourceType()))throw new IllegalArgumentException("invalid execution facts");
+        var d=postService("execution-check",null,new com.lrj.authz.protocol.ExecutionAccessDtos.Check(executionId,new ResourceCheck(request,facts)),ResourceDecision.class,65536);
+        if(d==null)throw unavailable();
+        validateEnvelope(request,d.schemaVersion(),d.requestId(),d.capability(),d.resourceType(),d.decision(),d.decisionId(),d.context());
+        validUntil(d.validUntil());if(!facts.resourceId().equals(d.resourceId())||facts.resourceVersion()!=d.resourceVersion())throw unavailable();return d;
+    }
     /** 主体、策略、目录或同Grant范围变化后，旧游标/导出任务不能复用。 */
     public static String scopeFingerprint(Plan p){
         if(p==null||p.context()==null)throw unavailable();var c=p.context();
@@ -115,18 +134,23 @@ public final class CentralAccessClient {
     private <T>T post(String path,String user,Object request,Class<T> type){return post(path,user,request,type,65536);}
     private <T>T post(String path,String user,Object request,Class<T> type,int maximumBytes){
         if(user==null||user.isBlank()||user.length()>16384||user.chars().anyMatch(Character::isWhitespace))throw new CentralAccessException(401);
+        return postService(path,user,request,type,maximumBytes);
+    }
+    private <T>T postService(String path,String user,Object request,Class<T> type,int maximumBytes){
         CompletableFuture<HttpResponse<byte[]>> pending=null;
         try{
             var message=HttpRequest.newBuilder(base.resolve("/internal/governance/v1/access/"+path)).timeout(timeout)
-                    .header("Authorization","Bearer "+credential).header("X-User-Access-Token",user).header("Content-Type","application/json")
-                    .POST(HttpRequest.BodyPublishers.ofByteArray(JSON.writeValueAsBytes(request))).build();
+                    .header("Authorization","Bearer "+credential).header("Content-Type","application/json");
+            if(user!=null)message.header("X-User-Access-Token",user);
+            var built=message.POST(HttpRequest.BodyPublishers.ofByteArray(JSON.writeValueAsBytes(request))).build();
             // HttpRequest超时不足以约束已收响应头后的body停滞；总期限覆盖完整响应并取消在途交换。
-            pending=http.sendAsync(message,ignored->new BoundedBody(maximumBytes));
+            pending=http.sendAsync(built,ignored->new BoundedBody(maximumBytes));
             var response=pending.get(timeout.toMillis(),TimeUnit.MILLISECONDS);
+            if(response.statusCode()==403)throw new AccessDeniedException("CENTRAL_ACCESS_DENIED");
             if(response.statusCode()!=200)throw new CentralAccessException(response.statusCode()==401?401:503);
             if(!response.headers().firstValue("Content-Type").orElse("").split(";",2)[0].trim().equalsIgnoreCase("application/json"))throw unavailable();
             return JSON.readValue(response.body(),type);
-        }catch(CentralAccessException failure){throw failure;}
+        }catch(CentralAccessException | AccessDeniedException failure){throw failure;}
         catch(InterruptedException failure){Thread.currentThread().interrupt();throw unavailable();}
         catch(Exception failure){throw unavailable();}
         finally{if(pending!=null&&!pending.isDone())pending.cancel(true);}

@@ -38,6 +38,8 @@ public final class GovernanceRuntime implements AutoCloseable {
     private FenceMapper fenceMapper;
     private ReliableProjectionMapper reliableMapper;
     private ScopeMapper scopeMapper;
+    private ExecutionMapper executionMapper;
+    private MigrationMapper migrationMapper;
     private TransactionTemplate transaction;
 
     private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle,
@@ -119,6 +121,8 @@ public final class GovernanceRuntime implements AutoCloseable {
             runtime.accessMapper=session.getMapper(AccessMapper.class); runtime.catalogMapper=session.getMapper(CatalogMapper.class);
             runtime.projectionMapper=session.getMapper(ProjectionMapper.class); runtime.transaction=transaction;
             runtime.fenceMapper=session.getMapper(FenceMapper.class);runtime.reliableMapper=session.getMapper(ReliableProjectionMapper.class);runtime.scopeMapper=session.getMapper(ScopeMapper.class);
+            runtime.executionMapper=session.getMapper(ExecutionMapper.class);
+            runtime.migrationMapper=session.getMapper(MigrationMapper.class);
             runtime.inboxMapper=session.getMapper(ApprovalInboxMapper.class);
             runtime.requestMapper=session.getMapper(RequestMapper.class);
             runtime.requests=new com.lrj.authz.governance.application.AccessRequests(session.getMapper(RequestMapper.class),runtime.accessMapper,runtime.catalogMapper,mapper,runtime.identity,transaction);
@@ -179,6 +183,16 @@ public final class GovernanceRuntime implements AutoCloseable {
     /** 严格授权使用持久双水位和同Grant范围，没有跨请求允许缓存。 */
     public com.lrj.authz.governance.application.ReliableAuthorization reliableAuthorization(com.lrj.authz.protocol.StrictGraphReader graph){
         return new com.lrj.authz.governance.application.ReliableAuthorization(readFence(),scopeMapper,catalogMapper,accessMapper,graph);
+    }
+
+    /** 后台引用复核共享实时栅栏，永远不使用已缓存的ALLOW。 */
+    public com.lrj.authz.governance.application.ExecutionAuthorization executions(com.lrj.authz.protocol.StrictGraphReader graph) {
+        return new com.lrj.authz.governance.application.ExecutionAuthorization(executionMapper,reliableAuthorization(graph),transaction);
+    }
+
+    /** 导入与管理授权共享事务和当前委派，不提供直接Grant写表捷径。 */
+    public com.lrj.authz.governance.application.MigrationImport migrationImport() {
+        return new com.lrj.authz.governance.application.MigrationImport(migrationMapper,access,accessMapper,transaction,mapper);
     }
 
     /** 独立通知worker不会更改已提交的申请或授权状态。 */

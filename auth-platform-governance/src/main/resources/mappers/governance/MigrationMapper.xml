@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrj.authz.governance.persistence.MigrationMapper">
+ <select id="lock" resultType="java.lang.String">SELECT pg_advisory_xact_lock(hashtextextended(#{unit},1))</select>
+ <select id="find" resultType="com.lrj.authz.governance.persistence.MigrationMapper$Row">SELECT unit_id,source_id,sequence,source_version,fingerprint,snapshot_hash,mapping_hash,tenant_id,application_id,environment,disposition,grant_id,tombstone FROM auth_governance.migration_record WHERE unit_id=#{unit} AND source_id=#{source}</select>
+ <select id="unit" resultType="com.lrj.authz.governance.persistence.MigrationMapper$Row">SELECT unit_id,source_id,sequence,source_version,fingerprint,snapshot_hash,mapping_hash,tenant_id,application_id,environment,disposition,grant_id,tombstone FROM auth_governance.migration_record WHERE unit_id=#{unit} ORDER BY source_id LIMIT 1</select>
+ <insert id="save">INSERT INTO auth_governance.migration_record(unit_id,source_id,sequence,source_version,fingerprint,snapshot_hash,mapping_hash,tenant_id,application_id,environment,disposition,grant_id,tombstone)
+ VALUES(#{r.unitId},#{r.sourceId},#{r.sequence},#{r.sourceVersion},#{r.fingerprint},#{r.snapshotHash},#{r.mappingHash},#{r.tenantId},#{r.applicationId},#{r.environment},#{r.disposition},#{r.grantId},#{r.tombstone})
+ ON CONFLICT(unit_id,source_id) DO UPDATE SET sequence=excluded.sequence,source_version=excluded.source_version,fingerprint=excluded.fingerprint,snapshot_hash=excluded.snapshot_hash,mapping_hash=excluded.mapping_hash,
+ disposition=excluded.disposition,grant_id=excluded.grant_id,tombstone=excluded.tombstone,updated_at=clock_timestamp()</insert>
+</mapper>
