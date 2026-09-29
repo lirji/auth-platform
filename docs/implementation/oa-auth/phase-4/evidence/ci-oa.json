@@ -1,0 +1,385 @@
+{
+  "conclusion": "success",
+  "headSha": "10c1348de76a8c695e5e2aaf64423fd7682dac49",
+  "jobs": [
+    {
+      "completedAt": "2026-09-29T14:02:21Z",
+      "conclusion": "success",
+      "databaseId": 109443800887,
+      "name": "Mobile H5 / Node 20",
+      "startedAt": "2026-09-29T14:01:56Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-29T14:01:59Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-29T14:01:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:00Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-09-29T14:01:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:01Z",
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v4",
+          "number": 3,
+          "startedAt": "2026-09-29T14:02:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:08Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v4",
+          "number": 4,
+          "startedAt": "2026-09-29T14:02:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:10Z",
+          "conclusion": "success",
+          "name": "Install dependencies",
+          "number": 5,
+          "startedAt": "2026-09-29T14:02:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:11Z",
+          "conclusion": "success",
+          "name": "Unit tests",
+          "number": 6,
+          "startedAt": "2026-09-29T14:02:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:17Z",
+          "conclusion": "success",
+          "name": "Typecheck and production build",
+          "number": 7,
+          "startedAt": "2026-09-29T14:02:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:18Z",
+          "conclusion": "success",
+          "name": "Mobile bundle budget",
+          "number": 8,
+          "startedAt": "2026-09-29T14:02:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:18Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v4",
+          "number": 14,
+          "startedAt": "2026-09-29T14:02:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:18Z",
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v4",
+          "number": 15,
+          "startedAt": "2026-09-29T14:02:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:18Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 16,
+          "startedAt": "2026-09-29T14:02:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:18Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 17,
+          "startedAt": "2026-09-29T14:02:18Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/lirji/oa-platform/actions/runs/36579551677/job/109443800887"
+    },
+    {
+      "completedAt": "2026-09-29T14:04:03Z",
+      "conclusion": "success",
+      "databaseId": 109443801171,
+      "name": "Backend / JDK 21",
+      "startedAt": "2026-09-29T14:01:51Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-29T14:01:53Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-29T14:01:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:07Z",
+          "conclusion": "success",
+          "name": "Initialize containers",
+          "number": 2,
+          "startedAt": "2026-09-29T14:01:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:07Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 3,
+          "startedAt": "2026-09-29T14:02:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:09Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 4,
+          "startedAt": "2026-09-29T14:02:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:09Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 5,
+          "startedAt": "2026-09-29T14:02:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:10Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-java@v4",
+          "number": 6,
+          "startedAt": "2026-09-29T14:02:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:30Z",
+          "conclusion": "success",
+          "name": "Install workflow SDK",
+          "number": 7,
+          "startedAt": "2026-09-29T14:02:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:41Z",
+          "conclusion": "success",
+          "name": "Install auth SDK",
+          "number": 8,
+          "startedAt": "2026-09-29T14:02:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:41Z",
+          "conclusion": "success",
+          "name": "Prepare isolated directory test configuration",
+          "number": 9,
+          "startedAt": "2026-09-29T14:02:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:41Z",
+          "conclusion": "success",
+          "name": "Prepare independent governance database",
+          "number": 10,
+          "startedAt": "2026-09-29T14:02:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:03:57Z",
+          "conclusion": "success",
+          "name": "Test backend reactor and real directory transactions",
+          "number": 11,
+          "startedAt": "2026-09-29T14:02:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:03:57Z",
+          "conclusion": "success",
+          "name": "Validate Docker deployment contract",
+          "number": 12,
+          "startedAt": "2026-09-29T14:03:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:04:00Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-java@v4",
+          "number": 20,
+          "startedAt": "2026-09-29T14:03:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:04:00Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 21,
+          "startedAt": "2026-09-29T14:04:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:04:00Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 22,
+          "startedAt": "2026-09-29T14:04:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:04:00Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 23,
+          "startedAt": "2026-09-29T14:04:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:04:01Z",
+          "conclusion": "success",
+          "name": "Stop containers",
+          "number": 24,
+          "startedAt": "2026-09-29T14:04:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:04:01Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 25,
+          "startedAt": "2026-09-29T14:04:01Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/lirji/oa-platform/actions/runs/36579551677/job/109443801171"
+    },
+    {
+      "completedAt": "2026-09-29T14:02:34Z",
+      "conclusion": "success",
+      "databaseId": 109443801276,
+      "name": "PC Console / Node 20",
+      "startedAt": "2026-09-29T14:01:52Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-29T14:01:54Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-29T14:01:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:01:54Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-09-29T14:01:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:01:56Z",
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v4",
+          "number": 3,
+          "startedAt": "2026-09-29T14:01:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:02Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v4",
+          "number": 4,
+          "startedAt": "2026-09-29T14:01:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:05Z",
+          "conclusion": "success",
+          "name": "Install dependencies",
+          "number": 5,
+          "startedAt": "2026-09-29T14:02:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:07Z",
+          "conclusion": "success",
+          "name": "Check generated contracts",
+          "number": 6,
+          "startedAt": "2026-09-29T14:02:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:17Z",
+          "conclusion": "success",
+          "name": "Unit tests",
+          "number": 7,
+          "startedAt": "2026-09-29T14:02:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:31Z",
+          "conclusion": "success",
+          "name": "Typecheck and production build",
+          "number": 8,
+          "startedAt": "2026-09-29T14:02:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:32Z",
+          "conclusion": "success",
+          "name": "Initial bundle budget",
+          "number": 9,
+          "startedAt": "2026-09-29T14:02:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:32Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v4",
+          "number": 16,
+          "startedAt": "2026-09-29T14:02:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:32Z",
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v4",
+          "number": 17,
+          "startedAt": "2026-09-29T14:02:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:32Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 18,
+          "startedAt": "2026-09-29T14:02:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-29T14:02:32Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 19,
+          "startedAt": "2026-09-29T14:02:32Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/lirji/oa-platform/actions/runs/36579551677/job/109443801276"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/lirji/oa-platform/actions/runs/36579551677"
+}
