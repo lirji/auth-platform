@@ -12,6 +12,8 @@ public final class RequestDtos {
     /** 单项本人申请，窗口一经提交固定。 */
     public record Submit(String tenantId,String applicationId,String environment,String commandId,
                          String policyId,String validFrom,String validTo,String reason) {}
+    /** 取消意图引用观察到的状态；批准已先提交时自动转本来源回收。 */
+    public record Cancel(String tenantId,String applicationId,String environment,String commandId,long stateVersion) {}
     /** 本人公开快照不返回内部审批身份和委派配置。 */
     public record View(String id,String policyId,String roleId,List<String> capabilities,ScopeDtos.Rule scopeRule,
                        String validFrom,String validTo,String reason,long requestVersion,String snapshotHash,

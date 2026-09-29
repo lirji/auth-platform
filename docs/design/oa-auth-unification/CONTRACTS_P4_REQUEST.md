@@ -21,3 +21,7 @@ OA使用request_id:request_version作为business key，接收固定快照；OA�
 取消与批准串行化同一分区和申请；取消先提交则旧批准不授予，批准先提交则取消撤销本来源。到期/成员退出实时判权先拒绝，有界扫描负责持久化回收；不影响其他来源。查询从当前Grant、P3栅栏/回执和当前成员状态计算展示，不伪造图就绪。
 
 首版通知为数据库持久站内状态通知，独立Outbox重试；邮件/短信渠道未授权且不宣称验证。申请/Inbox/Outbox/审计保留，未制定生产保留期限前不物理删除去重证据。
+
+## 取消与回收
+
+`POST /api/governance/v1/requests/{id}/cancel`接收完整分区、command_id和state_version。只允许当前代际本人；旧视图针对不可变同一申请的取消仍有效，若批准先提交自动回收对应OA_REQUEST来源。APPROVED保留历史事实，由execution返回REVOKING/REVOKED。调用方不能指定其他Grant。RequestLifecycleCli每轮最多100条，按数据库时间及当前成员资格收敛到期/离职，实时鉴权不依赖此任务。

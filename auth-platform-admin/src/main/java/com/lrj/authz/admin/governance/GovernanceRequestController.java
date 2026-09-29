@@ -43,6 +43,13 @@ public class GovernanceRequestController {
         return ResponseEntity.accepted().body(GovernanceWeb.body(view(result)));
     }
 
+    /** 202表示取消/回收意图已持久化；不能将尚未完成的图回收显示成完成。 */
+    @PostMapping(value="/{id}/cancel",consumes="application/json")
+    public ResponseEntity<JsonNode> cancel(@AuthenticationPrincipal VerifiedLogin login,@PathVariable("id") String id,HttpServletRequest request) throws IOException {
+        var r=AccessWeb.read(request.getInputStream(),Cancel.class);
+        return ResponseEntity.accepted().body(GovernanceWeb.body(view(requests.cancel(login,new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),id,r.stateVersion()))));
+    }
+
     /** 详情限制本人当前代际，不因知道UUID就返回其他人的申请。 */
     @GetMapping("/{id}")
     public JsonNode detail(@AuthenticationPrincipal VerifiedLogin login,@PathVariable("id") String id,

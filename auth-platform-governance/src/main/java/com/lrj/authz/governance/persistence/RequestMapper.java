@@ -29,6 +29,13 @@ public interface RequestMapper {
                @Param("state") com.lrj.authz.governance.domain.RequestModels.State state,@Param("grant") String grant);
     /** 展示状态必须合并SQL资格、实际投影回执与双READY栅栏。 */
     com.lrj.authz.protocol.RequestDtos.Execution execution(@Param("p") Partition p,@Param("id") String id);
+    /** 取消与批准共用分区锁；申请只前进，保留批准事实以展示回收。 */
+    int cancel(@Param("p") Partition p,@Param("id") String id,@Param("version") long version,
+               @Param("state") com.lrj.authz.governance.domain.RequestModels.State state);
+    /** 停止尚未领取的启动意图；在途结果仍允许保存实际远端实例用于追溯。 */
+    int stopStart(@Param("id") String id);
+    /** 扫描最多100条到期或当前成员失效记录，已回收来源不重复领取。 */
+    List<String> expired(@Param("p") Partition p);
     /** 最后一次尝试崩溃后也收敛为耗尽，不留永久RUNNING。 */
     int exhaustStarts(@Param("p") Partition p);
     /** 实例绑定与申请状态推进审计原子提交。 */

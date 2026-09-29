@@ -31,6 +31,7 @@
  WITH candidate AS (
  SELECT o.request_id FROM auth_governance.request_start_outbox o JOIN auth_governance.access_request r ON r.id=o.request_id
  WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
+ AND r.state='SUBMITTED' AND r.valid_to &gt; clock_timestamp()
  AND o.attempts &lt; 5 AND o.next_attempt_at &lt;= clock_timestamp()
  AND (o.state='PENDING' OR (o.state='RUNNING' AND o.lease_until &lt; clock_timestamp()))
  ORDER BY o.next_attempt_at,o.request_id LIMIT 1 FOR UPDATE OF o SKIP LOCKED)
@@ -48,6 +49,19 @@
  WHERE <include refid="partition"/> AND id=#{id} AND (approval_instance_id IS NULL OR approval_instance_id=#{instance})</update>
  <update id="decide">UPDATE auth_governance.access_request SET state=#{state},grant_id=#{grant},state_version=state_version+1,updated_at=clock_timestamp()
  WHERE <include refid="partition"/> AND id=#{id} AND state_version=#{version} AND state='IN_REVIEW'</update>
+ <update id="cancel">UPDATE auth_governance.access_request SET state=#{state},state_version=state_version+1,updated_at=clock_timestamp()
+ WHERE <include refid="partition"/> AND id=#{id} AND state_version=#{version} AND state IN ('SUBMITTED','IN_REVIEW','APPROVED')</update>
+ <update id="stopStart">UPDATE auth_governance.request_start_outbox SET state='DONE',last_error=NULL,updated_at=clock_timestamp() WHERE request_id=#{id} AND state='PENDING'</update>
+ <select id="expired" resultType="string">
+ SELECT r.id FROM auth_governance.access_request r LEFT JOIN auth_governance.access_grant g ON g.id=r.grant_id
+ WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
+ AND (r.state IN ('SUBMITTED','IN_REVIEW') OR (r.state='APPROVED' AND g.state IN ('PENDING','ACTIVE')))
+ AND (r.valid_to &lt;=clock_timestamp() OR NOT EXISTS(
+ SELECT 1 FROM auth_governance.membership m JOIN auth_governance.principal u ON u.id=m.principal_id JOIN auth_governance.tenant t ON t.id=m.tenant_id
+ WHERE m.id=r.membership_id AND m.generation=r.generation AND m.status='ACTIVE' AND u.status='ACTIVE' AND t.status='ACTIVE'
+ AND m.valid_from &lt;=clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to &gt;clock_timestamp())))
+ ORDER BY r.id LIMIT 100
+ </select>
  <select id="execution" resultType="com.lrj.authz.protocol.RequestDtos$Execution">
  SELECT r.id request_id,g.id grant_id,g.state grant_state,
  CASE WHEN r.state IN ('CANCELLED','REJECTED') AND g.id IS NULL THEN r.state

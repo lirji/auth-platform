@@ -5,6 +5,8 @@ import java.time.Instant;
 /** 申请固定内容与状态分别建模；状态变化不能重算时间或换角色。 */
 public final class RequestModels {
     private RequestModels() {}
+    /** 固定来源协议码，回收仅匹配本申请来源。 */
+    public static final String SOURCE_TYPE="OA_REQUEST";
 
     /** 版本ID即固定策略引用，审批人仍需具备当前管理资格。 */
     public record Policy(String id, String tenantId, String applicationId, String environment,

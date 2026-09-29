@@ -75,6 +75,12 @@ class RequestProjectionIT {
         assertThat(runtime.reliableAuthorization(graph).allowed(context,f.p.applicationId()+".read",other)).isFalse();
         runtime.access().createRole(login(f.owner),f.p,id(),"reader",2,List.of(f.p.applicationId()+".read",f.p.applicationId()+".refund"));
         assertThat(runtime.reliableAuthorization(graph).allowed(context,f.p.applicationId()+".refund",one)).isFalse();
+        runtime.requests().cancel(login(f.member),f.p,id(),r.id(),r.stateVersion());
+        assertThat(runtime.requests().execution(login(f.member),f.p,r.id()).displayState()).isEqualTo("REVOKING");
+        assertThatThrownBy(()->runtime.reliableAuthorization(graph).evaluate(context,f.p.applicationId()+".read","store")).hasMessage("AUTHZ_STATE_NOT_READY");
+        runtime.reliableProjector(graph).step(f.p,com.lrj.authz.governance.domain.ProjectionModels.Kind.POLICY,id());
+        assertThat(runtime.requests().execution(login(f.member),f.p,r.id()).displayState()).isEqualTo("REVOKED");
+        assertThat(runtime.reliableAuthorization(graph).allowed(context,f.p.applicationId()+".read",one)).isFalse();
     }
     private record Fixture(BootstrapCommand owner,BootstrapCommand member,Partition p,RoleVersion role){}
 }

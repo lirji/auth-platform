@@ -110,6 +110,52 @@ public final class AccessRequests {
         owned(login,p,id);return requests.execution(p,id);
     }
 
+    /** 本人取消按当前结果收敛：批准赢得竞态时回收本来源，绝不留下竞态授权。 */
+    public Request cancel(VerifiedLogin login,Partition p,String command,String requestId,long expectedVersion) {
+        BootstrapCommand.uuid(requestId);if(expectedVersion<1)throw invalid();
+        return tx.execute(status -> {
+            CurrentContext actor=context(login,p,true);
+            String result=command(actor,p,"CANCEL_ACCESS_REQUEST",command,AccessValues.hash(p,requestId,expectedVersion),()-> {
+                var r=requests.owned(p,requestId,actor.membershipId(),actor.membershipGeneration());
+                if(r==null)throw denied();
+                // 内容不可变，期间只有状态前进；旧视图取消仍必须回收已批准的同一申请。
+                if(expectedVersion>r.stateVersion())throw new GovernanceException(VERSION_CONFLICT);
+                settleRequest(p,r,actor.membershipId(),command,"CANCEL_ACCESS_REQUEST");return r.id();
+            });
+            return requests.request(p,result);
+        });
+    }
+
+    /** 数据库时间驱动的有界清理；分区短事务串行化领取，无远程调用或长时间租约。 */
+    public int settle(Partition p) {
+        AccessValues.partition(p);
+        return tx.execute(status -> {
+            if(access.lockPartition(p)==null)return 0;
+            int count=0;
+            for(String candidate:requests.expired(p)) {
+                var r=requests.request(p,candidate);
+                if(r.validTo().isAfter(access.now()) && access.memberActive(p,r.membershipId(),r.generation()))continue;
+                settleRequest(p,r,"REQUEST_LIFECYCLE",id(),"SETTLE_ACCESS_REQUEST");count++;
+            }
+            return count;
+        });
+    }
+
+    private void settleRequest(Partition p,Request r,String actor,String command,String operation) {
+        if(r.state()==State.CANCELLED || r.state()==State.REJECTED)return;
+        if(r.grantId()!=null) {
+            var g=access.grant(p,r.grantId());
+            if(g==null || !com.lrj.authz.governance.domain.RequestModels.SOURCE_TYPE.equals(g.sourceType()) || !(r.id()+":single:"+r.requestVersion()).equals(g.sourceId()))
+                throw new GovernanceException(BINDING_CONFLICT);
+            if(g.state()==GrantState.REVOKED)return;
+            one(access.revoke(p,g.id(),g.version()));one(access.enqueue(g.id(),g.version()+1,"DELETE"));
+            // APPROVED保留审批事实；用户由执行视图区分正在回收和真实回收回执。
+            one(requests.cancel(p,r.id(),r.stateVersion(),State.APPROVED));
+        } else one(requests.cancel(p,r.id(),r.stateVersion(),State.CANCELLED));
+        requests.stopStart(r.id());
+        audit(actor,p,operation,r.id(),r.stateVersion()+1,command);
+    }
+
     /** Inbox消费者持有分区锁后调用；无HTTP入口，不能由普通用户直接提交批准。 */
     com.lrj.authz.protocol.ApprovalDtos.Receipt decide(Partition p,com.lrj.authz.protocol.ApprovalDtos.Decision event) {
         var r=requests.request(p,event.requestId());
@@ -137,7 +183,7 @@ public final class AccessRequests {
         String grant=null;
         if(approved) {
             Grant g=new Grant(id(),p.tenantId(),p.applicationId(),p.environment(),r.membershipId(),r.generation(),r.roleId(),"SCOPED",
-                    "OA_REQUEST",r.id()+":single:"+r.requestVersion(),r.validFrom(),r.validTo(),GrantState.PENDING,1,null);
+                    com.lrj.authz.governance.domain.RequestModels.SOURCE_TYPE,r.id()+":single:"+r.requestVersion(),r.validFrom(),r.validTo(),GrantState.PENDING,1,null);
             one(access.insertGrant(g,policy.approverMembershipId()));
             var rule=ScopeRules.decode(r.scopeJson());one(access.insertScope(g,rule.resourceType(),r.scopeJson(),AccessValues.hash(r.scopeJson())));
             one(access.enqueue(g.id(),1,"UPSERT"));grant=g.id();

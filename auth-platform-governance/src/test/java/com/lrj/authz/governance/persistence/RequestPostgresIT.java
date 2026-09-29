@@ -221,5 +221,46 @@ class RequestPostgresIT {
         assertThat(jdbc.queryForObject("select result from auth_governance.approval_inbox where event_id=?",String.class,event)).isEqualTo("APPROVAL_REVALIDATION_FAILED");
         assertThat(jdbc.queryForObject("select count(*) from auth_governance.access_grant where tenant_id=?",Integer.class,f.p.tenantId())).isZero();
     }
+    @Test void cancellationWinsOrRevokesApprovalWithoutTouchingIndependentGrant() throws Exception {
+        for(int attempt=0;attempt<4;attempt++) {
+            var f=fixture();var policy=policy(f);var r=submit(f,policy.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"race");
+            var independent=runtime.access().grant(login(f.owner),f.p,id(),f.member.membershipId(),1,f.role.id(),"TENANT_ALL",id(),Instant.now(),Instant.now().plusSeconds(60));
+            approve(f,policy,r);var barrier=new CyclicBarrier(2);String command=id();
+            try(var pool=Executors.newFixedThreadPool(2)) {
+                var cancel=pool.submit(()->{barrier.await();return runtime.requests().cancel(login(f.member),f.p,command,r.id(),2);});
+                var decide=pool.submit(()->{barrier.await();return runtime.approvalDecisions().step(f.p);});
+                cancel.get();decide.get();
+            }
+            var done=runtime.requests().owned(login(f.member),f.p,r.id());
+            assertThat(runtime.requests().cancel(login(f.member),f.p,command,r.id(),2)).isEqualTo(done);
+            assertThat(jdbc.queryForObject("select count(*) from auth_governance.access_grant where tenant_id=? and source_type='OA_REQUEST' and state<>'REVOKED'",Integer.class,f.p.tenantId())).isZero();
+            assertThat(jdbc.queryForObject("select state from auth_governance.access_grant where id=?",String.class,independent.id())).isEqualTo("PENDING");
+            approve(f,policy,r);runtime.approvalDecisions().step(f.p);
+            assertThat(jdbc.queryForObject("select count(*) from auth_governance.access_grant where tenant_id=? and source_type='OA_REQUEST' and state<>'REVOKED'",Integer.class,f.p.tenantId())).isZero();
+        }
+    }
+    @Test void cancelledUnstartedRequestDoesNotCallOaAndOtherMembersCannotCancel() {
+        var f=fixture();var policy=policy(f);var r=submit(f,policy.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"withdraw");
+        assertThatThrownBy(()->runtime.requests().cancel(login(f.owner),f.p,id(),r.id(),1)).hasMessage("ACCESS_DENIED");
+        assertThat(runtime.requests().cancel(login(f.member),f.p,id(),r.id(),1).state().code()).isEqualTo("CANCELLED");
+        ApprovalGateway never=new ApprovalGateway(){
+            public Optional<com.lrj.authz.protocol.ApprovalDtos.Instance> find(com.lrj.authz.protocol.ApprovalDtos.Lookup q){throw new AssertionError("cancelled");}
+            public com.lrj.authz.protocol.ApprovalDtos.Instance start(com.lrj.authz.protocol.ApprovalDtos.Start q){throw new AssertionError("cancelled");}
+        };
+        assertThat(runtime.approvalStarts(never).step(f.p)).isFalse();
+    }
+    @Test void expiredWindowAndDepartedGenerationAreSettledOnce() throws Exception {
+        var f=fixture();var policy=policy(f);var from=Instant.now();var r=submit(f,policy.id(),id(),from,from.plusMillis(900),"expired");
+        approve(f,policy,r);runtime.approvalDecisions().step(f.p);
+        Thread.sleep(Math.max(1,java.time.Duration.between(Instant.now(),r.validTo()).toMillis()+50));
+        assertThat(runtime.requests().execution(login(f.member),f.p,r.id()).displayState()).isEqualTo("EXPIRED");
+        assertThat(runtime.requests().settle(f.p)).isEqualTo(1);assertThat(runtime.requests().settle(f.p)).isZero();
+        var g=fixture();var gp=policy(g);var gr=submit(g,gp.id(),id(),Instant.now(),Instant.now().plusSeconds(60),"left");approve(g,gp,gr);runtime.approvalDecisions().step(g.p);
+        jdbc.update("update auth_governance.membership set status='LEFT',version=version+1 where id=?",g.member.membershipId());
+        assertThat(runtime.requests().settle(g.p)).isEqualTo(1);
+        jdbc.update("update auth_governance.membership set status='ACTIVE',generation=generation+1,version=version+1 where id=?",g.member.membershipId());
+        assertThatThrownBy(()->runtime.requests().owned(login(g.member),g.p,gr.id())).hasMessage("ACCESS_DENIED");
+        assertThat(jdbc.queryForObject("select state from auth_governance.access_grant where tenant_id=?",String.class,g.p.tenantId())).isEqualTo("REVOKED");
+    }
     private record Fixture(BootstrapCommand owner,BootstrapCommand member,Partition p,RoleVersion role){}
 }
