@@ -9,7 +9,7 @@ commerce基线31dbdcd，auth基线74d2e75。入口逐项见 [HTTP清单](../../i
 F1：会员实体只有tenant/member/actor关系，没有可信门店、OA部门归属（MemberMapper.xml）。不把员工所在部门当成客户数据归属。
 F2：库存以tenant/store/sku定位（InventoryMapper.xml）；订单、履约、售后及退款必须由Owner逐级读取关联订单/门店，不接收前端Facts。
 F3：旧Actor.requireAdmin广泛存在，不能只给中央用户套ADMIN就宣称完成迁移；HTTP、领域用例、非HTTP调用和任务都要覆盖。
-F4：营销规则、会员政策、页面定义等包含租户级配置；没有门店归属的记录不能通过一个获授权门店顺带开放。
+F4：营销规则、会员政策等包含租户级配置；页面虽有storeId，其当前render会聚合租户级数据，因此首版也只接受TENANT_ALL。没有门店归属的记录不能通过一个获授权门店顺带开放。
 F5：后台有payments/refunds/orders/events/segments/journeys/cycles/points/deliveries/catalog-jobs/replay/retention共12条车道（EventWorker）；CATALOG之外尚无统一中央执行身份验收。
 
 技术决定：复用现有Java/MySQL领域用例、P1主体/组织、P2清单/角色快照/委派、P3范围/执行引用和P4申请；不拆服务、不加中间件、不读写OA业务库。OA只为员工/部门权威，商城客户会员继续由商城拥有。仅增加必要的Owner事实适配与授权用例入口。所有新增技术部署需求为零；现有兼容性继续沿用已验证版本。
@@ -30,7 +30,7 @@ F5：后台有payments/refunds/orders/events/segments/journeys/cycles/points/del
 |标签字典/分配/查询|`member_tag.read`、`member_tag.define`、`member_tag.assign`|commerce_member；TENANT_ALL，分配同时检查真实目标会员|全部HIGH|
 |行为资料/事件查询、画像修改/重建|`member_behavior.read`、`member_behavior.update`、`member_behavior.rebuild`|commerce_member；TENANT_ALL|全部HIGH|
 |周期政策/评估/结果|`member_cycle.policy.read`、`member_cycle.policy.publish`、`member_cycle.read`、`member_cycle.evaluate`|commerce_member_policy/commerce_member；TENANT_ALL|全部HIGH|
-|周期权益定义/查询/发放|`cycle_benefit.read`、`cycle_benefit.define`、`cycle_benefit.grant`|commerce_member_policy/commerce_member；TENANT_ALL|全部HIGH|
+|周期权益定义/查询/发放|`cycle_benefit.read`、`cycle_benefit.define`、`cycle_benefit.grant`|commerce_member_policy（read/define）/commerce_member（grant）；TENANT_ALL|全部HIGH|
 |积分政策、钱包/账本、调整、到期处理|`points.policy.read`、`points.policy.publish`、`points.read`、`points.adjust`、`points.expire`|commerce_member_policy/commerce_member；TENANT_ALL|全部HIGH|
 |积分商品创建/上下架/管理查询|`point_offer.read`、`point_offer.define`、`point_offer.status.update`|point_offer；TENANT_ALL|NORMAL/HIGH/HIGH|
 |活动创建/列表/预览/提交/审批/发布/暂停|`campaign.read`、`campaign.create`、`campaign.preview`、`campaign.submit`、`campaign.approve`、`campaign.reject`、`campaign.publish`、`campaign.pause`|campaign；首批TENANT_ALL|全部HIGH|
@@ -50,11 +50,25 @@ F5：后台有payments/refunds/orders/events/segments/journeys/cycles/points/del
 |退款查询/核对|`refund.read`、`refund.reconcile`|store（Owner读取关联订单）；TENANT_ALL/指定门店|全部HIGH|
 |订单到期扫描/失败重试|`order.expire`、`order.expiry.retry`|store；后台扫描必须只处理获授权门店或独立系统职能|全部HIGH|
 |经营总览|`dashboard.read`|commerce_tenant；首批仅TENANT_ALL，聚合源须同时满足相关数据读取能力|HIGH|
-|页面定义/渲染/版本、预览、生命周期、执行动作|`ops_page.read`、`ops_page.create`、`ops_page.preview`、`ops_page.submit`、`ops_page.approve`、`ops_page.reject`、`ops_page.publish`、`ops_page.retire`、`ops_page.execute`|ops_page；TENANT_ALL；内嵌动作另校验目标业务能力，页面发布不授予执行权|全部HIGH|
+|页面定义/渲染/版本、预览、生命周期、执行动作|`ops_page.read`、`ops_page.create`、`ops_page.preview`、`ops_page.submit`、`ops_page.approve`、`ops_page.reject`、`ops_page.publish`、`ops_page.pause`、`ops_page.rollback`、`ops_page.execute`|ops_page；TENANT_ALL；内嵌动作另校验目标业务能力，页面发布不授予执行权|全部HIGH|
 |租户事件健康/查询、重试/推进|`event.read`、`event.retry`、`event.pump`|commerce_runtime；TENANT_ALL|全部HIGH|
 |停止任务/恢复/重放分类与查询、dry-run/提交/控制|`runtime.read`、`runtime.recover`、`runtime.replay.preview`、`runtime.replay.create`、`runtime.replay.control`|commerce_runtime；TENANT_ALL；底层副作用仍校验其业务授权|全部HIGH|
 
 约束：创建动作没有现存对象ID时，以可信本地租户/既有父门店作为资源，禁止为通过校验伪造不存在对象Facts；若resource_type为merchant等实体但仅TENANT_ALL创建，用无资源实例的能力检查，禁止SPECIFIED_RESOURCES用于创建。单角色不能跨不同resource_type共用一个ScopeRule，岗位以多个固定角色快照组合，能力与范围不得交叉拼接。
+
+动态动作核对（实际业务枚举，不新增动作）：
+
+|路由动作|现有允许值|中央绑定要求|
+|---|---|---|
+|journeys/{id}/{version}/{action}|submit/approve/reject/publish/pause|逐个绑定同名journey能力；版本/状态迁移仍由JourneyService.change约束|
+|journey-instances/{id}/{action}|cancel/retry|journey_instance.control；重试重新验证执行引用，取消不撤销已发权益|
+|ops-pages/{id}/{version}/{action}|submit/approve/reject/publish/pause/rollback|逐个绑定同名ops_page能力；rollback会重新发布已暂停版本，不是数据库恢复|
+|ops-pages/.../actions/{action}|已发布页面声明的action ID|先查真实页面版本与action，再检查其目标活动/发券/旅程能力，不能只凭任意字符串拼能力|
+|segment-runs/{id}/{action}|cancel/retry/retry-announcement|segment.control；retry-announcement仍受相同源结果和当前授权约束|
+|coupon-deliveries/{id}/control body.action|CANCEL/RETRY/REVOKE|coupon_delivery.control；REVOKE有补偿副作用，不表示已发优惠券全部可撤回|
+|runtime/replays/{id}/control body.action|PAUSE/RESUME/CANCEL|runtime.replay.control；保留ReplayGate对资金/外部副作用的禁止规则|
+
+来源：commerce的JourneyService.change/control、OpsPageService.change/execute、SegmentService.control、CouponDeliveryService.control及EventReplay.control。低代码render当前聚合campaign/journey/budget/coupon/entitlement，不仅execute，其各数据段也必须验证相应read能力；未获权片段不能泄露条数和数据。
 
 本表是能力目录草案。真正发布前必须把218条入口逐项绑定能力，展开`{action}`及请求体control枚举，并核对现有业务状态机支持项；没有枚举绑定的动作默认拒绝，不因本表提到候选名字就新增业务动作。清单上限200能力；发布生成器必须计数和校验，不能截断。
 

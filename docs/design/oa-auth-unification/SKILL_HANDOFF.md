@@ -80,3 +80,13 @@ session-handoff恢复既有P7范围；backend-implementation修复发行方错�
 ## P7独立身份服务容量续做
 
 runtime-and-deploy沿用已选组件，新增显式本地独立身份服务和双新版模式；implementation-validation完成4工具测试、24跨进程演练及600请求零错误。新授权就绪沿用P3保守DENY契约，容量/撤权不重试，所有中间失败保留。无应用业务源码变化；update-progress-docs按63节点原DAG追加证据，生产07/08继续BLOCKED。task-git-delivery已正常合并推送a882d4f，ci-cd-gate=COMPLETED/PASS（36658762615成功），task-git-delivery=COMPLETED/PASS；无子代理、新worktree、共享服务重启或生产部署。
+
+
+## 2026-09-29 商城剩余接入与扩展契约
+
+- continue-approved-delivery：沿已批准8步推进；用户追加“本轮扩展其他模块，先补能力与权限契约”。没有重写原63节点或启动子代理。
+- frontend-implementation / implementation-validation：已批准CATALOG静态SSO入口、独立请求上下文及错误状态完成；393 Java项（388通过/5跳过）、前端构建/Prettier、34隔离检查通过。追加真实密码+PKCE回调后再次34通过，9条浏览器分项；视觉与完整编辑操作已验证。其他模块未实现。
+- backend-architecture-design / contracts / implementation-slicing：新增模块设计复用现有边界、所有权与协议；CONTRACTS_COMMERCE_EXPANSION为DESIGN_REVIEW，CE-00清单与CE-01草案已形成，CE-02及之后依赖业务范围/审批选择。没有将草案能力发布给人员。
+- migration readiness：prepare-review及增量差异工具22项测试通过，未签字真实映射仍隔离；私有数据与失败历史保留。
+- task-git-delivery / ci-cd-gate：依用户常驻授权从独立任务分支正常合并推送；初轮两仓CI成功，最终工具补充CI及提交见commerce-readiness/DELIVERY_RESULT。没有生产部署、OA修改或清理。
+- recommended_next：获得数据边界及高风险审批业务选择后定稿CE-01，逐动作能力/受限Actor/接管状态设计推进CE-02；真实映射签字和生产目标仍未确定。

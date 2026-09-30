@@ -1,6 +1,6 @@
 # 商城HTTP入口实测源码清单
 
-基线 commerce-platform 31dbdcd；当前任务仅增加静态 `/operations/catalog` 壳。逐个注解展开多路径，共 218 条。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
+基线 commerce-platform 31dbdcd；当前任务仅增加静态 `/operations/catalog` 壳。逐个注解展开多路径，共 218 条。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
 
 | Controller | 方法 | 路径 | 当前入口身份 | 源码 |
 |---|---|---|---|---|

@@ -8,7 +8,7 @@
 |2 已批准CATALOG完整页面接入|本地验证通过|commerce任务分支feat/central-catalog-entry；复用P6真实API，不影响原运行商城|
 |2a 新增模块能力契约|DESIGN_REVIEW|CONTRACTS_COMMERCE_EXPANSION.md；业务D1—D4等待选择|
 |3 迁移审核/增量准备|本地验证通过|prepare-review；本地新只读快照与旧快照比较；真实OA映射未签字|
-|4 目标运行配置|目标待定|引用既有P7角色/TLS/ACL/备份要求；不可填造生产连接/Owner|
+|4 目标运行配置|目标待定|TARGET_ACCEPTANCE.md已整理配置/容量/恢复/灰度/退出输入；不可填造生产连接/Owner|
 |5 目标规模与恢复验收|目标待定|本地P7已有600请求及恢复证据，本轮不重复当成生产接受|
 |6 P7-07发布评审|BLOCKED|真实映射、完整接入、目标/SLO/Owner尚未齐备|
 |7 P7-08实际发布观察|BLOCKED|目标及实际部署授权未指定|
