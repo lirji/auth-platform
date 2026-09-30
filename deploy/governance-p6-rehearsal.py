@@ -798,7 +798,13 @@ def rehearse(args, isolation=None):
             expect('revoked points expiry cannot replay receipt',18661,points_base+'/'+points_member+'/expire',points_expire_headers,{},403)
             expect('points read survives write revocation',18661,points_base+'/'+points_member,user)
             points_browser('revoked')
+        def offer_browser(phase):
+            if not args.browser:return
+            subprocess.run(['node',str(root/'deploy/governance-ce04-offers.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=150)
+            record('real point offer browser '+phase)
         if args.offers:
+            if args.browser:
+                ui=json.loads((run/'catalog-ui.json').read_text());ui.update({'from':now(60),'to':now(1800),'futureFrom':now(3600),'futureTo':now(5400)});h.private(run/'offers-ui.json',json.dumps(ui))
             insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'POINT_OFFER','state':'SHADOW'})
             sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='POINT_OFFER' AND state='SHADOW' AND version=1;")
             offer_base='/v1/admin/point-offers';offer_member='ce04-offer-member';offer_customer='ce04-offer-customer'
@@ -806,6 +812,8 @@ def rehearse(args, isolation=None):
             local_admin=[('Authorization','Bearer '+admin_local)]
             coupon={'definitionId':'ce04-offer-coupon','version':1,'storeId':store,'name':'Points-only fixture','minimumSpend':'0.00','discountAmount':'5.00','validFrom':now(-60),'validTo':now(7200),'quota':1,'stackable':True,'platformFundingBps':10000,'issuanceMode':'SOURCE_ONLY'}
             expect('offer actual controlled asset',18661,'/v1/admin/coupon-definitions',local_admin+[('Idempotency-Key',uid())],coupon)
+            if args.browser:
+                expect('offer UI actual entitlement asset',18661,'/v1/admin/entitlement-definitions',local_admin+[('Idempotency-Key',uid())],{'benefitId':'ce04-offer-entitlement','version':1,'storeId':store,'name':'UI points entitlement','units':1,'quota':10,'validFrom':now(-60),'validTo':now(7200),'validityDays':7})
             expect('points permissions do not imply offer read',18661,offer_base+'?storeId='+store,user,status=403)
             expect('legacy ADMIN cannot bypass offer management',18661,offer_base+'?storeId='+store,local_admin,status=403)
             expect('legacy ADMIN cannot bypass through customer catalogue',18661,'/v1/point-offers?storeId='+store,local_admin,status=403)
@@ -821,17 +829,20 @@ def rehearse(args, isolation=None):
             expect('offer define does not imply read',18661,offer_base+'?storeId='+store,user,status=403)
             offer_b=expect('second actual offer',18661,offer_base,user+[('Idempotency-Key',uid())],{**definition,'offerId':'ce04-offer-b','name':'Points offer B'})
             expect('offer missing actual store denied',18661,offer_base,user+[('Idempotency-Key',uid())],{**definition,'offerId':'ce04-offer-invalid','storeId':'missing-offer-store'},404)
+            offer_browser('define-only')
             offer_status_grant=offer_grant('point_offer.status.update');offer_status={'expectedVersion':0,'active':False,'reason':'explicit isolated pause'};status_headers=user+[('Idempotency-Key',uid())]
             paused=expect('offer status without directory read',18661,offer_base+'/ce04-offer-a/status',status_headers,offer_status)
             if paused['status']!='INACTIVE' or paused['version']!=1:raise RuntimeError('offer status not committed')
             if expect('offer status original key retry',18661,offer_base+'/ce04-offer-a/status',status_headers,offer_status)!=paused:raise RuntimeError('offer status duplicated')
             expect('offer stale version rejected',18661,offer_base+'/ce04-offer-a/status',user+[('Idempotency-Key',uid())],offer_status,409)
             expect('offer missing actual Owner denied',18661,offer_base+'/missing-offer/status',user+[('Idempotency-Key',uid())],offer_status,404)
+            offer_browser('status')
             offer_grant('point_offer.read')
             if expect('offer stable first cursor',18661,offer_base+'?storeId='+store+'&limit=1',user)!=[paused]:raise RuntimeError('offer first cursor mismatch')
             if expect('offer stable second cursor',18661,offer_base+'?storeId='+store+'&after=ce04-offer-a&limit=1',user)!=[offer_b]:raise RuntimeError('offer second cursor mismatch')
-            if expect('offer terminal cursor',18661,offer_base+'?storeId='+store+'&after=ce04-offer-b&limit=1',user)!=[]:raise RuntimeError('offer terminal cursor mismatch')
+            if expect('offer terminal cursor',18661,offer_base+'?storeId='+store+'&after='+('ce04-offer-ui-d' if args.browser else 'ce04-offer-b')+'&limit=1',user)!=[]:raise RuntimeError('offer terminal cursor mismatch')
             expect('offer foreign tenant denied',18661,offer_base+'?storeId='+store,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            offer_browser('read')
             # 此临时人工校准授权仅用于隔离客户兑换夹具，单独创建并随后撤销，不借旧ADMIN绕过积分族。
             funding_grant=offer_grant('points.adjust',MEMBER_RESOURCE_TYPE)
             expect('offer customer actual points fixture',18661,'/v1/admin/member-points/'+offer_member+'/adjust',user+[('Idempotency-Key',uid())],{'expectedVersion':0,'delta':300,'reason':'isolated offer redemption fixture'})
@@ -840,6 +851,7 @@ def rehearse(args, isolation=None):
             expect('revoked offer define cannot replay receipt',18661,offer_base,define_headers,definition,403)
             expect('revoked offer status cannot replay receipt',18661,offer_base+'/ce04-offer-a/status',status_headers,offer_status,403)
             expect('offer read survives write revocation',18661,offer_base+'?storeId='+store,user)
+            offer_browser('revoked')
             customer_token='p6-offer-'+secrets.token_hex(20)
             insert('platform_credential',{'token_hash':hashlib.sha256(customer_token.encode()).hexdigest(),'tenant_id':source,'actor_id':offer_customer,'role':'MEMBER','expires_at':now(600).replace('T',' ').replace('Z','')})
             offer_customer_headers=[('Authorization','Bearer '+customer_token)];redeem_headers=offer_customer_headers+[('Idempotency-Key',uid())]
@@ -851,10 +863,15 @@ def rehearse(args, isolation=None):
             if wallet['available']!=200:raise RuntimeError('failed redemption charged customer')
             if expect('customer actual redemption receipt',18661,'/v1/point-redemptions',offer_customer_headers)!=[receipt]:raise RuntimeError('redemption receipt mismatch')
             expect('customer cannot define offers',18661,offer_base,offer_customer_headers+[('Idempotency-Key',uid())],definition,403)
-            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.point_offer.%' AND resource_type='point_offer' AND store_id IS NULL")[1]!='3':raise RuntimeError('offer audit count mismatch')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.point_offer.%' AND resource_type='point_offer' AND store_id IS NULL")[1]!=str(6 if args.browser else 3):raise RuntimeError('offer audit count mismatch')
             if sql("SELECT issued FROM benefit_point_offer WHERE tenant_id="+q(source)+" AND offer_id='ce04-offer-b'")[1]!='1':raise RuntimeError('offer quota not atomic')
             if sql("SELECT count(*) FROM benefit_point_redemption WHERE tenant_id="+q(source)+" AND member_id="+q(offer_member))[1]!='1':raise RuntimeError('offer duplicate redemption')
-            record('three offer commands have exact actual identity audits and one atomic customer redemption')
+            if args.browser:
+                if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='point_offer' AND resource_id='ce04-offer-ui-c'")[1]!='2':raise RuntimeError('offer UI coupon audit mismatch')
+                if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='point_offer' AND resource_id='ce04-offer-ui-d'")[1]!='1':raise RuntimeError('offer UI entitlement audit mismatch')
+                if sql("SELECT CONCAT(status,':',version) FROM benefit_point_offer WHERE tenant_id="+q(source)+" AND offer_id='ce04-offer-ui-c'")[1]!='INACTIVE:1':raise RuntimeError('offer UI status mismatch')
+                if sql("SELECT JSON_UNQUOTE(JSON_EXTRACT(content_json,'$.kind')) FROM benefit_point_offer WHERE tenant_id="+q(source)+" AND offer_id='ce04-offer-ui-d'")[1]!='ENTITLEMENT':raise RuntimeError('offer UI asset kind mismatch')
+            record('offer commands have exact actual identity audits and one atomic customer redemption')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -915,6 +932,7 @@ def rehearse(args, isolation=None):
         if args.offers:
             expect('offer auth outage fails closed',18661,'/v1/admin/point-offers?storeId='+store,user,status=503)
             expect('offer customer catalogue remains local during central outage',18661,'/v1/point-offers?storeId='+store,offer_customer_headers)
+            offer_browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
         result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}

@@ -295,3 +295,17 @@ O1首轮真实2f41e53f63a3/子网99在315PASS后因point_offer.define签发403�
 最终真实334c444f50a5/子网101共376项PASS，offers_checked=true，runtime_switched/production_ready=false。三权限真实独立、定义原键/实际商家门店与资产验证、停启原键及expectedVersion、实际Owner缺失/跨租户、管理目录稳定游标、旧ADMIN从管理与客户目录旁路均拒绝；两员工写撤权后旧回执403，read保留。单独临时points.adjust夹具授权已撤销，客户仍实际兑换：300积分扣100后200，原键仅1回执/1额度，第二次资产耗尽409后余额仍200。商品员工恰3条实际point_offer审计，客户兑换不伪装员工；中央停机时员工503，客户目录继续原本地身份。既有域API/系统履约/进程恢复全通过。
 
 完整445项440PASS/5既有skip、37工具/247入口/122能力/34角色、compile、两仓hygiene和最终源码摘要auth2/commerce11一致。V58/V59已应用不可改。首次约束遗漏与两次演练制品/证据文件问题及修复均保留，未改权限或预算。当前运行Jar依赖已验证与模块一致；自有PG/IdP/JVM已finally停止，全部演练数据/私密证据保留，原8602未切换。O1本地DONE待正常Git交付；下一O2员工页面及两hint，其余CE05—08未完成。
+
+
+## CE04-O2验证中
+
+O1已普通合并推送authbf801f7/commerceea8e7bd，CI36686935020/36686937166待查。O2实现固定 /operations/point-offers SSO三Tabs与两个独立hint，实际优惠券/权益规则、目录游标、停启版本与明确布尔选择；未知保留原请求、409可纠正、401卸载/403独立/503关闭。37工具/250入口通过；完整offers-ui-verify.log共446项441PASS/5既有skip，CentralPointOfferMySqlTest7项PASS，前端build/Prettier通过。
+
+初次hygiene阻断是新页面状态魔法字符串及层叠路由新增造成格式变动，已提取OfferStatus/AssetKind与固定页面映射，最终build/Prettier/hygiene PASS。原自有浏览器fbb00d390a84/子网102在5项后主动SIGINT停止，finally退出130保留数据，无业务失败。Java未变不重复完整回归；最终maven.jar.forceCreation=true package通过，真实浏览器将回归全部已有入口映射。auth4文件摘要不变，commerce最终11源码摘要offers-ui-source-final-sha256.json。当前--offers --browser子网103，offers-ui-rehearsal-final.log；完成实际截图/SQL审计前不标DONE。
+
+
+### O2最终本地DONE
+
+真实rehearsal-7fdcde67f634（子网103）450项PASS，含兑换商品10条浏览器及全部已交付员工页面回归。真实PKCE登录、独立define/status不附赠read、优惠券和权益两种实际定义、时间/资产类型校验、状态409保留输入后纠正、明确false停用、两写成功丢响应后原键/体重试、取消退出/切Tab保留未知意图、稳定目录游标、切门店清除、撤写保留读、跨租户403/401卸载和实际中央停机503均通过。SQL核对API3+UI3恰6条身份审计，UI券商品创建/停用共2条且INACTIVE:1，UI权益商品创建1条；客户实际兑换恰1笔、余额200，资产失败无额外扣减。
+
+完整446项441PASS/5既有skip、最终前端build/Prettier/强制package、37工具/250入口/122能力/34角色及两仓hygiene通过，Java formatter/静态分析限制保持。实际1440/390目录/两表单、冲突、未知与停机截图已查看；auth4/commerce11最终源码摘要全部一致。自有进程finally停止，子网102主动中止及103最终证据/数据保留，原8602未切换，runtime_switched/production_ready=false。无新迁移，V58/V59不可改。O1两仓CI36686935020/36686937166 SUCCESS。O2本地DONE待正常Git交付；下一CE05-CD券定义，CE05—08及原生产2HOLD仍未完成。

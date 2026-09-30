@@ -1,6 +1,6 @@
 # 商城HTTP入口实测源码清单
 
-基线 commerce-platform 31dbdcd；当前任务仅增加静态 `/operations/catalog` 壳。逐个注解展开多路径，CE04-PTS2新增积分壳与三个独立提示后共 247 条。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
+基线 commerce-platform 31dbdcd；当前任务仅增加静态 `/operations/catalog` 壳。逐个注解展开多路径，CE04-O2新增积分兑换商品壳与两个独立提示后共 250 条。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
 
 | Controller | 方法 | 路径 | 当前入口身份 | 源码 |
 |---|---|---|---|---|
@@ -254,3 +254,6 @@
 | PointsActionsController | GET | `/v1/operations/member-points/adjust-access` | EMPLOYEE_CENTRAL_PLANNED | `commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/PointsActionsController.java` |
 | PointsActionsController | GET | `/v1/operations/member-points/expire-access` | EMPLOYEE_CENTRAL_PLANNED | `commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/PointsActionsController.java` |
 | CentralPageController | GET | `/operations/member-points` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java` |
+| PointOfferActionsController | GET | `/v1/operations/point-offers/define-access` | EMPLOYEE_CENTRAL_PLANNED | `commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/pointoffer/PointOfferActionsController.java` |
+| PointOfferActionsController | GET | `/v1/operations/point-offers/status-access` | EMPLOYEE_CENTRAL_PLANNED | `commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/pointoffer/PointOfferActionsController.java` |
+| CentralPageController | GET | `/operations/point-offers` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java` |

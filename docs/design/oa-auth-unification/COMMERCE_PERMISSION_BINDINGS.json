@@ -4145,6 +4145,36 @@
       "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
       "capabilities": [],
       "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "PointOfferActionsController",
+      "method": "GET",
+      "path": "/v1/operations/point-offers/define-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/pointoffer/PointOfferActionsController.java",
+      "capabilities": [
+        "commerce.point_offer.define"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "PointOfferActionsController",
+      "method": "GET",
+      "path": "/v1/operations/point-offers/status-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/pointoffer/PointOfferActionsController.java",
+      "capabilities": [
+        "commerce.point_offer.status.update"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/point-offers",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
     }
   ]
 }

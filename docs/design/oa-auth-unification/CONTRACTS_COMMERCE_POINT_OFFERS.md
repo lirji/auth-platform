@@ -20,6 +20,19 @@ O2：沿SSO壳，目录指定已知门店分页、独立定义和状态表单；
 |---|---|---|---|---|
 |CE04-O0|PTS2 DONE|auth ScopeDtos/ScopeResourceBindings/ExecutionAuthorization；SDK同格式|三能力有限组合、租户范围/真实资源事实、代际/撤权/到期，真实PG+图和SDK共存|DONE（本地）|
 |CE04-O1|O0 DONE|commerce PointOfferService/EmployeeAccess/Authority/三员工HTTP，V58/V59|真实MySQL Owner/审计回滚/幂等/客户兑换并发；真实中央403/503和STOPPED|DONE（本地）|
-|CE04-O2|O1 DONE|固定SSO员工积分兑换商品页、两个独立hint|真实目录/定义/状态、未知重试和错误状态、1440/390截图与实际审计|TODO|
+|CE04-O2|O1 DONE|固定SSO员工积分兑换商品页、两个独立hint|真实目录/定义/状态、未知重试和错误状态、1440/390截图与实际审计|DONE（本地）|
 
 串行复用现有本地基础设施，不新增共享中间件。O1按仓库现有Mapper XML集中SQL，不改变customer DTO/事件/表权威。O0不宣称商城Owner已经接管；正式生产映射、人员和环境仍待定。
+
+
+## O2页面与两个动作提示
+
+固定/operations/point-offers?tenant_id，沿现有SSO/AntDesign壳；三Tabs：兑换商品目录、定义兑换商品、停启兑换商品。GET /v1/operations/point-offers/{define|status}-access精确独立提示，仅核对对应完整租户资格；真实Owner/版本在命令提交核验，不要求目录read。
+
+目录输入已知storeId，不自动授予store.directory.read；GET /v1/admin/point-offers?storeId=<id>&after=<id>&limit=50，稳定offerId游标，切store重建查询。展示真实View.content:offerId/name/storeId/kind/assetId/assetVersion/points/quota/perMemberLimit/validFrom/validTo，加status/issued/version。客户是否可兑仍由本人兑换接口决定，管理页无客户兑换按钮。不把已发行issued误标余额。
+
+定义form显式offerId/storeId/name/kind(COUPON/ENTITLEMENT)/assetId/assetVersion/points/quota/perMemberLimit/validFrom/validTo；标识1—100字母数字下划线连字符，name128，assetVersion正安全整数；积分1—1e9，总额度1—1e6，个人限额1—1000；两datetime-local转UTC且截止晚于开始。已知资产编号和版本由业务Owner真实校验，不要求额外资产目录读取。明确规则不可变、创建后当前状态ACTIVE，窗口/资产资格另行校验。
+
+停启form offerId/expectedVersion>=0/active显式布尔选择/reason<=256；停用只阻止新兑换，不撤销已发资产。409保留输入可纠正；三种结果状态与现有页一致：unknown固定原键/体/路径冻结，切Tab/取消退出保留，401卸载，403独立拒绝，503失败关闭。无默认审批字段，不新增OA审批。
+
+真实browser：define-only无read及两kind枚举/必填/数值时间验证；status-only无read、真实409后纠正与显式false；两写服务端成功丢响应原样重试；目录实际数据和游标、撤写保留读、跨租户清除/401/503、1440/390截图查看。实际数据中两种kind与已有客户兑换/资产失败回滚保持。SQL核对实际命令和两类身份审计各一次，不用Mock响应证明事务。
