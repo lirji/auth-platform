@@ -35,3 +35,10 @@
 - commerce `.local/central-catalog`保留构建、单测和hygiene证据；历史`.local/p0-baselines/commerce`基线worktree与原P7目录保留，不是本轮新工作树。
 
 这些自有停止资源在证据归档、确认无后续任务依赖并取得清理授权后可清理；本轮没有删除授权，故未移除。共享实例保持运行。当前各任务分支提交已合入main，可留作追溯；未删除分支。
+
+## CE-02/CE-03-I增量交付
+
+- auth CE02-D/A：a503f24、5860200、1b1ee01已正常合并推送main；CI36663171698 SUCCESS。
+- CE03-I：auth29052d05f37d7fc6001c1ef567e420a8b1bd05a4（feat/central-inventory-reference）及commerceb7715cec54d1cfcc02d5d9ab722bfba74fa8e09b（feat/central-inventory-access）已普通快进合并并推送main；CI36664884469、36664884967均SUCCESS。包含实现/迁移/测试/文档，未混入后续UI。
+- 验证：商城397项392PASS/5skip、PG+graph执行引用两项IT、真实中央+商城隔离51PASS。证据详见CE03_INVENTORY.md。没有生产部署、真实Grant发布或旧授权收缩。
+- 正继续CE03-U，在原两仓新建本任务UI分支；没有新worktree。专用MySQL43308重启供本轮测试，最终保留数据并停机；私密证据不纳入提交。

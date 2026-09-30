@@ -26,3 +26,25 @@
 第二次跨进程rehearsal-e068a97301ff PASS，共51项；入库真实HTTP首次提交可用量7，同键重试仍7、身份审计恰好1条；读权限不能入库、跨店/跨租户403；撤销写Grant后旧命令重试403，而独立读和CATALOG保持各自边界；停止授权服务返回503。read就绪探测记录3次DENY后ALLOW，receive记录4次DENY后ALLOW，证实新Grant保守投影窗口；不是重试业务写入获得通过。原P6的过期源拒绝、CATALOG任务重启/撤权/安全停止也通过。
 
 CE-03-I后端验证PASS；CI/Git交付收尾中。CE-03-U页面、商家门店和其他新增模块仍未实施。原63节点DAG、真实OA映射及生产HOLD不变。事务审查与hygiene限制如上，不作生产容量或即时分布式撤销承诺。
+
+## CE-03-U实施与待验收
+
+后端已推送auth29052d0与commerceb7715ce；对应CI36664884469/36664884967仍运行。CE03-U在独立分支补充静态SSO库存页及动作提示（220入口、能力数不变），沿用真实库存API与Ant Design。入库未知结果保留原键/输入，即使后续拒绝也不把未知历史误当失败；切店/退出提示未确认结果。
+
+初次UI完整回归在新增动作提示测试重新设置Mockito桩时触发NPE（旧Answer被when执行，非业务请求失败）；改doThrow重新测试中。auth浏览器脚本首次hygiene五项phase字面量阻断，改Phase常量后通过。以上不作为产品PASS证据，等待最终完整测试、真实浏览器及截图检查。
+
+UI最终商城完整回归398项393PASS/5skip（ui-verify-fixed.log），新增动作提示测试PASS。首个UI演练在隔离PG准备阶段失败：helper的Unix socket pg_isready误命中Docker初始化临时服务；日志显示初始化随后关闭，而数据库准备此时执行。改为127.0.0.1 TCP并指定postgres，等正式服务后开库；保留失败资源5607893aa954（已停止）。未触及原商城或业务UI。
+
+浏览器首轮rehearsal-12f0268db7ab通过库存只读SSO、真实响应丢失/同键重试（7→10且未重复）、切店未保存提示、跨店拒绝及撤写后只读截图；在401检查失败。原因是新测试addInitScript每次导航覆盖已构造的无效会话，不是服务端放行；补与既有catalog工具一致的“已有会话不覆盖”。已查看桌面/未知结果/390截图；页面把网络异常技术文案换成中文连接提示，需重新前端构建/浏览器验证。
+
+第二轮fda182d95537在库存首次HTTP入库403停止（32前置通过）；没有重试业务写入。读就绪为DENY×3后ALLOW，但PG保留记录证实receive引用已签发，签发后入库链路仍拒绝。旧日志缺拒绝层证据，不能断言具体根因；单次resource ALLOW不足以证明后续执行路径稳定。沿用失败关闭语义，工具就绪探测扩展为resource检查+真实引用签发/执行复核，最多40轮、250ms间隔、连续4轮ALLOW；不重试库存写入或撤权。失败响应以后仅私密保存code/message便于区别拒绝层。原失败与PG诊断证据保留，专用PG682407336aef已停止。
+
+## CE-03-U最终本地验收 PASS
+
+rehearsal-ba03baa64c88共58项PASS，另含库存浏览器9条细分与旧CATALOG9条细分：真实密码/PKCE回跳、只读不显示入库、表单校验、真实提交后丢弃响应并同键重试（7→10）、未保存切店取消保留输入/确认离开后跨店403、独立撤写仍可读10、退出/真实401、停止auth返回503。400—500类失败未伪造成成功；业务入库与撤权断言不自动重试。新Grant readiness实际read4轮ALLOW，receive先4轮DENY后4轮resource+execution ALLOW，完整过程私密留档。此前偶发403的具体拒绝层仍未追溯，不把本次成功宣称为生产新Grant零等待承诺。
+
+最终截图inventory-write-form、unknown-result、390、outage已实际查看，桌面1440×1000/窄屏390×844；原只读与跨店截图前轮亦查看。表单复用主题/控件、错误/未知结果提示清晰；窄屏表格内部滚动且整页不溢出。页面无新的模态编辑器，仅切店未保存确认，实际取消/确认均通过。原商品页SSO/编辑/撤权/故障同期回归。
+
+商城Java398项393PASS/5可选跳过（ui-verify-fixed.log）。其后只修改前端未知结果保留键/中文网络提示，重新npm build和Prettier PASS，再打包ui-package-current.log PASS；真实演练记录本次jar SHA。新增SQL/Java未在完整回归后变化。前端既有大chunk警告保留，未顺手拆包。auth契约9PASS、P6工具22PASS、220真实入口覆盖PASS。两仓hygiene最终PASS_WITH_LIMITATIONS：Java无规范formatter、静态检查未配置。工具最后把四个200比较改HTTPStatus.OK，py_compile/P6单测及hygiene复验通过，值与行为不变。
+
+CE03-U实现与本地验证DONE，Git/CI交付随后记录。原已运行8602不切换，真实Owner/生产目标HOLD保持；下一片CE03-D商家门店目录，先补集合/创建执行引用协议，不能伪造对象事实或扩大原CATALOG。

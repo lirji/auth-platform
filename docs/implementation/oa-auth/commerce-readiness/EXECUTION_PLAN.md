@@ -48,3 +48,5 @@
 2026-09-29：用户D1—D4已批准。CE-02-D逐入口/受限Actor/分族接管契约完成，真实源码覆盖218入口，122能力、34角色快照，离线9项测试通过；见[CE02_TEST_RESULT](CE02_TEST_RESULT.md)。继续CE-02-A有限资源协议、CE-03-I库存用例，未发布新能力。
 
 CE-03-I库存read/receive后端已通过本地完整/真实中央联调，见[CE03结果](CE03_INVENTORY.md)；下一片CE-03-U员工页面，尚未完成全模块接入。
+
+2026-09-29 CE03-U本地DONE：真实库存SSO页/动作提示/未知结果幂等恢复；398项Java393PASS/5skip，隔离58项PASS含库存9条/原CATALOG9条浏览器细分，1440/390截图已查看。见commerce-readiness/CE03_INVENTORY.md失败历史和限制。Git/CI交付进行中；下一步CE03-D集合/创建协议及商家门店接管，其他模块未完成。

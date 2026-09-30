@@ -101,8 +101,9 @@ class Rehearsal:
         pg_env=self.run/'postgres.env';h.private(pg_env,'POSTGRES_USER=p7owner\nPOSTGRES_PASSWORD='+secrets.token_hex(24)+'\nPOSTGRES_DB=postgres\n')
         image=subprocess.check_output(['docker','inspect','dev-infra-postgres16-1','--format','{{.Config.Image}}'],text=True).strip()
         subprocess.run(['docker','run','-d','--name',PG,'--label','auth-p7-run='+self.suffix,'--cpus=1','--memory=512m','--env-file',str(pg_env),'-p',f'127.0.0.1:{PG_PORT}:5432',image],check=True,stdout=subprocess.DEVNULL);self.containers.append(PG)
+        # 初始化临时服务只监听Unix socket；等正式TCP服务，避免开库撞上初始化关闭窗口。
         for attempt in range(100):
-            if subprocess.run(['docker','exec',PG,'pg_isready','-U','p7owner'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
+            if subprocess.run(['docker','exec',PG,'pg_isready','-h','127.0.0.1','-U','p7owner','-d','postgres'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
             time.sleep(.2)
         else:raise RuntimeError('owned PostgreSQL startup timeout')
         self.db=self.database('authority');self.fixture=None
