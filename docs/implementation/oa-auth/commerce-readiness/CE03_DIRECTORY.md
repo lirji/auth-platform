@@ -28,3 +28,25 @@ commerce分支feat/central-commerce-directory。四能力精确HTTP接管、Empl
 本地完整401项（396PASS/5可选skip）通过，directory-verify.log；新CentralDirectoryMySqlTest3项实际MySQL+HTTP但SDK为协议桩。hygiene首轮两处Service沿用tab文件新增空格缩进阻断，按原风格修正后最终无阻断；仅保留无formatter和事务人工审查提示。真实中央/IdP/商城联调rehearsal-16693ea0d846共83项PASS（含库存/CATALOG回归）；directory-owner-rehearsal.log及该目录result.json保留。四独立能力就绪、指定商家/门店过滤先于LIMIT、部分范围创建拒绝、全租户创建、真实父商家检查、身份审计、相同键仅执行一次、撤权后旧回执拒绝和中央故障503均通过。没有浏览器验收，D2仍待实施。
 
 兼容边界：V51允许旧库存二进制继续写历史形状，但旧CE03-U二进制不检查DIRECTORY族。因此所有承载该族的应用实例升级后才允许CENTRAL；回退需使用已认识DIRECTORY路由的版本并置STOPPED，不能仅回滚到旧UI版恢复旧ADMIN。没有真实租户切换。
+
+## D2 实施与验证中
+
+新增/operations/directory固定SSO壳及商家/门店创建资格两个只读提示。前端白名单客户端、分区独立list/create，无读也能创建；输入/结果未知幂等恢复与离开保护。技术契约223条实际HTTP核验PASS、9条离线契约测试PASS（首次未更新源码快照被正确拒绝，补登记后通过）。前端build已PASS，保留既有大chunk警告；完整MySQL回归与真实浏览器验收进行中，不提前宣称完成。
+
+D1 CI失败不是产品授权失败：commerce构建固定旧SDK源码，本地已安装新版故未暴露。独立49274a8固定auth2557de1，原安装脚本校验SDK/protocol源码差异PASS；远程修复CI待查。
+
+D2首次浏览器演练ce6a9ff06d90到52项PASS后，工具尝试覆盖只创建一次的0600 catalog-ui.json，被exclusive-create正确拒绝。改用独立directory-ui.json，既有凭据文件不覆盖；不是产品授权失败，尚未进入目录浏览器。失败证据保留，重新运行完整隔离验收。
+
+重跑准备期间审查发现store.create就绪探测会在撤读权限后再次保存同名证据；主动SIGINT终止本任务helper（finally停止自有进程），按initial/create-only分相位保存，避免后段同类失败。该次不计验收通过。
+
+第三轮fbd07aa28788通过目录真实SSO/只读及商家响应丢失同键成功，门店输入超时：两个保留的Form没有name，重复merchantId字段ID导致所属商家标签指向隐藏商家输入。这是本片产品可访问性问题，修复两个Form使用独立directory-kind名称；测试还增加名称/编号校验信息清除等待，避免截到异步校验中间态。重build/package并重新完整浏览器验收；该失败轮不算D2完成。已查看失败前只读/商家表单/未知结果截图，最终视觉以修复轮为准。
+
+## D2最终本地验收DONE
+
+修复后rehearsal-ae9ef79aba17共99项PASS，directory-ui-rehearsal-ids.log及result.json；目录浏览器11条分项、库存9条和旧CATALOG9条回归全部PASS。实际密码/PKCE回跳、指定资源目录、独立create资格、真实商家/门店创建、响应丢失原键重试、两命令审计各一次、退出取消/Tab保留、撤商家写权限不撤门店写、撤双读后仅创建门店成功、跨租户/401及auth停机503均通过。原运行商城未切换。
+
+402项Java397PASS/5可选skip，新增DirectoryMySql提示用例（现4项）及固定壳路径负例通过；directory-ui-verify.log。后续仅前端Kind常量/表单name修正，最终build/Prettier/package和真实浏览器覆盖该版本；后端语义未再改动。两仓hygiene无阻断，保留无Java formatter/未配置静态分析限制。Python22P6工具+9契约测试PASS，223实际入口/122能力/34角色核对PASS，未发布新能力清单。
+
+视觉：复用既有AntDesign主题与员工壳，1440×1000商家表单、门店表单、成功/未保存状态，390×844表单和内部横滚表格，以及未知结果、仅创建成功/列表403、故障截图已实际通过view_image查看。目录页无新增详情/编辑弹层；退出确认沿已有modal并实际验证取消保留输入。商家校验中间态截图来自失败轮，不作为最终结果；修复轮merchant-form已无残留校验错误。create-only截图捕获成功后的资格刷新骨架，真实创建成功与拒绝读取分别有断言，完整静态表单在store-form/390截图验证。桌面字段标签与输入正确关联，窄屏页面无横向溢出。最终源版本为当前D2待提交树，UI制品摘要见result.json。
+
+D2本地DONE，Git交付进行中；后续CE04会员/成长/周期/积分仍未完成。所有演练自有PG/IdP/JVM/Vite由finally停止，数据/网络/私密证据保留；专用MySQL43308继续供后续切片。无新工作树、无生产部署。

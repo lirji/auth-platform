@@ -47,6 +47,10 @@
 
 本地验证后已正常合并推送：auth db96617c41618f54cc28785fff77cb439af91e07（feat/central-inventory-ui-contract），commerce 8cf2a584b067ddee34a883d48758b07c8c8cbf8d（feat/central-inventory-ui）。CI36666230427/36666232081均SUCCESS。D0 auth2557de1c70625f19fe18b60a11ecb022298939a0已合并推送main，CI36666736638 SUCCESS。
 
-## CE03-D1待交付
+## CE03-D1交付
 
-auth feat/commerce-directory-owner-contract与commerce feat/central-commerce-directory：实现/迁移/验收文档本地DONE，401项Java396PASS/5skip和83项真实隔离检查。验证后仅修正四个Java文件缩进（无语义变化）并同步文档，hygiene无阻断。新V51已执行不得改历史。下一片D2尚未混入本次交付；实际Git结果随后补记。
+auth feat/commerce-directory-owner-contract与commerce feat/central-commerce-directory：实现/迁移/验收文档本地DONE，401项Java396PASS/5skip和83项真实隔离检查。验证后仅修正四个Java文件缩进（无语义变化）并同步文档，hygiene无阻断。新V51已执行不得改历史。D1 auth378313c/commerce37e2e06已正常合并推送main。商城CI36667458010因固定旧SDK缺executionScope编译失败；49274a8已单独修正scripts/auth-sdk-source.ref至auth2557de1并推送，CI36667650544 SUCCESS。D2未混入这些提交。auth CI36667456414 SUCCESS。
+
+## CE03-D2本地交付门禁
+
+当前auth feat/commerce-directory-ui-contract和commerce feat/central-directory-ui，目录页面/两提示/工具/契约/验证文档与当前验证版本相同，D2本地DONE。402项397PASS/5skip、最终99隔离检查与已查看截图详见CE03_DIRECTORY；最终只有前端ID修复，已重build/package/真实浏览器验证。按明确路径stage；私密.local、停止容器卷和失败证据保留。实际提交/CI另记，未进行生产部署。

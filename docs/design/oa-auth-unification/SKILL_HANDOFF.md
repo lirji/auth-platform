@@ -92,4 +92,4 @@ runtime-and-deploy沿用已选组件，新增显式本地独立身份服务和�
 - recommended_next：已获数据边界及高风险审批选择，逐动作能力/受限Actor/接管状态设计推进CE-02；真实映射签字和生产目标仍未确定。
 
 
-CE03当前状态（2026-09-29）：I/U已正常合并推送，两仓CI均SUCCESS（库存UI auth36666230427、commerce36666232081）。D0 auth2557de1已合并推送，CI36666736638 SUCCESS。D1商家/门店后端本地DONE：401 Java项396PASS/5可选skip、真实中央/IdP/商城83项PASS，V51在专用库成功应用，详情commerce-readiness/CE03_DIRECTORY.md。D1 Git交付进行中；下一READY为D2目录SSO页面，CE04—08未实施，生产输入HOLD不变。
+CE03当前状态（2026-09-29）：I/U/D0/D1已正常合并推送，两仓远程CI SUCCESS。D1 SDK固定来源遗漏由commerce49274a8修复，CI36667650544 SUCCESS；auth378313c CI36667456414 SUCCESS，失败36667458010保留。D2目录员工页本地DONE：402项397PASS/5skip、99项真实隔离检查（目录11条浏览器、库存/CATALOG各9条），1440/390及错误/创建截图已查看，详见commerce-readiness/CE03_DIRECTORY.md。D2 Git交付进行中；下一READY为CE04会员纵向切片技术细化，CE04—08未实施，生产输入HOLD不变。

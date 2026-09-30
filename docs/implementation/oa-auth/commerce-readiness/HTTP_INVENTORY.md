@@ -1,6 +1,6 @@
 # 商城HTTP入口实测源码清单
 
-基线 commerce-platform 31dbdcd；当前任务仅增加静态 `/operations/catalog` 壳。逐个注解展开多路径，CE-03-U新增库存壳与动作提示后共 220 条。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
+基线 commerce-platform 31dbdcd；当前任务仅增加静态 `/operations/catalog` 壳。逐个注解展开多路径，CE-03-D2新增目录壳与两创建提示后共 223 条。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
 
 | Controller | 方法 | 路径 | 当前入口身份 | 源码 |
 |---|---|---|---|---|
@@ -224,3 +224,6 @@
 | StoreAccessController | GET | `/v1/operations/stores` | CENTRAL_OR_LEGACY_OPERATOR | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/StoreAccessController.java:47` |
 | CentralPageController | GET | `/operations/inventory` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java:10` |
 | InventoryActionsController | GET | `/v1/operations/inventory/actions` | CENTRAL_EMPLOYEE / inventory.read + receive hint | `commerce-app/src/main/java/com/lrj/commerce/app/http/order/InventoryActionsController.java:16` |
+| DirectoryActionsController | GET | `/v1/operations/directory/merchants/create-access` | CENTRAL_EMPLOYEE / merchant.create hint | `commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/DirectoryActionsController.java` |
+| DirectoryActionsController | GET | `/v1/operations/directory/stores/create-access` | CENTRAL_EMPLOYEE / store.create hint | `commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/DirectoryActionsController.java` |
+| CentralPageController | GET | `/operations/directory` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java` |

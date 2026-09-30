@@ -31,3 +31,9 @@ EmployeeAccess增加ScopePermit（能力/可信本地租户/类型化ScopeQuery.
 V51用单条ALTER替换V49已核实自动命名的family CHECK（employee_authority_route_chk_1），新增DIRECTORY并保留所有状态/不可删除/不可回退触发器。V50审计增resource_type（默认store）及nullable resource_id，store_id对merchant允许空；CHECK确保merchant有resource_id且store_id为空、store有store_id且resource_id为空或相同。旧库存记录/旧版INSERT继续使用store_id并由默认类型解释，不回填或删除历史。新库存/目录写显式写目标类型/ID，记录的是实际已创建/已变更资源，不作为判权事实。原V49/V50不改动。
 
 验收覆盖真实MySQL HTTP与直调：四个能力不串权，指定资源列表SQL分页前过滤，创建局部范围拒绝、全租户成功、父商家跨租户拒绝；旧ADMIN不能绕过，幂等重放/代际冲突、审计类型、撤权/停用/服务故障、旧库存审计兼容。之后真实中央联调；D2页面仍独立切片。
+
+## D2 目录员工页面与动作提示
+
+固定SSO壳GET /operations/directory，沿用现有OIDC与租户回跳白名单。商家、门店分区各自读取，不互相授予；GET /v1/operations/directory/merchants/create-access及/stores/create-access分别只使用merchant.create/store.create执行引用，调用EmployeeAccess.scope再次验证完整TENANT_ALL与CENTRAL路由，返回{allowed:true}。仅提示，无写副作用，不接收Idempotency-Key；401失效、403无资格、503故障明确区分。无旧ADMIN入口，关闭中央配置不提供提示。真正POST仍独立签发和事务准入，不信任提示或前端。新增静态壳与两提示纳入HTTP清单（223入口）。
+
+页面使用原GET/POST /admin/merchants、/admin/stores，独立列表与创建权限，只有create也可提交；门店表单输入已知父商家ID，不要求merchant.read。当前页50条、真实游标，无虚构总数。名称1—128字符，ID沿现有允许格式。创建结果显示实际资源编号，即使当前读范围不包含新对象也不伪造列表。失败保留输入，网络/5xx结果未知时冻结原输入及幂等键，原样重试；后续403不清除此前未知意图。401清空业务内容，403不显示旧数据，刷新重新判权，离开未保存/未知命令给出现有确认。复用Ant Design与工作台主题，页内短表单，不新增复杂弹层/导航。验收包括真实只读、创建、无读可创建、响应丢失重试、撤权、跨组织、401/503、1440/390视口及未保存保护。

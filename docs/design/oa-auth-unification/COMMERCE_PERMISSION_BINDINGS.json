@@ -3872,6 +3872,36 @@
       "mode": "EMPLOYEE_CENTRAL_PLANNED",
       "owner_fact_policy": "STORE_FROM_OWNER",
       "hint_only": true
+    },
+    {
+      "controller": "DirectoryActionsController",
+      "method": "GET",
+      "path": "/v1/operations/directory/merchants/create-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/DirectoryActionsController.java",
+      "capabilities": [
+        "commerce.merchant.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "DirectoryActionsController",
+      "method": "GET",
+      "path": "/v1/operations/directory/stores/create-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/DirectoryActionsController.java",
+      "capabilities": [
+        "commerce.store.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/directory",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
     }
   ]
 }
