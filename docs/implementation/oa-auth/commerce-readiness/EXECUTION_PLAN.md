@@ -64,3 +64,5 @@ CE04-G1本地DONE：411项406PASS/5skip、真实成长中央联调151PASS（fb6d
 CE04-G2本地DONE：413项408PASS/5skip、真实隔离183PASS（324fea9731d5），成长11/会员12/目录11/库存9/CATALOG9浏览器细分检查，当前1440/390/表单/钱包/冲突/未知/重算/停机截图已查看；36项工具、231入口及hygiene无阻断。原公平性回归暴露的游标缺陷单独commerce45b74ee修复，旧版确定性FAIL/新版PASS与原公平性检查保留，详见CE04_MEMBER和commerce独立修复说明。下一CE04-T标签技术细化，其他会员与CE05—08仍未完成。
 
 CE04-G2已推送auth8351043/commerce646ebd5；CI待查。CE04-T0本地DONE：标签3有限执行能力、define scope-only、252单元/真实PG+graph6项/SDK Boot4 package/hygiene通过，见CE04_MEMBER与CONTRACTS_COMMERCE_TAG。下一T1真实Owner/标签字典实际审计目标/V54，尚未实施。
+
+CE04-T1本地DONE：完整417项412PASS/5skip与最终标签5项窄测试（含后补64上限）通过，真实隔离c1893723fb4a共182PASS，无浏览器；V54已应用不可改。36项工具/231入口/hygiene无阻断，见CE04_MEMBER。下一T2独立标签页，其他会员与CE05—08仍未完成。

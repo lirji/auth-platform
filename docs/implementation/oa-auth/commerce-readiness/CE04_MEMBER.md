@@ -90,3 +90,17 @@ G2已普通合并推送auth8351043/commerce646ebd5，CI36673405496/36673407016�
 auth有限member_tag.read/define/assign三能力绑定commerce_member，最长60秒HUMAN且完整TENANT_ALL；字典define与member.create同为集合许可，拒绝伪会员execution-check，read/assign允许正确会员事实。没有修改Owner类型/SDK方法/JSON或增加新授权资源类型；未知能力、伪门店/部门、错误租户/类型保持失败关闭。商城真实标签Owner/业务路由/V54/页面留T1/T2。
 
 tag-core-unit.log 252单元PASS；自有PG f5d5df7c48f4加现有隔离SpiceDB执行ExecutionAuthorizationIT6方法PASS（tag-core-integration.log及-result.json）。新增标签矩阵对三能力的scope/资源事实、类型/范围/120秒拒绝、代际/分区、撤权/重授不能复活和到期验证，原CATALOG/库存/目录/基础会员/成长组合回归；合成协议事实不是实际商城Owner验收，自有PG已finally停止并保留数据。tag-core-sdk/boot4/package三日志PASS；hygiene无阻断，缺Java formatter/静态分析限制仍保留。验证后无产品代码变动，下一T1。
+
+## CE04-T1验证中
+
+T0 auth6bfaae7已推送，CI36673611219待查；G2 auth36673405496被后续推送取消，commerce36673407016 SUCCESS含轮转修复。T1 MEMBER_TAG独立族、三精确能力、真实会员Owner/版本锁、稳定身份幂等和同事务审计已实现。标签define的授权类型仍commerce_member，实际审计类型固定commerce_member_tag/真实tagId；assign仍实际memberId，不接受请求指定审计类型。V54已在专用MySQL成功应用不可改历史，SDK固定6bfaae7并原安装脚本验证。
+
+完整tag-verify.log：417项412PASS/5既有skip，编译时包含新增标签4项。随后补入64活跃上限/撤销释放名额用例，最终CentralTagMySqlTest5项在tag-limit-test-module.log全部PASS；包括真实MySQL审计故障回滚字典/关联/命令、Owner竞争、版本/代际、冻结/CLOSED、撤权/外租户/STOPPED/503。最初两次-am窄测试因根POM硬设failIfNoTests而在没有匹配测试的shared-kernel停止，未执行业务测试；安装本地依赖后仅跑目标模块成功，未改POM或放宽断言，失败日志保留。最终产品源码与完整回归相同，后补仅测试；install/package与两仓hygiene无阻断。
+
+36项Python与231入口契约通过；真实--tags中央演练rehearsal-c1893723fb4a正在10.254.86.0/24运行，tag-owner-rehearsal.log，含成长/基础会员/目录/库存/CATALOG后台回归，不含浏览器。实际联调完成前T1不标DONE，T2仅有私有页面草案，未实施。
+
+### T1最终本地DONE
+
+实际rehearsal-c1893723fb4a最终182PASS，tags_checked/growth_checked均true，runtime_switched/production_ready均false；真实标签定义无read/无assign、独立assign无read、字典/关联读、真实目标与外租户拒绝、关联版本冲突、撤销后保留/重授递增、四次效果恰四条审计（字典真实tag类型1、会员分配3）、撤权后旧回执拒绝且read保留、真实中央停止503及各域后台恢复回归通过。自有PG/IdP/JVM由finally停止，子网86与数据保留。
+
+完整417项412PASS/5skip加最终标签5项窄测试（新增上限1项）、36项工具/231入口、SDK安装/package、两仓hygiene与diff检查通过；产品代码验证后无修改。T1本地DONE，Git交付中；下一T2页面/浏览器，标签后端通过不代表页面或其他域已完成。

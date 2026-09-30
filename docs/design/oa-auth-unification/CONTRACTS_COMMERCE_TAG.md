@@ -13,7 +13,15 @@ T0中央有限3能力，define scope-only/read+assign资源check；T1真实商�
 | ID | 依赖与验收 | 状态 |
 |---|---|---|
 | CE04-T0 | G2；auth有限3能力/60秒HUMAN/全租户/define只scope，真实PG+graph对范围/类型/Owner/代际/撤权重授/到期与旧组合回归；SDK/Boot4 | DONE（本地） |
-| CE04-T1 | T0；MEMBER_TAG/V54、实际字典审计类型、真实Member Owner/事务/版本/64上限/幂等/撤权与真实MySQL/跨进程中央验收 | TODO |
+| CE04-T1 | T0；MEMBER_TAG/V54、实际字典审计类型、真实Member Owner/事务/版本/64上限/幂等/撤权与真实MySQL/跨进程中央验收 | DONE（本地） |
 | CE04-T2 | T1；独立SSO标签页/提示与真实读写、错误恢复/1440及390截图/既有页面回归 | TODO |
 
 T0仅增加有限执行能力，不把协议测试中的合成会员事实当真实商城Owner验收；T1按实际会员Owner完成。read在字典列表用scope、在assignments用Member facts，define不接受伪会员resource-check。未知能力和伪门店/部门范围继续失败关闭。审计类型commerce_member_tag仅本地业务目标分类，不新建中央授权资源类型，也不允许调用方任意传入审计类型。
+
+## T1锁与审计实施细节
+
+MemberTagService注入已有EmployeeAccess及MemberMapper，无新业务接口/DTO。definitions读前后scope指纹核对；assignments先全租户资格、读取真实会员并resource-check，读后scope/会员版本复核，不用标签ID冒充会员。assign的guard先路由锁、真实会员FOR UPDATE比较版本、再期限核验，早于Commands旧回执，之后沿用原GrowthMapper标签字典/关联与会员状态约束。
+
+define/assign在中央模式把稳定principal/membership/generation追加原幂等摘要，LEGACY/SHADOW保留原摘要。define审计固定映射commerce_member_tag和真实tagId，assign审计仍是commerce_member和真实memberId；路径参数、Owner事实和审计目标的职责分开。EmployeeAuthority只有MEMBER_TAG_DEFINE可作此固定映射，HTTP不能指定审计类型。V54只扩族/审计check及中文注释，保留所有旧类型/触发器；已执行后不可修改。
+
+验证T1以真实MySQL覆盖字典定义不隐含读、分配不隐含读、关联版本/撤销/重授/冻结/CLOSED、活跃64上限与名额释放、Owner竞争、审计异常回滚业务与命令、代际摘要、缺失/外租户目标、撤权/STOPPED/503；实际中央有限600秒角色联调另证scope与资源事实，标签定义审计1条、分配/撤销/重授审计3条，旧模块后台恢复回归。客户/内部规则消费仍沿原Growth facts，不把员工撤权套在已承诺系统作业上。

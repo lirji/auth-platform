@@ -8,6 +8,7 @@ from pathlib import Path
 MERCHANT_RESOURCE_TYPE = 'merchant'
 MEMBER_RESOURCE_TYPE = 'commerce_member'
 MEMBER_POLICY_RESOURCE_TYPE = 'commerce_member_policy'
+TAG_CAPABILITIES = ('member_tag.read','member_tag.define','member_tag.assign')
 GROWTH_CAPABILITIES = {'growth.policy.read':MEMBER_POLICY_RESOURCE_TYPE,'growth.policy.publish':MEMBER_POLICY_RESOURCE_TYPE,'growth.read':MEMBER_RESOURCE_TYPE,'growth.adjust':MEMBER_RESOURCE_TYPE,'growth.recalculate':MEMBER_RESOURCE_TYPE}
 
 
@@ -114,12 +115,15 @@ def rehearse(args, isolation=None):
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':MEMBER_RESOURCE_TYPE,'risk_level':'HIGH'} for code in ('member.read','member.create','member.profile.update','member.status.update')]
         if args.growth:
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':kind,'risk_level':'HIGH'} for code,kind in GROWTH_CAPABILITIES.items()]
+        if args.tags:
+            manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':MEMBER_RESOURCE_TYPE,'risk_level':'HIGH'} for code in TAG_CAPABILITIES]
         h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli','publish',run/'catalog.properties',run/'manifest.json')
         access={'access.tenant':tenant,'access.application':'commerce','access.environment':env,'access.manager':members['internal'],'access.generation':1,'access.capabilities':'commerce.catalog.operate','access.max-duration-seconds':3600,'access.operator':'p6-fixture','access.command':uid()}
         if args.inventory:access['access.capabilities'] += ',commerce.inventory.read,commerce.inventory.receive'
         if args.directory:access['access.capabilities'] += ',commerce.merchant.read,commerce.merchant.create,commerce.store.directory.read,commerce.store.create'
         if args.member:access['access.capabilities'] += ',commerce.member.read,commerce.member.create,commerce.member.profile.update,commerce.member.status.update'
         if args.growth:access['access.capabilities'] += ''.join(',commerce.'+code for code in GROWTH_CAPABILITIES)
+        if args.tags:access['access.capabilities'] += ''.join(',commerce.'+code for code in TAG_CAPABILITIES)
         h.private(run/'access.properties',db+h.props(access));cli('AccessBootstrapCli',run/'access.properties')
         def authority(kind):
             c=fixture['clients'][kind];return {'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
@@ -469,6 +473,46 @@ def rehearse(args, isolation=None):
             expect('revoked growth adjustment cannot replay old receipt',18661,base+'/'+target+'/adjust',adjust_headers,adjustment,403)
             expect('growth read survives adjustment revocation',18661,base+'/'+target,user)
             growth_browser('revoked')
+        if args.tags:
+            insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'MEMBER_TAG','state':'SHADOW'})
+            sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='MEMBER_TAG' AND state='SHADOW' AND version=1;")
+            base='/v1/admin/member-tags';target='ce04-tag-member'
+            expect('tag actual member created independently',18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':target,'actorId':'ce04-tag-customer','displayName':'Tag fixture','memberLevel':'BASIC'})
+            expect('growth does not imply tag access',18661,base,user,status=403)
+            expect('legacy ADMIN cannot bypass tag authority',18661,base,[('Authorization','Bearer '+admin_local)],status=403)
+            def tag_grant(code):
+                role=expect('explicit tag role '+code,18162,prefix+'/roles',admin,{**partition,'command_id':uid(),'role_code':'ce04-'+code.replace('.','-'),'role_version':1,'capabilities':['commerce.'+code]})['id']
+                rule={'version':1,'resource_type':MEMBER_RESOURCE_TYPE,'clauses':[{'kind':'TENANT_ALL','values':[],'include_root':False}]}
+                gid=expect('finite tag grant '+code,18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role,'scope_rule':rule,'source_id':'ce04-'+code,'valid_from':now(-2),'valid_to':now(600)},202)['id']
+                projection();execution_ready(code,resource_type=MEMBER_RESOURCE_TYPE);return gid
+            tag_grant('member_tag.define')
+            definition={'tagId':'ce04-tag','name':'Isolated reviewed tag'};define_headers=user+[('Idempotency-Key',uid())]
+            defined=expect('tag definition without read',18661,base,define_headers,definition)
+            if expect('tag definition receipt retry',18661,base,define_headers,definition)!=defined:raise RuntimeError('tag definition receipt changed')
+            expect('tag definition does not imply read',18661,base,user,status=403)
+            assignment={'tagId':'ce04-tag','active':True,'expectedVersion':0,'reason':'CE04 isolated classification'}
+            expect('tag definition does not imply assignment',18661,base+'/'+target+'/assign',user+[('Idempotency-Key',uid())],assignment,403)
+            assignment_grant=tag_grant('member_tag.assign');assign_headers=user+[('Idempotency-Key',uid())]
+            assigned=expect('tag assignment without read',18661,base+'/'+target+'/assign',assign_headers,assignment)
+            if not assigned['active'] or assigned['version']!=1:raise RuntimeError('tag assignment effect incorrect')
+            if expect('tag assignment stable retry',18661,base+'/'+target+'/assign',assign_headers,assignment)!=assigned:raise RuntimeError('tag assignment repeated')
+            expect('tag assignment does not imply read',18661,base+'/'+target+'/assignments',user,status=403)
+            tag_grant('member_tag.read')
+            if expect('tag independent dictionary read',18661,base,user)!=[definition]:raise RuntimeError('tag dictionary mismatch')
+            if expect('tag independent member assignments',18661,base+'/'+target+'/assignments',user)!=[assigned]:raise RuntimeError('tag association mismatch')
+            expect('tag missing actual owner rejected',18661,base+'/foreign-member/assignments',user,status=404)
+            expect('tag foreign auth tenant denied',18661,base,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            expect('tag stale association version conflicts',18661,base+'/'+target+'/assign',user+[('Idempotency-Key',uid())],assignment,409)
+            revoked=expect('tag deactivation preserves history',18661,base+'/'+target+'/assign',user+[('Idempotency-Key',uid())],{**assignment,'active':False,'expectedVersion':1,'reason':'Remove isolated classification'})
+            if revoked['active'] or revoked['version']!=2:raise RuntimeError('tag deactivation incorrect')
+            restored=expect('tag reactivation increments version',18661,base+'/'+target+'/assign',user+[('Idempotency-Key',uid())],{**assignment,'expectedVersion':2,'reason':'Restore reviewed classification'})
+            if not restored['active'] or restored['version']!=3:raise RuntimeError('tag reactivation incorrect')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.member_tag.%' AND store_id IS NULL")[1]!='4':raise RuntimeError('tag audit count incorrect')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member_tag' AND resource_id='ce04-tag'")[1]!='1':raise RuntimeError('tag definition audit pretends member')
+            record('tag definition and three assignment effects have exactly four actual target audits')
+            expect('revoke tag assignment independently',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':assignment_grant,'expected_version':1});projection()
+            expect('revoked tag assignment cannot replay receipt',18661,base+'/'+target+'/assign',assign_headers,assignment,403)
+            expect('tag read survives assignment revocation',18661,base+'/'+target+'/assignments',user)
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -513,9 +557,10 @@ def rehearse(args, isolation=None):
         if args.growth:
             expect('growth auth outage fails closed',18661,'/v1/admin/member-growth/ce04-growth-member',user,status=503)
             growth_browser('outage')
+        if args.tags:expect('tag auth outage fails closed',18661,'/v1/admin/member-tags',user,status=503)
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -525,6 +570,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
+    parser.add_argument('--tags',action='store_true',help='finite member tag rehearsal; includes growth regression')
     parser.add_argument('--growth',action='store_true',help='finite growth policy and account rehearsal; includes member regression')
     parser.add_argument('--member',action='store_true',help='finite member core rehearsal; includes directory regression')
     parser.add_argument('--directory',action='store_true',help='finite directory read/create rehearsal; includes inventory regression')
@@ -533,6 +579,7 @@ def main():
     parser.add_argument('--identity-subnet',help='explicit unused RFC1918 /24 when Docker default pools are exhausted')
     args=parser.parse_args()
     if args.identity_subnet and not args.isolated_identity:parser.error('--identity-subnet requires --isolated-identity')
+    if args.tags:args.growth=True
     if args.growth:args.member=True
     if args.member:args.directory=True
     if args.directory:args.inventory=True
