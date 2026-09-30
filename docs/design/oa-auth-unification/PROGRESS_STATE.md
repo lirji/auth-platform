@@ -1,6 +1,8 @@
 # 当前商城扩展续做
 
-2026-09-29：用户批准剩余执行计划，并选择本轮扩展其他商城模块、先补能力与权限契约。当前[执行记录](../../implementation/oa-auth/commerce-readiness/EXECUTION_PLAN.md)为续做入口；[扩展契约](CONTRACTS_COMMERCE_EXPANSION.md)业务边界已获批准：员工端、会员营销按租户/库存交易按门店、高风险独立权限且沿用现有审批；继续CE-02。CATALOG页面接入与迁移审核工具本地验证通过（commerce388通过/5跳过、Python22项、隔离34项）；commerce 41c22ae产品/4b12706进度及auth aaf7c18/ece04d0已正常合并推送main，两仓初轮远程CI成功（auth36660687852、commerce36660768385）；补充完整密码/PKCE后本地34项再次通过，最终CI auth36661541739、commerce36661542743均SUCCESS；未执行生产部署或真实迁移，原DAG保持63节点。
+2026-09-30：已批准商城员工扩展持续执行中。[执行记录](../../implementation/oa-auth/commerce-readiness/EXECUTION_PLAN.md)保持原稳定编号；业务边界为OA员工权威、会员/营销TENANT_ALL、库存/交易门店范围，高风险独立权限并沿原审批流程。CE02/03与CE04会员、成长、标签、行为、周期、积分、积分商品的API/页面纵向片均完成本地验证；最新O2真实隔离450PASS，commercec027daa/CI36688830234 SUCCESS，authc823750基线已由后续CD0包含。
+
+当前CE05-CD0 auth471cdb8已正常推送，252单元、真实PG/图11方法、SDK Boot4/install/hygiene与CI36689152601 SUCCESS。券定义CD1业务门禁/实际事务审计/V60本地DONE（452项447PASS/5skip，真实隔离415PASS），见[CE05_MARKETING](../../implementation/oa-auth/commerce-readiness/CE05_MARKETING.md)与[券定义契约](CONTRACTS_COMMERCE_COUPON_DEFINITIONS.md)。下一CD2 READY，其他CE05—08未完成；原63节点生产2HOLD保留，不等于当前扩展全部完成。原运行商城未切换，隔离资源证据保留，无生产部署。历史阶段记录如下，以本段为当前摘要。
 
 ## 已交付P7基线
 

@@ -9,6 +9,8 @@ MERCHANT_RESOURCE_TYPE = 'merchant'
 MEMBER_RESOURCE_TYPE = 'commerce_member'
 MEMBER_POLICY_RESOURCE_TYPE = 'commerce_member_policy'
 POINT_OFFER_RESOURCE_TYPE = 'point_offer'
+COUPON_DEFINITION_RESOURCE_TYPE = 'coupon_definition'
+COUPON_DEFINITION_CAPABILITIES = ('coupon_definition.read','coupon_definition.create')
 OFFER_CAPABILITIES = ('point_offer.read','point_offer.define','point_offer.status.update')
 POINTS_CAPABILITIES = {'points.policy.read':MEMBER_POLICY_RESOURCE_TYPE,'points.policy.publish':MEMBER_POLICY_RESOURCE_TYPE,'points.read':MEMBER_RESOURCE_TYPE,'points.adjust':MEMBER_RESOURCE_TYPE,'points.expire':MEMBER_RESOURCE_TYPE}
 CYCLE_CAPABILITIES = {'member_cycle.policy.read':MEMBER_POLICY_RESOURCE_TYPE,'member_cycle.policy.publish':MEMBER_POLICY_RESOURCE_TYPE,'member_cycle.read':MEMBER_RESOURCE_TYPE,'member_cycle.evaluate':MEMBER_RESOURCE_TYPE,'cycle_benefit.read':MEMBER_POLICY_RESOURCE_TYPE,'cycle_benefit.define':MEMBER_POLICY_RESOURCE_TYPE,'cycle_benefit.grant':MEMBER_RESOURCE_TYPE}
@@ -142,6 +144,8 @@ def rehearse(args, isolation=None):
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':kind,'risk_level':'HIGH'} for code,kind in POINTS_CAPABILITIES.items()]
         if args.offers:
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':POINT_OFFER_RESOURCE_TYPE,'risk_level':'NORMAL' if code.endswith('.read') else 'HIGH'} for code in OFFER_CAPABILITIES]
+        if args.coupon_definitions:
+            manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':COUPON_DEFINITION_RESOURCE_TYPE,'risk_level':'NORMAL' if code.endswith('.read') else 'HIGH'} for code in COUPON_DEFINITION_CAPABILITIES]
         h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli','publish',run/'catalog.properties',run/'manifest.json')
         access={'access.tenant':tenant,'access.application':'commerce','access.environment':env,'access.manager':members['internal'],'access.generation':1,'access.capabilities':'commerce.catalog.operate','access.max-duration-seconds':3600,'access.operator':'p6-fixture','access.command':uid()}
         if args.inventory:access['access.capabilities'] += ',commerce.inventory.read,commerce.inventory.receive'
@@ -153,6 +157,7 @@ def rehearse(args, isolation=None):
         if args.cycles:access['access.capabilities'] += ''.join(',commerce.'+code for code in CYCLE_CAPABILITIES)
         if args.points:access['access.capabilities'] += ''.join(',commerce.'+code for code in POINTS_CAPABILITIES)
         if args.offers:access['access.capabilities'] += ''.join(',commerce.'+code for code in OFFER_CAPABILITIES)
+        if args.coupon_definitions:access['access.capabilities'] += ''.join(',commerce.'+code for code in COUPON_DEFINITION_CAPABILITIES)
         h.private(run/'access.properties',db+h.props(access));cli('AccessBootstrapCli',run/'access.properties')
         def authority(kind):
             c=fixture['clients'][kind];return {'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
@@ -163,6 +168,7 @@ def rehearse(args, isolation=None):
         if args.member:server['scope.owner.commerce'] += ','+MEMBER_RESOURCE_TYPE
         if args.growth:server['scope.owner.commerce'] += ','+MEMBER_POLICY_RESOURCE_TYPE
         if args.offers:server['scope.owner.commerce'] += ','+POINT_OFFER_RESOURCE_TYPE
+        if args.coupon_definitions:server['scope.owner.commerce'] += ','+COUPON_DEFINITION_RESOURCE_TYPE
         server.update({'service.1.user.'+k:v for k,v in authority('business').items()});h.private(run/'server.properties',db+legacy+graph_settings+h.props(server))
         h.private(run/'consumer.properties',h.props({'central.url':'http://127.0.0.1:18161','central.credential':service,'central.application':'commerce','central.environment':env}))
         admin_token=up.token(h.ISSUER,fixture,'management','internal');user_token=up.token(h.ISSUER,fixture,'business','external')
@@ -872,6 +878,54 @@ def rehearse(args, isolation=None):
                 if sql("SELECT CONCAT(status,':',version) FROM benefit_point_offer WHERE tenant_id="+q(source)+" AND offer_id='ce04-offer-ui-c'")[1]!='INACTIVE:1':raise RuntimeError('offer UI status mismatch')
                 if sql("SELECT JSON_UNQUOTE(JSON_EXTRACT(content_json,'$.kind')) FROM benefit_point_offer WHERE tenant_id="+q(source)+" AND offer_id='ce04-offer-ui-d'")[1]!='ENTITLEMENT':raise RuntimeError('offer UI asset kind mismatch')
             record('offer commands have exact actual identity audits and one atomic customer redemption')
+        if args.coupon_definitions:
+            insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'COUPON_DEFINITION','state':'SHADOW'})
+            sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='COUPON_DEFINITION' AND state='SHADOW' AND version=1;")
+            cd_base='/v1/admin/coupon-definitions'
+            expect('other capabilities do not imply coupon definition read',18661,cd_base+'?storeId='+store,user,status=403)
+            expect('legacy ADMIN cannot bypass coupon definition management',18661,cd_base+'?storeId='+store,local_admin,status=403)
+            expect('legacy ADMIN cannot bypass shared coupon catalogue',18661,'/v1/coupon-definitions?storeId='+store,local_admin,status=403)
+            def coupon_definition_grant(code,kind=COUPON_DEFINITION_RESOURCE_TYPE):
+                role=expect('explicit coupon definition role '+code,18162,prefix+'/roles',admin,{**partition,'command_id':uid(),'role_code':'ce05-cd-'+code.replace('.','-'),'role_version':1,'capabilities':['commerce.'+code]})['id']
+                grant=expect('finite coupon definition grant '+code,18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role,'scope_rule':{'version':1,'resource_type':kind,'clauses':[{'kind':'TENANT_ALL','values':[],'include_root':False}]},'source_id':'ce05-cd-'+code,'valid_from':now(-2),'valid_to':now(600)},202)['id']
+                projection();execution_ready(code,phase='coupon-definition-fixture',resource_type=kind);return grant
+            cd_create_grant=coupon_definition_grant('coupon_definition.create')
+            cd_input={'definitionId':'ce05-coupon-a','version':1,'storeId':store,'name':'Coupon definition A','minimumSpend':'0.00','discountAmount':'5.00','validFrom':now(-60),'validTo':now(7200),'quota':1,'stackable':False,'platformFundingBps':None,'issuanceMode':None,'validityDays':None}
+            cd_headers=user+[('Idempotency-Key',uid())]
+            cd_a=expect('coupon definition create without read',18661,cd_base,cd_headers,cd_input)
+            if cd_a['content']['issuanceMode']!='PUBLIC' or cd_a['content']['platformFundingBps']!=0 or cd_a['content']['stackable']:raise RuntimeError('coupon definition defaults or boolean changed')
+            if expect('coupon definition original key retry',18661,cd_base,cd_headers,cd_input)!=cd_a:raise RuntimeError('coupon definition duplicated')
+            expect('coupon definition create does not imply read',18661,cd_base+'?storeId='+store,user,status=403)
+            cd_a2=expect('coupon definition new controlled version',18661,cd_base,user+[('Idempotency-Key',uid())],{**cd_input,'version':2,'issuanceMode':'SOURCE_ONLY','validityDays':7})
+            cd_b=expect('coupon definition second public resource',18661,cd_base,user+[('Idempotency-Key',uid())],{**cd_input,'definitionId':'ce05-coupon-b','issuanceMode':'PUBLIC'})
+            expect('coupon definition duplicate immutable version',18661,cd_base,user+[('Idempotency-Key',uid())],cd_input,409)
+            expect('coupon definition sub-cent precision rejected',18661,cd_base,user+[('Idempotency-Key',uid())],{**cd_input,'definitionId':'ce05-invalid-money','discountAmount':'0.001'},400)
+            expect('coupon definition missing actual Owner',18661,cd_base,user+[('Idempotency-Key',uid())],{**cd_input,'definitionId':'ce05-invalid-store','storeId':'missing-coupon-store'},404)
+            coupon_definition_grant('coupon_definition.read')
+            if expect('coupon definition latest version cursor',18661,cd_base+'?storeId='+store+'&after=ce05-&limit=1',user)!=[cd_a2]:raise RuntimeError('coupon latest version cursor mismatch')
+            if expect('coupon definition stable second cursor',18661,cd_base+'?storeId='+store+'&after=ce05-coupon-a&limit=1',user)!=[cd_b]:raise RuntimeError('coupon second cursor mismatch')
+            if expect('coupon definition terminal cursor',18661,cd_base+'?storeId='+store+'&after=ce05-coupon-b&limit=1',user)!=[]:raise RuntimeError('coupon terminal cursor mismatch')
+            expect('coupon definition foreign tenant denied',18661,cd_base+'?storeId='+store,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            # 为受控发放建立真实兑换入口；此临时商品权限单独授予并撤销，券目录权限不替代它。
+            cd_offer_grant=coupon_definition_grant('point_offer.define',POINT_OFFER_RESOURCE_TYPE)
+            expect('coupon definition actual controlled fulfillment binding',18661,offer_base,user+[('Idempotency-Key',uid())],{'offerId':'ce05-coupon-offer','storeId':store,'name':'Controlled coupon fulfillment','kind':'COUPON','assetId':'ce05-coupon-a','assetVersion':2,'points':100,'quota':1,'perMemberLimit':1,'validFrom':now(-1),'validTo':now(1800)})
+            for gid in (cd_create_grant,cd_offer_grant):expect('revoke coupon definition fixture write '+gid,18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':gid,'expected_version':1})
+            projection()
+            expect('revoked coupon definition cannot replay receipt',18661,cd_base,cd_headers,cd_input,403)
+            expect('coupon definition read survives create revoke',18661,cd_base+'?storeId='+store,user)
+            visible=expect('customer public coupon catalogue remains local',18661,'/v1/coupon-definitions?storeId='+store,offer_customer_headers)
+            if [v for v in visible if v['content']['definitionId'].startswith('ce05-')]!=[cd_b]:raise RuntimeError('customer coupon catalogue leaked controlled latest or old public version')
+            claim_headers=offer_customer_headers+[('Idempotency-Key',uid())]
+            cd_claim=expect('customer claims public coupon after employee revoke',18661,'/v1/coupons/ce05-coupon-b/1/claim',claim_headers,{})
+            if expect('customer coupon claim original retry',18661,'/v1/coupons/ce05-coupon-b/1/claim',claim_headers,{})!=cd_claim:raise RuntimeError('customer public claim duplicated')
+            expect('customer cannot claim controlled coupon',18661,'/v1/coupons/ce05-coupon-a/2/claim',offer_customer_headers+[('Idempotency-Key',uid())],{},409)
+            cd_redeem_headers=offer_customer_headers+[('Idempotency-Key',uid())]
+            cd_receipt=expect('controlled coupon fulfillment after employee revoke',18661,'/v1/point-offers/ce05-coupon-offer/redeem',cd_redeem_headers,{})
+            if expect('controlled coupon fulfillment original retry',18661,'/v1/point-offers/ce05-coupon-offer/redeem',cd_redeem_headers,{})!=cd_receipt:raise RuntimeError('controlled coupon duplicated')
+            if expect('coupon fulfillment actual customer wallet',18661,'/v1/members/me/points',offer_customer_headers)['available']!=100:raise RuntimeError('coupon fulfillment balance mismatch')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability='commerce.coupon_definition.create' AND resource_type='coupon_definition' AND store_id IS NULL")[1]!='3':raise RuntimeError('coupon definition exact audit mismatch')
+            if sql("SELECT SUM(issued) FROM benefit_coupon_definition WHERE tenant_id="+q(source)+" AND definition_id LIKE 'ce05-%'")[1]!='2':raise RuntimeError('coupon actual issuance mismatch')
+            record('three coupon definition audits and two customer assets are atomic without employee impersonation')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -933,9 +987,12 @@ def rehearse(args, isolation=None):
             expect('offer auth outage fails closed',18661,'/v1/admin/point-offers?storeId='+store,user,status=503)
             expect('offer customer catalogue remains local during central outage',18661,'/v1/point-offers?storeId='+store,offer_customer_headers)
             offer_browser('outage')
+        if args.coupon_definitions:
+            expect('coupon definition auth outage fails closed',18661,cd_base+'?storeId='+store,user,status=503)
+            expect('customer coupon catalogue during central outage',18661,'/v1/coupon-definitions?storeId='+store,offer_customer_headers)
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -945,6 +1002,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
+    parser.add_argument('--coupon-definitions',action='store_true',help='finite coupon definition creation/read and customer issuance; includes offer regression')
     parser.add_argument('--offers',action='store_true',help='finite point offer management and customer redemption; includes points regression')
     parser.add_argument('--points',action='store_true',help='finite points policy and wallet rehearsal; includes cycles regression')
     parser.add_argument('--cycles',action='store_true',help='finite cycle policy and benefit rehearsal; includes behavior regression')
@@ -958,6 +1016,7 @@ def main():
     parser.add_argument('--identity-subnet',help='explicit unused RFC1918 /24 when Docker default pools are exhausted')
     args=parser.parse_args()
     if args.identity_subnet and not args.isolated_identity:parser.error('--identity-subnet requires --isolated-identity')
+    if args.coupon_definitions:args.offers=True
     if args.offers:args.points=True
     if args.points:args.cycles=True
     if args.cycles:args.behavior=True

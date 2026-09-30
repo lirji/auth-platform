@@ -20,10 +20,10 @@
 |---|---|---|
 |operations/products、collaboration/products|CentralProducts/ScopeController；商品读改和限时导出|既有P5完成；保持独立能力|
 |旧skus页：SKU/SPU、展示、类目模板、条码、渠道价、批量计划|ProductOperations、CatalogMerchandising、CatalogScheduling；6个operations API族|后端P6完成；本轮增独立SSO壳/CATALOG请求上下文|
-|商家/门店/经营授权|CommerceController、StoreAccessController；StoreAccessService/Mapper|读写商家门店待CE-03；旧store-grants不新增中央写权限，改走治理委派|
-|库存额度|OrderController → InventoryApi/Mapper|待独立read/receive+门店Owner约束|
-|会员档案/成长/标签/行为/周期/积分/积分商品|Member*Controller、PointOfferController|现有ADMIN/MEMBER分离；员工能力待CE-04，不将OA成员当客户会员|
-|活动/效果/规则/预算/优惠券/发券/权益/人群/旅程|Marketing*、Campaign*、Segment/Journey/Coupon/Entitlement Controller|待CE-05；发布审批、发放、调整及后台引用分开|
+|商家/门店/经营授权|CommerceController、StoreAccessController；StoreAccessService/Mapper|CE03目录API/页面已交付；旧store-grants不新增中央写权限，改走治理委派|
+|库存额度|OrderController → InventoryApi/Mapper|CE02独立read/receive、门店Owner及员工页已交付|
+|会员档案/成长/标签/行为/周期/积分/积分商品|Member*Controller、PointOfferController|CE04各员工API/页面已交付；客户身份保持独立，不将OA成员当客户会员|
+|活动/效果/规则/预算/优惠券/发券/权益/人群/旅程|Marketing*、Campaign*、Segment/Journey/Coupon/Entitlement Controller|CE05进行中：券定义CD0已交付/CD1本地DONE，CD2 READY；其他待实施，审批/发放/调整/后台引用分开|
 |订单/支付/履约/售后/退款|Order/Payment/Console/Aftersale Controller|待CE-06；由真实订单关联门店，资金操作独立|
 |低代码页面/事件/运行恢复/重放/总览|OpsPage/Payment/RuntimeRecovery/Dashboard|待CE-07；页面动作还检查目标业务能力，总览聚合不能泄露未授权域|
 |客户自助商城/钱包/购买/售后申请|MEMBER_PATHS+各Owner本人绑定|本轮盘点，身份权威需另定；员工SSO不自动接管|
@@ -106,3 +106,5 @@ CE04-O1本地DONE：445项440PASS/5skip，最终真实334c444f50a5（子网101�
 CE04-O2本地DONE：446项441PASS/5skip，真实7fdcde67f634/子网103共450PASS含商品10条浏览器与全部既有员工页回归；1440/390截图、恰6条身份审计、客户兑换和源码摘要一致，37工具/250入口/hygiene通过。O1两仓CI SUCCESS。下一CE05-CD券定义技术细化/有限协议/Owner/UI；CE05—08及原生产2HOLD仍未完成，详见CE04_MEMBER。
 
 CE05-CD0本地DONE：两券定义有限集合能力，252单元、真实自有PG8908d6c82bcf+授权图11方法、SDK/Boot4/install/hygiene及四源码摘要通过，见CE05_MARKETING与CONTRACTS_COMMERCE_COUPON_DEFINITIONS。O2已推送authc823750/commercec027daa，CI待查。下一CD1真实业务门禁与审计，CD2及其他CE05—08未完成。
+
+CE05-CD1本地DONE：452项447PASS/5skip、最终真实aa92413e7500/子网105共415PASS，三定义审计/两实际发券/余额100与原键一致；37工具/250入口/hygiene和摘要通过，V60不可改。失败夹具/脚本路径证据见CE05_MARKETING；下一CD2页面，其他CE05—08及生产2HOLD不变。
