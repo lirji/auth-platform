@@ -207,6 +207,10 @@ class ExecutionAuthorizationIT {
     @Test void pointOfferReferencesSeparateDefinitionFromExistingOffers() {
         tenantScopedReferences(List.of("point_offer.read", "point_offer.define", "point_offer.status.update"));
     }
+    /** 券定义创建和目录只取集合许可，既有商品/会员引用不能借用。 */
+    @Test void couponDefinitionReferencesOnlyPermitVersionCollections() {
+        tenantScopedReferences(List.of("coupon_definition.read", "coupon_definition.create"));
+    }
     private void tenantScopedReferences(List<String> suffixes) {
         var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
         var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
@@ -217,8 +221,9 @@ class ExecutionAuthorizationIT {
                 boolean policy=suffix.startsWith("growth.policy.") || suffix.startsWith("member_cycle.policy.") || suffix.startsWith("points.policy.")
                         || suffix.equals("cycle_benefit.read") || suffix.equals("cycle_benefit.define");
                 boolean offer=suffix.startsWith("point_offer.");
-                boolean collectionOnly=policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
-                String type=offer?ScopeDtos.POINT_OFFER_RESOURCE_TYPE:policy?ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE:ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
+                boolean couponDefinition=suffix.startsWith("coupon_definition.");
+                boolean collectionOnly=couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
+                String type=couponDefinition?ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE:offer?ScopeDtos.POINT_OFFER_RESOURCE_TYPE:policy?ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE:ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
                 String tenant=id(),code="member-"+id(),app="commerce-member-"+id(),cap=app+"."+suffix;
                 var owner=person(runtime,tenant,code);var member=person(runtime,tenant,code);
                 var login=new VerifiedLogin(owner.issuer(),owner.subject());
@@ -240,6 +245,12 @@ class ExecutionAuthorizationIT {
                 assertThat(executions.scope(caller,query).alternatives().getFirst().clauses()).isEqualTo(all.clauses());
                 assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,"store"),until))).hasMessage("ACCESS_DENIED");
                 assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),app+".member.unknown",type),until))).hasMessage("ACCESS_DENIED");
+                if(couponDefinition) {
+                    for(String wrongType:List.of(ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE,ScopeDtos.POINT_OFFER_RESOURCE_TYPE))
+                        assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,wrongType),until))).hasMessage("ACCESS_DENIED");
+                    String otherCapability=app+"."+(suffix.equals("coupon_definition.read")?"coupon_definition.create":"coupon_definition.read");
+                    assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),new CentralAccessDtos.Check(tenant,1L,id(),otherCapability,type)))).hasMessage("ACCESS_DENIED");
+                }
                 assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,type),Instant.now().plusSeconds(120).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString()))).hasMessage("INVALID_ARGUMENT");
                 var facts=new Facts(tenant,type,"MEMBER-1",7,null,null,List.of(),null,null);
                 var resource=new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,facts));

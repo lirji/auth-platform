@@ -8,7 +8,7 @@ import com.lrj.authz.protocol.ScopeDtos.Kind;
 public final class ScopeResourceBindings {
     private static final Set<String> TENANT_ONLY = Set.of(
             ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE, ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE, "commerce_runtime", "commerce_tenant",
-            "campaign", "marketing_rule", "segment", "audience", "coupon_definition", "coupon_delivery",
+            "campaign", "marketing_rule", "segment", "audience", ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE, "coupon_delivery",
             "entitlement_definition", "entitlement", ScopeDtos.POINT_OFFER_RESOURCE_TYPE, "journey", "journey_instance",
             "journey_scan", "ops_page", "marketing_report");
 
