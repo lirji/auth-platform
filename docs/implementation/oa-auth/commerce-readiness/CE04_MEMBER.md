@@ -229,3 +229,23 @@ C2已普通合并推送auth02cfdd7/commerce3c8a689，CI36681434469/36681436387�
 points-core-unit.log全仓252PASS；真实自有PG502110bc4f62及隔离SpiceDB执行ExecutionAuthorizationIT9方法PASS，含新增五能力及原矩阵，范围/类型/跨环境/代际/期限/撤权重授/到期检查通过。points-core-integration-result.json exit0，自有PG已finally停止。SDK/Boot4/package/hygiene进行中，源文件摘要points-core-source-sha256.json已记录。
 
 PTS0最终SDK install、Boot4 test、全仓package与hygiene/diff通过；Java formatter/静态分析未配置限制保持。源码摘要复核一致、验证后无修改，PTS0本地DONE，Git交付后继续PTS1真实积分Owner与V57。
+
+
+## CE04-PTS1验证中
+
+PTS0 authce29f5b已普通合并推送，CI36681665256进行中。C2 auth CI36681434469被后续PTS0取消；commerce CI36681436387首轮失败为既有MemberGrowthTest.distinctRefundsAfterOldSnapshotsPreserveGrowthAndBehavior的5秒CyclicBarrier超时/BrokenBarrierException，周期7项通过；失败日志保留，原断言/时间预算不变，已重跑失败job，待结果。
+
+PTS1已实现MEMBER_POINTS独立族、五能力和精确六员工HTTP映射、实际会员Owner与三写身份审计，V57只扩族不切换租户。policy审计真实points-policy版本；会员钱包/账本读后scope和Owner复核，adjust/expire在路由/会员版本及期限guard之后读旧回执。中央稳定身份进入摘要，旧模式摘要不变；Member状态和账户expectedVersion分别核验。账户/批次/不可变账本/命令及身份审计同原事务；客户本人、内部订单事实/兑换/到期任务不套员工门禁。
+
+SDK固定ce29f5b，安装及compile通过。新增CentralPointsMySqlTest6方法；首轮points-verify.log停止于新增测试OrderFact构造参数顺序错误，未执行业务测试，已按原DTO修正，points-verify-fixed.log全量回归进行中。真实--points演练脚本已补独立政策/调整/到期、真实批次/钱包/账本/游标/审计及撤权/503；期满批次明确用隔离SQL设置时间，不能声称实际经过30天。36工具/py_compile已通过，真实联调尚未启动。
+
+PTS1完整points-verify-fixed.log最终438项433PASS/5既有skip，新增CentralPointsMySqlTest6方法全PASS；原积分/结算抵扣/退款/兑换和成长并发、发券/公平性回归通过。36工具/243入口、两仓hygiene无阻断（Java formatter/静态分析限制保持）。V57已在专用库应用不可改。真实rehearsal-0c2048fafb9f（子网97/session35831）--points无浏览器运行中，points-owner-rehearsal.log；最终联调前不标DONE。
+
+
+### PTS1最终本地DONE
+
+真实rehearsal-0c2048fafb9f最终329PASS，无浏览器，points_checked=true且runtime_switched/production_ready=false。独立publish无policy.read、adjust/expire无points.read、真实Owner缺失/跨租户、精度/版本冲突、原键重试、不可变未来策略与游标、实际到期钱包及ADJUST/EXPIRE账本、客户本人兼容、三写撤权后原回执拒绝、实际中央停机503通过。政策2+调整1+到期1恰4条真实目标身份审计；到期演示仅在自有库将本次批次时间前移，未宣称实际30天经过。全部既有域API与周期系统履约/进程恢复回归保持。
+
+完整438项433PASS/5既有skip、36工具/243入口/122能力/34角色、SDK/compile及两仓hygiene通过；Java formatter/静态分析限制保持，两仓points-source-sha256摘要复核一致。V57已应用不可改，验证后无代码变化。自有PG/IdP/JVM已finally停止，子网97数据/私密证据保留，原8602未切换。PTS0 CI36681665256 SUCCESS（包含C2 auth基线）；C2 commerce CI36681436387原版重跑中，前次成长并发屏障超时保留。PTS1本地DONE，Git交付中；下一PTS2页面，随后CE04-O及CE05—08，生产输入HOLD不变。
+
+C2 commerce CI36681436387第二次原版运行SUCCESS；未修改并发测试或预算，首次屏障超时证据保留。

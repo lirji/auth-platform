@@ -16,7 +16,7 @@ PTS2：固定SSO积分页，策略查询/发布、已知会员钱包与账本、
 |ID|前置|Owner与影响|验收|状态|
 |---|---|---|---|---|
 |CE04-PTS0|CE04-C2本地DONE|auth ExecutionAuthorization/现有集成矩阵；无新协议类型|五能力有限HUMAN/TENANT_ALL/60秒、集合或真实会员事实、范围/代际/撤权/到期，SDK共存|DONE（本地）|
-|CE04-PTS1|PTS0|commerce MemberPointsService、EmployeeAccess/Authority、6员工HTTP绑定、V57|真实MySQL事务/Owner与既有积分业务回归、真实中央联调|TODO|
+|CE04-PTS1|PTS0|commerce MemberPointsService、EmployeeAccess/Authority、6员工HTTP绑定、V57|真实MySQL事务/Owner与既有积分业务回归、真实中央联调|DONE（本地）|
 |CE04-PTS2|PTS1|积分员工SSO页与三个独立hint|真实读写/未知重试/错误/撤权/503，1440/390截图|TODO|
 
 公开DTO及路径沿MemberPointsApi/MemberPointsController，不新增审批状态字段。GET policies、GET member wallet/ledger，POST policies、member adjust/expire分别映射上述五能力；MEMBER_PATHS只保留绑定本人。policy只scope、不得构造会员事实；钱包及账本在真实Member范围内读后复核；两会员写guard先路由再会员版本，截止复核早于原幂等回执。人工调整仍有原原因和预期账户版本，两种版本不同职责，不把动态Member或Account版本混入稳定身份摘要。
