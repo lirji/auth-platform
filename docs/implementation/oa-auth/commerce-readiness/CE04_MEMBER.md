@@ -200,3 +200,23 @@ C1完整cycle-verify-fixed.log已431项426PASS/5既有skip，新增6项均通过
 完整cycle-verify-fixed.log431项426PASS/5既有skip；最终新增状态枚举与资源类型引用只替代等值字符串比较，之后cycle-package-final.log、cycle-owner-final-tests.log6项及cycle-hygiene-final.log通过，并用最终JAR完成上述联调。36工具/237入口与auth hygiene通过。两仓cycle-source-sha256/cycle-source-final-sha256复核一致；Java formatter/静态分析未配置限制保持。首轮测试准备顺序失败和59463c8a6bd9主动中止均保留，不改判定标准。自有PG/IdP/JVM已finally停止，子网93—94和证据数据保留；原8602未切换。
 
 C1本地DONE，Git交付中；下一C2两个独立SSO页和四动作提示，当前未实现页面。其余会员/积分及CE05—08未完成，原生产输入HOLD不变。
+
+
+## CE04-C2验证中
+
+C1 authc803e8e/commerce8331ae6已普通合并推送，两仓CI36679539578/36679555814 SUCCESS。C2新增周期与周期权益两个独立SSO页面、四个独立动作提示，继续使用真实DTO和有限路径适配器，不要求其他域列表权限。政策/考核/礼包定义/补发各自保留未知原键与输入、409纠正、401卸载、403独立拒绝和503失败关闭。未考核会员显示尚无快照，补发区分REQUESTED与真实空回执。
+
+cycle-ui-verify.log完整432项427PASS/5既有skip，CentralCycleMySqlTest7项PASS；最终前端build/Prettier、package、36Python/243入口/122能力/34角色、node/py_compile及两仓hygiene通过；Java formatter/静态分析未配置限制保持。V56保持原历史，无新schema/dependency/runtime。
+
+首轮rehearsal-439ce9e84af1（子网95）在307项PASS后失败于撤权后的系统权益数量检查。只读SQL证实22条事件中20条DELIVERED、2条PENDING且attempts=0/last_error=NULL；EventDispatcher每次pump默认quantum5，原固定4次不足以推进新增浏览器种子。四个独立操作的真实丢响应原样重试、读/未考核/空回执、10条实际身份审计已通过，但不能据此算完整通过。改为按实际周期事件DELIVERED状态最多12次推进，下方原权益恰2条和员工补发恰3条审计断言保持，超限仍失败；未修改业务调度配额或产品代码。36Python/语法重新通过，最终脚本摘要单独cycle-ui-source-final-sha256.json保存。第二轮子网96/session79487，cycle-ui-rehearsal-fixed.log；最终浏览器/截图未验收前C2不标DONE。
+
+首轮已查看390政策/礼包表单、政策冲突与未知锁定、考核结果、补发REQUESTED/空回执、390会员/礼包查询与未考核截图；最终仍需查看重跑当前截图。保留首轮失败证据及数据库，自有进程finally停止，不清理原环境。已知URI限制：会员编号policies与既有政策路由重名，页面明确拒绝该查询编号并提示管理员核对，不静默展示错误结构；本片未改变既有公开URI。
+
+
+### C2最终本地DONE
+
+2026-09-30：第二轮rehearsal-27a84a8559ec最终341PASS，七阶段14条周期浏览器细分检查及所有既有员工页面回归通过。真实PKCE、无read独立四写、真实409保留后纠正、服务端成功后丢响应原键原体重试、Tab/取消退出、政策/会员/礼包查询、未考核快照、REQUESTED与GOLD无礼包空回执、撤四写保留读、外租户/401和实际中央停机503通过。API5+UI5命令恰10身份审计；UI礼包定义恰1条真实目标审计、UI补发恰1条权益，空回执无权益。撤权后有界事件推进完成两个API目标权益且全部补发身份审计仍恰3条，系统未冒充员工。
+
+已查看本轮390政策/礼包表单、政策未知输入锁定、REQUESTED/空回执、390会员/礼包查询、未考核、撤权与停机截图，表单和结果可读、表格容器横向滚动；这是实现自审，不代表用户视觉批准。最终两仓源码摘要一致；完整432项427PASS/5skip、最终build/package/Prettier、36工具/243入口、语法及hygiene通过，无Java formatter/静态分析限制保持。首轮固定pump次数不足的失败和修复原因保留，不修改业务限额或权益/审计断言。
+
+自有PG/IdP/JVM/Vite已finally停止，子网95—96及数据/截图私密证据保留；runtime_switched/production_ready均false，原8602未切换。C2本地DONE，Git交付中；下一CE04-PTS积分（避免与基础会员P编号冲突），随后积分商品CE04-O及CE05—08，生产输入HOLD不变。

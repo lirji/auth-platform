@@ -4044,6 +4044,66 @@
       "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
       "capabilities": [],
       "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "CycleActionsController",
+      "method": "GET",
+      "path": "/v1/operations/member-cycles/publish-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/CycleActionsController.java",
+      "capabilities": [
+        "commerce.member_cycle.policy.publish"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "CycleActionsController",
+      "method": "GET",
+      "path": "/v1/operations/member-cycles/evaluate-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/CycleActionsController.java",
+      "capabilities": [
+        "commerce.member_cycle.evaluate"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "CycleActionsController",
+      "method": "GET",
+      "path": "/v1/operations/member-cycle-benefits/define-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/CycleActionsController.java",
+      "capabilities": [
+        "commerce.cycle_benefit.define"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "CycleActionsController",
+      "method": "GET",
+      "path": "/v1/operations/member-cycle-benefits/grant-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/CycleActionsController.java",
+      "capabilities": [
+        "commerce.cycle_benefit.grant"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/member-cycles",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/member-cycle-benefits",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
     }
   ]
 }

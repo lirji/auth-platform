@@ -611,13 +611,22 @@ def rehearse(args, isolation=None):
             expect('revoked behavior rebuild cannot replay receipt',18661,base+'/rebuild',batch_headers,behavior_batch,403)
             expect('behavior read survives write revocation',18661,base+'/'+target,user)
             behavior_browser('revoked')
+        def cycle_browser(phase):
+            if not args.browser:return
+            subprocess.run(['node',str(root/'deploy/governance-ce04-cycles.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=150)
+            record('real cycle browser '+phase)
         if args.cycles:
+            if args.browser:
+                ui=json.loads((run/'catalog-ui.json').read_text());ui.update(policyAt=now(3600),bundleUntil=now(604800));h.private(run/'cycle-ui.json',json.dumps(ui))
             for family in ('MEMBER_CYCLE','CYCLE_BENEFIT'):
                 insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':family,'state':'SHADOW'})
                 sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family="+q(family)+" AND state='SHADOW' AND version=1;")
             cycle_base='/v1/admin/member-cycles';benefit_base='/v1/admin/member-cycle-benefits';cycle_member='ce04-cycle-member'
             for target_id in (cycle_member,'ce04-cycle-system-member'):
                 expect('cycle actual member created '+target_id,18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':target_id,'actorId':target_id+'-customer','displayName':'Cycle fixture','memberLevel':'BASIC'})
+            if args.browser:
+                for ui_member in ('ce04-cycle-ui-member','ce04-cycle-ui-empty','ce04-cycle-unassessed-member'):
+                    expect('cycle UI actual member '+ui_member,18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':ui_member,'actorId':ui_member+'-customer','displayName':'Cycle browser fixture','memberLevel':'BASIC'})
             expect('behavior does not imply cycle policy',18661,cycle_base+'/policies',user,status=403)
             expect('legacy ADMIN cannot bypass cycle authority',18661,cycle_base+'/'+cycle_member,[('Authorization','Bearer '+admin_local)],status=403)
             def cycle_grant(code):
@@ -632,12 +641,14 @@ def rehearse(args, isolation=None):
             if expect('cycle policy same key retry',18661,cycle_base+'/policies',cycle_policy_headers,cycle_policy)!=published:raise RuntimeError('cycle policy duplicate')
             expect('cycle publish does not imply read',18661,cycle_base+'/policies',user,status=403)
             expect('cycle period boundary rejected',18661,cycle_base+'/policies',user+[('Idempotency-Key',uid())],{**cycle_policy,'version':2,'periodDays':0},400)
+            cycle_browser('publish-only')
             evaluate_grant=cycle_grant('member_cycle.evaluate');cycle_evaluate_headers=user+[('Idempotency-Key',uid())]
             view=expect('cycle evaluate without read',18661,cycle_base+'/'+cycle_member+'/evaluate',cycle_evaluate_headers,{})
             if not view['enabled'] or view['policyVersion']!=1 or view['memberLevel']!='BASIC':raise RuntimeError('cycle actual assessment mismatch')
             if expect('cycle evaluate same key retry',18661,cycle_base+'/'+cycle_member+'/evaluate',cycle_evaluate_headers,{})!=view:raise RuntimeError('cycle evaluation repeated')
             expect('cycle evaluate does not imply read',18661,cycle_base+'/'+cycle_member,user,status=403)
             expect('cycle missing member Owner denied',18661,cycle_base+'/missing-cycle-member/evaluate',user+[('Idempotency-Key',uid())],{},404)
+            cycle_browser('evaluate')
             # 权益定义尚属CE05，隔离准备调用现有真实Owner API，不冒充已迁移员工能力。
             expect('cycle isolated entitlement source definition',18661,'/v1/admin/entitlement-definitions',[('Authorization','Bearer '+admin_local),('Idempotency-Key',uid())],{'benefitId':'ce04-cycle-tea','version':1,'storeId':store,'name':'Cycle fixture tea','units':2,'quota':50,'validFrom':now(-60),'validTo':now(864000),'validityDays':7})
             define_grant=cycle_grant('cycle_benefit.define')
@@ -645,20 +656,30 @@ def rehearse(args, isolation=None):
             defined=expect('cycle benefit define without cycle policy read',18661,benefit_base,cycle_bundle_headers,cycle_bundle)
             if expect('cycle benefit definition same key retry',18661,benefit_base,cycle_bundle_headers,cycle_bundle)!=defined:raise RuntimeError('cycle bundle duplicate')
             expect('cycle benefit define does not imply benefit read',18661,benefit_base+'?policyVersion=1',user,status=403)
+            cycle_browser('define-only')
             grant_grant=cycle_grant('cycle_benefit.grant');cycle_award_headers=user+[('Idempotency-Key',uid())]
             award=expect('cycle benefit grant without member cycle read',18661,benefit_base+'/'+cycle_member+'/grant',cycle_award_headers,{})
             if len(award['grants'])!=1 or award['grants'][0]['status']!='REQUESTED':raise RuntimeError('cycle award not durably accepted')
             if expect('cycle benefit grant same key retry',18661,benefit_base+'/'+cycle_member+'/grant',cycle_award_headers,{})!=award:raise RuntimeError('cycle award duplicate')
+            if args.browser:
+                # 明示隔离周期贡献种子：GOLD没有当前策略礼包，用真实空回执验证UI，不宣称发生了支付。
+                insert('member_cycle_contribution',{'tenant_id':source,'source_id':'ce04-cycle-ui-empty-fixture','member_id':'ce04-cycle-ui-empty','occurred_at':now().replace('T',' ').replace('Z',''),'contribution':150})
+            cycle_browser('grant')
             for code in ('member_cycle.policy.read','member_cycle.read','cycle_benefit.read'):cycle_grant(code)
             history=expect('cycle independent policy history',18661,cycle_base+'/policies?after=0&limit=1',user)
-            if history!=[published] or expect('cycle policy next cursor empty',18661,cycle_base+'/policies?after=1&limit=1',user)!=[]:raise RuntimeError('cycle policy cursor mismatch')
+            if history!=[published] or expect('cycle policy next cursor empty',18661,cycle_base+'/policies?after='+('2' if args.browser else '1')+'&limit=1',user)!=[]:raise RuntimeError('cycle policy cursor mismatch')
             if expect('cycle actual member snapshot',18661,cycle_base+'/'+cycle_member,user)!=view:raise RuntimeError('cycle member read mismatch')
             if expect('cycle independent bundle read',18661,benefit_base+'?policyVersion=1',user)!=[defined]:raise RuntimeError('cycle bundle read mismatch')
+            cycle_browser('read')
             expect('cycle foreign tenant denied',18661,cycle_base+'/'+cycle_member,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
             expect('cycle system member assessed before employee revoke',18661,cycle_base+'/ce04-cycle-system-member/evaluate',user+[('Idempotency-Key',uid())],{})
-            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND (capability LIKE 'commerce.member_cycle.%' OR capability LIKE 'commerce.cycle_benefit.%')")[1]!='5':raise RuntimeError('cycle identity audit duplicate')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND (capability LIKE 'commerce.member_cycle.%' OR capability LIKE 'commerce.cycle_benefit.%')")[1]!=('10' if args.browser else '5'):raise RuntimeError('cycle identity audit duplicate')
             if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_cycle_benefit' AND resource_id='ce04-cycle-bundle'")[1]!='1':raise RuntimeError('cycle bundle audit wrong target')
-            record('cycle five commands have five real target audits')
+            if args.browser:
+                if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_cycle_benefit' AND resource_id='ce04-cycle-ui-bundle'")[1]!='1':raise RuntimeError('cycle UI bundle duplicate')
+                if sql("SELECT count(*) FROM benefit_grant WHERE tenant_id="+q(source)+" AND benefit_id='ce04-cycle-tea' AND member_id='ce04-cycle-ui-member'")[1]!='1':raise RuntimeError('cycle UI grant duplicated')
+                if sql("SELECT count(*) FROM benefit_grant WHERE tenant_id="+q(source)+" AND member_id='ce04-cycle-ui-empty'")[1]!='0':raise RuntimeError('cycle empty receipt invented benefit')
+            record('cycle API and optional UI commands have actual target audits exactly once')
             for grant in (publish_grant,evaluate_grant,define_grant,grant_grant):expect('revoke independent cycle write',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':grant,'expected_version':1})
             projection()
             expect('revoked cycle publish cannot replay receipt',18661,cycle_base+'/policies',cycle_policy_headers,cycle_policy,403)
@@ -666,12 +687,19 @@ def rehearse(args, isolation=None):
             expect('revoked cycle definition cannot replay receipt',18661,benefit_base,cycle_bundle_headers,cycle_bundle,403)
             expect('revoked cycle grant cannot replay receipt',18661,benefit_base+'/'+cycle_member+'/grant',cycle_award_headers,{},403)
             # 系统事件消费使用既有可信车道，员工撤权不取消已承诺周期权益。
-            for _ in range(4):expect('trusted cycle event pump after employee revoke',18661,'/v1/admin/events/pump',[('Authorization','Bearer '+admin_local)],{})
+            # 浏览器种子增加了注册/考核事件；每次pump最多5条，固定4次只能推进20条。
+            # 按本次实际周期事件完成状态有界推进，仍用下方真实权益数和身份审计数验收。
+            for _ in range(12):
+                expect('trusted cycle event pump after employee revoke',18661,'/v1/admin/events/pump',[('Authorization','Bearer '+admin_local)],{})
+                pending=sql("SELECT count(*) FROM platform_event WHERE tenant_id="+q(source)+" AND event_type='member.cycle.assessed.v1' AND status<>'DELIVERED'")[1]
+                if pending=='0':break
+            else:raise RuntimeError('cycle events did not complete within bounded pump budget')
             if sql("SELECT count(*) FROM benefit_grant WHERE tenant_id="+q(source)+" AND benefit_id='ce04-cycle-tea' AND member_id IN ('ce04-cycle-member','ce04-cycle-system-member')")[1]!='2':raise RuntimeError('system cycle event stopped or duplicated')
-            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability='commerce.cycle_benefit.grant'")[1]!='1':raise RuntimeError('system cycle worker impersonated employee')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability='commerce.cycle_benefit.grant'")[1]!=('3' if args.browser else '1'):raise RuntimeError('system cycle worker impersonated employee')
             record('trusted cycle events complete without employee grants and do not duplicate awards')
             expect('cycle read survives write revoke',18661,cycle_base+'/'+cycle_member,user)
             expect('cycle benefit read survives write revoke',18661,benefit_base+'?policyVersion=1',user)
+            cycle_browser('revoked')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -725,6 +753,7 @@ def rehearse(args, isolation=None):
         if args.cycles:
             expect('cycle auth outage fails closed',18661,'/v1/admin/member-cycles/ce04-cycle-member',user,status=503)
             expect('cycle benefit auth outage fails closed',18661,'/v1/admin/member-cycle-benefits?policyVersion=1',user,status=503)
+            cycle_browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
         result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}

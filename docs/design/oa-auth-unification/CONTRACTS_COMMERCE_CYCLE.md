@@ -31,7 +31,7 @@
 |---|---|---|
 |CE04-C0|B2；auth ExecutionAuthorization有限七组合；既有协议/SDK格式不变，252单元及真实PG+graph新矩阵、SDK Boot4/package|DONE（本地）|
 |CE04-C1|C0；MemberCycleService/MemberBenefitService、最小内部API、EmployeeAccess/Authority及精确HTTP绑定，V56；真实MySQL及中央联调独立能力、真实Owner、事务回滚和系统事件兼容|DONE（本地）|
-|CE04-C2|C1；独立周期与礼包SSO页/动作提示；真实浏览器读写、错误恢复与1440/390截图查看|TODO|
+|CE04-C2|C1；独立周期与礼包SSO页/动作提示；真实浏览器读写、错误恢复与1440/390截图查看|DONE（本地）|
 
 串行实施，无新增Runtime组件/版本升级；复用本地专用MySQL、独立PG/图/IdP与现有测试工具。C1验收覆盖无read的publish/evaluate/define/grant、两个族互不旁路、Owner竞争/外租户、参数边界/稳定分页、原键重试/跨代际冲突、撤权/STOPPED/503、审计故障整笔回滚、既有客户本人及系统考核/迟到事件/配额不足回滚。真实浏览器不以模拟成功响应替代真实效果，可在服务端成功后丢响应来核验原键恢复。
 
@@ -48,6 +48,6 @@ C2沿既有AntDesign/SSO，周期页分政策查询/发布与指定会员读取/
 
 政策发布form version正安全整数/effectiveFrom本地日期时间（明确转换ISO UTC）/periodDays1—366/Form.List levels1—8、code唯一、首档0递增不超1e12；不可变版本不能编辑。礼包定义form bindingId/policyVersion/level/storeId/validUntil本地日期时间/1—8唯一benefitId+version；实际策略/权益及窗口服务端校验，不能靠表单伪造存在。考核和补发form已知memberId，POST保持无业务输入对象。补发返回实际grants，REQUESTED显示已受理待发放，空列表说明当前无可补发权益。
 
-周期详情展示enabled/policyVersion/cycleStart/End/currentGrowth/retentionGrowth/memberLevel/version；未启用明确显示原累计等级仍存在，不编造周期。礼包列表显示真实binding/等级/门店/期限和权益引用。unknown保留原key/path/body、两个写区切Tab不丢意图，退出提示/取消；409保留输入，401卸载，403独立拒绝，503失败关闭。结果展示原目标/真实回执，不自动换目标、补发历史周期或重放所有批次。
+周期详情展示enabled/policyVersion/cycleStart/End/currentGrowth/retentionGrowth/memberLevel/version；未有快照明确显示原累计等级仍存在，不编造周期。礼包列表显示真实binding/等级/门店/期限和权益引用。unknown保留原key/path/body、两个写区切Tab不丢意图，退出提示/取消；409保留输入，401卸载，403独立拒绝，503失败关闭。结果展示原目标/真实回执，不自动换目标、补发历史周期或重放所有批次。
 
 真实浏览器按publish-only/define-only/grant/evaluate/read/revoked/outage阶段，校验政策和定义独立无read、参数边界、真实提交丢响应原样重试、未知Tab/取消退出、实际周期与礼包查询、空补发/REQUESTED语义、冲突输入保留、撤写保留读、外租户/401/实际503；1440/390截图查看，API与SQL核验新增命令/审计无重复。原会员/行为/成长/目录/库存/CATALOG页面回归保持。
