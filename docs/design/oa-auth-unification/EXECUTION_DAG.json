@@ -1709,5 +1709,17 @@
     "ci_run": 36655346503,
     "evidence": "docs/implementation/oa-auth/phase-7/P7_AUTH_FAILURE_FIX.md",
     "capacity_limit": "shared Casdoor PostgreSQL connection contention remains; production targets undefined"
+  },
+  "p7_isolated_capacity": {
+    "scope": [
+      "P7-03",
+      "P7-04",
+      "P7-06"
+    ],
+    "status": "LOCAL_DELIVERED_GIT_CI_PASS",
+    "runtime_commit": "a882d4f630dac3d7d565629df49f3dd1c83263bb",
+    "ci_run": 36658762615,
+    "evidence": "docs/implementation/oa-auth/phase-7/P7_ISOLATED_CAPACITY.md",
+    "result": "two current instances, dedicated local identity and PostgreSQL, 600 requests without errors; not production capacity acceptance"
   }
 }

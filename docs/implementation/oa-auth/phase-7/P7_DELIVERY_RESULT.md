@@ -23,3 +23,9 @@ SKILL_HANDOFF: task-git-delivery，status=COMPLETED，gate=PASS（实现提交/�
 分支`fix/p7-authentication-baseline`，提交`e16a4ddfa009bdac025adfe6640f828cab9fdf8f`已按用户常驻授权正常fast-forward合并并推送origin/main。本地209项单测、22项隔离演练通过；精确产品远程CI36655346503成功，当前修复task-git-delivery=COMPLETED/PASS。没有生产部署、tag/release或新worktree。
 
 源码指纹与全部失败样本摘要见P7_AUTH_FIX_EVIDENCE。新增私有诊断目录.local/governance/p7-auth-diagnosis，以及运行b286c3d8481c/fd17d59c70ab的配置、备份和日志需保留；所有本轮自有容器/进程已停止，无删除授权。原商城running/healthy，commerce/OA提交及OA既有脏文件与上文一致。Auth最终记录随纯文档收尾提交交付，产品与测试树保持e16a4dd；CI绑定精确产品SHA。
+
+## 独立身份服务容量工具交付
+
+分支`fix/p7-isolated-capacity`，提交`a882d4f630dac3d7d565629df49f3dd1c83263bb`已正常fast-forward合并推送origin/main。本地4项工具测试、24项完整演练、600请求零错误；精确远程CI36658762615成功，task-git-delivery=COMPLETED/PASS；最终纯文档收尾保持工具/应用/测试树不变。生产接受继续HOLD。
+
+三轮本地资料分别保留：10cbba3e6b09在新增授权首读断言停止；5ba9982d05ee中间完整23项通过；6e97559e55a8最终24项通过。每轮600容量样本均保留。私有.local/governance/p7-isolated-capacity记录日志/hygiene/CI，各运行目录保存新库、凭据、备份；独立网络、停止的容器和卷均保留，无删除授权，无新worktree。现有商城/Casdoor/共享PG未重启，OA既有改动和两业务仓提交保持原状。

@@ -76,3 +76,7 @@ session-handoff/continue-approved-delivery恢复既有DAG；backend-implementati
 ## P7认证错误分类续做
 
 session-handoff恢复既有P7范围；backend-implementation修复发行方错误对象误报凭据无效；implementation-validation完成209单测及22项真实混部/轮换/恢复检查。错误分类修复PASS，共享PG连接争用及生产容量限制保留，不将503改成ALLOW。update-progress-docs保存新证据并保留原实测；task-git-delivery已正常合并推送e16a4dd，ci-cd-gate=COMPLETED/PASS（36655346503成功），task-git-delivery=COMPLETED/PASS；最终收尾只有文档，不改变已验证产品树。OA和商城未改，无子代理或新增工作树。
+
+## P7独立身份服务容量续做
+
+runtime-and-deploy沿用已选组件，新增显式本地独立身份服务和双新版模式；implementation-validation完成4工具测试、24跨进程演练及600请求零错误。新授权就绪沿用P3保守DENY契约，容量/撤权不重试，所有中间失败保留。无应用业务源码变化；update-progress-docs按63节点原DAG追加证据，生产07/08继续BLOCKED。task-git-delivery已正常合并推送a882d4f，ci-cd-gate=COMPLETED/PASS（36658762615成功），task-git-delivery=COMPLETED/PASS；无子代理、新worktree、共享服务重启或生产部署。

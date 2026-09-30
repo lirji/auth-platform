@@ -18,3 +18,10 @@ SKILL_HANDOFF: ci-cd-gate，status=COMPLETED，gate=PASS（精确产品提交验
 [Auth Platform CI 36655346503](https://github.com/lirji/auth-platform/actions/runs/36655346503)：SUCCESS；本轮ci-cd-gate=COMPLETED/PASS。上文9f191e4仅为历史基线。
 
 本地209项单测、22项隔离演练与源码指纹见P7_AUTH_FAILURE_FIX/P7_AUTH_FIX_EVIDENCE；真实HTTP200错误注入和P6对照在本地执行，CI执行既有完整身份/治理/投影/SDK/前端检查。本修复无schema/依赖/SDK变化。纯文档交付收尾不触发CI，不能称其新SHA另跑过检查。
+
+## 独立身份服务容量工具 CI
+
+目标提交：`a882d4f630dac3d7d565629df49f3dd1c83263bb`。
+[Auth Platform CI 36658762615](https://github.com/lirji/auth-platform/actions/runs/36658762615)：SUCCESS；ci-cd-gate=COMPLETED/PASS。早先两次CI为历史基线。
+
+本轮CI新增4项P7工具测试及3个脚本语法检查，继续执行既有完整验证。独立Casdoor/PG、双新版和600请求容量/恢复的24项演练是单独的本地证据，不将CI语法检查说成重跑整套容量。无应用业务代码/schema/SDK变更。最终纯文档收尾保持已验证源码不变，不另称文档SHA跑过CI。

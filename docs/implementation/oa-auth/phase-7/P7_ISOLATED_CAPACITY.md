@@ -33,7 +33,7 @@ python3 deploy/governance-p7-rehearsal.py --isolated-identity --current-only --s
 
 ## 验证
 
-三份改动脚本的Python编译及git diff检查通过。完整双新版运行6e97559e55a8的24项演练通过，统计和源码摘要见[P7_ISOLATED_CAPACITY_EVIDENCE](P7_ISOLATED_CAPACITY_EVIDENCE.json)。上轮209单测/e16a4dd CI为业务源码基线，不冒充本轮重新运行；本轮脚本变更的精确远程CI待交付。
+三份改动脚本的Python编译及git diff检查通过。完整双新版运行6e97559e55a8的24项演练通过，统计和源码摘要见[P7_ISOLATED_CAPACITY_EVIDENCE](P7_ISOLATED_CAPACITY_EVIDENCE.json)。上轮209单测/e16a4dd CI为业务源码基线，不冒充本轮重新运行；本轮工具提交a882d4f630dac3d7d565629df49f3dd1c83263bb已正常合并推送main，精确远程CI36658762615成功；见[CI_RESULT](CI_RESULT.md)。
 
 混部历史及错误分类根因见[P7_AUTH_FAILURE_FIX](P7_AUTH_FAILURE_FIX.md)，原失败样本保留，不拿新环境成功结果覆盖。生产P7-07/08继续BLOCKED，实际Owner、目标负载、SLO/RTO/RPO及操作授权待定。
 
@@ -59,4 +59,4 @@ Code Hygiene为IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS：无统一formatter、�
 
 新授权就绪分别首次ALLOW，耗时78.392/40.330ms，保留实际观测而不虚构发生重试。服务凭证/客户端密钥/签名证书轮换、撤权、依赖故障及双JVM恢复通过；隔离备份还原/新图/撤权重放耗时17.588秒、2道新水位、恢复readiness重试0。仍是封闭单条备份后事件，不代表生产RTO/RPO。
 
-资源已停止、网络/卷/证据保留；未新增worktree，商城与OA不变。runtime-and-deploy与implementation-validation完成本地范围（实现者复核，无独立代理）；update-progress-docs保存本轮和历史证据。Git与精确CI待交付，生产P7-07/08保持BLOCKED。
+资源已停止、网络/卷/证据保留；未新增worktree，商城与OA不变。runtime-and-deploy与implementation-validation完成本地范围（实现者复核，无独立代理）；update-progress-docs保存本轮和历史证据。Git与精确CI交付通过，生产P7-07/08保持BLOCKED。
