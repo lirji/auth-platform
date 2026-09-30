@@ -25,6 +25,7 @@ public final class ExecutionAuthorization {
     private static final Set<String> MEMBER_POLICY_CAPABILITIES = Set.of("growth.policy.read", "growth.policy.publish",
             "member_cycle.policy.read", "member_cycle.policy.publish", "cycle_benefit.read", "cycle_benefit.define",
             "points.policy.read", "points.policy.publish");
+    private static final Set<String> POINT_OFFER_CAPABILITIES = Set.of("point_offer.read", "point_offer.define", "point_offer.status.update");
     // 字典定义、会员创建和租户级行为重建没有单个已有会员目标，只能使用集合许可。
     private static final Set<String> MEMBER_COLLECTION_ONLY = Set.of("member.create", "member_tag.define", "member_behavior.rebuild");
     private static final Set<String> CREATION = Set.of("merchant.create", "store.create");
@@ -84,12 +85,16 @@ public final class ExecutionAuthorization {
         // 执行事实必须与引用绑定类型一致；会员不能借门店/部门字段制造细粒度授权。
         boolean member = ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE.equals(row.resourceType());
         boolean policy = ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE.equals(row.resourceType());
+        boolean offer = ScopeDtos.POINT_OFFER_RESOURCE_TYPE.equals(row.resourceType());
         if(facts == null || !context.tenantId().equals(facts.tenantId()) || !row.resourceType().equals(facts.resourceType())
-                || (!member && !policy && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
+                || (!member && !policy && !offer && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
         // 政策是版本化集合；追加发布没有已有对象，本片只提供集合许可。
         if(policy) throw error(ACCESS_DENIED);
         if(member && (!MEMBER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
                 || MEMBER_COLLECTION_ONLY.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability())))) throw error(ACCESS_DENIED);
+        // 兑换规则定义还没有已有对象，只能使用集合许可；停启必须绑定真实商品事实。
+        if(offer && (!POINT_OFFER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
+                || (context.applicationId() + ".point_offer.define").equals(row.capability()))) throw error(ACCESS_DENIED);
         var current=access.evaluate(context,row.capability(),row.resourceType());
         var original=read(row.pathsJson(),Paths.class);
         // 目录资格可能先移除再恢复同一个组Grant；绑定目录版本，防止旧后台任务借此复活。
@@ -126,12 +131,14 @@ public final class ExecutionAuthorization {
     private static String scopedType(AccessContext context, String capability) {
         if(MEMBER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
         if(MEMBER_POLICY_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE;
+        if(POINT_OFFER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.POINT_OFFER_RESOURCE_TYPE;
         return DIRECTORY.entrySet().stream().filter(e -> (context.applicationId() + "." + e.getKey()).equals(capability)).map(Map.Entry::getValue).findFirst().orElse(null);
     }
     /** 创建资源不能拼接若干指定资源路径当成对未来对象的全租户授权。 */
     private static List<Alternative> permitted(AccessContext context, String capability, List<Alternative> paths) {
         if(!ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.POINT_OFFER_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && CREATION.stream().noneMatch(s -> (context.applicationId() + "." + s).equals(capability))) return paths;
         return paths.stream().filter(a -> a.clauses().size() == 1 && a.clauses().getFirst().kind() == ScopeDtos.Kind.TENANT_ALL).toList();
     }

@@ -263,3 +263,13 @@ points-ui-verify.log完整439项434PASS/5既有skip，CentralPointsMySqlTest7项
 真实rehearsal-b5f6eeb0aebf（子网98）397项PASS，包含积分11条浏览器检查和全部已交付员工页面回归。实际PKCE登录、独立无read的发布/调整/到期、显式false消费抵扣、输入精度与零值校验、真实409保留输入、三写服务端成功丢响应后原键/体重试、切Tab/取消退出保持未知意图、真实钱包/游标账本、撤写保留读、跨租户清除、401卸载及实际中央停机503均通过。SQL核对API4+UI3恰7条身份审计，UI实际policy-3、会员调整/到期各一次，UI账本恰ADJUST/EXPIRE两条、账户version2/available0，无重复效果。
 
 完整439项434PASS/5既有skip、前端build/Prettier、36工具/247入口/122能力/34角色和两仓hygiene通过；Java formatter/静态分析限制保持。实际1440/390表单、列表/钱包、未知、冲突及停机截图已查看；两仓points-ui-source-sha256摘要复核一致。自有PG/IdP/JVM/Vite已finally停止、数据/截图保留；runtime_switched/production_ready=false，原8602未切换。无新迁移，V57不改。PTS2本地DONE待正常Git交付，下一CE04-O0积分商品协议，CE04-O1/O2和CE05—08未完成。
+
+
+## CE04-O0验证中
+
+PTS2已普通合并推送auth8fe0e1f/commerce175bf78，CI36684037386/36684041293待查。O0消费CONTRACTS_COMMERCE_POINT_OFFERS：三有限能力point_offer.read/define/status.update，HUMAN/TENANT_ALL/60秒；define只集合，已有商品read/status使用实际point_offer事实，禁止伪门店归属或积分资源引用。协议JSON与SDK API无变更，ScopeDtos稳定常量复用已有TENANT_ONLY绑定。
+
+相关模块132单元PASS；自有PG c7f5dd5f5958与真实SpiceDB的ExecutionAuthorizationIT10方法全部PASS，包括新三能力矩阵，旧引用撤权/重授不复活、代际/范围/类型/到期及原商城能力回归。O0代码无商城Owner接管声明，完整install与Boot4验证进行中，随后hygiene和源码摘要复核。
+
+
+O0最终本地DONE：全仓install包含252单元PASS、SDK及两个运行Jar打包安装成功；独立Boot4兼容测试PASS，自有PG c7f5dd5f5958/真实SpiceDB共10项执行引用集成PASS。hygiene无阻断、Java formatter/静态分析限制保持，4文件offers-core-source-sha256摘要一致。自有PG已finally停止，证据保留；未新增服务或迁移。下一O1真实积分商品Owner/命令审计和V58，O2/CE05—08仍未完成。

@@ -14,6 +14,8 @@ public final class ScopeDtos {
     /** 商城客户会员是租户级业务资源，与OA员工主体分离。 */
     public static final String COMMERCE_MEMBER_RESOURCE_TYPE = "commerce_member";
     public static final String COMMERCE_MEMBER_POLICY_RESOURCE_TYPE = "commerce_member_policy";
+    /** 积分兑换商品采用真实租户范围，门店仅为业务过滤条件。 */
+    public static final String POINT_OFFER_RESOURCE_TYPE = "point_offer";
     /** 范围响应大小有界，超出不能截断后放行。 */
     public static final int MAX_PLAN_BYTES = 262144;
 

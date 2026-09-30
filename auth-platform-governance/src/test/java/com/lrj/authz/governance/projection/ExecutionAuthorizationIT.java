@@ -180,30 +180,34 @@ class ExecutionAuthorizationIT {
 
     /** 会员的租户范围不借门店语义，创建许可与实际目标事实分别验证。 */
     @Test void memberCoreReferencesBindFiniteCapabilitiesAndActualFactShape() {
-        tenantMemberReferences(List.of("member.read","member.create","member.profile.update","member.status.update"));
+        tenantScopedReferences(List.of("member.read","member.create","member.profile.update","member.status.update"));
     }
     /** 成长政策无虚构对象；已有会员的成长动作仍核验真实会员事实和独立能力。 */
     @Test void growthReferencesBindPolicyAndMemberCapabilitiesIndependently() {
-        tenantMemberReferences(List.of("growth.policy.read","growth.policy.publish","growth.read","growth.adjust","growth.recalculate"));
+        tenantScopedReferences(List.of("growth.policy.read","growth.policy.publish","growth.read","growth.adjust","growth.recalculate"));
     }
     /** 标签定义只取集合许可，分配和会员标签读取可使用真实会员事实；三能力相互独立。 */
     @Test void tagReferencesRejectFakeMemberForDefinitionAndKeepAssignmentsScoped() {
-        tenantMemberReferences(List.of("member_tag.read","member_tag.define","member_tag.assign"));
+        tenantScopedReferences(List.of("member_tag.read","member_tag.define","member_tag.assign"));
     }
     /** 行为重建只获得租户集合许可，不能以伪会员事实扩大为对象执行权限。 */
     @Test void behaviorReferencesKeepRebuildSeparateFromProfileAndEvents() {
-        tenantMemberReferences(List.of("member_behavior.read","member_behavior.update","member_behavior.rebuild"));
+        tenantScopedReferences(List.of("member_behavior.read","member_behavior.update","member_behavior.rebuild"));
     }
     /** 周期政策和礼包定义仅集合许可，读取/考核/补发绑定真实会员，不附赠其他能力。 */
     @Test void cycleReferencesSeparatePolicyCollectionsFromActualMemberOperations() {
-        tenantMemberReferences(List.of("member_cycle.policy.read", "member_cycle.policy.publish", "member_cycle.read",
+        tenantScopedReferences(List.of("member_cycle.policy.read", "member_cycle.policy.publish", "member_cycle.read",
                 "member_cycle.evaluate", "cycle_benefit.read", "cycle_benefit.define", "cycle_benefit.grant"));
     }
     /** 积分政策集合与真实会员的调整/到期独立，不能借已有成长或周期引用替代。 */
     @Test void pointsReferencesSeparatePolicyFromActualWalletCommands() {
-        tenantMemberReferences(List.of("points.policy.read", "points.policy.publish", "points.read", "points.adjust", "points.expire"));
+        tenantScopedReferences(List.of("points.policy.read", "points.policy.publish", "points.read", "points.adjust", "points.expire"));
     }
-    private void tenantMemberReferences(List<String> suffixes) {
+    /** 商品定义只集合，目录与停启仅接受真实商品类型，积分或门店引用不能混用。 */
+    @Test void pointOfferReferencesSeparateDefinitionFromExistingOffers() {
+        tenantScopedReferences(List.of("point_offer.read", "point_offer.define", "point_offer.status.update"));
+    }
+    private void tenantScopedReferences(List<String> suffixes) {
         var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
         var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
         var graph=new SpiceDbProjectionGraph(props.getProperty("graph.http"),props.getProperty("graph.key"),Duration.ofSeconds(3));
@@ -212,8 +216,9 @@ class ExecutionAuthorizationIT {
             for(String suffix:suffixes) {
                 boolean policy=suffix.startsWith("growth.policy.") || suffix.startsWith("member_cycle.policy.") || suffix.startsWith("points.policy.")
                         || suffix.equals("cycle_benefit.read") || suffix.equals("cycle_benefit.define");
-                boolean collectionOnly=policy || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
-                String type=policy?ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE:ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
+                boolean offer=suffix.startsWith("point_offer.");
+                boolean collectionOnly=policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
+                String type=offer?ScopeDtos.POINT_OFFER_RESOURCE_TYPE:policy?ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE:ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
                 String tenant=id(),code="member-"+id(),app="commerce-member-"+id(),cap=app+"."+suffix;
                 var owner=person(runtime,tenant,code);var member=person(runtime,tenant,code);
                 var login=new VerifiedLogin(owner.issuer(),owner.subject());
