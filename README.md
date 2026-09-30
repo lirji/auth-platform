@@ -64,7 +64,7 @@ OA、Auth 与业务项目的统一权限改造见 [整体改造计划](docs/desi
 
 `./dev.sh` 按依赖顺序拉起完整本地环境：Docker Compose（postgres+spicedb+casdoor+project-portal:5274）→ 后端（server:8200 / admin:8201）→ 前端（auth-console，端口见 `AUTH_CONSOLE_UI_PORT`）。公开门户没有登录或后端依赖，并固定由 `auth-project-portal` 容器运行；启动经健康检查逐层等待，幂等（已运行的层自动复用），宿主机后台进程日志落到 `logs/`。授权管控台已作为门户卡片 `auth-platform` 开放，入口 `/login`。登录后按 Casdoor 组织进入不同授权工作区（`/w/{id}`），不是跳进 Recsys/风控自己的业务台。
 
-统一门户及十二个项目的浏览器入口端口只在 `deploy/platform-ports.env` 维护。修改后执行 `./deploy/platform-ports.sh sync`，会同步运行时 catalog 并校验十一个 Compose 映射；不要再直接修改 `project-portal/public/config/catalog.json` 中的端口。授权管控台端口 `AUTH_CONSOLE_UI_PORT=5273` 与交易中心运营台端口 `TRADE_UI_PORT=4180` 由 Vite 提供，不在 Compose 校验内；WMS 仓储管理台端口 `WMS_UI_PORT=18180` 对应 `wms-platform` Docker 控制台 `WMS_CONSOLE_HOST_PORT`；OA 协同办公平台端口 `OA_UI_PORT=8404` 对应 `oa-platform` Docker 控制台 `OA_CONSOLE_PORT`，门户入口直接进工作台。
+统一门户及十二个项目的浏览器入口端口只在 `deploy/platform-ports.env` 维护。修改后执行 `./deploy/platform-ports.sh sync`，会同步运行时 catalog 并校验十一个 Compose 映射；不要再直接修改 `project-portal/public/config/catalog.json` 中的端口。授权管控台端口 `AUTH_CONSOLE_UI_PORT=5273` 可选 Vite 或下述治理 Docker profile（二者不能同时占用），交易中心运营台端口 `TRADE_UI_PORT=4180` 由 Vite 提供；WMS 仓储管理台端口 `WMS_UI_PORT=18180` 对应 `wms-platform` Docker 控制台 `WMS_CONSOLE_HOST_PORT`；OA 协同办公平台端口 `OA_UI_PORT=8404` 对应 `oa-platform` Docker 控制台 `OA_CONSOLE_PORT`，门户入口直接进工作台。
 完整约定见 [`docs/统一门户端口注册表.md`](docs/统一门户端口注册表.md)。
 
 ```bash
@@ -92,7 +92,9 @@ OA、Auth 与业务项目的统一权限改造见 [整体改造计划](docs/desi
 
 ## Docker Compose（基建 + 公开门户）
 
-> Compose 默认启动基础设施和 Docker 版公开门户；后端与 auth-console 仍由 `./dev.sh` 启动。
+> Compose 默认启动基础设施和 Docker 版公开门户；原工作区后端与 auth-console 可由 `./dev.sh` 启动。
+>
+> 跨项目治理授权页面使用新增 `governance` profile：控制台、治理管理后端及授权投影任务均在 Docker 运行，入口 `http://localhost:5273/governance`。首次私密配置、固定本地库、启动/重启命令和电商接管边界见 [本地治理 Docker 说明](deploy/governance/README.md)。
 
 ```bash
 cd deploy
