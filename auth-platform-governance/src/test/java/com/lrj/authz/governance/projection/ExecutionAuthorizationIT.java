@@ -211,6 +211,10 @@ class ExecutionAuthorizationIT {
     @Test void couponDefinitionReferencesOnlyPermitVersionCollections() {
         tenantScopedReferences(List.of("coupon_definition.read", "coupon_definition.create"));
     }
+    /** 权益定义只集合，实例读取/处理绑定实际grant；四能力互不替代。 */
+    @Test void entitlementReferencesSeparateVersionCollectionsFromActualGrants() {
+        tenantScopedReferences(List.of("entitlement_definition.read", "entitlement_definition.create", "entitlement.read", "entitlement.resolve"));
+    }
     private void tenantScopedReferences(List<String> suffixes) {
         var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
         var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
@@ -222,8 +226,16 @@ class ExecutionAuthorizationIT {
                         || suffix.equals("cycle_benefit.read") || suffix.equals("cycle_benefit.define");
                 boolean offer=suffix.startsWith("point_offer.");
                 boolean couponDefinition=suffix.startsWith("coupon_definition.");
-                boolean collectionOnly=couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
-                String type=couponDefinition?ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE:offer?ScopeDtos.POINT_OFFER_RESOURCE_TYPE:policy?ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE:ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
+                boolean entitlementDefinition=suffix.startsWith("entitlement_definition.");
+                boolean entitlement=suffix.startsWith("entitlement.");
+                boolean collectionOnly=entitlementDefinition || couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
+                String type;
+                if(entitlementDefinition) type=ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE;
+                else if(entitlement) type=ScopeDtos.ENTITLEMENT_RESOURCE_TYPE;
+                else if(couponDefinition) type=ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE;
+                else if(offer) type=ScopeDtos.POINT_OFFER_RESOURCE_TYPE;
+                else if(policy) type=ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE;
+                else type=ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
                 String tenant=id(),code="member-"+id(),app="commerce-member-"+id(),cap=app+"."+suffix;
                 var owner=person(runtime,tenant,code);var member=person(runtime,tenant,code);
                 var login=new VerifiedLogin(owner.issuer(),owner.subject());
@@ -251,11 +263,24 @@ class ExecutionAuthorizationIT {
                     String otherCapability=app+"."+(suffix.equals("coupon_definition.read")?"coupon_definition.create":"coupon_definition.read");
                     assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),new CentralAccessDtos.Check(tenant,1L,id(),otherCapability,type)))).hasMessage("ACCESS_DENIED");
                 }
+                if(entitlementDefinition || entitlement) {
+                    for(String wrongType:List.of(ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE,ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE,
+                            entitlementDefinition?ScopeDtos.ENTITLEMENT_RESOURCE_TYPE:ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE))
+                        assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,wrongType),until))).hasMessage("ACCESS_DENIED");
+                    for(String other:List.of("entitlement_definition.read","entitlement_definition.create","entitlement.read","entitlement.resolve"))
+                        if(!suffix.equals(other))assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),new CentralAccessDtos.Check(tenant,1L,id(),app+"."+other,type)))).hasMessage("ACCESS_DENIED");
+                }
                 assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,type),Instant.now().plusSeconds(120).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString()))).hasMessage("INVALID_ARGUMENT");
-                var facts=new Facts(tenant,type,"MEMBER-1",7,null,null,List.of(),null,null);
+                String actualId=entitlement?"GRANT-1":"MEMBER-1";
+                var facts=new Facts(tenant,type,actualId,7,null,null,List.of(),null,null);
                 var resource=new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,facts));
                 if(collectionOnly)assertThatThrownBy(()->executions.check(caller,resource)).hasMessage("ACCESS_DENIED");
-                else assertThat(executions.check(caller,resource).decision()).isEqualTo("ALLOW");
+                else {
+                    var decision=executions.check(caller,resource);
+                    assertThat(decision.decision()).isEqualTo("ALLOW");
+                    assertThat(decision.resourceId()).isEqualTo(actualId);
+                    assertThat(decision.resourceVersion()).isEqualTo(7);
+                }
                 for(var bad:List.of(new Facts(tenant,type,"MEMBER-1",7,null,null,List.of(),"S1",null),new Facts(tenant,"store","S1",7,null,null,List.of(),"S1",null),new Facts(id(),type,"MEMBER-1",7,null,null,List.of(),null,null)))
                     assertThatThrownBy(()->executions.check(caller,new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,bad)))).hasMessage("INVALID_ARGUMENT");
                 assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),new CentralAccessDtos.Check(tenant,2L,id(),cap,type)))).hasMessage("ACCESS_DENIED");

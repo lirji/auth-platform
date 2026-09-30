@@ -6,6 +6,8 @@ CE05-CD2本地DONE：固定SSO券定义目录/创建两Tab、独立创建提示�
 
 CD1已正常合并推送auth700f2c9/commerceb36982e，CI36691487561/36691489137 SUCCESS。详细证据见[CE05_MARKETING](../../implementation/oa-auth/commerce-readiness/CE05_MARKETING.md)。历史阶段记录如下，以本段为当前摘要。
 
+CE05-E0本地DONE：权益定义/实例两类型和四独立有限能力，定义只集合、实例绑定真实grantId/version；全仓252单元、真实自有PG b8c52c20066d/SpiceDB的ExecutionAuthorizationIT共12方法、SDK Boot4与最终forceCreation install均PASS，两个运行Jar嵌套依赖和4源码摘要一致。hygiene无阻断，原Java格式/静态分析限制保留。自有PG已finally停止，未新增迁移或基础设施，下一E1商城两个族/真实Owner/事务审计，E2页面与其余CE05—08未实施。
+
 ## 已交付P7基线
 
 当前续做：独立身份服务/数据库与双新版有界容量基线通过：4项工具测试、24项演练、600请求零错误；a882d4f已正常合并推送main，精确CI36658762615成功，见[P7_ISOLATED_CAPACITY](../../implementation/oa-auth/phase-7/P7_ISOLATED_CAPACITY.md)。以下认证修复为已交付基线；本轮仅改变本地演练工具，生产门禁不变。

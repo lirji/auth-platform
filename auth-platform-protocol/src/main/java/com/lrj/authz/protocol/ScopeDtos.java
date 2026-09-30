@@ -18,6 +18,9 @@ public final class ScopeDtos {
     public static final String POINT_OFFER_RESOURCE_TYPE = "point_offer";
     /** 优惠券定义由商城维护，版本目录采用完整租户范围。 */
     public static final String COUPON_DEFINITION_RESOURCE_TYPE = "coupon_definition";
+    /** 权益定义与实际授予分开判权，均只使用真实租户范围。 */
+    public static final String ENTITLEMENT_DEFINITION_RESOURCE_TYPE = "entitlement_definition";
+    public static final String ENTITLEMENT_RESOURCE_TYPE = "entitlement";
     /** 范围响应大小有界，超出不能截断后放行。 */
     public static final int MAX_PLAN_BYTES = 262144;
 

@@ -111,3 +111,6 @@ CE05-CD1本地DONE：452项447PASS/5skip、最终真实aa92413e7500/子网105共
 
 
 CE05-CD2本地DONE：固定SSO券定义目录/创建两Tab、独立创建提示；完整453项448PASS/5既有skip，券定义7项全PASS；真实隔离83d4ad742f53（10.254.106.0/24）493PASS，其中券定义10条浏览器行为，含全部既有员工页回归及O2标识64字校准。37工具/252入口/122能力/34角色、build/Prettier/两仓hygiene与auth4/commerce11源码摘要一致。当前1440/390目录/表单、409、未知结果、退出确认、成功/503截图已查看。5条实际定义身份审计、UI两定义各1条，实际公开领取/受控兑换共2次且余额100。Java formatter/静态分析限制保留，无新迁移；V49—V60不可改。Git交付中，下一CE05-E权益定义/实例技术细化；其他CE05—08与生产2HOLD未完成。
+
+
+CE05-E0本地DONE：权益定义/实例两类型和四独立有限能力，定义只集合、实例绑定真实grantId/version；全仓252单元、真实自有PG b8c52c20066d/SpiceDB的ExecutionAuthorizationIT共12方法、SDK Boot4与最终forceCreation install均PASS，两个运行Jar嵌套依赖和4源码摘要一致。hygiene无阻断，原Java格式/静态分析限制保留。自有PG已finally停止，未新增迁移或基础设施，下一E1商城两个族/真实Owner/事务审计，E2页面与其余CE05—08未实施。

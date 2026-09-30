@@ -27,6 +27,8 @@ public final class ExecutionAuthorization {
             "points.policy.read", "points.policy.publish");
     private static final Set<String> POINT_OFFER_CAPABILITIES = Set.of("point_offer.read", "point_offer.define", "point_offer.status.update");
     private static final Set<String> COUPON_DEFINITION_CAPABILITIES = Set.of("coupon_definition.read", "coupon_definition.create");
+    private static final Set<String> ENTITLEMENT_DEFINITION_CAPABILITIES = Set.of("entitlement_definition.read", "entitlement_definition.create");
+    private static final Set<String> ENTITLEMENT_CAPABILITIES = Set.of("entitlement.read", "entitlement.resolve");
     // 字典定义、会员创建和租户级行为重建没有单个已有会员目标，只能使用集合许可。
     private static final Set<String> MEMBER_COLLECTION_ONLY = Set.of("member.create", "member_tag.define", "member_behavior.rebuild");
     private static final Set<String> CREATION = Set.of("merchant.create", "store.create");
@@ -88,15 +90,19 @@ public final class ExecutionAuthorization {
         boolean policy = ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE.equals(row.resourceType());
         boolean offer = ScopeDtos.POINT_OFFER_RESOURCE_TYPE.equals(row.resourceType());
         boolean couponDefinition = ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE.equals(row.resourceType());
+        boolean entitlementDefinition = ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE.equals(row.resourceType());
+        boolean entitlement = ScopeDtos.ENTITLEMENT_RESOURCE_TYPE.equals(row.resourceType());
         if(facts == null || !context.tenantId().equals(facts.tenantId()) || !row.resourceType().equals(facts.resourceType())
-                || (!member && !policy && !offer && !couponDefinition && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
-        // 政策和券定义只提供版本目录/追加创建集合许可，不构造单个已有版本事实。
-        if(policy || couponDefinition) throw error(ACCESS_DENIED);
+                || (!member && !policy && !offer && !couponDefinition && !entitlementDefinition && !entitlement && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
+        // 政策、券和权益定义只提供版本目录/追加创建集合许可，不构造单个已有版本事实。
+        if(policy || couponDefinition || entitlementDefinition) throw error(ACCESS_DENIED);
         if(member && (!MEMBER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
                 || MEMBER_COLLECTION_ONLY.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability())))) throw error(ACCESS_DENIED);
         // 兑换规则定义还没有已有对象，只能使用集合许可；停启必须绑定真实商品事实。
         if(offer && (!POINT_OFFER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
                 || (context.applicationId() + ".point_offer.define").equals(row.capability()))) throw error(ACCESS_DENIED);
+        // 权益处理只绑定实际授予记录；定义或其他能力不能借用此对象入口。
+        if(entitlement && ENTITLEMENT_CAPABILITIES.stream().noneMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))) throw error(ACCESS_DENIED);
         var current=access.evaluate(context,row.capability(),row.resourceType());
         var original=read(row.pathsJson(),Paths.class);
         // 目录资格可能先移除再恢复同一个组Grant；绑定目录版本，防止旧后台任务借此复活。
@@ -135,6 +141,8 @@ public final class ExecutionAuthorization {
         if(MEMBER_POLICY_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE;
         if(POINT_OFFER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.POINT_OFFER_RESOURCE_TYPE;
         if(COUPON_DEFINITION_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE;
+        if(ENTITLEMENT_DEFINITION_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE;
+        if(ENTITLEMENT_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.ENTITLEMENT_RESOURCE_TYPE;
         return DIRECTORY.entrySet().stream().filter(e -> (context.applicationId() + "." + e.getKey()).equals(capability)).map(Map.Entry::getValue).findFirst().orElse(null);
     }
     /** 创建资源不能拼接若干指定资源路径当成对未来对象的全租户授权。 */
@@ -143,6 +151,8 @@ public final class ExecutionAuthorization {
                 && !ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.POINT_OFFER_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.ENTITLEMENT_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && CREATION.stream().noneMatch(s -> (context.applicationId() + "." + s).equals(capability))) return paths;
         return paths.stream().filter(a -> a.clauses().size() == 1 && a.clauses().getFirst().kind() == ScopeDtos.Kind.TENANT_ALL).toList();
     }

@@ -2,7 +2,9 @@
 
 ## 当前状态
 
-CE05-CD2本地DONE：固定SSO券定义目录/创建两Tab、独立创建提示；完整453项448PASS/5既有skip，券定义7项全PASS；真实隔离83d4ad742f53（10.254.106.0/24）493PASS，其中券定义10条浏览器行为，含全部既有员工页回归及O2标识64字校准。37工具/252入口/122能力/34角色、build/Prettier/两仓hygiene与auth4/commerce11源码摘要一致。当前1440/390目录/表单、409、未知结果、退出确认、成功/503截图已查看。5条实际定义身份审计、UI两定义各1条，实际公开领取/受控兑换共2次且余额100。Java formatter/静态分析限制保留，无新迁移；V49—V60不可改。Git交付中，下一CE05-E权益定义/实例技术细化；其他CE05—08与生产2HOLD未完成。
+CE05-E0本地DONE：权益定义/实例两类型和四独立有限能力，定义只集合、实例绑定真实grantId/version；全仓252单元、真实自有PG b8c52c20066d/SpiceDB的ExecutionAuthorizationIT共12方法、SDK Boot4与最终forceCreation install均PASS，两个运行Jar嵌套依赖和4源码摘要一致。hygiene无阻断，原Java格式/静态分析限制保留。自有PG已finally停止，未新增迁移或基础设施，下一E1商城两个族/真实Owner/事务审计，E2页面与其余CE05—08未实施。
+
+CE05-CD2本地DONE：固定SSO券定义目录/创建两Tab、独立创建提示；完整453项448PASS/5既有skip，券定义7项全PASS；真实隔离83d4ad742f53（10.254.106.0/24）493PASS，其中券定义10条浏览器行为，含全部既有员工页回归及O2标识64字校准。37工具/252入口/122能力/34角色、build/Prettier/两仓hygiene与auth4/commerce11源码摘要一致。当前1440/390目录/表单、409、未知结果、退出确认、成功/503截图已查看。5条实际定义身份审计、UI两定义各1条，实际公开领取/受控兑换共2次且余额100。Java formatter/静态分析限制保留，无新迁移；V49—V60不可改。已推送auth6e3bfc9/commerce0e2ff49，CI36693981625/36693990527运行中；下一CE05-E权益定义/实例技术细化；其他CE05—08与生产2HOLD未完成。
 
 ## 历史记录
 
@@ -58,3 +60,12 @@ CD2第二轮仅加载owned.env缺少原地址加密配置而失败；最终依�
 |源码与质量|37工具/252入口、build/Prettier、两仓hygiene通过，auth4/commerce11源码摘要匹配|commerce-contracts/coupon-definition-ui-*|
 
 两次本地测试环境装载错误已保留日志，最终使用source .local/runtime.env后source .local/central-inventory/owned.env覆盖DB；不调整测试预算或数据库账号。运行Jar包含当前前端构建；自有进程finally停止，原8602未切换；本轮无新worktree，私密数据和截图保留。技能状态：implementation-validation COMPLETED/PASS；update-progress-docs CD2→DONE（本地），Git/CI另行记录。
+
+
+### CE05-E0进行中
+
+[权益契约](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_ENTITLEMENTS.md)按已批准四能力细化。auth原目录feat/commerce-entitlement-execution限定四源码文件：稳定两类型、定义集合/实例实际grant判权与真实PG/图集成测试。未扩大客户身份，E1业务和E2页面尚未实施。
+
+
+CE05-E0本地DONE：权益定义/实例两类型和四独立有限能力，定义只集合、实例绑定真实grantId/version；全仓252单元、真实自有PG b8c52c20066d/SpiceDB的ExecutionAuthorizationIT共12方法、SDK Boot4与最终forceCreation install均PASS，两个运行Jar嵌套依赖和4源码摘要一致。hygiene无阻断，原Java格式/静态分析限制保留。自有PG已finally停止，未新增迁移或基础设施，下一E1商城两个族/真实Owner/事务审计，E2页面与其余CE05—08未实施。
+证据：私密commerce-contracts/entitlements-core-{install,integration,boot4,final-install}.log、integration-result.json、source-sha256.json与hygiene.json。四组合同时验证错类型/能力/代际/环境/期限及撤权重授，旧能力回归保持。
