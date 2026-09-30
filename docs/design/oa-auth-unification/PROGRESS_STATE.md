@@ -1,5 +1,7 @@
 # 当前商城扩展续做
 
+CE05-E2本地DONE：权益定义/实例两个固定SSO页、独立create/resolve提示和安全重试。完整461项456PASS/5既有skip、权益8项全PASS；真实0078780a5d6b（10.254.108.0/24）563PASS，其中两个权益页各10条浏览器检查，含所有既有员工页回归。37工具/256入口/122能力/34角色、build/Prettier/两仓hygiene及auth4/commerce11源码摘要一致。1440/390目录/表单及409/未知/取消退出/成功/503截图已查看。恰8身份审计、UI定义和两个补偿各1条；真实客户兑换/核销和撤权后履约兼容。无新迁移，V49—V61不可改。下一CE05-R营销规则细化；其余CE05—08及原生产2HOLD未完成。
+
 CE05-E1本地DONE：ENTITLEMENT_DEFINITION/ENTITLEMENT两族、四独立权限、真实grantId/version、旧回执前路由/事实/期限复核与同事务身份审计，V61已应用不可改。完整460项455PASS/5既有skip，新增7项全PASS；真实独立58007c181423（10.254.107.0/24）477PASS，无浏览器。37工具/252入口/122能力/34角色、两仓hygiene及auth1/commerce8源码摘要一致。下一E2权益定义/实例页面；其余CE05—08和原生产2HOLD未完成。
 
 2026-09-30：已批准商城员工扩展持续执行中。[执行记录](../../implementation/oa-auth/commerce-readiness/EXECUTION_PLAN.md)保持原稳定编号；业务边界为OA员工权威、会员/营销TENANT_ALL、库存/交易门店范围，高风险独立权限并沿原审批流程。CE02/03与CE04会员、成长、标签、行为、周期、积分、积分商品的API/页面纵向片均完成本地验证；最新O2真实隔离450PASS，commercec027daa/CI36688830234 SUCCESS，authc823750基线已由后续CD0包含。

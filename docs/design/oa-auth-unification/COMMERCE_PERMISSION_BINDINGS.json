@@ -4194,6 +4194,44 @@
       "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
       "capabilities": [],
       "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "EntitlementActionsController",
+      "method": "GET",
+      "path": "/v1/operations/entitlement-definitions/create-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/entitlement/EntitlementActionsController.java",
+      "capabilities": [
+        "commerce.entitlement_definition.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/entitlement-definitions",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "EntitlementActionsController",
+      "method": "GET",
+      "path": "/v1/operations/entitlements/resolve-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/entitlement/EntitlementActionsController.java",
+      "capabilities": [
+        "commerce.entitlement.resolve"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/entitlements",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
     }
   ]
 }

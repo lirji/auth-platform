@@ -8,7 +8,7 @@
 |---|---|---|---|---|---|
 |CE05-E0|auth两资源类型、四独立有限执行能力|CD2本地DONE且Git交付|定义只集合；实例读取集合/实际grant，resolve实际grant；HUMAN/TENANT_ALL/60秒，错类型/能力/代际/环境/到期、撤权重授不复活，真实PG/授权图与SDK兼容|既有本地PG/SpiceDB，串行|DONE（本地）|
 |CE05-E1|commerce两个接管族、真实Owner/事务审计和追加迁移|E0验证交付|独立两写、真实Owner、审计回滚、幂等/撤权/STOPPED/503；客户核销/退款欠项与既有系统发放兼容|专用MySQL与新建隔离演练库，串行|DONE（本地）|
-|CE05-E2|独立权益定义页和权益实例页及各自操作hint|E1验证交付|真实读写/409/未知原键/401/403/503、1440/390截图查看、SQL精确审计|既有SSO/AntDesign/Vite/Playwright，串行|READY|
+|CE05-E2|独立权益定义页和权益实例页及各自操作hint|E1验证交付|真实读写/409/未知原键/401/403/503、1440/390截图查看、SQL精确审计|既有SSO/AntDesign/Vite/Playwright，串行|DONE（本地）|
 
 E1/E2可在实施前按定义/实例拆稳定子ID以控制单片范围，但不改变四能力边界。生产映射/目标/Owner继续HOLD；不新增服务、缓存或消息组件。
 
@@ -40,3 +40,5 @@ Definition：benefitId/version/storeId/name/units/quota/validFrom/validTo/validi
 
 
 E1验收：完整460项455PASS/5skip及真实独立477PASS；详见CE05_MARKETING。V61已应用且不可修改，E2不新增迁移。
+
+E2验收：461项456PASS/5skip、真实563PASS且两个权益页各10条浏览器检查；当前1440/390与错误态截图已查看，详细证据CE05_MARKETING。

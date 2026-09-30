@@ -2,6 +2,8 @@
 
 ## 当前状态
 
+CE05-E2本地DONE：权益定义/实例两个固定SSO页、独立create/resolve提示和安全重试。完整461项456PASS/5既有skip、权益8项全PASS；真实0078780a5d6b（10.254.108.0/24）563PASS，其中两个权益页各10条浏览器检查，含所有既有员工页回归。37工具/256入口/122能力/34角色、build/Prettier/两仓hygiene及auth4/commerce11源码摘要一致。1440/390目录/表单及409/未知/取消退出/成功/503截图已查看。恰8身份审计、UI定义和两个补偿各1条；真实客户兑换/核销和撤权后履约兼容。无新迁移，V49—V61不可改。下一CE05-R营销规则细化；其余CE05—08及原生产2HOLD未完成。
+
 CE05-E1本地DONE：ENTITLEMENT_DEFINITION/ENTITLEMENT两族、四独立权限、真实grantId/version、旧回执前路由/事实/期限复核与同事务身份审计，V61已应用不可改。完整460项455PASS/5既有skip，新增7项全PASS；真实独立58007c181423（10.254.107.0/24）477PASS，无浏览器。37工具/252入口/122能力/34角色、两仓hygiene及auth1/commerce8源码摘要一致。下一E2权益定义/实例页面；其余CE05—08和原生产2HOLD未完成。
 
 CE05-E0本地DONE：权益定义/实例两类型和四独立有限能力，定义只集合、实例绑定真实grantId/version；全仓252单元、真实自有PG b8c52c20066d/SpiceDB的ExecutionAuthorizationIT共12方法、SDK Boot4与最终forceCreation install均PASS，两个运行Jar嵌套依赖和4源码摘要一致。hygiene无阻断，原Java格式/静态分析限制保留。自有PG已finally停止，未新增迁移或基础设施，下一E1商城两个族/真实Owner/事务审计，E2页面与其余CE05—08未实施。
@@ -99,3 +101,25 @@ CE05-E1本地DONE：ENTITLEMENT_DEFINITION/ENTITLEMENT两族、四独立权限�
 跨进程待补偿数据为明确的隔离SQL夹具，不宣称HTTP整单退款；MySQL专项从订单域真实预留/确认/事件/核销/冲正产生欠项。客户积分兑换、受理事件及核销为真实HTTP链路。自有进程finally停止，原8602未切换，无新worktree，全部私密证据和隔离库保留。
 
 首次两项新夹具错误已修；次轮既有MemberGrowthTest五秒屏障超时，定向两次被父POM显式failIfNoTests拦截。均保留原日志，最终原样完整重跑通过；未放宽业务/测试预算、数据库约束或构建门禁。技能状态implementation-validation COMPLETED/PASS；update-progress-docs E1 DONE（本地）。Git/CI另记。
+
+
+E1已正常合并推送auth4f1a05f/commerceb653130，CI36697025032/36697028441运行中。E2在原目录feat/commerce-entitlement-ui-contract与feat/central-entitlement-ui实施两个固定权益页/两个独立hint；原API、读写独立和未知原意图恢复，前端build/Prettier、37工具/256入口通过。新增第8项MySQL独立hint测试，完整entitlements-ui-verify.log/session83126运行中；真实浏览器脚本已接线未运行，待子网108。源码摘要auth4/commerce11已记，V61未修改。
+
+E1两仓精确CI36697025032/36697028441 SUCCESS。E2完整461项456PASS/5既有skip（权益8项全PASS）、前端build/Prettier、37工具/256入口、两仓hygiene通过；脚本闭集Phase/Kind已按枚举修正，原检查报告保留。真实浏览器0078780a5d6b/子网108/session53681运行中；尚不标E2 DONE。
+
+
+## CE05-E2验收
+
+CE05-E2本地DONE：权益定义/实例两个固定SSO页、独立create/resolve提示和安全重试。完整461项456PASS/5既有skip、权益8项全PASS；真实0078780a5d6b（10.254.108.0/24）563PASS，其中两个权益页各10条浏览器检查，含所有既有员工页回归。37工具/256入口/122能力/34角色、build/Prettier/两仓hygiene及auth4/commerce11源码摘要一致。1440/390目录/表单及409/未知/取消退出/成功/503截图已查看。恰8身份审计、UI定义和两个补偿各1条；真实客户兑换/核销和撤权后履约兼容。无新迁移，V49—V61不可改。下一CE05-R营销规则细化；其余CE05—08及原生产2HOLD未完成。
+
+|验收|结果|私密证据|
+|---|---|---|
+|事务/提示/全仓|完整461项456PASS/5既有skip，权益8方法PASS；两hint独立于read，旧ADMIN/无效身份/撤权/停机拒绝|commerce-contracts/entitlements-ui-verify.log|
+|真实浏览器与兼容|563PASS；两个权益页各10条：实际PKCE、无read写入、字段/日期校验、409输入保留、丢成功响应后原key/body/编码路径重试、切Tab/取消退出、跨租户/撤权/401/实际503|p6/rehearsal-0078780a5d6b/result.json及entitlements-*-result.json|
+|SQL与客户链路|恰8条身份审计；UI定义units7/quota15/days30/reserved0/issued0；UI两补偿各1条units2/balance0；真实兑换后核销2/余3，超扣拒绝，积分余50|同目录检查点/entitlement-fixture-origin.json|
+|视觉|已查看两页面1440/390目录/表单、409/未知/离开确认/成功/503；布局可用，无页面外溢，表格内部横滚|同目录entitlements-*.png|
+|质量|build/Prettier、37工具/256入口、两仓hygiene、auth4/commerce11最终摘要一致|commerce-contracts/entitlements-ui-*|
+
+浏览器脚本闭集Phase/Kind首轮hygiene阻断已按枚举修正；验收前把目录预期加入真实已有周期/积分资产，未削弱业务断言，首次检查证据保留。Java formatter/静态分析未配置限制与5既有skip保持。补偿SQL夹具明确标识，不宣称HTTP整单退款；客户积分兑换与消费为真实业务HTTP。自有进程finally停止、原8602未切换、无新worktree，私密数据/证据保留。
+
+E1 auth4f1a05f/commerceb653130正常推送，CI36697025032/36697028441 SUCCESS。E2 implementation-validation COMPLETED/PASS，update-progress-docs DONE（本地）；Git/CI另记。

@@ -947,7 +947,13 @@ def rehearse(args, isolation=None):
                     if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability='commerce.coupon_definition.create' AND resource_type='coupon_definition' AND resource_id="+q(definition_id))[1]!='1':raise RuntimeError('coupon UI actual identity audit mismatch')
                     if sql("SELECT CONCAT(issuance_mode,':',stackable,':',platform_funding_bps,':',COALESCE(validity_days,0),':',CAST(discount_amount AS DECIMAL(14,2)),':',issued) FROM benefit_coupon_definition WHERE tenant_id="+q(source)+" AND definition_id="+q(definition_id))[1]!=expected:raise RuntimeError('coupon UI persisted fields mismatch')
             record('exact coupon definition audits and two customer assets are atomic without employee impersonation')
+        def entitlement_browser(kind,phase):
+            if not args.browser:return
+            subprocess.run(['node',str(root/'deploy/governance-ce05-entitlements.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_KIND=kind,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=150)
+            record('real entitlement browser '+kind+' '+phase)
         if args.entitlements:
+            if args.browser:
+                ui=json.loads((run/'catalog-ui.json').read_text());ui.update({'from':now(-60),'to':now(7200)});h.private(run/'entitlements-ui.json',json.dumps(ui))
             for family in ('ENTITLEMENT_DEFINITION','ENTITLEMENT'):
                 insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':family,'state':'SHADOW'})
                 sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family="+q(family)+" AND state='SHADOW' AND version=1;")
@@ -971,14 +977,16 @@ def rehearse(args, isolation=None):
             expect('entitlement duplicate immutable version',18661,ed_base,user+[('Idempotency-Key',uid())],ed_input,409)
             expect('entitlement units retain original validation',18661,ed_base,user+[('Idempotency-Key',uid())],{**ed_input,'benefitId':'ce05-invalid-entitlement','units':0},400)
             expect('entitlement missing actual store rejected',18661,ed_base,user+[('Idempotency-Key',uid())],{**ed_input,'benefitId':'ce05-missing-owner','storeId':'missing'},404)
+            entitlement_browser('definitions','write-only')
             entitlement_grant('entitlement_definition.read')
             if expect('entitlement latest global version cannot leak old store',18661,ed_base+'?storeId='+store+'&after=ce05-&limit=1',user)!=[ed_b]:raise RuntimeError('entitlement definition old-store version leaked')
             if expect('entitlement latest version actual store',18661,ed_base+'?storeId='+other+'&after=ce05-&limit=1',user)!=[ed_a2]:raise RuntimeError('entitlement definition latest version missing')
-            if expect('entitlement definition terminal cursor',18661,ed_base+'?storeId='+store+'&after=ce05-entitlement-b&limit=1',user):raise RuntimeError('entitlement definition cursor unstable')
+            if expect('entitlement definition terminal cursor',18661,ed_base+'?storeId='+store+'&after='+('ce05-entitlement-ui-c' if args.browser else 'ce05-entitlement-b')+'&limit=1',user):raise RuntimeError('entitlement definition cursor unstable')
+            entitlement_browser('definitions','read')
             expect('definition read does not imply grant read',18661,ent_base,user,status=403)
             # 明确的隔离欠项夹具只验证中央处理；真实退款/冲正链路由MySQL业务回归覆盖。
             ent_ids=['ce05-grant:a','ce05-grant:b']
-            for gid in ent_ids:
+            for gid in ent_ids+(['ce05-ui-grant:c','ce05-ui-grant:d'] if args.browser else []):
                 insert('benefit_grant',{'tenant_id':source,'grant_id':gid,'order_id':gid+'-order','member_id':offer_member,'benefit_id':ed_input['benefitId'],'benefit_version':1,'expires_at':now(7200).replace('T',' ').removesuffix('Z'),'name':'Explicit isolated compensation fixture','status':'COMPENSATION_REQUIRED','units':5,'remaining_units':0,'debt_units':2,'version':0,'source_type':'ORDER','source_id':gid+'-order'})
             h.private(run/'entitlement-fixture-origin.json',json.dumps({'compensation_origin':'EXPLICIT_ISOLATED_SQL_PENDING_DEBT','refund_http_claimed':False,'customer_fulfillment':'REAL_POINT_REDEMPTION_OUTBOX_CONSUMER'}))
             ent_resolve_grant=entitlement_grant('entitlement.resolve');ent_receipts=[]
@@ -990,10 +998,12 @@ def rehearse(args, isolation=None):
                 expect('new key cannot repeat compensation '+conclusion,18661,path,user+[('Idempotency-Key',uid())],body,409)
                 ent_receipts.append((path,headers,body,receipt))
             expect('resolve does not imply instance read',18661,ent_base,user,status=403)
+            entitlement_browser('instances','write-only')
             entitlement_grant('entitlement.read')
             if expect('entitlement actual grant stable cursor',18661,ent_base+'?after=ce05-&limit=1',user)!=[ent_receipts[0][3]]:raise RuntimeError('entitlement first cursor mismatch')
             if expect('entitlement second grant stable cursor',18661,ent_base+'?after='+urllib.parse.quote(ent_ids[0],safe='')+'&limit=1',user)!=[ent_receipts[1][3]]:raise RuntimeError('entitlement second cursor mismatch')
             expect('entitlement foreign tenant denied',18661,ent_base,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            entitlement_browser('instances','read')
             eo_grant=entitlement_grant('point_offer.define',POINT_OFFER_RESOURCE_TYPE)
             expect('entitlement actual customer fulfillment offer',18661,offer_base,user+[('Idempotency-Key',uid())],{'offerId':'ce05-entitlement-offer','storeId':store,'name':'Entitlement customer proof','kind':'ENTITLEMENT','assetId':ed_input['benefitId'],'assetVersion':1,'points':50,'quota':1,'perMemberLimit':1,'validFrom':now(-1),'validTo':now(1800)})
             redeem_headers=offer_customer_headers+[('Idempotency-Key',uid())]
@@ -1003,6 +1013,7 @@ def rehearse(args, isolation=None):
             for path,headers,body,_ in ent_receipts:expect('revoked entitlement resolve cannot replay '+path,18661,path,headers,body,403)
             expect('entitlement read survives write revoke',18661,ent_base,user)
             expect('entitlement definition read survives write revoke',18661,ed_base+'?storeId='+store,user)
+            entitlement_browser('definitions','revoked');entitlement_browser('instances','revoked')
             # 已受理的可靠事件在撤权后继续；有界轮询实际状态，不凭固定推进次数假定完成。
             deadline=time.monotonic()+8
             while True:
@@ -1018,11 +1029,17 @@ def rehearse(args, isolation=None):
             if consumed['remainingUnits']!=3 or expect('customer consumption original key',18661,consume_path,consume_headers,{'units':2})!=consumed:raise RuntimeError('entitlement consumption duplicated')
             expect('customer entitlement cannot overconsume',18661,consume_path,offer_customer_headers+[('Idempotency-Key',uid())],{'units':4},409)
             if expect('entitlement customer actual points balance',18661,'/v1/members/me/points',offer_customer_headers)['available']!=50:raise RuntimeError('entitlement customer points mismatch')
-            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type IN ('entitlement_definition','entitlement') AND store_id IS NULL")[1]!='5':raise RuntimeError('entitlement exact audit count mismatch')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type IN ('entitlement_definition','entitlement') AND store_id IS NULL")[1]!=str(8 if args.browser else 5):raise RuntimeError('entitlement exact audit count mismatch')
             for gid,conclusion in zip(ent_ids,('RECOVERED','WRITTEN_OFF')):
                 if sql("SELECT count(*) FROM benefit_ledger WHERE tenant_id="+q(source)+" AND grant_id="+q(gid)+" AND action="+q(conclusion)+" AND units=2 AND balance=0")[1]!='1':raise RuntimeError('entitlement compensation exact ledger mismatch')
             if sql("SELECT COUNT(*) FROM benefit_ledger WHERE tenant_id="+q(source)+" AND grant_id="+q(actual[0]['grantId'])+" AND action='CONSUME'")[1]!='1':raise RuntimeError('entitlement consumption duplicated in SQL')
-            record('five actual entitlement identity audits, two explicit debt fixtures and real customer fulfillment are exact')
+            if args.browser:
+                for gid,kind in [('ce05-entitlement-ui-c','entitlement_definition'),('ce05-ui-grant:c','entitlement'),('ce05-ui-grant:d','entitlement')]:
+                    if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type="+q(kind)+" AND resource_id="+q(gid))[1]!='1':raise RuntimeError('entitlement UI actual audit mismatch')
+                for gid,conclusion in [('ce05-ui-grant:c','RECOVERED'),('ce05-ui-grant:d','WRITTEN_OFF')]:
+                    if sql("SELECT count(*) FROM benefit_ledger WHERE tenant_id="+q(source)+" AND grant_id="+q(gid)+" AND action="+q(conclusion)+" AND units=2 AND balance=0")[1]!='1':raise RuntimeError('entitlement UI compensation ledger mismatch')
+                if sql("SELECT CONCAT(units,':',quota,':',validity_days,':',reserved,':',issued) FROM benefit_definition WHERE tenant_id="+q(source)+" AND benefit_id='ce05-entitlement-ui-c'")[1]!='7:15:30:0:0':raise RuntimeError('entitlement UI definition fields mismatch')
+            record('exact entitlement identity audits and explicit debt fixtures with real customer fulfillment')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -1092,6 +1109,7 @@ def rehearse(args, isolation=None):
             expect('entitlement definition central outage fails closed',18661,ed_base+'?storeId='+store,user,status=503)
             expect('entitlement instance central outage fails closed',18661,ent_base,user,status=503)
             expect('customer entitlement wallet remains local in outage',18661,'/v1/entitlements',offer_customer_headers)
+            entitlement_browser('definitions','outage');entitlement_browser('instances','outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
         result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
