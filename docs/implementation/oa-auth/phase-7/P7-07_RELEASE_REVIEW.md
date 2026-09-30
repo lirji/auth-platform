@@ -27,3 +27,5 @@
 目前状态是“本地加固验证完成，生产接受阻塞”，不标PRODUCTION_ACCEPTED或PILOT_RUNNING；在生产必需条件未满足前也不无条件标RELEASE_CANDIDATE。P7-07已形成具体评审材料，但其实际Owner/操作授权验收保持BLOCKED；P7-08保持未执行。
 
 后续认证故障分类整改与共享IdP数据库限制见[P7_AUTH_FAILURE_FIX](P7_AUTH_FAILURE_FIX.md)；本文件原始实测作为历史证据保留。
+
+后续独立身份服务与双新版容量基线见[P7_ISOLATED_CAPACITY](P7_ISOLATED_CAPACITY.md)；与原共享身份服务/混部结果分别记录。

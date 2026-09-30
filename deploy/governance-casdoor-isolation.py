@@ -75,7 +75,7 @@ def main():
     parser.add_argument('--postgres-container', default=POSTGRES_CONTAINER)
     parser.add_argument('--postgres-host', default='dev-infra-postgres16-1')
     parser.add_argument('--network', default='dev-infra')
-    parser.add_argument('--port', type=int, choices=[18090, 18093], default=18090)
+    parser.add_argument('--port', type=int, choices=[18090, 18093, 18094], default=18090)
     args = parser.parse_args()
     POSTGRES_CONTAINER = args.postgres_container
     BASE = 'http://localhost:' + str(args.port)

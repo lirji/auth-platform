@@ -1,5 +1,7 @@
 # 当前P7进度
 
+当前续做：独立身份服务/数据库与双新版有界容量基线通过：4项工具测试、24项演练、600请求零错误；Git/CI待交付，见[P7_ISOLATED_CAPACITY](../../implementation/oa-auth/phase-7/P7_ISOLATED_CAPACITY.md)。以下认证修复为已交付基线；本轮仅改变本地演练工具，生产门禁不变。
+
 本轮续做：P7认证错误分类修复本地209单测与22项演练通过。已复现Casdoor共享PG连接不足时HTTP 200错误对象被误报401；修复保持拒绝并改报503。证据见[P7_AUTH_FAILURE_FIX](../../implementation/oa-auth/phase-7/P7_AUTH_FAILURE_FIX.md)。修复提交e16a4dd已正常合并推送main，精确CI36655346503成功；209单测、22项本地演练通过，生产容量/接受仍HOLD。后文为上轮交付基线。
 
 P7_LOCAL_DELIVERED_RELEASE_HOLD。用户“继续”及“先做本地有界基线，生产目标待定”已落实。P7-01—06所选本地范围完成：21项真实跨进程检查、150受影响单测、2项真实进程CAS/崩溃恢复IT通过。P7-07已有评审与手册，但实际生产目标/Owner/接受指标/授权缺失，P7-08未执行；生产HOLD。

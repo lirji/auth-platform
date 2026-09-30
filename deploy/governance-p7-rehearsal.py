@@ -45,16 +45,17 @@ class GraphProxy:
 
 class IdentityProxy:
     """本工具JVM专用HTTP代理，模拟IdP故障，不停止共享Casdoor。"""
-    def __init__(self,port):
+    def __init__(self,port,identity_port=18090):
+        self.identity_port=identity_port
         self.failed=False;self.introspection_fault=False;self.responses=collections.Counter();self.lock=threading.Lock();owner=self
         class Handler(http.server.BaseHTTPRequestHandler):
             def route(self):
                 url=urllib.parse.urlsplit(self.path)
-                if url.scheme!='http' or url.hostname not in ('localhost','127.0.0.1') or url.port not in (18090,18543,18545,18546,18547):self.send_error(403);return
+                if url.scheme!='http' or url.hostname not in ('localhost','127.0.0.1') or url.port not in (owner.identity_port,18543,18545,18546,18547):self.send_error(403);return
                 size=int(self.headers.get('Content-Length','0'))
                 if size>262144:self.send_error(413);return
                 body=self.rfile.read(size) if size else None
-                if owner.failed and url.port==18090:self.send_response(503);self.end_headers();self.wfile.write(b'{}');return
+                if owner.failed and url.port==owner.identity_port:self.send_response(503);self.end_headers();self.wfile.write(b'{}');return
                 if owner.introspection_fault and url.path=='/api/login/oauth/introspect':
                     self.send_response(HTTPStatus.OK);self.end_headers();self.wfile.write(b'{"status":"error","msg":"isolated dependency fault"}');return
                 conn=http.client.HTTPConnection(url.hostname,url.port,timeout=5)
@@ -85,9 +86,16 @@ class IdentityProxy:
 
 class Rehearsal:
     """固定本地资源与私有恢复检查点，输入不接受任意生产库。"""
-    def __init__(self,samples):
+    def __init__(self,samples,isolated_identity=False,current_only=False):
         self.source_hash=hashlib.sha256(Path(__file__).read_bytes()).hexdigest();self.samples=samples;self.suffix=secrets.token_hex(6);self.run=ROOT/'.local/governance/p7'/self.suffix;self.run.mkdir(parents=True,mode=0o700)
         self.checks=[];self.processes=[];self.containers=[];self.proxy=None;self.identity_proxy=None;self.started=now()
+        self.isolated_identity=isolated_identity;self.current_only=current_only
+        self.identity_port=18094 if isolated_identity else 18090;self.issuer='http://localhost:'+str(self.identity_port)
+        self.management_config=ROOT/'.local/governance/casdoor-isolated/management-client.json'
+        self.network=None
+        self.jars={k:ROOT/f'auth-platform-{k}/target/auth-platform-{k}-0.1.0-SNAPSHOT.jar' for k in ('server','admin')}
+    def prepare_database(self):
+        """在main的finally保护内创建资源，启动失败也停止本次已创建容器。"""
         global PG
         PG='auth-gov-p7-pg-'+self.suffix
         pg_env=self.run/'postgres.env';h.private(pg_env,'POSTGRES_USER=p7owner\nPOSTGRES_PASSWORD='+secrets.token_hex(24)+'\nPOSTGRES_DB=postgres\n')
@@ -98,7 +106,6 @@ class Rehearsal:
             time.sleep(.2)
         else:raise RuntimeError('owned PostgreSQL startup timeout')
         self.db=self.database('authority');self.fixture=None
-        self.jars={k:ROOT/f'auth-platform-{k}/target/auth-platform-{k}-0.1.0-SNAPSHOT.jar' for k in ('server','admin')}
     def record(self,name,**detail):
         self.checks.append({'check':name,'result':'PASS',**detail});h.private(self.run/f'checkpoint-{len(self.checks):03}.json',json.dumps(self.checks))
     def database(self,label):
@@ -153,32 +160,60 @@ class Rehearsal:
     def check(self,port,store='store-live',headers=None,status=200):
         body={'check':{'tenant_id':self.tenant,'expected_membership_generation':1,'request_id':uid(),'capability':'commerce.catalog.operate','resource_type':'store'},'facts':{'tenant_id':self.tenant,'resource_type':'store','resource_id':store,'resource_version':0,'owner_principal_id':None,'department_id':None,'department_ancestors':[],'store_id':store,'supplier_id':None}}
         return self.call(port,'/internal/governance/v1/access/check-resource',body,headers or self.dual,status)
+    def await_new_grant(self,port,store):
+        """P3允许双水位短暂保守DENY；只探测新授权就绪，不重试容量样本或撤权断言。"""
+        started=time.monotonic();observations=[]
+        for attempt in range(12):
+            try:decision=self.check(port,store)['decision']
+            except RuntimeError as failure:
+                if 'code=AUTHZ_STATE_NOT_READY' not in str(failure):raise
+                decision='AUTHZ_STATE_NOT_READY'
+            if decision not in ('ALLOW','DENY','AUTHZ_STATE_NOT_READY'):raise RuntimeError('unexpected new grant readiness result')
+            observations.append(decision)
+            if decision=='ALLOW':return {'instance':port,'observations':observations,'elapsed_ms':round((time.monotonic()-started)*1000,3)}
+            if attempt<11:time.sleep(.25)
+        raise RuntimeError('new grant did not converge within bounded readiness probes')
     def projection(self,db=None,graph=None):
         for kind in ('POLICY','DIRECTORY'):
             file=self.run/('projection-'+secrets.token_hex(4)+'.properties');h.private(file,h.read_private((db or self.db)['config'])+(graph or self.graph1)['config']+h.props({**self.access,'projection.kind':kind,'jdbc.maximum-pool-size':2}));self.cli('ReliableProjectionCli',file)
+    def prepare_identity(self):
+        """身份服务使用本次PG与私有网络；不修改现有18090实例或共享数据库。"""
+        if not self.isolated_identity:return
+        self.network='auth-p7-'+self.suffix
+        subprocess.run(['docker','network','create','--label','auth-p7-run='+self.suffix,self.network],check=True,stdout=subprocess.DEVNULL)
+        subprocess.run(['docker','network','connect',self.network,PG],check=True)
+        spec=self.database('identity-database')
+        name=spec['database'].replace('auth_gov_p1_test_','auth-gov-casdoor-p1-')
+        self.containers.append(name) # 预先登记唯一自有名称，子工具启动中途失败也可收尾。
+        with os.fdopen(os.open(self.run/'identity-runtime.log',os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600),'w') as log:
+            subprocess.run(['python3',str(ROOT/'deploy/governance-casdoor-isolation.py'),'--directory',str(spec['config'].parent),'--postgres-container',PG,'--postgres-host',PG,'--network',self.network,'--port',str(self.identity_port)],check=True,stdout=log,stderr=subprocess.STDOUT,timeout=120)
+        self.management_config=spec['config'].parent/'casdoor-isolated/management-client.json'
+        result=json.loads((self.management_config.parent/'runtime-result.json').read_text())
+        self.record('dedicated identity instance uses owned PostgreSQL and private network',identity_port=self.identity_port,identity_image=result['image'],network=self.network,database=result['database'])
     def setup(self):
-        subprocess.run(['python3',str(ROOT/'deploy/governance-casdoor-fixture.py'),'--base',h.ISSUER,'--phase','tokens','--directory',str(self.run/'identity'),'--management-config',str(ROOT/'.local/governance/casdoor-isolated/management-client.json')],check=True,stdout=subprocess.DEVNULL)
-        self.fixture=json.loads(h.read_private(self.run/'identity/casdoor.json'));ops=json.loads(h.read_private(ROOT/'.local/governance/casdoor-isolated/management-client.json'))
-        self.idp_tool=module('p7_idp_'+self.suffix,ROOT/'deploy/governance-casdoor-fixture.py');self.idp_tool.BASE=h.ISSUER
+        self.prepare_database();self.prepare_identity()
+        subprocess.run(['python3',str(ROOT/'deploy/governance-casdoor-fixture.py'),'--base',self.issuer,'--phase','tokens','--directory',str(self.run/'identity'),'--management-config',str(self.management_config)],check=True,stdout=subprocess.DEVNULL)
+        self.fixture=json.loads(h.read_private(self.run/'identity/casdoor.json'));ops=json.loads(h.read_private(self.management_config))
+        self.idp_tool=module('p7_idp_'+self.suffix,ROOT/'deploy/governance-casdoor-fixture.py');self.idp_tool.BASE=self.issuer
         self.idp_auth='Basic '+base64.b64encode((ops['client_id']+':'+ops['client_secret']).encode()).decode()
         self.change_signer('a')
         self.tenant=uid();self.partition={'tenant_id':self.tenant,'application_id':'commerce','environment':'p7-'+self.suffix};self.members={};principals={}
         for kind in ('internal','external'):
             principals[kind]=uid();self.members[kind]=uid();file=self.run/(kind+'.properties')
-            h.private(file,h.props({'command.id':uid(),'operator.ref':'p7-fixture','tenant.id':self.tenant,'tenant.code':'p7-'+self.suffix,'principal.id':principals[kind],'issuer':h.ISSUER,'subject':self.fixture['users'][kind]['id'],'membership.id':self.members[kind],'valid.from':'2020-01-01T00:00:00Z','source.system':'p7-fixture','source.tenant.ref':self.tenant,'source.subject.ref':kind}));self.cli('GovernanceCli','bootstrap',self.db['config'],file)
+            h.private(file,h.props({'command.id':uid(),'operator.ref':'p7-fixture','tenant.id':self.tenant,'tenant.code':'p7-'+self.suffix,'principal.id':principals[kind],'issuer':self.issuer,'subject':self.fixture['users'][kind]['id'],'membership.id':self.members[kind],'valid.from':'2020-01-01T00:00:00Z','source.system':'p7-fixture','source.tenant.ref':self.tenant,'source.subject.ref':kind}));self.cli('GovernanceCli','bootstrap',self.db['config'],file)
         db=h.read_private(self.db['config']);catalog=self.run/'catalog.properties'
-        h.private(catalog,db+h.props({'catalog.application':'commerce','catalog.owner-principal':principals['internal'],'catalog.entry-origin':'http://127.0.0.1:18661','catalog.operator':'p7-fixture','catalog.command':uid(),'catalog.owner-issuer':h.ISSUER,'catalog.owner-subject':self.fixture['users']['internal']['id']}));self.cli('CatalogCli','register',catalog,'configured')
+        h.private(catalog,db+h.props({'catalog.application':'commerce','catalog.owner-principal':principals['internal'],'catalog.entry-origin':'http://127.0.0.1:18661','catalog.operator':'p7-fixture','catalog.command':uid(),'catalog.owner-issuer':self.issuer,'catalog.owner-subject':self.fixture['users']['internal']['id']}));self.cli('CatalogCli','register',catalog,'configured')
         manifest=self.run/'manifest.json';h.private(manifest,json.dumps({'schema_version':'1','application':'commerce','manifest_version':1,'capabilities':[{'code':'commerce.catalog.operate','resource_type':'store','risk_level':'HIGH'}],'menus':[]}));self.cli('CatalogCli','publish',catalog,manifest)
         self.access={'access.tenant':self.tenant,'access.application':'commerce','access.environment':self.partition['environment'],'access.manager':self.members['internal'],'access.generation':1,'access.capabilities':'commerce.catalog.operate','access.max-duration-seconds':3600,'access.operator':'p7-fixture','access.command':uid()}
         file=self.run/'access.properties';h.private(file,db+h.props(self.access));self.cli('AccessBootstrapCli',file)
-        self.graph1=self.graph('graph-original',18545);self.proxy=GraphProxy(18547,18545);self.identity_proxy=IdentityProxy(18548)
+        self.graph1=self.graph('graph-original',18545);self.proxy=GraphProxy(18547,18545);self.identity_proxy=IdentityProxy(18548,self.identity_port)
         self.legacy=h.read_private(ROOT/'.local/governance/p2/graph/graph.properties')
         def authority(kind):
-            c=self.fixture['clients'][kind];return {'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/'+c['name']+'/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret'],'maximum-concurrent':8}
+            c=self.fixture['clients'][kind];return {'issuer':self.issuer,'jwks.uri':self.issuer+'/.well-known/'+c['name']+'/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret'],'maximum-concurrent':8}
         self.user_authority=authority('business');self.management_authority=authority('management')
         self.service=secrets.token_urlsafe(48);self.server_settings={'service.count':1,'service.1.id':'commerce-p7','service.1.application-id':'commerce','service.1.environment':self.partition['environment'],'service.1.operation':'context.resolve','service.1.credential-sha256':hashlib.sha256(self.service.encode()).hexdigest(),'access.check.callers':'commerce-p7','scope.check.callers':'commerce-p7','execution.callers':'commerce-p7','scope.owner.commerce':'store,product'}
         self.server_settings.update({'service.1.user.'+k:v for k,v in self.user_authority.items()})
-        self.admin=[('Authorization','Bearer '+up.token(h.ISSUER,self.fixture,'management','internal'))];self.user=up.token(h.ISSUER,self.fixture,'business','external');self.dual=[('Authorization','Bearer '+self.service),('X-User-Access-Token',self.user)]
+        self.admin=[('Authorization','Bearer '+up.token(self.issuer,self.fixture,'management','internal'))];self.user=up.token(self.issuer,self.fixture,'business','external');self.dual=[('Authorization','Bearer '+self.service),('X-User-Access-Token',self.user)]
         # 权限按用途拆分：检查只读权威+插入引用；管理DML无DDL；迁移Owner只留给CLI。
         self.reader='p7_read_'+self.suffix;self.reader_password=secrets.token_hex(24);self.manager='p7_manage_'+self.suffix;self.manager_password=secrets.token_hex(24)
         self.sql(self.db,f"CREATE ROLE {self.reader} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD '{self.reader_password}'; CREATE ROLE {self.manager} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD '{self.manager_password}'; REVOKE ALL ON DATABASE {self.db['database']} FROM PUBLIC; REVOKE CREATE ON SCHEMA public FROM PUBLIC; GRANT CONNECT ON DATABASE {self.db['database']} TO {self.reader},{self.manager}; GRANT USAGE ON SCHEMA auth_governance TO {self.reader},{self.manager}; GRANT SELECT ON ALL TABLES IN SCHEMA auth_governance TO {self.reader}; GRANT INSERT ON auth_governance.execution_reference TO {self.reader}; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA auth_governance TO {self.manager}; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA auth_governance TO {self.manager};")
@@ -187,7 +222,7 @@ class Rehearsal:
         graph_scope='scope.graph.http=http://127.0.0.1:18547\nscope.graph.key='+self.graph1['key']+'\n'
         self.server_config=self.run/'server.properties';h.private(self.server_config,self.reader_db+self.legacy+graph_scope+h.props(self.server_settings))
         admin_config=self.run/'admin.properties';h.private(admin_config,manager_db+self.legacy+graph_scope+h.props(self.management_authority))
-        self.admin_process=self.start('admin',18172,admin_config,'admin');self.a=self.start('server',18170,self.server_config,'server-a');self.baseline_jar=ROOT/'.local/governance/p7-baseline-source/auth-platform-server/target/auth-platform-server-0.1.0-SNAPSHOT.jar';self.b=self.start('server',18171,self.server_config,'server-b-p6',self.baseline_jar)
+        self.admin_process=self.start('admin',18172,admin_config,'admin');self.a=self.start('server',18170,self.server_config,'server-a');self.baseline_jar=self.jars['server'] if self.current_only else ROOT/'.local/governance/p7-baseline-source/auth-platform-server/target/auth-platform-server-0.1.0-SNAPSHOT.jar';self.b=self.start('server',18171,self.server_config,'server-b-current' if self.current_only else 'server-b-p6',self.baseline_jar)
         prefix='/api/governance/v1/access'
         self.call(18172,prefix+'/enable-strict',{**self.partition,'command_id':uid(),'kind':None},status=202)
         self.role=self.call(18172,prefix+'/roles',{**self.partition,'command_id':uid(),'role_code':'p7-catalog','role_version':1,'capabilities':['commerce.catalog.operate']})['id'];self.grants={}
@@ -197,7 +232,7 @@ class Rehearsal:
         self.projection()
     def run_checks(self):
         for port in (18170,18171):assert self.check(port)['decision']=='ALLOW'
-        self.record('two separate auth JVMs with P6 and P7 artifacts allow current scoped grant',pids=[self.a.pid,self.b.pid],baseline_ref='c8df1b19d309580d277021089c0a837143fec7b0',baseline_jar_sha256=hashlib.sha256(self.baseline_jar.read_bytes()).hexdigest(),current_jar_sha256=hashlib.sha256(self.jars['server'].read_bytes()).hexdigest())
+        self.record('two current auth JVMs allow current scoped grant' if self.current_only else 'two separate auth JVMs with P6 and P7 artifacts allow current scoped grant',pids=[self.a.pid,self.b.pid],baseline_ref='CURRENT_SAME_ARTIFACT' if self.current_only else 'c8df1b19d309580d277021089c0a837143fec7b0',baseline_jar_sha256=hashlib.sha256(self.baseline_jar.read_bytes()).hexdigest(),current_jar_sha256=hashlib.sha256(self.jars['server'].read_bytes()).hexdigest())
         assert self.check(18170,'store-outside')['decision']=='DENY';self.check(18170,headers=[('Authorization','Bearer '+secrets.token_urlsafe(48)),('X-User-Access-Token',self.user)],status=401)
         self.record('out-of-scope deny and unknown service authn distinct')
         for role in (self.reader,self.manager):
@@ -215,10 +250,10 @@ class Rehearsal:
         self.identity_proxy.introspection_fault=True
         try:
             assert self.check(18170,status=503)['code']=='DEPENDENCY_UNAVAILABLE'
-            assert self.check(18171,status=401)['code']=='INVALID_CREDENTIAL'
+            assert self.check(18171,status=503 if self.current_only else 401)['code']==('DEPENDENCY_UNAVAILABLE' if self.current_only else 'INVALID_CREDENTIAL')
         finally:self.identity_proxy.introspection_fault=False
         assert self.check(18170)['decision']=='ALLOW'
-        self.record('HTTP200 issuer error envelope is dependency failure on fixed instance; P6 reproduces misclassification; recovery rechecks')
+        self.record('HTTP200 issuer error envelope is dependency failure on both current instances; recovery rechecks' if self.current_only else 'HTTP200 issuer error envelope is dependency failure on fixed instance; P6 reproduces misclassification; recovery rechecks')
         self.sql(self.db,f"REVOKE CONNECT ON DATABASE {self.db['database']} FROM {self.reader}; SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='{self.db['database']}' AND usename='{self.reader}';")
         try:self.check(18170,status=503)
         finally:self.sql(self.db,f"GRANT CONNECT ON DATABASE {self.db['database']} TO {self.reader};")
@@ -244,14 +279,16 @@ class Rehearsal:
             elapsed=time.monotonic()-start;values=[r['ms'] for r in rows]
             measurements.append({'concurrency':concurrency,'requests':len(rows),'elapsed_seconds':round(elapsed,3),'throughput_rps':round(len(rows)/elapsed,3),'p50_ms':percentile(values,.5),'p95_ms':percentile(values,.95),'p99_ms':percentile(values,.99),'errors':sum(r['result']=='ERROR' for r in rows),'error_codes':dict(collections.Counter(r['code'] for r in rows if r['result']=='ERROR')),'introspection_responses':dict(self.identity_proxy.responses-before)})
             h.private(self.run/f'load-{concurrency}.json',json.dumps(rows))
-        self.load={'fixture':'synthetic: 1 tenant, 1 app, 2 members, 3 direct scoped grants, 4 resource IDs; 80% hot allowed/20% denied','instances':2,'samples':measurements,'production_slo':'UNDEFINED','includes':'HTTP + live Casdoor introspection + DB snapshots + graph + response; no retries'}
+        self.load={'fixture':'synthetic: 1 tenant, 1 app, 2 members, 3 direct scoped grants, 4 resource IDs; 80% hot allowed/20% denied','instances':2,'instance_mode':'CURRENT_ONLY' if self.current_only else 'P6_P7_MIXED','identity_mode':'DEDICATED_IDP_AND_PG' if self.isolated_identity else 'EXISTING_IDP_SHARED_PG','samples':measurements,'production_slo':'UNDEFINED','includes':'HTTP + live Casdoor introspection + DB snapshots + graph + response; no retries'}
         self.record('bounded load measured including all errors',measurements=measurements)
         body={**self.partition,'command_id':uid(),'member_id':self.members['external'],'member_generation':1,'role_id':self.role,'scope_rule':{'version':1,'resource_type':'store','clauses':[{'kind':'SPECIFIED_STORES','values':['store-mixed'],'include_root':False}]},'source_id':'p7-mixed-revoke','valid_from':now(-2),'valid_to':now(300)}
         mixed=self.call(18172,'/api/governance/v1/access/scoped-grants',body,status=202)['id'];self.projection()
-        for port in (18170,18171):assert self.check(port,'store-mixed')['decision']=='ALLOW'
+        readiness=[self.await_new_grant(port,'store-mixed') for port in (18170,18171)]
+        self.record('new grant converges within bounded probes before strict revoke assertion',readiness=readiness)
         self.call(18172,'/api/governance/v1/access/revoke',{**self.partition,'command_id':uid(),'grant_id':mixed,'expected_version':1});self.projection()
-        for port in (18170,18171):assert self.check(port,'store-mixed')['decision']=='DENY'
-        self.record('P6 and P7 mixed-version processes both enforce completed revocation')
+        for port in (18170,18171):
+            value=self.check(port,'store-mixed');assert value['decision']=='DENY',f'completed revoke on {port}: '+str(value.get('decision'))
+        self.record('both current processes enforce completed revocation' if self.current_only else 'P6 and P7 mixed-version processes both enforce completed revocation')
         self.a.kill();self.a.wait(timeout=10);assert self.check(18171)['decision']=='ALLOW';self.a=self.start('server',18170,self.server_config,'server-a-restarted');assert self.check(18170)['decision']=='ALLOW'
         self.record('kill one auth JVM; other remains usable; restarted instance rechecks')
     def idp(self,path,body=None,allow_error=False):
@@ -281,14 +318,14 @@ class Rehearsal:
         self.record('old service credential rejected by every current instance after retirement')
         old_user=self.user;client=self.fixture['clients']['business'];old_secret=client['secret'];new_secret=secrets.token_urlsafe(36)
         self.change_signer('b',new_secret);client['secret']=new_secret
-        self.user=up.token(h.ISSUER,self.fixture,'business','external');self.dual=[('Authorization','Bearer '+new),('X-User-Access-Token',self.user)]
+        self.user=up.token(self.issuer,self.fixture,'business','external');self.dual=[('Authorization','Bearer '+new),('X-User-Access-Token',self.user)]
         self.server_settings['service.1.user.client.secret']=new_secret
         config=self.run/'server-identity-rotated.properties';h.private(config,self.reader_db+self.legacy+graph_scope+h.props(self.server_settings))
         for name,port in [('a',18170),('b',18171)]:
             h.stop(getattr(self,name));setattr(self,name,self.start('server',port,config,'identity-rotate-'+name))
             assert self.check(port)['decision']=='ALLOW'
             self.check(port,headers=[('Authorization','Bearer '+new),('X-User-Access-Token',old_user)],status=401)
-        conn=http.client.HTTPConnection('localhost',18090,timeout=5)
+        conn=http.client.HTTPConnection('localhost',self.identity_port,timeout=5)
         try:
             auth='Basic '+base64.b64encode((client['name']+':'+old_secret).encode()).decode()
             conn.request('POST','/api/login/oauth/introspect',urllib.parse.urlencode({'token':self.user,'token_type_hint':'access_token'}),{'Authorization':auth,'Content-Type':'application/x-www-form-urlencoded'})
@@ -354,7 +391,7 @@ COMMIT;""")
         self.recovery_result={'backup_sha256':backup_hash,'restore_elapsed_seconds':round(time.monotonic()-started,3),'delta_events':1,'scope':'closed synthetic fixture with complete single post-backup revoke; not production RPO','new_graph_database':self.graph2['database'],'new_watermarks':len(new_tokens),'readiness_retries':readiness_retries,'production_rto_rpo':'UNDEFINED'}
         self.record('new graph watermarks established; active allows, revoked and expired remain denied',recovery=self.recovery_result)
     def finish(self):
-        result={'result':'PASS','scope':'P7 local isolated baseline, not production accepted','source_sha256':self.source_hash,'started_at':self.started,'finished_at':now(),'run':str(self.run),'checks':self.checks,'capacity':self.load,'recovery':getattr(self,'recovery_result',None),'refs':{name:subprocess.check_output(['git','-C',str(path),'rev-parse','HEAD'],text=True).strip() for name,path in [('auth',ROOT),('commerce',ROOT.parent/'commerce-platform'),('oa',ROOT.parent/'oa-platform')]}}
+        result={'result':'PASS','scope':'P7 local isolated baseline, not production accepted','source_sha256':self.source_hash,'identity_mode':'DEDICATED_IDP_AND_PG' if self.isolated_identity else 'EXISTING_IDP_SHARED_PG','instance_mode':'CURRENT_ONLY' if self.current_only else 'P6_P7_MIXED','started_at':self.started,'finished_at':now(),'run':str(self.run),'checks':self.checks,'capacity':self.load,'recovery':getattr(self,'recovery_result',None),'refs':{name:subprocess.check_output(['git','-C',str(path),'rev-parse','HEAD'],text=True).strip() for name,path in [('auth',ROOT),('commerce',ROOT.parent/'commerce-platform'),('oa',ROOT.parent/'oa-platform')]}}
         h.private(self.run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(self.checks),'evidence':str(self.run/'result.json')}))
     def close(self):
         for process in self.processes:h.stop(process)
@@ -363,9 +400,9 @@ COMMIT;""")
         for name in reversed(self.containers):subprocess.run(['docker','stop','-t','3',name],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=15)
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--samples',type=int,default=48);args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--samples',type=int,default=48);parser.add_argument('--isolated-identity',action='store_true',help='create owned Casdoor18094 and use owned PostgreSQL');parser.add_argument('--current-only',action='store_true',help='use current artifact for both JVMs');args=parser.parse_args()
     if not 16<=args.samples<=200:parser.error('samples must be bounded in [16,200]')
-    test=Rehearsal(args.samples)
+    test=Rehearsal(args.samples,args.isolated_identity,args.current_only)
     try:test.setup();test.run_checks();test.rotation();test.recovery();test.finish()
     finally:test.close()
 

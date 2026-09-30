@@ -61,7 +61,7 @@ def main():
     global BASE
     parser = argparse.ArgumentParser()
     parser.add_argument('--directory', default='.local/governance')
-    parser.add_argument('--base', default=BASE, choices=['http://localhost:8000', 'http://localhost:18090'])
+    parser.add_argument('--base', default=BASE, choices=['http://localhost:8000', 'http://localhost:18090', 'http://localhost:18094'])
     parser.add_argument('--management-config')
     parser.add_argument('--phase', type=FixturePhase, choices=list(FixturePhase), default=FixturePhase.CODE_FLOW,
                         help='tokens only verifies P1-02 fixtures; code-flow also checks login upgrade gates')

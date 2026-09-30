@@ -1,0 +1,473 @@
+{
+  "baseline": "2bcf0263c3c80e983b44a8beb42595cd8b049037",
+  "source_sha256": {
+    "deploy/governance-p7-rehearsal.py": "da6d9f64bf09d88797a13333891bdd702eb25b380693b150b074d605551e6f5b",
+    "deploy/governance-casdoor-isolation.py": "3e217f60b93d2b775bbe7fe3306e575de244535915d09bdf850bfbfce7f4a310",
+    "deploy/governance-casdoor-fixture.py": "6be5495589819aea8c30220d7d752ce070da004bd01a447661b70f6634aeb70d",
+    "deploy/tests/test_governance_p7.py": "16b223a9b5511df9e70d0abb87d752750e13eabc39d33e4aff0b508232ba9874",
+    ".github/workflows/authz-ci.yml": "ad43898629f4a27f16e65211fc11686a6307899e750459d8bf3eb62ce4c4f0f3"
+  },
+  "tool_unit_tests": 4,
+  "rehearsal": {
+    "result": "PASS",
+    "scope": "P7 local isolated baseline, not production accepted",
+    "source_sha256": "da6d9f64bf09d88797a13333891bdd702eb25b380693b150b074d605551e6f5b",
+    "identity_mode": "DEDICATED_IDP_AND_PG",
+    "instance_mode": "CURRENT_ONLY",
+    "started_at": "2026-09-30T02:09:54.097Z",
+    "finished_at": "2026-09-30T02:11:34.445Z",
+    "run": "/Users/liruijun/personal/LLM/auth-platform/.local/governance/p7/6e97559e55a8",
+    "checks": [
+      {
+        "check": "dedicated identity instance uses owned PostgreSQL and private network",
+        "result": "PASS",
+        "identity_port": 18094,
+        "identity_image": "casbin/casdoor@sha256:138b5e46d49ad678ea2d53487fa74f8aae6e3ee3a670fc1b62ebe981c2a9d964",
+        "network": "auth-p7-6e97559e55a8",
+        "database": "auth_casdoor_p1_test_83a2abeb489b"
+      },
+      {
+        "check": "two current auth JVMs allow current scoped grant",
+        "result": "PASS",
+        "pids": [
+          3987,
+          4000
+        ],
+        "baseline_ref": "CURRENT_SAME_ARTIFACT",
+        "baseline_jar_sha256": "47f1dc1f32533d60813e8f123b8b47d75e617b8c0290a2129a0c131bb1f7d9c6",
+        "current_jar_sha256": "47f1dc1f32533d60813e8f123b8b47d75e617b8c0290a2129a0c131bb1f7d9c6"
+      },
+      {
+        "check": "out-of-scope deny and unknown service authn distinct",
+        "result": "PASS"
+      },
+      {
+        "check": "reader cannot mutate grants; reader and manager cannot DDL",
+        "result": "PASS"
+      },
+      {
+        "check": "legacy API authenticated and management metrics on separate loopback port",
+        "result": "PASS"
+      },
+      {
+        "check": "graph outage is ERROR and recovery does not use cached allow",
+        "result": "PASS"
+      },
+      {
+        "check": "Casdoor outage rejects even previously accepted token; introspection has no positive cache",
+        "result": "PASS"
+      },
+      {
+        "check": "HTTP200 issuer error envelope is dependency failure on both current instances; recovery rechecks",
+        "result": "PASS"
+      },
+      {
+        "check": "owned reader database outage fails closed; reconnect restores current checks",
+        "result": "PASS"
+      },
+      {
+        "check": "live metrics separate ALLOW DENY AUTHN ERROR without tenant/user labels",
+        "result": "PASS",
+        "tags": {
+          "operation": [
+            "RESOURCE"
+          ],
+          "outcome": [
+            "ERROR",
+            "DENY",
+            "AUTHN",
+            "ALLOW"
+          ]
+        }
+      },
+      {
+        "check": "management stopped; daily checks continue without OA or admin call",
+        "result": "PASS"
+      },
+      {
+        "check": "bounded load measured including all errors",
+        "result": "PASS",
+        "measurements": [
+          {
+            "concurrency": 1,
+            "requests": 200,
+            "elapsed_seconds": 11.048,
+            "throughput_rps": 18.102,
+            "p50_ms": 45.079,
+            "p95_ms": 65.393,
+            "p99_ms": 143.543,
+            "errors": 0,
+            "error_codes": {},
+            "introspection_responses": {
+              "ACTIVE": 200
+            }
+          },
+          {
+            "concurrency": 4,
+            "requests": 200,
+            "elapsed_seconds": 6.188,
+            "throughput_rps": 32.32,
+            "p50_ms": 117.059,
+            "p95_ms": 177.239,
+            "p99_ms": 192.005,
+            "errors": 0,
+            "error_codes": {},
+            "introspection_responses": {
+              "ACTIVE": 200
+            }
+          },
+          {
+            "concurrency": 8,
+            "requests": 200,
+            "elapsed_seconds": 7.571,
+            "throughput_rps": 26.415,
+            "p50_ms": 294.154,
+            "p95_ms": 451.413,
+            "p99_ms": 505.594,
+            "errors": 0,
+            "error_codes": {},
+            "introspection_responses": {
+              "ACTIVE": 200
+            }
+          }
+        ]
+      },
+      {
+        "check": "new grant converges within bounded probes before strict revoke assertion",
+        "result": "PASS",
+        "readiness": [
+          {
+            "instance": 18170,
+            "observations": [
+              "ALLOW"
+            ],
+            "elapsed_ms": 78.392
+          },
+          {
+            "instance": 18171,
+            "observations": [
+              "ALLOW"
+            ],
+            "elapsed_ms": 40.33
+          }
+        ]
+      },
+      {
+        "check": "both current processes enforce completed revocation",
+        "result": "PASS"
+      },
+      {
+        "check": "kill one auth JVM; other remains usable; restarted instance rechecks",
+        "result": "PASS"
+      },
+      {
+        "check": "rolling service rotation has explicit old-instance grace window",
+        "result": "PASS"
+      },
+      {
+        "check": "old service credential rejected by every current instance after retirement",
+        "result": "PASS"
+      },
+      {
+        "check": "real Casdoor signing certificate and client secret rotated; retired token and secret rejected",
+        "result": "PASS"
+      },
+      {
+        "check": "revocation is observed by both instances before backup restore",
+        "result": "PASS"
+      },
+      {
+        "check": "bounded readonly queue and fence snapshot captured without identities",
+        "result": "PASS"
+      },
+      {
+        "check": "consistent pg_dump restored into new owned database; original database preserved",
+        "result": "PASS",
+        "backup_sha256": "01131e8baf55548f65e86d89f3ee28986d2c9b8c69f1e54f4b5a687317c4eefc"
+      },
+      {
+        "check": "backup-after revocation replayed idempotently before graph rebuild",
+        "result": "PASS"
+      },
+      {
+        "check": "restored authority remains fail-closed while new graph has no watermark",
+        "result": "PASS"
+      },
+      {
+        "check": "new graph watermarks established; active allows, revoked and expired remain denied",
+        "result": "PASS",
+        "recovery": {
+          "backup_sha256": "01131e8baf55548f65e86d89f3ee28986d2c9b8c69f1e54f4b5a687317c4eefc",
+          "restore_elapsed_seconds": 17.588,
+          "delta_events": 1,
+          "scope": "closed synthetic fixture with complete single post-backup revoke; not production RPO",
+          "new_graph_database": "auth_gov_p1_test_2ef582205975",
+          "new_watermarks": 2,
+          "readiness_retries": 0,
+          "production_rto_rpo": "UNDEFINED"
+        }
+      }
+    ],
+    "capacity": {
+      "fixture": "synthetic: 1 tenant, 1 app, 2 members, 3 direct scoped grants, 4 resource IDs; 80% hot allowed/20% denied",
+      "instances": 2,
+      "instance_mode": "CURRENT_ONLY",
+      "identity_mode": "DEDICATED_IDP_AND_PG",
+      "samples": [
+        {
+          "concurrency": 1,
+          "requests": 200,
+          "elapsed_seconds": 11.048,
+          "throughput_rps": 18.102,
+          "p50_ms": 45.079,
+          "p95_ms": 65.393,
+          "p99_ms": 143.543,
+          "errors": 0,
+          "error_codes": {},
+          "introspection_responses": {
+            "ACTIVE": 200
+          }
+        },
+        {
+          "concurrency": 4,
+          "requests": 200,
+          "elapsed_seconds": 6.188,
+          "throughput_rps": 32.32,
+          "p50_ms": 117.059,
+          "p95_ms": 177.239,
+          "p99_ms": 192.005,
+          "errors": 0,
+          "error_codes": {},
+          "introspection_responses": {
+            "ACTIVE": 200
+          }
+        },
+        {
+          "concurrency": 8,
+          "requests": 200,
+          "elapsed_seconds": 7.571,
+          "throughput_rps": 26.415,
+          "p50_ms": 294.154,
+          "p95_ms": 451.413,
+          "p99_ms": 505.594,
+          "errors": 0,
+          "error_codes": {},
+          "introspection_responses": {
+            "ACTIVE": 200
+          }
+        }
+      ],
+      "production_slo": "UNDEFINED",
+      "includes": "HTTP + live Casdoor introspection + DB snapshots + graph + response; no retries"
+    },
+    "recovery": {
+      "backup_sha256": "01131e8baf55548f65e86d89f3ee28986d2c9b8c69f1e54f4b5a687317c4eefc",
+      "restore_elapsed_seconds": 17.588,
+      "delta_events": 1,
+      "scope": "closed synthetic fixture with complete single post-backup revoke; not production RPO",
+      "new_graph_database": "auth_gov_p1_test_2ef582205975",
+      "new_watermarks": 2,
+      "readiness_retries": 0,
+      "production_rto_rpo": "UNDEFINED"
+    },
+    "refs": {
+      "auth": "2bcf0263c3c80e983b44a8beb42595cd8b049037",
+      "commerce": "31dbdcd61b1d5571a2cf12ad92e9fc625e306902",
+      "oa": "6385a869e234b635c44e5b96f75e48133b3a1390"
+    }
+  },
+  "container_states": [
+    {
+      "name": "auth-gov-p7-pg-6e97559e55a8",
+      "state": "exited",
+      "image": "postgres:16-alpine",
+      "nano_cpus": 1000000000,
+      "memory_bytes": 536870912,
+      "networks": [
+        "auth-p7-6e97559e55a8",
+        "bridge"
+      ],
+      "persistent_mount_types": [
+        "volume"
+      ]
+    },
+    {
+      "name": "auth-gov-casdoor-p1-83a2abeb489b",
+      "state": "exited",
+      "image": "casbin/casdoor@sha256:138b5e46d49ad678ea2d53487fa74f8aae6e3ee3a670fc1b62ebe981c2a9d964",
+      "nano_cpus": 1000000000,
+      "memory_bytes": 805306368,
+      "networks": [
+        "auth-p7-6e97559e55a8"
+      ],
+      "persistent_mount_types": [
+        "volume"
+      ]
+    },
+    {
+      "name": "auth-gov-p7-6e97559e55a8-graph-original",
+      "state": "exited",
+      "image": "authzed/spicedb@sha256:aa96009a0477f8a759149823407d47ad16d1a74390bae3102b3b0b7143502764",
+      "nano_cpus": 1000000000,
+      "memory_bytes": 536870912,
+      "networks": [
+        "bridge"
+      ],
+      "persistent_mount_types": []
+    },
+    {
+      "name": "auth-gov-p7-6e97559e55a8-graph-restored",
+      "state": "exited",
+      "image": "authzed/spicedb@sha256:aa96009a0477f8a759149823407d47ad16d1a74390bae3102b3b0b7143502764",
+      "nano_cpus": 1000000000,
+      "memory_bytes": 536870912,
+      "networks": [
+        "bridge"
+      ],
+      "persistent_mount_types": []
+    }
+  ],
+  "hygiene": {
+    "protocol": "code-hygiene-gate/v1",
+    "finalStatus": "IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS",
+    "checks": [
+      {
+        "checkId": "FORMAT",
+        "status": "SKIPPED",
+        "skipReason": "TOOL_NOT_AVAILABLE",
+        "summary": "no canonical formatter; surrounding-style checks passed"
+      },
+      {
+        "checkId": "STATIC_ANALYSIS",
+        "status": "SKIPPED",
+        "skipReason": "NOT_APPLICABLE",
+        "summary": "no static analysis configured in repository"
+      },
+      {
+        "checkId": "CODE_HYGIENE",
+        "status": "PASS",
+        "skipReason": null,
+        "summary": "no blocking findings"
+      },
+      {
+        "checkId": "REPO_CONVENTION",
+        "status": "PASS",
+        "skipReason": null,
+        "summary": "no blocking findings"
+      },
+      {
+        "checkId": "DIFF_HYGIENE",
+        "status": "PASS",
+        "skipReason": null,
+        "summary": "no blocking findings"
+      },
+      {
+        "checkId": "COMPILE",
+        "status": "PASS",
+        "skipReason": null,
+        "summary": "caller-executed command"
+      },
+      {
+        "checkId": "UNIT_TEST",
+        "status": "PASS",
+        "skipReason": null,
+        "summary": "caller-executed command"
+      }
+    ],
+    "limitations": [
+      {
+        "code": "FORMAT_TOOL_NOT_AVAILABLE",
+        "check": "FORMAT"
+      }
+    ],
+    "findings": [
+      {
+        "findingId": "HF-001",
+        "ruleId": "HYG-MAGIC-NUMBER",
+        "check": "CODE_HYGIENE",
+        "area": "magic-value",
+        "severity": "ADVISORY",
+        "file": "deploy/governance-p7-rehearsal.py",
+        "line": 174,
+        "excerpt": "if attempt<11:time.sleep(.25)",
+        "message": "business-significant number inline; classify as constant / configuration / enum"
+      },
+      {
+        "findingId": "HF-002",
+        "ruleId": "HYG-MAGIC-NUMBER",
+        "check": "CODE_HYGIENE",
+        "area": "magic-value",
+        "severity": "ADVISORY",
+        "file": "deploy/governance-p7-rehearsal.py",
+        "line": 189,
+        "excerpt": "subprocess.run(['python3',str(ROOT/'deploy/governance-casdoor-isolation.py'),'--directory',str(spec['config'].parent),'--postgres-container',PG,'--postgres-host",
+        "message": "business-significant number inline; classify as constant / configuration / enum"
+      }
+    ],
+    "report": [
+      {
+        "area": "Repository conventions",
+        "status": "PASS"
+      },
+      {
+        "area": "Formatting",
+        "status": "SKIPPED:TOOL_NOT_AVAILABLE"
+      },
+      {
+        "area": "Error-code governance",
+        "status": "PASS"
+      },
+      {
+        "area": "Enum/domain modeling",
+        "status": "PASS"
+      },
+      {
+        "area": "Magic value inspection",
+        "status": "PASS_WITH_ADVISORY"
+      },
+      {
+        "area": "Exception handling",
+        "status": "PASS"
+      },
+      {
+        "area": "Validation",
+        "status": "NOT_AUTOMATED"
+      },
+      {
+        "area": "Logging",
+        "status": "PASS"
+      },
+      {
+        "area": "Transaction review",
+        "status": "N/A"
+      },
+      {
+        "area": "Static analysis",
+        "status": "N/A"
+      },
+      {
+        "area": "Compilation",
+        "status": "PASS"
+      },
+      {
+        "area": "Tests",
+        "status": "PASS"
+      },
+      {
+        "area": "Diff hygiene",
+        "status": "PASS"
+      }
+    ],
+    "canonicalCommands": {
+      "FORMAT": {
+        "status": "NO_FORMATTER",
+        "limitation": "FORMAT_TOOL_NOT_AVAILABLE",
+        "resolutionLevel": "SURROUNDING_SOURCE_STYLE"
+      },
+      "STATIC_ANALYSIS": {
+        "status": "NOT_CONFIGURED"
+      }
+    }
+  },
+  "production_accepted": false
+}

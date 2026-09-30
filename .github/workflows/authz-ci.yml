@@ -19,6 +19,7 @@ on:
       - 'deploy/governance-p6-*'
       - 'deploy/governance-p7-*'
       - 'deploy/tests/test_governance_p6*'
+      - 'deploy/tests/test_governance_p7*'
       - 'compatibility/boot4-sdk/**'
       - 'auth-console/**'
       - 'pom.xml'
@@ -44,6 +45,7 @@ on:
       - 'deploy/governance-p6-*'
       - 'deploy/governance-p7-*'
       - 'deploy/tests/test_governance_p6*'
+      - 'deploy/tests/test_governance_p7*'
       - 'compatibility/boot4-sdk/**'
       - 'auth-console/**'
       - 'pom.xml'
@@ -102,8 +104,10 @@ jobs:
             deploy/recon-platform-provision.sh deploy/benefit-platform-provision.sh
           grep -q 'definition risk_case' auth-platform-core/src/main/resources/schemas/risk.zed
           grep -q 'permission work = assignee' auth-platform-core/src/main/resources/schemas/risk.zed
-      - name: Validate P7 bounded rehearsal syntax
-        run: python3 -m py_compile deploy/governance-p7-rehearsal.py
+      - name: Validate P7 bounded rehearsal
+        run: |
+          python3 -m py_compile deploy/governance-p7-rehearsal.py deploy/governance-casdoor-isolation.py deploy/governance-casdoor-fixture.py
+          python3 -m unittest discover -s deploy/tests -p 'test_governance_p7*.py' -v
       - name: Prepare pinned isolated identity provider
         run: |
           python3 deploy/governance-test-db.py --container '${{ job.services.postgres.id }}' --port 5432
