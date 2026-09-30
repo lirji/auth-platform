@@ -28,6 +28,7 @@ public final class ExecutionAuthorization {
     private static final Set<String> POINT_OFFER_CAPABILITIES = Set.of("point_offer.read", "point_offer.define", "point_offer.status.update");
     private static final Set<String> COUPON_DEFINITION_CAPABILITIES = Set.of("coupon_definition.read", "coupon_definition.create");
     private static final Set<String> ENTITLEMENT_DEFINITION_CAPABILITIES = Set.of("entitlement_definition.read", "entitlement_definition.create");
+    private static final Set<String> RULE_CAPABILITIES = Set.of("rule.read", "rule.create", "rule.publish");
     private static final Set<String> ENTITLEMENT_CAPABILITIES = Set.of("entitlement.read", "entitlement.resolve");
     // 字典定义、会员创建和租户级行为重建没有单个已有会员目标，只能使用集合许可。
     private static final Set<String> MEMBER_COLLECTION_ONLY = Set.of("member.create", "member_tag.define", "member_behavior.rebuild");
@@ -91,9 +92,10 @@ public final class ExecutionAuthorization {
         boolean offer = ScopeDtos.POINT_OFFER_RESOURCE_TYPE.equals(row.resourceType());
         boolean couponDefinition = ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE.equals(row.resourceType());
         boolean entitlementDefinition = ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE.equals(row.resourceType());
+        boolean rule = ScopeDtos.MARKETING_RULE_RESOURCE_TYPE.equals(row.resourceType());
         boolean entitlement = ScopeDtos.ENTITLEMENT_RESOURCE_TYPE.equals(row.resourceType());
         if(facts == null || !context.tenantId().equals(facts.tenantId()) || !row.resourceType().equals(facts.resourceType())
-                || (!member && !policy && !offer && !couponDefinition && !entitlementDefinition && !entitlement && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
+                || (!member && !policy && !offer && !couponDefinition && !entitlementDefinition && !entitlement && !rule && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
         // 政策、券和权益定义只提供版本目录/追加创建集合许可，不构造单个已有版本事实。
         if(policy || couponDefinition || entitlementDefinition) throw error(ACCESS_DENIED);
         if(member && (!MEMBER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
@@ -103,6 +105,9 @@ public final class ExecutionAuthorization {
                 || (context.applicationId() + ".point_offer.define").equals(row.capability()))) throw error(ACCESS_DENIED);
         // 权益处理只绑定实际授予记录；定义或其他能力不能借用此对象入口。
         if(entitlement && ENTITLEMENT_CAPABILITIES.stream().noneMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))) throw error(ACCESS_DENIED);
+        // 新规则创建只有集合许可；读取或发布绑定真实资产版本，不把版本当作状态修订。
+        if(rule && (RULE_CAPABILITIES.stream().noneMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
+                || (context.applicationId() + ".rule.create").equals(row.capability()))) throw error(ACCESS_DENIED);
         var current=access.evaluate(context,row.capability(),row.resourceType());
         var original=read(row.pathsJson(),Paths.class);
         // 目录资格可能先移除再恢复同一个组Grant；绑定目录版本，防止旧后台任务借此复活。
@@ -142,6 +147,7 @@ public final class ExecutionAuthorization {
         if(POINT_OFFER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.POINT_OFFER_RESOURCE_TYPE;
         if(COUPON_DEFINITION_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE;
         if(ENTITLEMENT_DEFINITION_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE;
+        if(RULE_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.MARKETING_RULE_RESOURCE_TYPE;
         if(ENTITLEMENT_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.ENTITLEMENT_RESOURCE_TYPE;
         return DIRECTORY.entrySet().stream().filter(e -> (context.applicationId() + "." + e.getKey()).equals(capability)).map(Map.Entry::getValue).findFirst().orElse(null);
     }
@@ -153,6 +159,7 @@ public final class ExecutionAuthorization {
                 && !ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.ENTITLEMENT_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.MARKETING_RULE_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && CREATION.stream().noneMatch(s -> (context.applicationId() + "." + s).equals(capability))) return paths;
         return paths.stream().filter(a -> a.clauses().size() == 1 && a.clauses().getFirst().kind() == ScopeDtos.Kind.TENANT_ALL).toList();
     }

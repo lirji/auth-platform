@@ -1,5 +1,7 @@
 # 当前商城扩展续做
 
+CE05-R0本地DONE：marketing_rule稳定类型和read/create/publish三个独立有限能力；创建只集合，读取/发布绑定实际资产版本。完整252单元、真实自有PG5ff5f702ccbc/SpiceDB共13项ExecutionAuthorizationIT、SDK Boot4和最终forceCreation install通过，两个运行Jar嵌套依赖及4源码摘要一致。hygiene无阻断，Java formatter/静态分析限制保持。无新迁移，自有PG已finally停止；下一R1商城RULE族/实际Owner/事务审计，R2与其余CE05—08未完成。
+
 CE05-E2本地DONE：权益定义/实例两个固定SSO页、独立create/resolve提示和安全重试。完整461项456PASS/5既有skip、权益8项全PASS；真实0078780a5d6b（10.254.108.0/24）563PASS，其中两个权益页各10条浏览器检查，含所有既有员工页回归。37工具/256入口/122能力/34角色、build/Prettier/两仓hygiene及auth4/commerce11源码摘要一致。1440/390目录/表单及409/未知/取消退出/成功/503截图已查看。恰8身份审计、UI定义和两个补偿各1条；真实客户兑换/核销和撤权后履约兼容。无新迁移，V49—V61不可改。下一CE05-R营销规则细化；其余CE05—08及原生产2HOLD未完成。
 
 CE05-E1本地DONE：ENTITLEMENT_DEFINITION/ENTITLEMENT两族、四独立权限、真实grantId/version、旧回执前路由/事实/期限复核与同事务身份审计，V61已应用不可改。完整460项455PASS/5既有skip，新增7项全PASS；真实独立58007c181423（10.254.107.0/24）477PASS，无浏览器。37工具/252入口/122能力/34角色、两仓hygiene及auth1/commerce8源码摘要一致。下一E2权益定义/实例页面；其余CE05—08和原生产2HOLD未完成。

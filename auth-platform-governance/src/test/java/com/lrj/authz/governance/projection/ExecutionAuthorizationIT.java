@@ -215,6 +215,10 @@ class ExecutionAuthorizationIT {
     @Test void entitlementReferencesSeparateVersionCollectionsFromActualGrants() {
         tenantScopedReferences(List.of("entitlement_definition.read", "entitlement_definition.create", "entitlement.read", "entitlement.resolve"));
     }
+    /** 规则创建只集合，读取/发布绑定实际不可变资产版本；三能力不得互换。 */
+    @Test void marketingRuleReferencesBindActualVersionsAndIndependentCapabilities() {
+        tenantScopedReferences(List.of("rule.read", "rule.create", "rule.publish"));
+    }
     private void tenantScopedReferences(List<String> suffixes) {
         var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
         var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
@@ -228,9 +232,11 @@ class ExecutionAuthorizationIT {
                 boolean couponDefinition=suffix.startsWith("coupon_definition.");
                 boolean entitlementDefinition=suffix.startsWith("entitlement_definition.");
                 boolean entitlement=suffix.startsWith("entitlement.");
-                boolean collectionOnly=entitlementDefinition || couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
+                boolean ruleAsset=suffix.startsWith("rule.");
+                boolean collectionOnly=suffix.equals("rule.create") || entitlementDefinition || couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
                 String type;
-                if(entitlementDefinition) type=ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE;
+                if(ruleAsset) type=ScopeDtos.MARKETING_RULE_RESOURCE_TYPE;
+                else if(entitlementDefinition) type=ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE;
                 else if(entitlement) type=ScopeDtos.ENTITLEMENT_RESOURCE_TYPE;
                 else if(couponDefinition) type=ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE;
                 else if(offer) type=ScopeDtos.POINT_OFFER_RESOURCE_TYPE;
@@ -271,7 +277,13 @@ class ExecutionAuthorizationIT {
                         if(!suffix.equals(other))assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),new CentralAccessDtos.Check(tenant,1L,id(),app+"."+other,type)))).hasMessage("ACCESS_DENIED");
                 }
                 assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,type),Instant.now().plusSeconds(120).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString()))).hasMessage("INVALID_ARGUMENT");
-                String actualId=entitlement?"GRANT-1":"MEMBER-1";
+                if(ruleAsset) {
+                    for(String wrongType:List.of(ScopeDtos.ENTITLEMENT_RESOURCE_TYPE,ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE))
+                        assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,wrongType),until))).hasMessage("ACCESS_DENIED");
+                    for(String other:List.of("rule.read","rule.create","rule.publish"))
+                        if(!suffix.equals(other))assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),new CentralAccessDtos.Check(tenant,1L,id(),app+"."+other,type)))).hasMessage("ACCESS_DENIED");
+                }
+                String actualId=ruleAsset?"RULE-1":entitlement?"GRANT-1":"MEMBER-1";
                 var facts=new Facts(tenant,type,actualId,7,null,null,List.of(),null,null);
                 var resource=new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,facts));
                 if(collectionOnly)assertThatThrownBy(()->executions.check(caller,resource)).hasMessage("ACCESS_DENIED");
