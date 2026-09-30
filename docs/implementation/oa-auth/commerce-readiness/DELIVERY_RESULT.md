@@ -58,3 +58,5 @@ auth feat/commerce-directory-owner-contract与commerce feat/central-commerce-dir
 D2实际交付：auth3a8f7e9（feat/commerce-directory-ui-contract）、commerce5587d53（feat/central-directory-ui）已普通快进合并并推送main；远程CI待查。auth当前继续feat/commerce-member-execution；commerce main暂时干净，没有新worktree。
 
 CE04-P0本地DONE，251单测/4真实PG+graph IT/Boot4兼容/package/hygiene无阻断；auth feat/commerce-member-execution只包含协议/Owner门禁/测试/契约/证据，无商城后续P1实现。Git交付进行中。
+
+CE04最新：P0 auth dd07223已推送，CI36668768692 SUCCESS（含D2基线）；D2 commerce CI36668436980 SUCCESS，auth旧run36668435670取消。P1本地DONE：406项401PASS/5skip、实际隔离114PASS（rehearsal-451c622849b4）、36项工具/223入口契约及hygiene无阻断，见CE04_MEMBER.md。下一CE04-P2 READY，后续会员和CE05—08未完成；原63节点DAG与生产HOLD不变。

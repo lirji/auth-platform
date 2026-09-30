@@ -22,9 +22,17 @@ CE04-P2复用现有SSO、AntDesign和真实会员列表/创建/历史/修改状�
 
 |ID|依赖|可观察结果/Owner|范围与验收|状态|
 |---|---|---|---|---|
-|CE04-P0|CE03-D|auth协议Owner可签发并复核4会员执行引用|真实PG+graph：四能力独立、TENANT_ALL、错误事实/类型/租户/代际、60秒、撤销/重授；HTTP显式Owner门禁；旧库存/CATALOG/目录回归；无Runtime变更|DONE（本地）|
-|CE04-P1|CE04-P0|commerce基础会员API中央接管|真实MySQL身份幂等/审计、版本并发/合法状态、旧ADMIN/聚合拒绝、客户/内部原行为；实际中央跨进程|TODO|
+|CE04-P0|CE03-D|auth协议Owner可签发并复核4会员执行引用|真实PG+graph：四能力独立、TENANT_ALL、错误事实/类型/租户/代际、60秒、撤销/重授；HTTP显式Owner门禁；旧库存/CATALOG/目录回归；无Runtime变更|DONE（已推送/CI SUCCESS）|
+|CE04-P1|CE04-P0|commerce基础会员API中央接管|真实MySQL身份幂等/审计、版本并发/合法状态、旧ADMIN/聚合拒绝、客户/内部原行为；实际中央跨进程|DONE（本地）|
 |CE04-P2|CE04-P1|基础会员员工页面可用|真实API/SSO/操作与错误恢复，当前版本1440/390截图实际查看|TODO|
 |CE04-G/T/B/C/P|CE04-P2及前一片|成长、标签、行为、周期、积分各自API+页面薄片|各片执行前细化对应已批准能力、Owner、合法迁移/幂等/审计/客户回归；后台系统职能留CE08|TODO|
 
 各片串行修改共享协议/路由/schema；没有并行Agent授权。本文件不提前授予未实施能力，也不将生产输入不足扩散为本地开发阻塞。
+
+## P1具体准入与事务（实施前细化）
+
+EmployeeAccess新增ResourceFact(type/id/version)及ResourcePermit(ScopePermit, fact)，复用现有集合许可的路由锁/身份审计，不新增另一套权威或Token。先scope确认四能力全租户资格，再由Member Owner读取真实记录；resource(actor, scope, fact)仅对member.read/profile.update/status.update调用execution-check，复核相同主体/代际、路由与5秒截止。ScopePermit不代表已检查对象，Owner必须持有ResourcePermit；create只用ScopePermit。
+
+list/stats先scope、SQL本来就按可信tenant过滤、返回前复核相同范围指纹；history先全租户资格、Owner真实会员事实、resource-check、SQL游标查询，返回前再次scope并校验Owner版本未变。change选定封闭action后先scope、真实Owner读取和resource-check；Commands guard先共享锁权威路由、再FOR UPDATE锁会员并比较与许可事实版本，之后才读回执。新命令继续原expectedVersion、CLOSED终态、状态允许集合和影响行数规则。同键重试重新取得当前事实，不将易变资源版本放入幂等摘要，稳定principal/member/generation加入摘要；真实变更/history和身份审计共事务。
+
+新增V52仅允许MEMBER_PROFILE族和commerce_member审计资源（store_id为空、resource_id非空），保留V51旧库存/目录兼容与状态触发器，不改变原业务表或旧迁移。HTTP仅精确GET/POST members及单ID的profile/status/history，未知action/额外路径不匹配；旧客户current与业务内部requireActive/lockForOperation保持，未接管其他能力不能使用本片OPERATOR引用。SKU/目录/inventory既有测试全回归。

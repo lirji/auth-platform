@@ -47,3 +47,15 @@ class GrantReadinessTest(unittest.TestCase):
             self.probe.await_new_grant(18170, 'store-new')
         self.assertEqual(1, self.probe.check.call_count)
         sleep.assert_not_called()
+
+
+class IdentitySubnetTest(unittest.TestCase):
+    @patch.object(rehearsal.subprocess, 'run')
+    def test_rejects_public_ipv6_broad_or_noncanonical_subnet_before_docker(self, run):
+        probe = object.__new__(rehearsal.Rehearsal)
+        probe.isolated_identity = True
+        probe.suffix = 'offline'
+        for subnet in ('8.8.8.0/24', '::/0', '10.0.0.0/8', '10.1.1.1/24'):
+            with self.subTest(subnet=subnet), self.assertRaises(ValueError):
+                probe.prepare_identity(subnet)
+        run.assert_not_called()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """P7本地有界加固验收。只写新建隔离库/夹具，所有证据0600；不接管运行商城。"""
-import argparse, base64, collections, concurrent.futures, hashlib, http.client, http.server, importlib.util, json, math, os, secrets, socket, subprocess, threading, time, urllib.parse, uuid
+import argparse, ipaddress, base64, collections, concurrent.futures, hashlib, http.client, http.server, importlib.util, json, math, os, secrets, socket, subprocess, threading, time, urllib.parse, uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from http import HTTPStatus
@@ -177,11 +177,18 @@ class Rehearsal:
     def projection(self,db=None,graph=None):
         for kind in ('POLICY','DIRECTORY'):
             file=self.run/('projection-'+secrets.token_hex(4)+'.properties');h.private(file,h.read_private((db or self.db)['config'])+(graph or self.graph1)['config']+h.props({**self.access,'projection.kind':kind,'jdbc.maximum-pool-size':2}));self.cli('ReliableProjectionCli',file)
-    def prepare_identity(self):
+    def prepare_identity(self, subnet=None):
         """身份服务使用本次PG与私有网络；不修改现有18090实例或共享数据库。"""
         if not self.isolated_identity:return
         self.network='auth-p7-'+self.suffix
-        subprocess.run(['docker','network','create','--label','auth-p7-run='+self.suffix,self.network],check=True,stdout=subprocess.DEVNULL)
+        # 默认地址池耗尽时显式使用经操作者核对的RFC1918 /24；Docker仍负责拒绝网络重叠。
+        command=['docker','network','create','--label','auth-p7-run='+self.suffix]
+        if subnet is not None:
+            value=ipaddress.ip_network(subnet,strict=True)
+            if value.version!=4 or value.prefixlen!=24 or not any(value.subnet_of(ipaddress.ip_network(parent)) for parent in ('10.0.0.0/8','172.16.0.0/12','192.168.0.0/16')):
+                raise ValueError('identity subnet must be an explicit RFC1918 /24')
+            command.extend(['--subnet',str(value)])
+        subprocess.run([*command,self.network],check=True,stdout=subprocess.DEVNULL)
         subprocess.run(['docker','network','connect',self.network,PG],check=True)
         spec=self.database('identity-database')
         name=spec['database'].replace('auth_gov_p1_test_','auth-gov-casdoor-p1-')

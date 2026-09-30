@@ -113,3 +113,5 @@ CE03当前状态（2026-09-29）：I/U/D0/D1已正常合并推送，两仓远程
 CE04继续按[会员实施契约](CONTRACTS_COMMERCE_MEMBER.md)分P0执行协议、P1基础会员Owner、P2页面及后续G/T/B/C/P薄片；当前P0本地DONE，下一P1 READY，其他依赖未完成。
 
 CE04-P0本地DONE：251单测、4真实PG+graph IT、Boot4兼容与package PASS，见commerce-readiness/CE04_MEMBER.md。P1基础会员Owner为下一片，P2及其余会员模块未实现。
+
+CE04最新：P0 auth dd07223已推送，CI36668768692 SUCCESS（含D2基线）；D2 commerce CI36668436980 SUCCESS，auth旧run36668435670取消。P1本地DONE：406项401PASS/5skip、实际隔离114PASS（rehearsal-451c622849b4）、36项工具/223入口契约及hygiene无阻断，见CE04_MEMBER.md。下一CE04-P2 READY，后续会员和CE05—08未完成；原63节点DAG与生产HOLD不变。
