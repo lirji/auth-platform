@@ -177,6 +177,56 @@ class ExecutionAuthorizationIT {
             }
         }
     }
+
+    /** 会员的租户范围不借门店语义，创建许可与实际目标事实分别验证。 */
+    @Test void memberCoreReferencesBindFiniteCapabilitiesAndActualFactShape() {
+        var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
+        var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
+        var graph=new SpiceDbProjectionGraph(props.getProperty("graph.http"),props.getProperty("graph.key"),Duration.ofSeconds(3));
+        try(var runtime=GovernanceRuntime.open(db,true)) {
+            var jdbc=new JdbcTemplate(new DriverManagerDataSource(db.jdbcUrl(),db.username(),db.password()));
+            for(String suffix:List.of("member.read","member.create","member.profile.update","member.status.update")) {
+                String type=ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE,tenant=id(),code="member-"+id(),app="commerce-member-"+id(),cap=app+"."+suffix;
+                var owner=person(runtime,tenant,code);var member=person(runtime,tenant,code);
+                var login=new VerifiedLogin(owner.issuer(),owner.subject());
+                runtime.catalog().register(app,owner.principalId(),"https://member.example","test",id());
+                runtime.catalog().publish(login,new Manifest("1",app,1,List.of(new Capability(cap,type,Risk.HIGH)),List.of()),id());
+                var partition=new Partition(tenant,app,"test");
+                runtime.access().bootstrap(partition,new Delegation(owner.membershipId(),1,AccessValues.json(List.of(cap)),3600),"test",id());
+                var role=runtime.access().createRole(login,partition,id(),"member-core",1,List.of(cap));runtime.access().enableStrict(login,partition,id());
+                var all=new Rule(1,type,List.of(new Clause(ScopeDtos.Kind.TENANT_ALL,List.of(),false)));
+                var partial=new Rule(1,type,List.of(new Clause(ScopeDtos.Kind.SPECIFIED_STORES,List.of("S1"),false)));
+                assertThatThrownBy(()->runtime.access().grantScoped(login,partition,id(),member.membershipId(),1,role.id(),partial,id(),Instant.now(),Instant.now().plusSeconds(300))).hasMessage("SCOPE_UNSUPPORTED");
+                var grant=runtime.access().grantScoped(login,partition,id(),member.membershipId(),1,role.id(),all,id(),Instant.now(),Instant.now().plusSeconds(300));project(runtime,graph,partition);
+                var context=directoryContext(runtime,member,tenant,app);var executions=runtime.executions(graph);
+                String until=Instant.now().plusSeconds(45).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString();
+                var request=new CentralAccessDtos.Check(tenant,1L,id(),cap,type);
+                var ref=executions.issue(context,new Issue(request,until));
+                var caller=mock(CallerService.class);when(caller.callerServiceId()).thenReturn("commerce-directory");when(caller.applicationId()).thenReturn(app);when(caller.environment()).thenReturn("test");
+                var query=new ScopeCheck(ref.executionId(),request);
+                assertThat(executions.scope(caller,query).alternatives().getFirst().clauses()).isEqualTo(all.clauses());
+                assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,"store"),until))).hasMessage("ACCESS_DENIED");
+                assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),app+".member.unknown",type),until))).hasMessage("ACCESS_DENIED");
+                assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,type),Instant.now().plusSeconds(120).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString()))).hasMessage("INVALID_ARGUMENT");
+                var facts=new Facts(tenant,type,"MEMBER-1",7,null,null,List.of(),null,null);
+                var resource=new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,facts));
+                if(suffix.equals("member.create"))assertThatThrownBy(()->executions.check(caller,resource)).hasMessage("ACCESS_DENIED");
+                else assertThat(executions.check(caller,resource).decision()).isEqualTo("ALLOW");
+                for(var bad:List.of(new Facts(tenant,type,"MEMBER-1",7,null,null,List.of(),"S1",null),new Facts(tenant,"store","S1",7,null,null,List.of(),"S1",null),new Facts(id(),type,"MEMBER-1",7,null,null,List.of(),null,null)))
+                    assertThatThrownBy(()->executions.check(caller,new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,bad)))).hasMessage("INVALID_ARGUMENT");
+                assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),new CentralAccessDtos.Check(tenant,2L,id(),cap,type)))).hasMessage("ACCESS_DENIED");
+                assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),new CentralAccessDtos.Check(tenant,1L,id(),app+".member.other",type)))).hasMessage("ACCESS_DENIED");
+                when(caller.environment()).thenReturn("other");assertThatThrownBy(()->executions.scope(caller,query)).hasMessage("ACCESS_DENIED");when(caller.environment()).thenReturn("test");
+                runtime.access().revoke(login,partition,id(),grant.id(),1);project(runtime,graph,partition);
+                assertThat(executions.scope(caller,query).decision()).isEqualTo("DENY");
+                if(!suffix.equals("member.create"))assertThat(executions.check(caller,resource).decision()).isEqualTo("DENY");
+                runtime.access().grantScoped(login,partition,id(),member.membershipId(),1,role.id(),all,id(),Instant.now(),Instant.now().plusSeconds(300));project(runtime,graph,partition);
+                assertThat(executions.scope(caller,query).alternatives()).isEmpty();
+                jdbc.update("update auth_governance.execution_reference set expires_at=clock_timestamp()-interval '1 second' where id=?",ref.executionId());
+                assertThatThrownBy(()->executions.scope(caller,query)).hasMessage("ACCESS_DENIED");
+            }
+        }
+    }
     private static AccessContext directoryContext(GovernanceRuntime runtime,BootstrapCommand member,String tenant,String app) {
         var c=runtime.identity().contextForLogin(member.issuer(),member.subject(),tenant,1L);
         return new AccessContext(c.principalId(),c.membershipId(),1,c.membershipVersion(),c.principalVersion(),tenant,app,"test","commerce-directory","HUMAN",id());

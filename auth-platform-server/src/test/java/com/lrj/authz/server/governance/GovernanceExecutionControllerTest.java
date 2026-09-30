@@ -36,4 +36,19 @@ class GovernanceExecutionControllerTest {
         when(caller.callerServiceId()).thenReturn("other");assertThatThrownBy(()->enabled.scope(request)).hasMessage("ACCESS_DENIED");
     }
 
+    @Test void resourceExecutionRequiresExplicitMemberOwnerBeforeEvaluatingReference() throws Exception {
+        var contexts=mock(InternalContextService.class);var executions=mock(ExecutionAuthorization.class);var caller=mock(CallerService.class);
+        when(contexts.authenticateCaller(anyString())).thenReturn(caller);when(caller.callerServiceId()).thenReturn("commerce-p6");when(caller.applicationId()).thenReturn("commerce");
+        var check=new CentralAccessDtos.Check(UUID.randomUUID().toString(),1L,UUID.randomUUID().toString(),"commerce.member.read",ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE);
+        var facts=new ScopeDtos.Facts(check.tenantId(),check.resourceType(),"member-1",3,null,null,List.of(),null,null);
+        var input=new ExecutionAccessDtos.Check(UUID.randomUUID().toString(),new ScopeAccessDtos.ResourceCheck(check,facts));
+        var request=new MockHttpServletRequest();request.addHeader("Authorization","Bearer "+"s".repeat(48));
+        request.setContent(com.lrj.authz.governance.web.GovernanceWeb.body(input).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        var restricted=new GovernanceExecutionController(contexts,executions,new GovernanceExecutionConfiguration.ExecutionSettings(Set.of("commerce-p6"),Set.of("store")));
+        assertThatThrownBy(()->restricted.check(request)).hasMessage("ACCESS_DENIED");verifyNoInteractions(executions);
+        var enabled=new GovernanceExecutionController(contexts,executions,new GovernanceExecutionConfiguration.ExecutionSettings(Set.of("commerce-p6"),Set.of("store",ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE)));
+        request.setContent(com.lrj.authz.governance.web.GovernanceWeb.body(input).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        enabled.check(request);verify(executions).check(eq(caller),eq(input));
+    }
+
 }

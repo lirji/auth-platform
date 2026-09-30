@@ -7,7 +7,7 @@ import com.lrj.authz.protocol.ScopeDtos.Kind;
 /** 有限资源字段绑定由协议固定；清单声明资源名不等于获准解释任意归属字段。 */
 public final class ScopeResourceBindings {
     private static final Set<String> TENANT_ONLY = Set.of(
-            "commerce_member", "commerce_member_policy", "commerce_runtime", "commerce_tenant",
+            ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE, "commerce_member_policy", "commerce_runtime", "commerce_tenant",
             "campaign", "marketing_rule", "segment", "audience", "coupon_definition", "coupon_delivery",
             "entitlement_definition", "entitlement", "point_offer", "journey", "journey_instance",
             "journey_scan", "ops_page", "marketing_report");

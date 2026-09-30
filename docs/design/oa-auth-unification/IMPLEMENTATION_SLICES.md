@@ -108,4 +108,8 @@ P6历史入口：所选单元本地隔离演练31项通过，最终Git/CI已交�
 用户追加全模块契约扩展，保留原P0—P7稳定ID及完成历史。增量CE-00—CE-08见[扩展契约](CONTRACTS_COMMERCE_EXPANSION.md)；CE-01的D1—D4业务边界已批准，CE-02开始逐动作绑定和受限Actor设计。已批准P6的页面接入补充及审核工具见[续做计划](../../implementation/oa-auth/commerce-readiness/EXECUTION_PLAN.md)，两者不依赖新增业务能力。
 
 
-CE03当前状态（2026-09-29）：I/U/D0/D1已正常合并推送，两仓远程CI SUCCESS。D1 SDK固定来源遗漏由commerce49274a8修复，CI36667650544 SUCCESS；auth378313c CI36667456414 SUCCESS，失败36667458010保留。D2目录员工页本地DONE：402项397PASS/5skip、99项真实隔离检查（目录11条浏览器、库存/CATALOG各9条），1440/390及错误/创建截图已查看，详见commerce-readiness/CE03_DIRECTORY.md。D2 Git交付进行中；下一READY为CE04会员纵向切片技术细化，CE04—08未实施，生产输入HOLD不变。
+CE03当前状态（2026-09-29）：I/U/D0/D1已正常合并推送，两仓远程CI SUCCESS。D1 SDK固定来源遗漏由commerce49274a8修复，CI36667650544 SUCCESS；auth378313c CI36667456414 SUCCESS，失败36667458010保留。D2目录员工页本地DONE：402项397PASS/5skip、99项真实隔离检查（目录11条浏览器、库存/CATALOG各9条），1440/390及错误/创建截图已查看，详见commerce-readiness/CE03_DIRECTORY.md。D2 auth3a8f7e9/commerce5587d53已合并推送，远程CI36668435670/36668436980待查；继续CE04会员纵向切片，CE04—08未实施，生产输入HOLD不变。
+
+CE04继续按[会员实施契约](CONTRACTS_COMMERCE_MEMBER.md)分P0执行协议、P1基础会员Owner、P2页面及后续G/T/B/C/P薄片；当前P0本地DONE，下一P1 READY，其他依赖未完成。
+
+CE04-P0本地DONE：251单测、4真实PG+graph IT、Boot4兼容与package PASS，见commerce-readiness/CE04_MEMBER.md。P1基础会员Owner为下一片，P2及其余会员模块未实现。

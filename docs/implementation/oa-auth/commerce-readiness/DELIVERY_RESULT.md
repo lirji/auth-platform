@@ -54,3 +54,7 @@ auth feat/commerce-directory-owner-contract与commerce feat/central-commerce-dir
 ## CE03-D2本地交付门禁
 
 当前auth feat/commerce-directory-ui-contract和commerce feat/central-directory-ui，目录页面/两提示/工具/契约/验证文档与当前验证版本相同，D2本地DONE。402项397PASS/5skip、最终99隔离检查与已查看截图详见CE03_DIRECTORY；最终只有前端ID修复，已重build/package/真实浏览器验证。按明确路径stage；私密.local、停止容器卷和失败证据保留。实际提交/CI另记，未进行生产部署。
+
+D2实际交付：auth3a8f7e9（feat/commerce-directory-ui-contract）、commerce5587d53（feat/central-directory-ui）已普通快进合并并推送main；远程CI待查。auth当前继续feat/commerce-member-execution；commerce main暂时干净，没有新worktree。
+
+CE04-P0本地DONE，251单测/4真实PG+graph IT/Boot4兼容/package/hygiene无阻断；auth feat/commerce-member-execution只包含协议/Owner门禁/测试/契约/证据，无商城后续P1实现。Git交付进行中。

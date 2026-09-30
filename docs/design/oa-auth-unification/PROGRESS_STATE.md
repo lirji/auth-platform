@@ -31,4 +31,6 @@ P6_LOCAL_COMPLETE_GIT_CI_PASS。用户选择2已落实，完整CATALOG中央经�
 P0—P5历史交付保持，P5 Git/CI见phase-5/P5_DELIVERY_RESULT.md。两仓复用原目录feat/iam-p6-migration，OA既有用户改动未触碰；无新worktree。auth233单测+1真实PG/图IT、commerce393项（388通过/5可选跳过）、Python17项和31跨进程检查均完成。auth产品c8df1b1 / CI 36637749220与commerce最终main 31dbdcd / CI 36637949125均SUCCESS。精确记录见[P6交付](../../implementation/oa-auth/phase-6/P6_DELIVERY_RESULT.md)和[CI结果](../../implementation/oa-auth/phase-6/CI_RESULT.md)。私有隔离库、快照、凭据和日志保留，不入库。
 
 
-CE03当前状态（2026-09-29）：I/U/D0/D1已正常合并推送，两仓远程CI SUCCESS。D1 SDK固定来源遗漏由commerce49274a8修复，CI36667650544 SUCCESS；auth378313c CI36667456414 SUCCESS，失败36667458010保留。D2目录员工页本地DONE：402项397PASS/5skip、99项真实隔离检查（目录11条浏览器、库存/CATALOG各9条），1440/390及错误/创建截图已查看，详见commerce-readiness/CE03_DIRECTORY.md。D2 Git交付进行中；下一READY为CE04会员纵向切片技术细化，CE04—08未实施，生产输入HOLD不变。
+CE03当前状态（2026-09-29）：I/U/D0/D1已正常合并推送，两仓远程CI SUCCESS。D1 SDK固定来源遗漏由commerce49274a8修复，CI36667650544 SUCCESS；auth378313c CI36667456414 SUCCESS，失败36667458010保留。D2目录员工页本地DONE：402项397PASS/5skip、99项真实隔离检查（目录11条浏览器、库存/CATALOG各9条），1440/390及错误/创建截图已查看，详见commerce-readiness/CE03_DIRECTORY.md。D2 auth3a8f7e9/commerce5587d53已合并推送，远程CI36668435670/36668436980待查；继续CE04会员纵向切片，CE04—08未实施，生产输入HOLD不变。
+
+CE04-P0本地DONE：251单测、4真实PG+graph IT、Boot4兼容与package PASS，见commerce-readiness/CE04_MEMBER.md。P1基础会员Owner为下一片，P2及其余会员模块未实现。

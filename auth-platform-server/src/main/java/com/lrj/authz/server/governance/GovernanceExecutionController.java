@@ -36,7 +36,10 @@ public class GovernanceExecutionController {
     @PostMapping(value="/execution-check",consumes="application/json")
     public JsonNode check(HttpServletRequest request)throws IOException {
         var caller=caller(credential(request));
-        return GovernanceWeb.body(executions.check(caller,AccessWeb.read(request.getInputStream(),Check.class)));
+        var input=AccessWeb.read(request.getInputStream(),Check.class);
+        if(input==null||input.resource()==null||input.resource().check()==null)throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);
+        requireOwner(input.resource().check().resourceType());
+        return GovernanceWeb.body(executions.check(caller,input));
     }
     /** 已签发集合引用仍受Owner类型允许列表约束，不能伪造待创建对象事实。 */
     @PostMapping(value="/execution-scope",consumes="application/json")
