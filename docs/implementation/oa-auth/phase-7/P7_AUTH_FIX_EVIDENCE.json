@@ -1,0 +1,175 @@
+{
+  "baseline": "5882ae1a99a2a5b85b9f34ac4571899af0c30ad7",
+  "source_sha256": {
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/authentication/CasdoorAccessTokenVerifier.java": "cd97c95dd03ebbc8cfcf6d7402d113a1a3f11b006a69a81fe25131f25e9acb09",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/authentication/CasdoorAccessTokenVerifierTest.java": "1fb4e4fb19543771de88b255e7d28ac1a259e0fc890f0f65f0ca9064bc2d085c",
+    "deploy/governance-p7-rehearsal.py": "0518e0c4a28bdbcfc88f83b16edbe0c41aa192eed722916d4bf3576028a74fd8"
+  },
+  "unit_tests": 209,
+  "run": ".local/governance/p7/fd17d59c70ab/result.json",
+  "cross_process_checks": [
+    {
+      "check": "two separate auth JVMs with P6 and P7 artifacts allow current scoped grant",
+      "result": "PASS"
+    },
+    {
+      "check": "out-of-scope deny and unknown service authn distinct",
+      "result": "PASS"
+    },
+    {
+      "check": "reader cannot mutate grants; reader and manager cannot DDL",
+      "result": "PASS"
+    },
+    {
+      "check": "legacy API authenticated and management metrics on separate loopback port",
+      "result": "PASS"
+    },
+    {
+      "check": "graph outage is ERROR and recovery does not use cached allow",
+      "result": "PASS"
+    },
+    {
+      "check": "Casdoor outage rejects even previously accepted token; introspection has no positive cache",
+      "result": "PASS"
+    },
+    {
+      "check": "HTTP200 issuer error envelope is dependency failure on fixed instance; P6 reproduces misclassification; recovery rechecks",
+      "result": "PASS"
+    },
+    {
+      "check": "owned reader database outage fails closed; reconnect restores current checks",
+      "result": "PASS"
+    },
+    {
+      "check": "live metrics separate ALLOW DENY AUTHN ERROR without tenant/user labels",
+      "result": "PASS"
+    },
+    {
+      "check": "management stopped; daily checks continue without OA or admin call",
+      "result": "PASS"
+    },
+    {
+      "check": "bounded load measured including all errors",
+      "result": "PASS"
+    },
+    {
+      "check": "P6 and P7 mixed-version processes both enforce completed revocation",
+      "result": "PASS"
+    },
+    {
+      "check": "kill one auth JVM; other remains usable; restarted instance rechecks",
+      "result": "PASS"
+    },
+    {
+      "check": "rolling service rotation has explicit old-instance grace window",
+      "result": "PASS"
+    },
+    {
+      "check": "old service credential rejected by every current instance after retirement",
+      "result": "PASS"
+    },
+    {
+      "check": "real Casdoor signing certificate and client secret rotated; retired token and secret rejected",
+      "result": "PASS"
+    },
+    {
+      "check": "revocation is observed by both instances before backup restore",
+      "result": "PASS"
+    },
+    {
+      "check": "bounded readonly queue and fence snapshot captured without identities",
+      "result": "PASS"
+    },
+    {
+      "check": "consistent pg_dump restored into new owned database; original database preserved",
+      "result": "PASS"
+    },
+    {
+      "check": "backup-after revocation replayed idempotently before graph rebuild",
+      "result": "PASS"
+    },
+    {
+      "check": "restored authority remains fail-closed while new graph has no watermark",
+      "result": "PASS"
+    },
+    {
+      "check": "new graph watermarks established; active allows, revoked and expired remain denied",
+      "result": "PASS"
+    }
+  ],
+  "capacity": {
+    "fixture": "synthetic: 1 tenant, 1 app, 2 members, 3 direct scoped grants, 4 resource IDs; 80% hot allowed/20% denied",
+    "instances": 2,
+    "samples": [
+      {
+        "concurrency": 1,
+        "requests": 200,
+        "elapsed_seconds": 10.725,
+        "throughput_rps": 18.647,
+        "p50_ms": 44.951,
+        "p95_ms": 70.181,
+        "p99_ms": 139.615,
+        "errors": 0,
+        "error_codes": {},
+        "introspection_responses": {
+          "ACTIVE": 200
+        }
+      },
+      {
+        "concurrency": 4,
+        "requests": 200,
+        "elapsed_seconds": 4.384,
+        "throughput_rps": 45.62,
+        "p50_ms": 82.524,
+        "p95_ms": 120.721,
+        "p99_ms": 179.86,
+        "errors": 0,
+        "error_codes": {},
+        "introspection_responses": {
+          "ACTIVE": 200
+        }
+      },
+      {
+        "concurrency": 8,
+        "requests": 200,
+        "elapsed_seconds": 4.802,
+        "throughput_rps": 41.648,
+        "p50_ms": 172.668,
+        "p95_ms": 325.682,
+        "p99_ms": 384.638,
+        "errors": 11,
+        "error_codes": {
+          "DEPENDENCY_UNAVAILABLE": 10,
+          "INVALID_CREDENTIAL": 1
+        },
+        "introspection_responses": {
+          "ACTIVE": 189,
+          "ERROR_ENVELOPE": 7,
+          "HTTP_ERROR": 3
+        }
+      }
+    ],
+    "production_slo": "UNDEFINED",
+    "includes": "HTTP + live Casdoor introspection + DB snapshots + graph + response; no retries"
+  },
+  "recovery": {
+    "backup_sha256": "ff165376545f4b89648853c83b9bd6194d3ee28bf651859262b94245781f3faf",
+    "restore_elapsed_seconds": 17.606,
+    "delta_events": 1,
+    "scope": "closed synthetic fixture with complete single post-backup revoke; not production RPO",
+    "new_graph_database": "auth_gov_p1_test_ba1db279665f",
+    "new_watermarks": 2,
+    "readiness_retries": 0,
+    "production_rto_rpo": "UNDEFINED"
+  },
+  "load_errors_by_instance": {
+    "1": {},
+    "4": {},
+    "8": {
+      "18170:DEPENDENCY_UNAVAILABLE": 8,
+      "18171:DEPENDENCY_UNAVAILABLE": 2,
+      "18171:INVALID_CREDENTIAL": 1
+    }
+  },
+  "production_accepted": false
+}

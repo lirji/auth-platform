@@ -34,3 +34,5 @@
 较早容量试验在并发8出现9次错误；带独立故障代理复核仍观察到拒绝或依赖错误，未删除失败记录。所有中间运行保留在.local/governance/p7。当前生产容量门禁HOLD，不承诺无错误高并发。无统一formatter和独立静态分析，hygiene为IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS，详见P7_HYGIENE.json。
 
 本次复用真实小型直接授权夹具；没有完整生产组扇出、外部成员/资源全集恢复、长时间流量观察或外部报警送达验收。实现者执行验证，不冒充独立人员/代理审查。未改公开协议、持久化schema、SDK及OA/商城产品源码；无可见UI变更，因此视觉验证N/A。
+
+后续认证故障分类整改与共享IdP数据库限制见[P7_AUTH_FAILURE_FIX](P7_AUTH_FAILURE_FIX.md)；本文件原始实测作为历史证据保留。

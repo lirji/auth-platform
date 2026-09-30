@@ -25,3 +25,5 @@
 [P7运行/轮换/恢复手册](P7_RUNTIME.md)、[端点和权限清单](P7-01_EXPOSURE.md)、[指标与告警处置](P7-02_OBSERVABILITY.md)、最终TEST_RESULT/REHEARSAL_RESULT、CODE_EVIDENCE及DELIVERY_RESULT/CI_RESULT构成可复核结果。
 
 目前状态是“本地加固验证完成，生产接受阻塞”，不标PRODUCTION_ACCEPTED或PILOT_RUNNING；在生产必需条件未满足前也不无条件标RELEASE_CANDIDATE。P7-07已形成具体评审材料，但其实际Owner/操作授权验收保持BLOCKED；P7-08保持未执行。
+
+后续认证故障分类整改与共享IdP数据库限制见[P7_AUTH_FAILURE_FIX](P7_AUTH_FAILURE_FIX.md)；本文件原始实测作为历史证据保留。

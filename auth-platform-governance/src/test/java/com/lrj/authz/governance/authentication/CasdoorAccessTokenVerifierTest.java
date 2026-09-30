@@ -38,6 +38,7 @@ class CasdoorAccessTokenVerifierTest {
     private String issuer;
     private volatile String version = CasdoorAccessTokenVerifier.VERIFIED_SERVER_VERSION;
     private volatile boolean active = true;
+    private volatile String introspectionOverride;
     private volatile String changedField;
     private volatile boolean brokenMetadata;
     private volatile boolean oversize;
@@ -100,12 +101,29 @@ class CasdoorAccessTokenVerifierTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"active", "client_id", "iss", "sub", "exp", "aud", "token_type"})
+    @ValueSource(strings = {"client_id", "iss", "sub", "exp", "aud", "token_type"})
     void requiresStrictAgreementWithIntrospection(String field) throws Exception {
         var verifier = verifier(1_000, 2);
         changedField = field;
         String token = token(null);
         expect(INVALID_CREDENTIAL, () -> verifier.verify(token));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{}", "{\"active\":null}", "{\"active\":\"false\"}",
+            "{\"status\":\"error\",\"msg\":\"private database failure\"}",
+            "{\"active\":true,\"error\":\"server_error\"}", "{\"active\":true,\"status\":\"error\"}"})
+    void malformedIntrospectionIsDependencyFailureWithoutLeakingDetails(String response) throws Exception {
+        var verifier = verifier(1_000, 2);
+        String token = token(null);
+        introspectionOverride = response;
+        expect(DEPENDENCY_UNAVAILABLE, () -> verifier.verify(token));
+        assertThat(introspections).hasValue(1); // 故障不触发隐式重试或正向缓存。
+        introspectionOverride = null;
+        assertThat(verifier.verify(token)).isEqualTo(new VerifiedLogin(issuer, "fixture-subject"));
+        active = false;
+        expect(INVALID_CREDENTIAL, () -> verifier.verify(token));
+        assertThat(introspections).hasValue(3);
     }
 
     @Test void rejectsLegacyIssuerAtStartupAndRuntimeDowngrade() throws Exception {
@@ -196,6 +214,7 @@ class CasdoorAccessTokenVerifierTest {
 
     private void introspect(HttpExchange exchange) throws java.io.IOException {
         introspections.incrementAndGet();
+        if (introspectionOverride != null) { respond(exchange, introspectionOverride, 200); return; }
         try {
             if (introspectionEntered != null) { introspectionEntered.countDown(); }
             if (introspectionRelease != null && !introspectionRelease.await(3, TimeUnit.SECONDS)) { respond(exchange, "{}", 503); return; }

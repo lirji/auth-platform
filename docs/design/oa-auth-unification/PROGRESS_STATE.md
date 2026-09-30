@@ -1,5 +1,7 @@
 # 当前P7进度
 
+本轮续做：P7认证错误分类修复本地209单测与22项演练通过。已复现Casdoor共享PG连接不足时HTTP 200错误对象被误报401；修复保持拒绝并改报503。证据见[P7_AUTH_FAILURE_FIX](../../implementation/oa-auth/phase-7/P7_AUTH_FAILURE_FIX.md)。后文为上轮交付基线，当前新源码Git/CI待完成。
+
 P7_LOCAL_DELIVERED_RELEASE_HOLD。用户“继续”及“先做本地有界基线，生产目标待定”已落实。P7-01—06所选本地范围完成：21项真实跨进程检查、150受影响单测、2项真实进程CAS/崩溃恢复IT通过。P7-07已有评审与手册，但实际生产目标/Owner/接受指标/授权缺失，P7-08未执行；生产HOLD。
 
 - [本地验证与容量实测](../../implementation/oa-auth/phase-7/P7_TEST_RESULT.md)

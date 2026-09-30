@@ -84,7 +84,12 @@ public final class CasdoorAccessTokenVerifier {
             }
             JsonNode facts = fetch("/api/login/oauth/introspect", authority.clientId(), authority.clientSecret(),
                     "token=" + encode(accessToken) + "&token_type_hint=access_token");
-            if (!facts.path("active").isBoolean() || !facts.path("active").booleanValue()
+            // HTTP 200 也可能是发行方数据库故障的错误对象；缺少明确认证事实不能归咎于用户凭据。
+            // 不回显上游错误文本、不重试，也不把不可判定状态变成允许。
+            if (!facts.path("active").isBoolean() || facts.has("error") || "error".equals(text(facts, "status"))) {
+                throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
+            }
+            if (!facts.path("active").booleanValue()
                     || !authority.clientId().equals(text(facts, "client_id"))
                     || !jwt.getIssuer().toString().equals(text(facts, "iss"))
                     || !jwt.getSubject().equals(text(facts, "sub"))

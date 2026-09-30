@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """P7本地有界加固验收。只写新建隔离库/夹具，所有证据0600；不接管运行商城。"""
-import argparse, base64, concurrent.futures, hashlib, http.client, http.server, importlib.util, json, math, os, secrets, socket, subprocess, threading, time, urllib.parse, uuid
+import argparse, base64, collections, concurrent.futures, hashlib, http.client, http.server, importlib.util, json, math, os, secrets, socket, subprocess, threading, time, urllib.parse, uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from http import HTTPStatus
@@ -46,7 +46,7 @@ class GraphProxy:
 class IdentityProxy:
     """本工具JVM专用HTTP代理，模拟IdP故障，不停止共享Casdoor。"""
     def __init__(self,port):
-        self.failed=False;owner=self
+        self.failed=False;self.introspection_fault=False;self.responses=collections.Counter();self.lock=threading.Lock();owner=self
         class Handler(http.server.BaseHTTPRequestHandler):
             def route(self):
                 url=urllib.parse.urlsplit(self.path)
@@ -55,11 +55,26 @@ class IdentityProxy:
                 if size>262144:self.send_error(413);return
                 body=self.rfile.read(size) if size else None
                 if owner.failed and url.port==18090:self.send_response(503);self.end_headers();self.wfile.write(b'{}');return
+                if owner.introspection_fault and url.path=='/api/login/oauth/introspect':
+                    self.send_response(HTTPStatus.OK);self.end_headers();self.wfile.write(b'{"status":"error","msg":"isolated dependency fault"}');return
                 conn=http.client.HTTPConnection(url.hostname,url.port,timeout=5)
                 try:
                     headers={k:v for k,v in self.headers.items() if k.lower() not in ('host','connection','proxy-connection')}
                     conn.request(self.command,url.path+('?' + url.query if url.query else ''),body,headers)
-                    r=conn.getresponse();data=r.read(1048577);self.send_response(r.status);self.send_header('Content-Type',r.getheader('Content-Type','application/json'));self.end_headers();self.wfile.write(data)
+                    r=conn.getresponse();data=r.read(1048577)
+                    if url.path=='/api/login/oauth/introspect':
+                        # 只保留有限类别计数，禁止记录Token、用户事实或上游错误文本。
+                        try:
+                            facts=json.loads(data)
+                            if not isinstance(facts,dict):category='MALFORMED'
+                            elif facts.get('status')=='error' or 'error' in facts:category='ERROR_ENVELOPE'
+                            elif facts.get('active') is True:category='ACTIVE'
+                            elif facts.get('active') is False:category='INACTIVE'
+                            else:category='MALFORMED'
+                        except ValueError:category='MALFORMED'
+                        if r.status!=HTTPStatus.OK:category='HTTP_ERROR'
+                        with owner.lock:owner.responses[category]+=1
+                    self.send_response(r.status);self.send_header('Content-Type',r.getheader('Content-Type','application/json'));self.end_headers();self.wfile.write(data)
                 finally:conn.close()
             do_GET=route
             do_POST=route
@@ -197,6 +212,13 @@ class Rehearsal:
         assert self.check(18171)['decision']=='ALLOW';self.record('graph outage is ERROR and recovery does not use cached allow')
         self.identity_proxy.failed=True;self.check(18170,status=503);self.identity_proxy.failed=False
         assert self.check(18170)['decision']=='ALLOW';self.record('Casdoor outage rejects even previously accepted token; introspection has no positive cache')
+        self.identity_proxy.introspection_fault=True
+        try:
+            assert self.check(18170,status=503)['code']=='DEPENDENCY_UNAVAILABLE'
+            assert self.check(18171,status=401)['code']=='INVALID_CREDENTIAL'
+        finally:self.identity_proxy.introspection_fault=False
+        assert self.check(18170)['decision']=='ALLOW'
+        self.record('HTTP200 issuer error envelope is dependency failure on fixed instance; P6 reproduces misclassification; recovery rechecks')
         self.sql(self.db,f"REVOKE CONNECT ON DATABASE {self.db['database']} FROM {self.reader}; SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='{self.db['database']}' AND usename='{self.reader}';")
         try:self.check(18170,status=503)
         finally:self.sql(self.db,f"GRANT CONNECT ON DATABASE {self.db['database']} TO {self.reader};")
@@ -209,17 +231,18 @@ class Rehearsal:
         self.admin_process=self.start('admin',18172,self.run/'admin.properties','admin-resumed')
         measurements=[]
         for concurrency in (1,4,8):
+            before=self.identity_proxy.responses.copy()
             def one(index):
                 start=time.monotonic();store='store-live' if index%5 else 'store-outside';port=18170+index%2
                 try:
                     value=self.check(port,store);result=value['decision'];assert result==('ALLOW' if store=='store-live' else 'DENY')
                 except (RuntimeError,OSError,AssertionError) as failure:
-                    return {'ms':round((time.monotonic()-start)*1000,3),'result':'ERROR','failure_type':type(failure).__name__,'code':str(failure).split('code=')[-1] if 'code=' in str(failure) else 'TRANSPORT_OR_PROTOCOL'}
-                return {'ms':round((time.monotonic()-start)*1000,3),'result':result}
+                    return {'ms':round((time.monotonic()-start)*1000,3),'result':'ERROR','instance':port,'failure_type':type(failure).__name__,'code':str(failure).split('code=')[-1] if 'code=' in str(failure) else 'TRANSPORT_OR_PROTOCOL'}
+                return {'ms':round((time.monotonic()-start)*1000,3),'result':result,'instance':port}
             start=time.monotonic()
             with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as executor:rows=list(executor.map(one,range(self.samples)))
             elapsed=time.monotonic()-start;values=[r['ms'] for r in rows]
-            measurements.append({'concurrency':concurrency,'requests':len(rows),'elapsed_seconds':round(elapsed,3),'throughput_rps':round(len(rows)/elapsed,3),'p50_ms':percentile(values,.5),'p95_ms':percentile(values,.95),'p99_ms':percentile(values,.99),'errors':sum(r['result']=='ERROR' for r in rows)})
+            measurements.append({'concurrency':concurrency,'requests':len(rows),'elapsed_seconds':round(elapsed,3),'throughput_rps':round(len(rows)/elapsed,3),'p50_ms':percentile(values,.5),'p95_ms':percentile(values,.95),'p99_ms':percentile(values,.99),'errors':sum(r['result']=='ERROR' for r in rows),'error_codes':dict(collections.Counter(r['code'] for r in rows if r['result']=='ERROR')),'introspection_responses':dict(self.identity_proxy.responses-before)})
             h.private(self.run/f'load-{concurrency}.json',json.dumps(rows))
         self.load={'fixture':'synthetic: 1 tenant, 1 app, 2 members, 3 direct scoped grants, 4 resource IDs; 80% hot allowed/20% denied','instances':2,'samples':measurements,'production_slo':'UNDEFINED','includes':'HTTP + live Casdoor introspection + DB snapshots + graph + response; no retries'}
         self.record('bounded load measured including all errors',measurements=measurements)
