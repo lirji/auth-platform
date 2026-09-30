@@ -77,5 +77,81 @@ services:
     volumes:
       - ../project-portal/public/config/catalog.json:/usr/share/nginx/html/config/catalog.json:ro
 
+  # 本地治理控制台：复用显式配置的 dev_infra PostgreSQL、Casdoor 4.11 与治理图。
+  # 三个进程共享回环网络，保持已有 issuer 的严格 localhost 校验；只公开 UI。
+  auth-console:
+    profiles: [governance]
+    image: auth-platform/governance-console:local
+    build:
+      context: ../auth-console
+      args:
+        VITE_CASDOOR_AUTHORITY: http://localhost:18090
+        VITE_CASDOOR_CLIENT_ID: ${GOVERNANCE_CLIENT_ID:-auth-console-docker}
+    container_name: auth-governance-console
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${AUTH_CONSOLE_UI_PORT:-5273}:8202"
+    volumes:
+      - ./governance/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test: [CMD-SHELL, "wget -q -O /dev/null http://127.0.0.1:8202/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  governance-admin:
+    profiles: [governance]
+    image: auth-platform/governance-admin:local
+    build:
+      context: ../auth-platform-admin
+      dockerfile: Dockerfile
+    container_name: auth-governance-admin
+    restart: unless-stopped
+    network_mode: service:auth-console
+    depends_on:
+      auth-console:
+        condition: service_healthy
+    volumes:
+      - ${GOVERNANCE_RUNTIME_DIR:-../.local/docker-governance/runtime}:/run/governance:ro
+    command:
+      - java
+      - -Xmx384m
+      - -jar
+      - /app/admin.jar
+      - --server.address=127.0.0.1
+      - --authz.governance.enabled=true
+      - --authz.governance.configuration=/run/governance/admin.properties
+      - --authz.governance.access.enabled=true
+      - --authz.governance.presentation.enabled=true
+      - --authz.governance.scope.enabled=true
+      - --authz.governance.invitations.enabled=true
+      - --authz.governance.requests.enabled=true
+    healthcheck:
+      test: [CMD-SHELL, "curl -fsS http://127.0.0.1:8201/actuator/health > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
+
+  governance-projector:
+    profiles: [governance]
+    image: auth-platform/governance-admin:local
+    container_name: auth-governance-projector
+    restart: unless-stopped
+    network_mode: service:auth-console
+    depends_on:
+      governance-admin:
+        condition: service_healthy
+    volumes:
+      - ${GOVERNANCE_RUNTIME_DIR:-../.local/docker-governance/runtime}:/run/governance:ro
+      - ./governance/projector.sh:/app/projector.sh:ro
+    command: [bash, /app/projector.sh]
+    healthcheck:
+      test: [CMD-SHELL, "test -f /tmp/projection-ready && test $$(($$(date +%s) - $$(cat /tmp/projection-ready))) -lt 120"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 90s
+
 volumes:
   authz-pg-data:
