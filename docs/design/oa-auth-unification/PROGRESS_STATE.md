@@ -1,4 +1,8 @@
-# 当前P7进度
+# 当前商城扩展续做
+
+2026-09-29：用户批准剩余执行计划，并选择本轮扩展其他商城模块、先补能力与权限契约。当前[执行记录](../../implementation/oa-auth/commerce-readiness/EXECUTION_PLAN.md)为续做入口；[扩展契约草案](CONTRACTS_COMMERCE_EXPANSION.md)处于DESIGN_REVIEW，岗位/数据边界及高风险审批决定尚待用户回复。CATALOG页面接入与迁移审核工具正在独立任务分支验证；未执行生产部署或真实迁移，原DAG保持63节点。
+
+## 已交付P7基线
 
 当前续做：独立身份服务/数据库与双新版有界容量基线通过：4项工具测试、24项演练、600请求零错误；a882d4f已正常合并推送main，精确CI36658762615成功，见[P7_ISOLATED_CAPACITY](../../implementation/oa-auth/phase-7/P7_ISOLATED_CAPACITY.md)。以下认证修复为已交付基线；本轮仅改变本地演练工具，生产门禁不变。
 

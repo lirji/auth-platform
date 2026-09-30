@@ -101,3 +101,8 @@ P1-05 本地验收 DONE：181 单测、29 PG、5 Casdoor、30 邀请与 30 既�
 P6历史入口：所选单元本地隔离演练31项通过，最终Git/CI已交付。见phase-6/P6_TEST_RESULT与P6-07_CANDIDATE_REPORT；生产身份映射、永久来源期限及持续影子等为生产门禁。
 
 当前P7：01—06本地有界范围完成，21项跨进程检查和2项进程故障IT通过；07已出评审材料但实际生产Owner/目标/授权缺失，08未上线未观察，保持BLOCKED。最终Git/CI见PROGRESS_STATE。
+
+
+## 2026-09-29 商城增量续做
+
+用户追加全模块契约扩展，保留原P0—P7稳定ID及完成历史。增量CE-00—CE-08见[扩展契约](CONTRACTS_COMMERCE_EXPANSION.md)；CE-01在DESIGN_REVIEW，依赖业务D1—D4的实现不提前开始。已批准P6的页面接入补充及审核工具见[续做计划](../../implementation/oa-auth/commerce-readiness/EXECUTION_PLAN.md)，两者不依赖新增业务能力。
