@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """P6所选商城租户隔离演练；只写本工具新建库，原commerce_local保持只读。"""
-import argparse, base64, hashlib, http.client, importlib.util, json, os, secrets, shutil, socket, subprocess, time, uuid
+import argparse, base64, hashlib, http.client, importlib.util, json, os, secrets, shutil, socket, subprocess, time, uuid, urllib.parse
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -177,7 +177,16 @@ def rehearse(args, isolation=None):
             subprocess.run(['node',str(root/'deploy/governance-p6-catalog.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=120)
             record('real central catalog browser '+phase)
         if args.browser:
-            h.private(run/'catalog-ui.json',json.dumps({'token':user_token,'authority':h.ISSUER,'client':fixture['clients']['business']['name'],'tenant':tenant,'store':store,'other':other}))
+            if isolation is not None:
+                # 只调整本轮新建IdP应用，补固定回调以真实走浏览器PKCE；不改共享客户端。
+                idp=module('p6_browser_idp',root/'deploy/governance-casdoor-fixture.py');idp.BASE=h.ISSUER
+                management='Basic '+base64.b64encode((ops['client_id']+':'+ops['client_secret']).encode()).decode()
+                query=urllib.parse.urlencode({'id':'admin/'+fixture['clients']['business']['name']})
+                app_config=idp.request('get-application?'+query,authorization=management)['data']
+                app_config.update(redirectUris=['http://127.0.0.1:18665/iam/callback'],enablePassword=True,enableSigninSession=True,signinMethods=[{'name':'Password','displayName':'Password','rule':'All'}])
+                app_config['grantTypes']=sorted(set(app_config.get('grantTypes',[]))|{'authorization_code'})
+                idp.request('update-application?'+query,app_config,authorization=management)
+            h.private(run/'catalog-ui.json',json.dumps({'token':user_token,'authority':h.ISSUER,'client':fixture['clients']['business']['name'],'tenant':tenant,'store':store,'other':other,'interactive':isolation is not None,'user':fixture['users']['external'] if isolation else None}))
             pilot_class=module('p6_browser_start',root/'deploy/governance-p5-commerce.py').CommercePilot
             pilot=pilot_class.__new__(pilot_class)
             pilot.run,pilot.h=run,h

@@ -10,7 +10,7 @@ assert(Object.values(Phase).includes(phase), 'unknown browser phase');
 const f = JSON.parse(fs.readFileSync(path.join(run, 'catalog-ui.json'), 'utf8'));
 const browser = await chromium.launch({headless: true});
 const context = await browser.newContext({viewport: {width:1440,height:1000}});
-await context.addInitScript(f => {
+if (!(phase === Phase.ACTIVE && f.interactive)) await context.addInitScript(f => {
   const profile = JSON.parse(atob(f.token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
   if (sessionStorage.getItem(`oidc.user:${f.authority}:${f.client}`)) return;
   sessionStorage.setItem(`oidc.user:${f.authority}:${f.client}`,JSON.stringify({access_token:f.token,token_type:'Bearer',scope:'openid profile',profile,expires_at:profile.exp}));
@@ -24,8 +24,28 @@ try {
   if (phase === Phase.ACTIVE) {
     const calls=[];
     page.on('request', r => { if(r.url().includes('/v1/')) calls.push(r); });
+    const pkce={authorize:false,exchange:false};
+    context.on('request', r=>{
+      const u=new URL(r.url());if(u.origin!==f.authority)return;
+      if(u.pathname==='/login/oauth/authorize'){assert.equal(u.searchParams.get('code_challenge_method'),'S256');assert.ok(u.searchParams.get('state'));pkce.authorize=true;}
+      if(u.pathname==='/api/login/oauth/access_token'){const body=new URLSearchParams(r.postData()??'');assert.ok(body.get('code_verifier'));assert.ok(!body.has('client_secret'));pkce.exchange=true;}
+    });
     await page.goto(url);
+    if(f.interactive){
+      await page.getByRole('button',{name:'企业登录',exact:true}).click();
+      await page.waitForURL(f.authority+'/**');
+      await page.locator('#username').fill(f.user.name);
+      await page.locator('#password').fill(f.user.password);
+      await page.getByRole('button',{name:'Sign In',exact:true}).click();
+      await page.waitForURL(base+'/operations/catalog?**',{timeout:30000});
+      assert.equal(new URL(page.url()).searchParams.get('tenant_id'),f.tenant);
+      assert.equal(new URL(page.url()).searchParams.get('store_id'),f.store);
+      assert.ok(!new URL(page.url()).searchParams.has('code'));
+      assert.ok(pkce.authorize&&pkce.exchange);
+      checks.push('fresh password login and PKCE exchange without client secret preserve tenant/store return context');
+    }
     await expect(page.getByText('P6 sku',{exact:true})).toBeVisible();
+    const bearer=await page.evaluate(f=>JSON.parse(sessionStorage.getItem(`oidc.user:${f.authority}:${f.client}`)).access_token,f);
     await page.getByRole('tab',{name:'商品资料（SPU）'}).click();
     await page.getByRole('button',{name:'编辑资料',exact:true}).click();
     const modal=page.getByRole('dialog');
@@ -36,7 +56,7 @@ try {
     await expect(modal).toBeHidden();
     await expect(page.getByText('P6 browser product',{exact:true})).toBeVisible();
     assert(calls.length>0);
-    for(const r of calls){assert.equal(r.headers()['x-tenant-id'],f.tenant);assert.equal(r.headers().authorization,'Bearer '+f.token);}
+    for(const r of calls){assert.equal(r.headers()['x-tenant-id'],f.tenant);assert.ok(r.headers().authorization==='Bearer '+bearer,'central bearer context mismatch');}
     assert(calls.every(r => !r.url().includes('/admin/') && !r.url().includes('/v1/me')));
     checks.push('real CATALOG page reads and edits with central bearer/tenant and no legacy identity');
     await shot('active');
