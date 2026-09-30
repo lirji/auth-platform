@@ -20,9 +20,10 @@ public final class ExecutionAuthorization {
             "merchant.read", ScopeDtos.MERCHANT_RESOURCE_TYPE, "merchant.create", ScopeDtos.MERCHANT_RESOURCE_TYPE,
             "store.directory.read", ScopeDtos.STORE_RESOURCE_TYPE, "store.create", ScopeDtos.STORE_RESOURCE_TYPE);
     private static final Set<String> MEMBER_CAPABILITIES = Set.of("member.read", "member.create", "member.profile.update", "member.status.update",
-            "growth.read", "growth.adjust", "growth.recalculate");
+            "growth.read", "growth.adjust", "growth.recalculate", "member_tag.read", "member_tag.define", "member_tag.assign");
     private static final Set<String> MEMBER_POLICY_CAPABILITIES = Set.of("growth.policy.read", "growth.policy.publish");
-    private static final String MEMBER_CREATION = "member.create";
+    // 字典定义和会员创建都没有已有会员对象，只能使用全租户集合许可。
+    private static final Set<String> MEMBER_COLLECTION_ONLY = Set.of("member.create", "member_tag.define");
     private static final Set<String> CREATION = Set.of("merchant.create", "store.create");
     private static final long SYNC_MAX_SECONDS = 60;
     private static final long MAX_SECONDS = 37 * 86400L + 60;
@@ -85,7 +86,7 @@ public final class ExecutionAuthorization {
         // 政策是版本化集合；追加发布没有已有对象，本片只提供集合许可。
         if(policy) throw error(ACCESS_DENIED);
         if(member && (!MEMBER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
-                || (context.applicationId() + "." + MEMBER_CREATION).equals(row.capability()))) throw error(ACCESS_DENIED);
+                || MEMBER_COLLECTION_ONLY.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability())))) throw error(ACCESS_DENIED);
         var current=access.evaluate(context,row.capability(),row.resourceType());
         var original=read(row.pathsJson(),Paths.class);
         // 目录资格可能先移除再恢复同一个组Grant；绑定目录版本，防止旧后台任务借此复活。

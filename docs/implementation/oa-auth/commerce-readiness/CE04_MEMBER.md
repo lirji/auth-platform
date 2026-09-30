@@ -82,3 +82,11 @@ rehearsal-324fea9731d5最终183PASS；成长6阶段11条浏览器细分检查，
 已实际查看当前版policy-form、390-policy-form、policies、wallet、390-wallet、unknown、conflict、recalculate-form、outage截图：桌面布局/层级与现有员工页一致；窄屏表单和钱包保持在视口内，账本在表格内部横向滚动；提示、禁用输入和重试按钮清楚，非用户视觉批准。自有PG/IdP/JVM/Vite由finally停止，独立子网85/数据/私密截图保留，原8602未切换。浏览器后产品代码无变化。
 
 最终413项408PASS/5既有skip（含独立轮转修复）、36项Python、231入口/122能力/34岗位快照、前端build/Prettier、两仓hygiene/diff无阻断，未配置Java formatter/静态分析限制保持。G2本地DONE，Git交付进行中；标签T草案仅在私有目录，尚未实施，下一按既定顺序继续T0/T1/T2。CE04其余能力和CE05—08不能算完成。
+
+G2已普通合并推送auth8351043/commerce646ebd5，CI36673405496/36673407016待查。独立轮转修复CI36672968400被G2推送取消，非失败亦非通过；本地完整回归通过，后续G2 CI含该修复基线。T正式契约已写CONTRACTS_COMMERCE_TAG.md，T0实施中。
+
+## CE04-T0本地DONE
+
+auth有限member_tag.read/define/assign三能力绑定commerce_member，最长60秒HUMAN且完整TENANT_ALL；字典define与member.create同为集合许可，拒绝伪会员execution-check，read/assign允许正确会员事实。没有修改Owner类型/SDK方法/JSON或增加新授权资源类型；未知能力、伪门店/部门、错误租户/类型保持失败关闭。商城真实标签Owner/业务路由/V54/页面留T1/T2。
+
+tag-core-unit.log 252单元PASS；自有PG f5d5df7c48f4加现有隔离SpiceDB执行ExecutionAuthorizationIT6方法PASS（tag-core-integration.log及-result.json）。新增标签矩阵对三能力的scope/资源事实、类型/范围/120秒拒绝、代际/分区、撤权/重授不能复活和到期验证，原CATALOG/库存/目录/基础会员/成长组合回归；合成协议事实不是实际商城Owner验收，自有PG已finally停止并保留数据。tag-core-sdk/boot4/package三日志PASS；hygiene无阻断，缺Java formatter/静态分析限制仍保留。验证后无产品代码变动，下一T1。
