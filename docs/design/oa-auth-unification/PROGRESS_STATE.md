@@ -54,3 +54,19 @@ CE04最新：P0 auth dd07223已推送，CI36668768692 SUCCESS（含D2基线）�
 CE04最新：P1 auth2cb8c11/commerce1bc81f2已合并推送，两仓CI36669783915/36669785165 SUCCESS。P2本地DONE：407项402PASS/5skip、真实隔离137PASS含会员12条浏览器及共享壳回归、当前截图已查看；36项Python/227入口/hygiene无阻断，见CE04_MEMBER。下一CE04-G成长协议/Owner/UI细化；其余会员和CE05—08未完成。
 
 CE04-P2已普通合并推送auth21380a4/commerce359ac02，CI36670574749/36670578849待查。CE04-G0本地DONE（五成长执行能力）：既有251单测+新增Owner1、5真实PG+graph IT、SDK/Boot4/package/hygiene通过，见CE04_MEMBER与CONTRACTS_COMMERCE_GROWTH。下一G1 READY，商城成长业务/API/V53尚未实施。
+
+
+R1已正常合并推送auth8a54b0c/commerce74a5cf4；CI36701575411/36701590580待精确核对。R2原目录分支feat/commerce-rule-console-rehearsal与feat/central-rule-console实现固定规则页、两个独立hint和第8个MySQL专项、259入口；可视规则树复用，两个动作各自保存dirty/未知请求。42工具通过，完整构建/真实浏览器待完成。首次Java验证因旧专用MySQL容器commerce-inventory-mysql-7841e58190已不存在而连接拒绝，未修改产品绕过；保留失败日志，按原mysql8.4恢复专用commerce-rules-mysql-698708fb5f（43308），新私密配置commerce .local/central-inventory/owned-rules.env，旧配置不覆盖。全仓rules-ui-verify-restored-db.log运行中；真实浏览器脚本与精确8审计已接线未运行。
+
+R1精确CI36701575411（auth8a54b0c）与36701590580（commerce74a5cf4）均SUCCESS。R2新8项CentralRuleMySqlTest全PASS，完整回归继续。
+
+R2完整469项464PASS/5既有skip，规则8专项全部PASS，42工具/259入口/122能力/34角色、build/Prettier/两仓hygiene（原限制）通过，auth4/commerce10源码摘要一致。真实--rules --browser独立103408e2a0ce/子网111/session41754运行中，完成前不标DONE。R1两仓精确CI均SUCCESS。
+
+R2首轮103408e2a0ce/子网111在545PASS后停于浏览器选择ALL：Ant Design隐藏role=option辅助节点不可点击。失败截图确认可见下拉正常，已只把脚本改为可见.ant-select-dropdown中的精确文本，产品469项版本未变；失败日志/库/截图保留，自有进程finally停止。下一子网112完整真实重验，auth浏览器源码摘要已更新，完成前不标DONE。
+
+R2第二轮a1c60c4dcb31/子网112功能609PASS，规则浏览器12条（write6/read1/create-revoked1/revoked3/outage1）与精确8条规则身份审计通过，但视觉复核rules-390-directory.png实际643像素宽，document.scrollWidth断言漏掉body/截图外溢，故R2仍VERIFYING。仅收紧CentralRules纵向Space的item minWidth0/maxWidth100%及Table上限，并加入body和实际PNG宽度断言/私密DOM宽度证据。后端469项版本不变，前端build和新制品/第三轮真实验收后再DONE。
+
+R2第三轮2c4a7f48441a/子网113在554PASS后PNG断言停止；同一时点document/body已390，读取本地Playwright _fullPageSize及真实库摘要布局诊断确认是视口切换后Descriptions响应式渲染尚未稳定，截图先取旧宽。诊断sample0早取632，等待document.fonts.ready及两帧后sample1/2均390；该诊断重放数据只用于布局，不作授权证据。已仅在浏览器narrow加入字体/两帧及完整scroll/offset/client宽度poll；仍要求body与实际PNG390，不裁图或放宽阈值。产品后端469项与容器收紧版前端build/package未变。第四轮真实子网114验证后再DONE，失败/诊断证据保留。
+
+
+CE05-R2本地DONE：固定SSO规则目录/创建/发布三Tab、两个独立hint与两个原意图分别恢复；完整469项464PASS/5既有skip、规则8专项全PASS，最终真实200dbeb9873c（子网10.254.114.0/24）609PASS，规则12条浏览器与全部既有员工页回归通过。42工具/259入口/122能力/34角色、build/Prettier/两仓hygiene及auth4/commerce10源码摘要一致；实际8条规则身份审计、UI创建/发布各1次，同键不重复，旧1=PUBLISHED/最新2=DRAFT。1440/390表单/目录、409/未知/成功/503已查看；稳定布局后的正文与PNG均390，表格内部横滚。无新迁移，V49—V62不可改；下一CE05-A人群快照，其余CE05—08和原生产2HOLD未完成。

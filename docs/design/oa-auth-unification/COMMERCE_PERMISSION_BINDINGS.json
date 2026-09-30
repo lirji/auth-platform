@@ -4232,6 +4232,36 @@
       "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
       "capabilities": [],
       "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/rules",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "RuleActionsController",
+      "method": "GET",
+      "path": "/v1/operations/rules/create-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/RuleActionsController.java",
+      "capabilities": [
+        "commerce.rule.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "RuleActionsController",
+      "method": "GET",
+      "path": "/v1/operations/rules/publish-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/RuleActionsController.java",
+      "capabilities": [
+        "commerce.rule.publish"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
     }
   ]
 }

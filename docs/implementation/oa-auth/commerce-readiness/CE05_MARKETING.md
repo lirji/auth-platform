@@ -2,6 +2,8 @@
 
 ## 当前状态
 
+CE05-R2本地DONE：固定SSO规则目录/创建/发布三Tab、两个独立hint与两个原意图分别恢复；完整469项464PASS/5既有skip、规则8专项全PASS，最终真实200dbeb9873c（子网10.254.114.0/24）609PASS，规则12条浏览器与全部既有员工页回归通过。42工具/259入口/122能力/34角色、build/Prettier/两仓hygiene及auth4/commerce10源码摘要一致；实际8条规则身份审计、UI创建/发布各1次，同键不重复，旧1=PUBLISHED/最新2=DRAFT。1440/390表单/目录、409/未知/成功/503已查看；稳定布局后的正文与PNG均390，表格内部横滚。无新迁移，V49—V62不可改；下一CE05-A人群快照，其余CE05—08和原生产2HOLD未完成。
+
 CE05-R1本地DONE：RULE独立接管族、规则read/create/publish、真实不可变版本锁、原回执前权限复核与同事务审计，V62已应用不可改。完整468项463PASS/5既有skip，规则7项全PASS；最终真实7b1ff652c183（10.254.110.0/24）518PASS，无浏览器。42工具/256入口/122能力/34角色、两仓hygiene及auth2/commerce12源码摘要一致。下一R2规则员工页；其余CE05—08与原生产2HOLD未完成。
 
 CE05-R0本地DONE：marketing_rule稳定类型和read/create/publish三个独立有限能力；创建只集合，读取/发布绑定实际资产版本。完整252单元、真实自有PG5ff5f702ccbc/SpiceDB共13项ExecutionAuthorizationIT、SDK Boot4和最终forceCreation install通过，两个运行Jar嵌套依赖及4源码摘要一致。hygiene无阻断，Java formatter/静态分析限制保持。无新迁移，自有PG已finally停止；下一R1商城RULE族/实际Owner/事务审计，R2与其余CE05—08未完成。
@@ -158,3 +160,33 @@ CE05-R1本地DONE：RULE独立接管族、规则read/create/publish、真实不�
 首轮41130bc13832/子网109在475PASS后停于APPLIED，源于旧演练脚本假定单次CLI完成全量。生产ReliableProjection每批最多50条，本轮累计授权跨越该边界。只修演练调度：最多8批、总45秒，子进程使用剩余预算，仅APPLIED/RECOVERED推进，READY才通过；BUSY/RETRY_WAIT/BLOCKED、未知或不匹配状态立即拒绝。新增5项工具测试证明边界、状态及超时失败关闭。未改产品投影器、商城业务、Java验证版本或生产预算；失败日志保留。
 
 自有进程finally停止，原8602/OA未切换，无新worktree；两轮私密库/日志保留。R0 auth5049380精确CI36699041572 SUCCESS，包含E2 auth基线；E2 commerce CI36698659860 SUCCESS。R1 implementation-validation COMPLETED/PASS，update-progress-docs DONE（本地）；Git/CI另记。
+
+
+R1已正常合并推送auth8a54b0c/commerce74a5cf4；CI36701575411/36701590580待精确核对。R2原目录分支feat/commerce-rule-console-rehearsal与feat/central-rule-console实现固定规则页、两个独立hint和第8个MySQL专项、259入口；可视规则树复用，两个动作各自保存dirty/未知请求。42工具通过，完整构建/真实浏览器待完成。首次Java验证因旧专用MySQL容器commerce-inventory-mysql-7841e58190已不存在而连接拒绝，未修改产品绕过；保留失败日志，按原mysql8.4恢复专用commerce-rules-mysql-698708fb5f（43308），新私密配置commerce .local/central-inventory/owned-rules.env，旧配置不覆盖。全仓rules-ui-verify-restored-db.log运行中；真实浏览器脚本与精确8审计已接线未运行。
+
+R1精确CI36701575411（auth8a54b0c）与36701590580（commerce74a5cf4）均SUCCESS。R2新8项CentralRuleMySqlTest全PASS，完整回归继续。
+
+R2完整469项464PASS/5既有skip，规则8专项全部PASS，42工具/259入口/122能力/34角色、build/Prettier/两仓hygiene（原限制）通过，auth4/commerce10源码摘要一致。真实--rules --browser独立103408e2a0ce/子网111/session41754运行中，完成前不标DONE。R1两仓精确CI均SUCCESS。
+
+R2首轮103408e2a0ce/子网111在545PASS后停于浏览器选择ALL：Ant Design隐藏role=option辅助节点不可点击。失败截图确认可见下拉正常，已只把脚本改为可见.ant-select-dropdown中的精确文本，产品469项版本未变；失败日志/库/截图保留，自有进程finally停止。下一子网112完整真实重验，auth浏览器源码摘要已更新，完成前不标DONE。
+
+R2第二轮a1c60c4dcb31/子网112功能609PASS，规则浏览器12条（write6/read1/create-revoked1/revoked3/outage1）与精确8条规则身份审计通过，但视觉复核rules-390-directory.png实际643像素宽，document.scrollWidth断言漏掉body/截图外溢，故R2仍VERIFYING。仅收紧CentralRules纵向Space的item minWidth0/maxWidth100%及Table上限，并加入body和实际PNG宽度断言/私密DOM宽度证据。后端469项版本不变，前端build和新制品/第三轮真实验收后再DONE。
+
+R2第三轮2c4a7f48441a/子网113在554PASS后PNG断言停止；同一时点document/body已390，读取本地Playwright _fullPageSize及真实库摘要布局诊断确认是视口切换后Descriptions响应式渲染尚未稳定，截图先取旧宽。诊断sample0早取632，等待document.fonts.ready及两帧后sample1/2均390；该诊断重放数据只用于布局，不作授权证据。已仅在浏览器narrow加入字体/两帧及完整scroll/offset/client宽度poll；仍要求body与实际PNG390，不裁图或放宽阈值。产品后端469项与容器收紧版前端build/package未变。第四轮真实子网114验证后再DONE，失败/诊断证据保留。
+
+
+## CE05-R2验收
+
+CE05-R2本地DONE：固定SSO规则目录/创建/发布三Tab、两个独立hint与两个原意图分别恢复；完整469项464PASS/5既有skip、规则8专项全PASS，最终真实200dbeb9873c（子网10.254.114.0/24）609PASS，规则12条浏览器与全部既有员工页回归通过。42工具/259入口/122能力/34角色、build/Prettier/两仓hygiene及auth4/commerce10源码摘要一致；实际8条规则身份审计、UI创建/发布各1次，同键不重复，旧1=PUBLISHED/最新2=DRAFT。1440/390表单/目录、409/未知/成功/503已查看；稳定布局后的正文与PNG均390，表格内部横滚。无新迁移，V49—V62不可改；下一CE05-A人群快照，其余CE05—08和原生产2HOLD未完成。
+
+|验收|结果|私密证据|
+|---|---|---|
+|事务与两个独立hint|469项464PASS/5skip，规则8专项全PASS；hint不写审计，无read两写、独立撤权、旧ADMIN/401/503|commerce-contracts/rules-ui-verify-restored-db.log|
+|真实页面与授权链路|609PASS；规则12条包含PKCE、409保留、可信树重复纠错、创建未知期间独立发布成功仍保留创建、两笔原键/原体或无体/编码路径恢复、最新目录、独立撤权、跨租户/401/实际503|p6/rehearsal-200dbeb9873c/result.json与rules-*-result.json|
+|数据库结果|8规则审计；UI ce05-rule:c创建/发布各1次，ce05-rule:a发布3个独立命令；同键不重复，a旧1=PUBLISHED/新2=DRAFT，c1=PUBLISHED|同目录检查点及精确SQL断言|
+|视觉与截图时机|已查看1440/390表单与目录、409/未知/成功/503；稳定布局后3个窄屏PNG和文档/正文均390，表格内部横滚；取消退出功能两次通过|rules-390-*-width.json、rules-*.png|
+|质量与源码|42工具/259入口、build/Prettier/package/两仓hygiene及auth4/commerce10摘要一致；原Java formatter/静态分析限制和5既有skip保留|commerce-contracts/rules-ui-*|
+
+首次Java测试因旧专用MySQL已不存在而连接拒绝，已恢复独立commerce-rules-mysql-698708fb5f/43308，私密owned-rules.env保留，旧owned.env不覆盖。首轮浏览器103408e2a0ce/子网111在545PASS后隐藏Ant Design option定位停止，已改可见下拉精确文本。第二轮a1c60c4dcb31/子网112功能609PASS，但取图尺寸643；第三轮2c4a7f48441a/子网113在554PASS后更严格PNG断言停止。文档/正文均390的证据与本地Playwright取图实现确认响应式Descriptions布局时机，早取诊断632、等字体及两帧后两次390。该诊断重放真实库摘要只用于布局，不作授权证据。最终脚本等字体/两帧并poll完整scroll/offset/client宽度，仍严格要求正文和实际PNG390，未裁图/放宽阈值；容器上限只作用本页。
+
+本轮自有进程finally停止，原8602/OA未切换，无新worktree；四轮失败/成功库与私密证据、构建依赖及其他worktree保留。R1 auth8a54b0c/commerce74a5cf4，CI36701575411/36701590580均SUCCESS。R2 implementation-validation COMPLETED/PASS、update-progress-docs DONE（本地）；Git/CI另记。

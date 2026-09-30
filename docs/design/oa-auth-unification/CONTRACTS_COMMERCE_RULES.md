@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 |CE05-R0|auth稳定资源类型、三有限执行能力|E2本地DONE且Git交付|HUMAN/60秒、精确类型/能力、创建只集合、读取集合或实际规则、发布实际规则，真实PG/图/SDK兼容|DONE（本地）|
 |CE05-R1|commerce独立RULE接管族、实际版本Owner、事务身份审计、追加迁移|R0验证交付|独立读/创建/发布，原回执前路由/事实/期限检查，审计回滚、原键/撤权/STOPPED/503；原规则树和版本语义兼容|DONE（本地）|
-|CE05-R2|固定规则员工页、两独立hint、真实浏览器|R1验证交付|目录/字段、独立创建/按已知规则版本发布，409/未知/401/403/503、1440/390截图查看和精确SQL审计|READY|
+|CE05-R2|固定规则员工页、两独立hint、真实浏览器|R1验证交付|目录/字段、独立创建/按已知规则版本发布，409/未知/401/403/503、1440/390截图查看和精确SQL审计|DONE（本地）|
 
 ## R0 有限执行协议
 
@@ -34,3 +34,5 @@ publishedRule(tenant, Ref) 是受信任活动/交易的内部引用入口，保�
 CE05-R0本地DONE：marketing_rule稳定类型和read/create/publish三个独立有限能力；创建只集合，读取/发布绑定实际资产版本。完整252单元、真实自有PG5ff5f702ccbc/SpiceDB共13项ExecutionAuthorizationIT、SDK Boot4和最终forceCreation install通过，两个运行Jar嵌套依赖及4源码摘要一致。hygiene无阻断，Java formatter/静态分析限制保持。无新迁移，自有PG已finally停止；下一R1商城RULE族/实际Owner/事务审计，R2与其余CE05—08未完成。
 
 R1验收见CE05_MARKETING：468项463PASS/5skip、真实518PASS；V62已应用且不可改，R2不新增迁移。
+
+R2验收见CE05_MARKETING：469项464PASS/5skip、真实609PASS、12浏览器检查、8条精确身份审计；稳定布局后3个窄屏PNG均390，原样恢复/独立撤权/实际503通过。
