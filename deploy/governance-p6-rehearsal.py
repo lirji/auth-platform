@@ -80,7 +80,7 @@ def rehearse(args, isolation=None):
         process_env=dict(runtime)
         if migrate:process_env.update(SPRING_FLYWAY_USER='root',SPRING_FLYWAY_PASSWORD=owner_password)
         with os.fdopen(os.open(run/(label+'.log'),os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600),'w') as log:
-            p=subprocess.Popen(['java','-Xmx512m','-jar',str(local_jar),'--server.address=127.0.0.1','--commerce.iam.store-read.enabled=true','--commerce.iam.catalog.enabled=true','--commerce.iam.store-read.configuration='+str(run/'consumer.properties')],env=process_env,stdout=log,stderr=subprocess.STDOUT)
+            p=subprocess.Popen(['java','-Xmx512m','-jar',str(local_jar),'--server.address=127.0.0.1','--commerce.iam.store-read.enabled=true','--commerce.iam.catalog.enabled=true','--commerce.iam.employee.enabled='+str(args.inventory).lower(),'--commerce.iam.store-read.configuration='+str(run/'consumer.properties')],env=process_env,stdout=log,stderr=subprocess.STDOUT)
         processes.append(p)
         for _ in range(90):
             if p.poll() is not None:raise RuntimeError('commerce startup failed: '+label)
@@ -98,8 +98,11 @@ def rehearse(args, isolation=None):
         catalog={'catalog.application':'commerce','catalog.owner-principal':principals['internal'],'catalog.entry-origin':'http://127.0.0.1:18661','catalog.operator':'p6-fixture','catalog.command':uid(),'catalog.owner-issuer':h.ISSUER,'catalog.owner-subject':fixture['users']['internal']['id']}
         h.private(run/'catalog.properties',db+h.props(catalog));cli('CatalogCli','register',run/'catalog.properties','configured')
         manifest={'schema_version':'1','application':'commerce','manifest_version':1,'capabilities':[{'code':'commerce.catalog.operate','resource_type':'store','risk_level':'HIGH'}],'menus':[]}
+        if args.inventory:
+            manifest['capabilities'] += [{'code':'commerce.inventory.'+action,'resource_type':'store','risk_level':'NORMAL' if action=='read' else 'HIGH'} for action in ('read','receive')]
         h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli','publish',run/'catalog.properties',run/'manifest.json')
         access={'access.tenant':tenant,'access.application':'commerce','access.environment':env,'access.manager':members['internal'],'access.generation':1,'access.capabilities':'commerce.catalog.operate','access.max-duration-seconds':3600,'access.operator':'p6-fixture','access.command':uid()}
+        if args.inventory:access['access.capabilities'] += ',commerce.inventory.read,commerce.inventory.receive'
         h.private(run/'access.properties',db+h.props(access));cli('AccessBootstrapCli',run/'access.properties')
         def authority(kind):
             c=fixture['clients'][kind];return {'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
@@ -201,6 +204,47 @@ def rehearse(args, isolation=None):
         post('central merchandising','products/p6-product/merchandising',{'storeId':store,'expectedVersion':0,'categoryId':'p6-category','templateId':None,'templateVersion':None,'description':'P6 details','images':[],'reason':'P6 metadata'})
         post('central barcode','skus/p6-sku/barcode',{'storeId':store,'expectedVersion':0,'barcode':'12345678','reason':'P6 barcode'})
         browser('active')
+        if args.inventory:
+            # 只对本轮隔离库显式接管库存；CATALOG角色不自动获得库存能力。
+            insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'INVENTORY','state':'SHADOW'})
+            sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='INVENTORY' AND state='SHADOW' AND version=1;")
+            inventory_path='/v1/admin/inventory?storeId='+store
+            receipt={'storeId':store,'skuId':'p6-sku','quantity':7}
+            expect('CATALOG does not imply inventory read',18661,inventory_path,user,status=403)
+            expect('old ADMIN cannot bypass inventory route',18661,inventory_path,[('Authorization','Bearer '+admin_local)],status=403)
+            def inventory_grant(action):
+                role_id=expect('explicit inventory '+action+' role',18162,prefix+'/roles',admin,{**partition,'command_id':uid(),'role_code':'ce03-inventory-'+action,'role_version':1,'capabilities':['commerce.inventory.'+action]})['id']
+                return expect('finite isolated inventory '+action+' grant',18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role_id,'scope_rule':scope,'source_id':'ce03-'+action,'valid_from':now(-2),'valid_to':now(600)},202)['id']
+            def inventory_ready(action):
+                # 新授权允许双水位保守DENY；仅对只读就绪探测重试，撤权和业务写入均不重试。
+                observations=[]
+                for attempt in range(12):
+                    body=central_check(store);body['check']['capability']='commerce.inventory.'+action
+                    status,value=request(18161,'/internal/governance/v1/access/check-resource',dual,body)
+                    decision=value.get('decision') if status==200 else value.get('code')
+                    observations.append({'status':status,'decision':decision})
+                    if status==200 and decision=='ALLOW':
+                        h.private(run/('inventory-'+action+'-readiness.json'),json.dumps(observations));record('inventory '+action+' grant reaches current projection');return
+                    if decision not in ('DENY','AUTHZ_STATE_NOT_READY'):raise RuntimeError('unexpected inventory readiness response')
+                    time.sleep(.25)
+                h.private(run/('inventory-'+action+'-readiness.json'),json.dumps(observations))
+                raise RuntimeError('inventory '+action+' grant not ready within bounded probes')
+            inventory_grant('read');projection();inventory_ready('read')
+            expect('inventory read is scoped before pagination',18661,inventory_path,user)
+            expect('inventory read cannot receive',18661,'/v1/admin/inventory/receipts',user+[('Idempotency-Key',uid())],receipt,403)
+            writer=inventory_grant('receive');projection();inventory_ready('receive')
+            receipt_headers=user+[('Idempotency-Key',uid())]
+            first=expect('real central inventory receive',18661,'/v1/admin/inventory/receipts',receipt_headers,receipt)
+            replay=expect('inventory command retries once',18661,'/v1/admin/inventory/receipts',receipt_headers,receipt)
+            if first['available']!=7 or replay!=first:raise RuntimeError('inventory idempotency failed')
+            expect('inventory cross store denied',18661,'/v1/admin/inventory?storeId='+other,user,status=403)
+            expect('inventory cross tenant denied',18661,inventory_path,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            if sql('SELECT COUNT(*) FROM employee_command_identity WHERE tenant_id='+q(source)+' AND principal_id='+q(principals['external'])+' AND membership_id='+q(members['external'])+' AND generation=1')[1]!='1':raise RuntimeError('inventory identity audit not atomic')
+            record('inventory command audit binds central principal member generation')
+            expect('revoke inventory receive independently',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':writer,'expected_version':1});projection()
+            expect('revoked inventory write and old receipt are denied',18661,'/v1/admin/inventory/receipts',receipt_headers,receipt,403)
+            stocks=expect('inventory read survives independent write revocation',18661,inventory_path,user)
+            if len(stocks)!=1 or stocks[0]['available']!=7:raise RuntimeError('revoked inventory changed stock')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -221,6 +265,7 @@ def rehearse(args, isolation=None):
         else:raise RuntimeError('background revocation was not exercised')
         expect('central denies after imported revocation' ,18661,'/v1/operations/products?storeId='+store,user,status=403)
         browser('revoked')
+        if args.inventory:expect('inventory does not inherit CATALOG revocation',18661,inventory_path,user)
         cli('MigrationImportCli',run/'import.properties',run/'batch-1.json',expected=2);record('old snapshot cannot resurrect newer tombstone')
         # 安全回退只停止，不把中央撤权后仍为true的旧授权重新变成权威。
         sql("UPDATE catalog_authority_route SET state='STOPPED',version=version+1 WHERE tenant_id="+q(source)+" AND state='CENTRAL';")
@@ -232,9 +277,10 @@ def rehearse(args, isolation=None):
         expect('resumed central retains denial',18661,'/v1/operations/products?storeId='+store,user,status=403)
         h.stop(auth);expect('central outage does not use legacy allow',18661,'/v1/operations/products?storeId='+store,user,status=503)
         browser('outage')
+        if args.inventory:expect('inventory dependency outage fails closed',18661,inventory_path,user,status=503)
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -244,6 +290,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
+    parser.add_argument('--inventory',action='store_true',help='explicit finite inventory roles in owned rehearsal only')
     parser.add_argument('--isolated-identity',action='store_true')
     args=parser.parse_args()
     isolation=None

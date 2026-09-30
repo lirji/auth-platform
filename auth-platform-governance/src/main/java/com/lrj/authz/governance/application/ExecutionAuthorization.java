@@ -15,6 +15,8 @@ import static com.lrj.authz.governance.application.GovernanceException.Code.*;
 /** 将经用户认证的授权路径绑定到后台任务；引用不产生独立于Grant的权利。 */
 public final class ExecutionAuthorization {
     private static final ObjectMapper JSON = new ObjectMapper();
+    private static final Set<String> SYNCHRONOUS_INVENTORY = Set.of("inventory.read", "inventory.receive");
+    private static final long SYNC_MAX_SECONDS = 60;
     private static final long MAX_SECONDS = 37 * 86400L + 60;
     private final ExecutionMapper mapper;
     private final ReliableAuthorization access;
@@ -26,13 +28,14 @@ public final class ExecutionAuthorization {
     public Reference issue(AccessContext context, Issue input) {
         if(input==null||input.check()==null)throw error(INVALID_ARGUMENT);
         var check=input.check(); BootstrapCommand.uuid(check.requestId());
-        if(!context.tenantId().equals(check.tenantId())||!(context.applicationId()+".catalog.operate").equals(check.capability())||!com.lrj.authz.protocol.ScopeDtos.STORE_RESOURCE_TYPE.equals(check.resourceType())
+        boolean inventory = SYNCHRONOUS_INVENTORY.stream().anyMatch(suffix -> (context.applicationId() + "." + suffix).equals(check.capability()));
+        if(!context.tenantId().equals(check.tenantId())||(!inventory && !(context.applicationId()+".catalog.operate").equals(check.capability()))||!com.lrj.authz.protocol.ScopeDtos.STORE_RESOURCE_TYPE.equals(check.resourceType())
             ||!com.lrj.authz.governance.domain.IdentityModels.PrincipalKind.HUMAN.code().equals(context.actorType())
             ||(check.expectedMembershipGeneration()!=null&&check.expectedMembershipGeneration()!=context.membershipGeneration()))throw error(ACCESS_DENIED);
         Instant until;
         try { until=Instant.parse(input.expiresAt()); } catch(RuntimeException e) { throw error(INVALID_ARGUMENT); }
         Instant now=mapper.now();
-        if(until.getNano()%1000!=0||!until.isAfter(now)||until.isAfter(now.plusSeconds(MAX_SECONDS)))throw error(INVALID_ARGUMENT);
+        if(until.getNano()%1000!=0||!until.isAfter(now)||until.isAfter(now.plusSeconds(inventory ? SYNC_MAX_SECONDS : MAX_SECONDS)))throw error(INVALID_ARGUMENT);
         var result=access.evaluate(context,check.capability(),check.resourceType());
         if(result.alternatives().isEmpty())throw error(ACCESS_DENIED);
         String fingerprint=AccessValues.hash(context.principalId(),context.membershipId(),context.membershipGeneration(),context.membershipVersion(),context.principalVersion(),

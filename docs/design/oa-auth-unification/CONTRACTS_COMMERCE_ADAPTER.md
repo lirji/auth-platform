@@ -43,9 +43,9 @@
 
 首次实现仅改库存receive/list的员工用例门禁；reserve/confirm/release/returnItems仍属于订单和售后既有系统事务。退款已承诺义务不会因员工撤权丢失。未迁移其他用例的requireAdmin不删除、不放宽。
 
-网络判权先于本地事务。库存命令内再次锁定/核对接管路由版本、门店归属/version及Permit有效期，然后验证SKU在同一门店发布状态并执行增量写入；锁顺序路由→门店→库存。查询结束前再次检查路由/授权，拒绝后不返回数据。中央命令摘要加入稳定principal/member/generation（不含每次变化的executionId），本地actor命令键仍复用。不同代际重用旧Idempotency-Key返回冲突，不泄露旧回执。幂等命令、库存效果和审计使用原Commands事务。
+网络判权先于本地事务。库存命令内再次锁定/核对接管路由版本、门店归属/version及Permit有效期，然后验证SKU在同一门店发布状态并执行增量写入；锁顺序路由→门店→库存。查询结束前再次检查路由/授权，拒绝后不返回数据。中央命令摘要加入稳定principal/member/generation（不含每次变化的executionId），本地actor命令键仍复用。不同代际重用旧Idempotency-Key返回冲突，不泄露旧回执。幂等命令、库存效果和审计使用原Commands事务。新增employee_command_identity按命令主键关联platform_command，同事务保存principal/member/generation、执行引用、能力、真实门店及路由版本；不保存Token，随既有命令生命周期保留，不新增自动清理。
 
-中央许可后已进入的事务允许在既有5秒在途窗口内结束；不得宣称跨库瞬时撤销。已落库库存/积分/资金效果由业务补偿处理。
+中央许可最多在5秒内准入本地事务，取得Owner锁后再次核对；已准入事务沿用Commands的10秒事务上限，不宣称跨库瞬时撤销。已落库库存/积分/资金效果由业务补偿处理。
 
 ## 分族权威路由
 
@@ -61,7 +61,7 @@
 |---|---|---|---|
 |CE-02-D|CE-01|本契约、逐入口JSON、岗位快照、离线校验器；不发布能力|真实218入口完备；动态动作、同资源角色、超限与未知范围失败|
 |CE-02-A|CE-02-D|auth protocol/governance/sdk/server有限资源绑定；无运行配置修改|旧store/product不变；19新类型范围限制、跨租户/伪门店事实拒绝；旧SDK拒绝新响应|
-|CE-03-I|CE-02-D|commerce库存read/receive、受限身份端口、V49分族路由；auth执行引用精确扩展|真实隔离MySQL：门店隔离、旧ADMIN/直调拒绝、并发切换、回执隔离；中央403/503、到期/撤权|
+|CE-03-I|CE-02-D|commerce库存read/receive、受限身份端口、V49分族路由/V50身份审计；auth执行引用精确扩展|真实隔离MySQL：门店隔离、旧ADMIN/直调拒绝、并发切换、回执隔离；中央403/503、到期/撤权|
 |CE-03-U|CE-03-I|真实库存员工页面，复用SSO、RequestContext和已有库存组件|真实登录/读/入库、只读能力不显示写动作、401/403/503、窄屏、旧客户/交易回归|
 |CE-03-D|CE-02-A, CE-03-U|商家/门店目录及创建逐用例接管|无隐含store.read或catalog.operate；创建仅全租户；列表SQL过滤|
 |CE-04—08|CE-03-D|按原增量序列逐业务拆片，切片时绑定本表实际接口|每片独立数据/页面/任务/撤权与故障验证，未验收不发布清单|

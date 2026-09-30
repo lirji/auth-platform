@@ -101,6 +101,40 @@ class ExecutionAuthorizationIT {
             assertThat(jdbc.queryForObject("select context_json || paths_json from auth_governance.execution_reference where id=?",String.class,reference.executionId())).doesNotContain("access_token","user-token","credential");
         }
     }
+    @Test void inventoryReferencesAreShortLivedAndCannotSwapReadForReceive() {
+        var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
+        var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
+        var graph=new SpiceDbProjectionGraph(props.getProperty("graph.http"),props.getProperty("graph.key"),Duration.ofSeconds(3));
+        try(var runtime=GovernanceRuntime.open(db,true)) {
+            String tenant=id(),code="inventory-"+id(),app="commerce-inventory-"+id(),read=app+".inventory.read",receive=app+".inventory.receive";
+            var owner=person(runtime,tenant,code);var member=person(runtime,tenant,code);
+            var login=new VerifiedLogin(owner.issuer(),owner.subject());
+            runtime.catalog().register(app,owner.principalId(),"https://inventory.example","test",id());
+            runtime.catalog().publish(login,new Manifest("1",app,1,List.of(new Capability(read,"store",Risk.NORMAL),new Capability(receive,"store",Risk.HIGH)),List.of()),id());
+            var partition=new Partition(tenant,app,"test");
+            runtime.access().bootstrap(partition,new Delegation(owner.membershipId(),1,AccessValues.json(List.of(read,receive)),3600),"test",id());
+            var role=runtime.access().createRole(login,partition,id(),"inventory-reader",1,List.of(read));
+            runtime.access().enableStrict(login,partition,id());
+            var rule=new Rule(1,"store",List.of(new Clause(ScopeDtos.Kind.SPECIFIED_STORES,List.of("S1"),false)));
+            var grant=runtime.access().grantScoped(login,partition,id(),member.membershipId(),1,role.id(),rule,id(),Instant.now(),Instant.now().plusSeconds(300));
+            project(runtime,graph,partition);
+            var c=runtime.identity().contextForLogin(member.issuer(),member.subject(),tenant,1L);
+            var context=new AccessContext(c.principalId(),c.membershipId(),1,c.membershipVersion(),c.principalVersion(),tenant,app,"test","commerce-inventory","HUMAN",id());
+            var executions=runtime.executions(graph);
+            var request=new CentralAccessDtos.Check(tenant,1L,id(),read,"store");
+            String deadline=Instant.now().plusSeconds(45).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString();
+            var ref=executions.issue(context,new Issue(request,deadline));
+            assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),read,"store"),Instant.now().plusSeconds(300).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString()))).hasMessage("INVALID_ARGUMENT");
+            assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),receive,"store"),deadline))).hasMessage("ACCESS_DENIED");
+            var caller=mock(CallerService.class);when(caller.callerServiceId()).thenReturn("commerce-inventory");when(caller.applicationId()).thenReturn(app);when(caller.environment()).thenReturn("test");
+            assertThat(executions.check(caller,check(ref,tenant,"S1")).decision()).isEqualTo("ALLOW");
+            assertThat(executions.check(caller,check(ref,tenant,"S2")).decision()).isEqualTo("DENY");
+            var swapped=new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(new CentralAccessDtos.Check(tenant,1L,id(),receive,"store"),new Facts(tenant,"store","S1",0,null,null,List.of(),"S1",null)));
+            assertThatThrownBy(()->executions.check(caller,swapped)).hasMessage("ACCESS_DENIED");
+            runtime.access().revoke(login,partition,id(),grant.id(),1);project(runtime,graph,partition);
+            assertThat(executions.check(caller,check(ref,tenant,"S1")).decision()).isEqualTo("DENY");
+        }
+    }
     private static Check check(Reference ref,String tenant,String store) {
         return new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(new CentralAccessDtos.Check(tenant,1L,id(),ref.capability(),"store"),new Facts(tenant,"store",store,1,null,null,List.of(),store,null)));
     }

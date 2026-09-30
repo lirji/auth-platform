@@ -94,3 +94,5 @@ runtime-and-deploy沿用已选组件，新增显式本地独立身份服务和�
 CE-02-D：逐入口契约及验证完成；[适配契约](CONTRACTS_COMMERCE_ADAPTER.md)拆出CE-02-A/CE-03-I/U/D，前者为下个有界实现。CE-02整体仍进行中，未发布未授权的新模块能力。
 
 CE-02-A：有限资源协议实现/验证PASS（248单测、13真实PG+graph、Boot4兼容）。新增Owner需显式配置，未发布新能力或修改Grant；CE-03-I为下一片，详见[CE02结果](../../implementation/oa-auth/commerce-readiness/CE02_TEST_RESULT.md)。
+
+CE-03-I：库存后端本地验证PASS；397 Java项（392通过/5跳过）、2真实执行引用IT、51跨进程检查。详情[CE03_INVENTORY](../../implementation/oa-auth/commerce-readiness/CE03_INVENTORY.md)。CE-03-U页面为下一片，未将新模块全量接管写成完成。

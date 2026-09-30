@@ -46,3 +46,5 @@
 验证结果见[TEST_RESULT](TEST_RESULT.md)：Java388通过/5跳过、迁移22项、隔离34项通过；Git/CI交付记录另记。
 
 2026-09-29：用户D1—D4已批准。CE-02-D逐入口/受限Actor/分族接管契约完成，真实源码覆盖218入口，122能力、34角色快照，离线9项测试通过；见[CE02_TEST_RESULT](CE02_TEST_RESULT.md)。继续CE-02-A有限资源协议、CE-03-I库存用例，未发布新能力。
+
+CE-03-I库存read/receive后端已通过本地完整/真实中央联调，见[CE03结果](CE03_INVENTORY.md)；下一片CE-03-U员工页面，尚未完成全模块接入。
