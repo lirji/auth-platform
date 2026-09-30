@@ -90,3 +90,5 @@ runtime-and-deploy沿用已选组件，新增显式本地独立身份服务和�
 - migration readiness：prepare-review及增量差异工具22项测试通过，未签字真实映射仍隔离；私有数据与失败历史保留。
 - task-git-delivery / ci-cd-gate：依用户常驻授权从独立任务分支正常合并推送；初轮两仓CI成功，最终工具补充CI及提交见commerce-readiness/DELIVERY_RESULT。没有生产部署、OA修改或清理。
 - recommended_next：已获数据边界及高风险审批选择，逐动作能力/受限Actor/接管状态设计推进CE-02；真实映射签字和生产目标仍未确定。
+
+CE-02-D：逐入口契约及验证完成；[适配契约](CONTRACTS_COMMERCE_ADAPTER.md)拆出CE-02-A/CE-03-I/U/D，前者为下个有界实现。CE-02整体仍进行中，未发布未授权的新模块能力。

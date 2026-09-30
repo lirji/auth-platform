@@ -1,0 +1,3854 @@
+{
+  "schema_version": 1,
+  "status": "DESIGN_ONLY_NOT_PUBLISHED",
+  "commerce_revision": "f7cb512deb8dfd22f5e28a12e9de92a0e1f62b87",
+  "capabilities": [
+    {
+      "code": "commerce.aftersale.approve",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.aftersale.read",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.aftersale.receive_return",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.aftersale.reject",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.audience.create",
+      "resource_type": "audience",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.audience.read",
+      "resource_type": "audience",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.budget.read",
+      "resource_type": "campaign",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.campaign.approve",
+      "resource_type": "campaign",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.campaign.create",
+      "resource_type": "campaign",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.campaign.pause",
+      "resource_type": "campaign",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.campaign.preview",
+      "resource_type": "campaign",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.campaign.publish",
+      "resource_type": "campaign",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.campaign.read",
+      "resource_type": "campaign",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.campaign.reject",
+      "resource_type": "campaign",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.campaign.submit",
+      "resource_type": "campaign",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.catalog.operate",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.coupon_definition.create",
+      "resource_type": "coupon_definition",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.coupon_definition.read",
+      "resource_type": "coupon_definition",
+      "risk_level": "NORMAL",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.coupon_delivery.control",
+      "resource_type": "coupon_delivery",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.coupon_delivery.create",
+      "resource_type": "coupon_delivery",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.coupon_delivery.pump",
+      "resource_type": "coupon_delivery",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.coupon_delivery.read",
+      "resource_type": "coupon_delivery",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.cycle_benefit.define",
+      "resource_type": "commerce_member_policy",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.cycle_benefit.grant",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.cycle_benefit.read",
+      "resource_type": "commerce_member_policy",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.dashboard.read",
+      "resource_type": "commerce_tenant",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.entitlement.read",
+      "resource_type": "entitlement",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.entitlement.resolve",
+      "resource_type": "entitlement",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.entitlement_definition.create",
+      "resource_type": "entitlement_definition",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.entitlement_definition.read",
+      "resource_type": "entitlement_definition",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.event.pump",
+      "resource_type": "commerce_runtime",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.event.read",
+      "resource_type": "commerce_runtime",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.event.retry",
+      "resource_type": "commerce_runtime",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.fulfillment.deliver",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.fulfillment.read",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.fulfillment.ship",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.growth.adjust",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.growth.policy.publish",
+      "resource_type": "commerce_member_policy",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.growth.policy.read",
+      "resource_type": "commerce_member_policy",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.growth.read",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.growth.recalculate",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.inventory.read",
+      "resource_type": "store",
+      "risk_level": "NORMAL",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.inventory.receive",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.journey.approve",
+      "resource_type": "journey",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey.create",
+      "resource_type": "journey",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey.pause",
+      "resource_type": "journey",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey.preview",
+      "resource_type": "journey",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey.publish",
+      "resource_type": "journey",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey.pump",
+      "resource_type": "journey",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey.read",
+      "resource_type": "journey",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey.reject",
+      "resource_type": "journey",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey.submit",
+      "resource_type": "journey",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey.validate",
+      "resource_type": "journey",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey_instance.control",
+      "resource_type": "journey_instance",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey_instance.create",
+      "resource_type": "journey_instance",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey_instance.read",
+      "resource_type": "journey_instance",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey_scan.read",
+      "resource_type": "journey_scan",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.journey_scan.retry",
+      "resource_type": "journey_scan",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.marketing_effect.read",
+      "resource_type": "marketing_report",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.marketing_effect.rebuild",
+      "resource_type": "marketing_report",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.marketing_execution.read",
+      "resource_type": "marketing_report",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member.create",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member.profile.update",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member.read",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member.status.update",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member_behavior.read",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member_behavior.rebuild",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member_behavior.update",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member_cycle.evaluate",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member_cycle.policy.publish",
+      "resource_type": "commerce_member_policy",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member_cycle.policy.read",
+      "resource_type": "commerce_member_policy",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member_cycle.read",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member_tag.assign",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member_tag.define",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.member_tag.read",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.merchant.create",
+      "resource_type": "merchant",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.merchant.read",
+      "resource_type": "merchant",
+      "risk_level": "NORMAL",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.ops_page.approve",
+      "resource_type": "ops_page",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.ops_page.create",
+      "resource_type": "ops_page",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.ops_page.execute",
+      "resource_type": "ops_page",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.ops_page.pause",
+      "resource_type": "ops_page",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.ops_page.preview",
+      "resource_type": "ops_page",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.ops_page.publish",
+      "resource_type": "ops_page",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.ops_page.read",
+      "resource_type": "ops_page",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.ops_page.reject",
+      "resource_type": "ops_page",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.ops_page.rollback",
+      "resource_type": "ops_page",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.ops_page.submit",
+      "resource_type": "ops_page",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.order.expire",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.order.expiry.retry",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.order.read",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.payment.read",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.payment.reconcile",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.point_offer.define",
+      "resource_type": "point_offer",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.point_offer.read",
+      "resource_type": "point_offer",
+      "risk_level": "NORMAL",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.point_offer.status.update",
+      "resource_type": "point_offer",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.points.adjust",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.points.expire",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.points.policy.publish",
+      "resource_type": "commerce_member_policy",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.points.policy.read",
+      "resource_type": "commerce_member_policy",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.points.read",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.product.export",
+      "resource_type": "product",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.product.read",
+      "resource_type": "product",
+      "risk_level": "NORMAL",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.product.update",
+      "resource_type": "product",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.refund.read",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.refund.reconcile",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.rule.create",
+      "resource_type": "marketing_rule",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.rule.publish",
+      "resource_type": "marketing_rule",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.rule.read",
+      "resource_type": "marketing_rule",
+      "risk_level": "NORMAL",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.runtime.read",
+      "resource_type": "commerce_runtime",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.runtime.recover",
+      "resource_type": "commerce_runtime",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.runtime.replay.control",
+      "resource_type": "commerce_runtime",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.runtime.replay.create",
+      "resource_type": "commerce_runtime",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.runtime.replay.preview",
+      "resource_type": "commerce_runtime",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.segment.control",
+      "resource_type": "segment",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.segment.create",
+      "resource_type": "segment",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.segment.pump",
+      "resource_type": "segment",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.segment.read",
+      "resource_type": "segment",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.segment.refresh",
+      "resource_type": "segment",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.segment.schedule",
+      "resource_type": "segment",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.store.create",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ]
+    },
+    {
+      "code": "commerce.store.directory.read",
+      "resource_type": "store",
+      "risk_level": "NORMAL",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    },
+    {
+      "code": "commerce.store.read",
+      "resource_type": "store",
+      "risk_level": "NORMAL",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ]
+    }
+  ],
+  "roles": [
+    {
+      "code": "inventory_operator.store",
+      "job": "inventory_operator",
+      "version": 1,
+      "resource_type": "store",
+      "capabilities": [
+        "commerce.inventory.read",
+        "commerce.inventory.receive"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "member_operator.commerce_member",
+      "job": "member_operator",
+      "version": 1,
+      "resource_type": "commerce_member",
+      "capabilities": [
+        "commerce.growth.read",
+        "commerce.member.create",
+        "commerce.member.profile.update",
+        "commerce.member.read",
+        "commerce.member_behavior.read",
+        "commerce.member_behavior.update",
+        "commerce.member_cycle.read",
+        "commerce.member_tag.assign",
+        "commerce.member_tag.read",
+        "commerce.points.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "marketing_editor.campaign",
+      "job": "marketing_editor",
+      "version": 1,
+      "resource_type": "campaign",
+      "capabilities": [
+        "commerce.campaign.create",
+        "commerce.campaign.preview",
+        "commerce.campaign.read",
+        "commerce.campaign.submit"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "marketing_editor.marketing_rule",
+      "job": "marketing_editor",
+      "version": 1,
+      "resource_type": "marketing_rule",
+      "capabilities": [
+        "commerce.rule.create",
+        "commerce.rule.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "marketing_editor.journey",
+      "job": "marketing_editor",
+      "version": 1,
+      "resource_type": "journey",
+      "capabilities": [
+        "commerce.journey.create",
+        "commerce.journey.preview",
+        "commerce.journey.read",
+        "commerce.journey.submit",
+        "commerce.journey.validate"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "marketing_editor.ops_page",
+      "job": "marketing_editor",
+      "version": 1,
+      "resource_type": "ops_page",
+      "capabilities": [
+        "commerce.ops_page.create",
+        "commerce.ops_page.preview",
+        "commerce.ops_page.read",
+        "commerce.ops_page.submit"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "marketing_reviewer.campaign",
+      "job": "marketing_reviewer",
+      "version": 1,
+      "resource_type": "campaign",
+      "capabilities": [
+        "commerce.campaign.approve",
+        "commerce.campaign.read",
+        "commerce.campaign.reject"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "marketing_reviewer.journey",
+      "job": "marketing_reviewer",
+      "version": 1,
+      "resource_type": "journey",
+      "capabilities": [
+        "commerce.journey.approve",
+        "commerce.journey.read",
+        "commerce.journey.reject"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "marketing_reviewer.ops_page",
+      "job": "marketing_reviewer",
+      "version": 1,
+      "resource_type": "ops_page",
+      "capabilities": [
+        "commerce.ops_page.approve",
+        "commerce.ops_page.read",
+        "commerce.ops_page.reject"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "marketing_publisher.campaign",
+      "job": "marketing_publisher",
+      "version": 1,
+      "resource_type": "campaign",
+      "capabilities": [
+        "commerce.campaign.pause",
+        "commerce.campaign.publish",
+        "commerce.campaign.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "marketing_publisher.marketing_rule",
+      "job": "marketing_publisher",
+      "version": 1,
+      "resource_type": "marketing_rule",
+      "capabilities": [
+        "commerce.rule.publish",
+        "commerce.rule.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "marketing_publisher.journey",
+      "job": "marketing_publisher",
+      "version": 1,
+      "resource_type": "journey",
+      "capabilities": [
+        "commerce.journey.pause",
+        "commerce.journey.publish",
+        "commerce.journey.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "marketing_publisher.ops_page",
+      "job": "marketing_publisher",
+      "version": 1,
+      "resource_type": "ops_page",
+      "capabilities": [
+        "commerce.ops_page.pause",
+        "commerce.ops_page.publish",
+        "commerce.ops_page.read",
+        "commerce.ops_page.rollback"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "fulfillment_operator.store",
+      "job": "fulfillment_operator",
+      "version": 1,
+      "resource_type": "store",
+      "capabilities": [
+        "commerce.aftersale.approve",
+        "commerce.aftersale.read",
+        "commerce.aftersale.receive_return",
+        "commerce.aftersale.reject",
+        "commerce.fulfillment.deliver",
+        "commerce.fulfillment.read",
+        "commerce.fulfillment.ship",
+        "commerce.order.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "finance_reconciler.store",
+      "job": "finance_reconciler",
+      "version": 1,
+      "resource_type": "store",
+      "capabilities": [
+        "commerce.order.read",
+        "commerce.payment.read",
+        "commerce.payment.reconcile",
+        "commerce.refund.read",
+        "commerce.refund.reconcile"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "points_adjuster.commerce_member",
+      "job": "points_adjuster",
+      "version": 1,
+      "resource_type": "commerce_member",
+      "capabilities": [
+        "commerce.member.read",
+        "commerce.points.adjust",
+        "commerce.points.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "growth_adjuster.commerce_member",
+      "job": "growth_adjuster",
+      "version": 1,
+      "resource_type": "commerce_member",
+      "capabilities": [
+        "commerce.growth.adjust",
+        "commerce.growth.read",
+        "commerce.member.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "member_status_operator.commerce_member",
+      "job": "member_status_operator",
+      "version": 1,
+      "resource_type": "commerce_member",
+      "capabilities": [
+        "commerce.member.read",
+        "commerce.member.status.update"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "policy_publisher.commerce_member_policy",
+      "job": "policy_publisher",
+      "version": 1,
+      "resource_type": "commerce_member_policy",
+      "capabilities": [
+        "commerce.cycle_benefit.define",
+        "commerce.cycle_benefit.read",
+        "commerce.growth.policy.publish",
+        "commerce.growth.policy.read",
+        "commerce.member_cycle.policy.publish",
+        "commerce.member_cycle.policy.read",
+        "commerce.points.policy.publish",
+        "commerce.points.policy.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "benefit_operator.coupon_definition",
+      "job": "benefit_operator",
+      "version": 1,
+      "resource_type": "coupon_definition",
+      "capabilities": [
+        "commerce.coupon_definition.create",
+        "commerce.coupon_definition.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "benefit_operator.coupon_delivery",
+      "job": "benefit_operator",
+      "version": 1,
+      "resource_type": "coupon_delivery",
+      "capabilities": [
+        "commerce.coupon_delivery.control",
+        "commerce.coupon_delivery.create",
+        "commerce.coupon_delivery.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "benefit_operator.entitlement_definition",
+      "job": "benefit_operator",
+      "version": 1,
+      "resource_type": "entitlement_definition",
+      "capabilities": [
+        "commerce.entitlement_definition.create",
+        "commerce.entitlement_definition.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "benefit_operator.entitlement",
+      "job": "benefit_operator",
+      "version": 1,
+      "resource_type": "entitlement",
+      "capabilities": [
+        "commerce.entitlement.read",
+        "commerce.entitlement.resolve"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "benefit_operator.point_offer",
+      "job": "benefit_operator",
+      "version": 1,
+      "resource_type": "point_offer",
+      "capabilities": [
+        "commerce.point_offer.define",
+        "commerce.point_offer.read",
+        "commerce.point_offer.status.update"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "benefit_operator.commerce_member",
+      "job": "benefit_operator",
+      "version": 1,
+      "resource_type": "commerce_member",
+      "capabilities": [
+        "commerce.cycle_benefit.grant"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "audience_operator.audience",
+      "job": "audience_operator",
+      "version": 1,
+      "resource_type": "audience",
+      "capabilities": [
+        "commerce.audience.create",
+        "commerce.audience.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "audience_operator.segment",
+      "job": "audience_operator",
+      "version": 1,
+      "resource_type": "segment",
+      "capabilities": [
+        "commerce.segment.control",
+        "commerce.segment.create",
+        "commerce.segment.read",
+        "commerce.segment.refresh",
+        "commerce.segment.schedule"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "audience_operator.journey_instance",
+      "job": "audience_operator",
+      "version": 1,
+      "resource_type": "journey_instance",
+      "capabilities": [
+        "commerce.journey_instance.control",
+        "commerce.journey_instance.create",
+        "commerce.journey_instance.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "audience_operator.journey_scan",
+      "job": "audience_operator",
+      "version": 1,
+      "resource_type": "journey_scan",
+      "capabilities": [
+        "commerce.journey_scan.read",
+        "commerce.journey_scan.retry"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "operations_analyst.marketing_report",
+      "job": "operations_analyst",
+      "version": 1,
+      "resource_type": "marketing_report",
+      "capabilities": [
+        "commerce.marketing_effect.read",
+        "commerce.marketing_execution.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "operations_analyst.campaign",
+      "job": "operations_analyst",
+      "version": 1,
+      "resource_type": "campaign",
+      "capabilities": [
+        "commerce.budget.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "runtime_reader.commerce_runtime",
+      "job": "runtime_reader",
+      "version": 1,
+      "resource_type": "commerce_runtime",
+      "capabilities": [
+        "commerce.event.read",
+        "commerce.runtime.read"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "runtime_recovery_operator.commerce_runtime",
+      "job": "runtime_recovery_operator",
+      "version": 1,
+      "resource_type": "commerce_runtime",
+      "capabilities": [
+        "commerce.event.read",
+        "commerce.event.retry",
+        "commerce.runtime.read",
+        "commerce.runtime.recover"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    },
+    {
+      "code": "runtime_replay_operator.commerce_runtime",
+      "job": "runtime_replay_operator",
+      "version": 1,
+      "resource_type": "commerce_runtime",
+      "capabilities": [
+        "commerce.runtime.read",
+        "commerce.runtime.replay.control",
+        "commerce.runtime.replay.create",
+        "commerce.runtime.replay.preview"
+      ],
+      "grant_policy": "OWNER_REVIEW_REQUIRED"
+    }
+  ],
+  "routes": [
+    {
+      "controller": "AftersaleController",
+      "method": "GET",
+      "path": "/v1/orders/{id}/fulfillment",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:28",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "GET",
+      "path": "/v1/admin/fulfillments",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:34",
+      "capabilities": [
+        "commerce.fulfillment.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "POST",
+      "path": "/v1/admin/fulfillments/{id}/ship",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:41",
+      "capabilities": [
+        "commerce.fulfillment.ship"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "POST",
+      "path": "/v1/admin/fulfillments/{id}/deliver",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:48",
+      "capabilities": [
+        "commerce.fulfillment.deliver"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "POST",
+      "path": "/v1/aftersales",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:55",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "GET",
+      "path": "/v1/aftersales/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:62",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "GET",
+      "path": "/v1/aftersales",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:68",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "GET",
+      "path": "/v1/admin/aftersales",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:75",
+      "capabilities": [
+        "commerce.aftersale.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "POST",
+      "path": "/v1/admin/aftersales/{id}/approve",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:82",
+      "capabilities": [
+        "commerce.aftersale.approve"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "POST",
+      "path": "/v1/admin/aftersales/{id}/reject",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:89",
+      "capabilities": [
+        "commerce.aftersale.reject"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "POST",
+      "path": "/v1/admin/aftersales/{id}/receive-return",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:96",
+      "capabilities": [
+        "commerce.aftersale.receive_return"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "GET",
+      "path": "/v1/admin/refunds",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:103",
+      "capabilities": [
+        "commerce.refund.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "POST",
+      "path": "/v1/admin/refunds/{id}/reconcile",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:110",
+      "capabilities": [
+        "commerce.refund.reconcile"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "AftersaleController",
+      "method": "POST",
+      "path": "/v1/admin/sandbox/refunds/{id}/success",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/aftersales/AftersaleController.java:116",
+      "capabilities": [],
+      "mode": "LOCAL_SANDBOX_ONLY"
+    },
+    {
+      "controller": "CouponController",
+      "method": "POST",
+      "path": "/v1/admin/coupon-definitions",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/coupon/CouponController.java:20",
+      "capabilities": [
+        "commerce.coupon_definition.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CouponController",
+      "method": "GET",
+      "path": "/v1/coupon-definitions",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/coupon/CouponController.java:27",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "CouponController",
+      "method": "GET",
+      "path": "/v1/admin/coupon-definitions",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/coupon/CouponController.java:27",
+      "capabilities": [
+        "commerce.coupon_definition.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CouponController",
+      "method": "POST",
+      "path": "/v1/coupons/{id}/{version}/claim",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/coupon/CouponController.java:34",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "CouponController",
+      "method": "GET",
+      "path": "/v1/coupons",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/coupon/CouponController.java:41",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "EntitlementController",
+      "method": "POST",
+      "path": "/v1/admin/entitlement-definitions",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/entitlement/EntitlementController.java:20",
+      "capabilities": [
+        "commerce.entitlement_definition.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "EntitlementController",
+      "method": "GET",
+      "path": "/v1/admin/entitlement-definitions",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/entitlement/EntitlementController.java:27",
+      "capabilities": [
+        "commerce.entitlement_definition.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "EntitlementController",
+      "method": "GET",
+      "path": "/v1/entitlements",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/entitlement/EntitlementController.java:34",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "EntitlementController",
+      "method": "GET",
+      "path": "/v1/admin/entitlements",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/entitlement/EntitlementController.java:41",
+      "capabilities": [
+        "commerce.entitlement.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "EntitlementController",
+      "method": "POST",
+      "path": "/v1/entitlements/{id}/consume",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/entitlement/EntitlementController.java:48",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "EntitlementController",
+      "method": "GET",
+      "path": "/v1/entitlements/{id}/ledger",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/entitlement/EntitlementController.java:55",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "EntitlementController",
+      "method": "POST",
+      "path": "/v1/admin/entitlements/{id}/resolve",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/entitlement/EntitlementController.java:62",
+      "capabilities": [
+        "commerce.entitlement.resolve"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "PointOfferController",
+      "method": "POST",
+      "path": "/v1/admin/point-offers",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/pointoffer/PointOfferController.java:20",
+      "capabilities": [
+        "commerce.point_offer.define"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "PointOfferController",
+      "method": "POST",
+      "path": "/v1/admin/point-offers/{id}/status",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/pointoffer/PointOfferController.java:27",
+      "capabilities": [
+        "commerce.point_offer.status.update"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "PointOfferController",
+      "method": "GET",
+      "path": "/v1/admin/point-offers",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/pointoffer/PointOfferController.java:34",
+      "capabilities": [
+        "commerce.point_offer.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "PointOfferController",
+      "method": "GET",
+      "path": "/v1/point-offers",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/pointoffer/PointOfferController.java:42",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "PointOfferController",
+      "method": "POST",
+      "path": "/v1/point-offers/{id}/redeem",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/pointoffer/PointOfferController.java:49",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "PointOfferController",
+      "method": "GET",
+      "path": "/v1/point-redemptions",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/pointoffer/PointOfferController.java:56",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "CatalogSchedulingController",
+      "method": "POST",
+      "path": "/v1/operations/catalog-jobs",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/job/CatalogSchedulingController.java:24",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogSchedulingController",
+      "method": "GET",
+      "path": "/v1/operations/catalog-jobs",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/job/CatalogSchedulingController.java:31",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogSchedulingController",
+      "method": "GET",
+      "path": "/v1/operations/catalog-jobs/{id}/items",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/job/CatalogSchedulingController.java:38",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogSchedulingController",
+      "method": "POST",
+      "path": "/v1/operations/catalog-jobs/{id}/control",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/job/CatalogSchedulingController.java:45",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG",
+      "action_selector": "body.action",
+      "actions": {
+        "CANCEL": "commerce.catalog.operate",
+        "RETRY": "commerce.catalog.operate"
+      },
+      "unknown_action": "DENY"
+    },
+    {
+      "controller": "CatalogSchedulingController",
+      "method": "POST",
+      "path": "/v1/operations/catalog-jobs/pump",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/job/CatalogSchedulingController.java:52",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogSchedulingController",
+      "method": "GET",
+      "path": "/v1/operations/skus/{id}/channel-prices",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/job/CatalogSchedulingController.java:58",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogSchedulingController",
+      "method": "POST",
+      "path": "/v1/operations/skus/{id}/channel-prices",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/job/CatalogSchedulingController.java:64",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogSchedulingController",
+      "method": "GET",
+      "path": "/v1/operations/skus/{id}/channel-prices/{channel}/history",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/job/CatalogSchedulingController.java:71",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "POST",
+      "path": "/v1/operations/catalog-categories",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:20",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "POST",
+      "path": "/v1/operations/catalog-categories/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:27",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "GET",
+      "path": "/v1/operations/catalog-categories",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:34",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "GET",
+      "path": "/v1/catalog/categories",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:41",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "POST",
+      "path": "/v1/operations/specification-templates",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:48",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "GET",
+      "path": "/v1/operations/specification-templates",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:55",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "GET",
+      "path": "/v1/operations/specification-templates/{id}/{version}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:62",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "GET",
+      "path": "/v1/operations/products/{id}/merchandising",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:69",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "POST",
+      "path": "/v1/operations/products/{id}/merchandising",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:75",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "GET",
+      "path": "/v1/operations/skus/{id}/barcode",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:82",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "POST",
+      "path": "/v1/operations/skus/{id}/barcode",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:88",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "GET",
+      "path": "/v1/operations/catalog-search",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:95",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "GET",
+      "path": "/v1/catalog/search",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:106",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "CatalogMerchandisingController",
+      "method": "GET",
+      "path": "/v1/catalog/items/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/merchandising/CatalogMerchandisingController.java:116",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "ProductOperationsController",
+      "method": "POST",
+      "path": "/v1/operations/products",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/product/ProductOperationsController.java:20",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "ProductOperationsController",
+      "method": "POST",
+      "path": "/v1/operations/products/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/product/ProductOperationsController.java:27",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "ProductOperationsController",
+      "method": "GET",
+      "path": "/v1/operations/products",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/product/ProductOperationsController.java:34",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "ProductOperationsController",
+      "method": "POST",
+      "path": "/v1/operations/skus",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/product/ProductOperationsController.java:41",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "ProductOperationsController",
+      "method": "POST",
+      "path": "/v1/operations/skus/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/product/ProductOperationsController.java:48",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "ProductOperationsController",
+      "method": "GET",
+      "path": "/v1/operations/skus",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/product/ProductOperationsController.java:55",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "ProductOperationsController",
+      "method": "GET",
+      "path": "/v1/operations/skus/{id}/history",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/catalog/product/ProductOperationsController.java:62",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "GET",
+      "path": "/v1/me",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:40",
+      "capabilities": [],
+      "mode": "LEGACY_SESSION_METADATA"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "POST",
+      "path": "/v1/admin/members",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:45",
+      "capabilities": [
+        "commerce.member.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "GET",
+      "path": "/v1/admin/members",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:51",
+      "capabilities": [
+        "commerce.member.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "POST",
+      "path": "/v1/admin/merchants",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:57",
+      "capabilities": [
+        "commerce.merchant.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "GET",
+      "path": "/v1/admin/merchants",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:63",
+      "capabilities": [
+        "commerce.merchant.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "POST",
+      "path": "/v1/admin/stores",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:69",
+      "capabilities": [
+        "commerce.store.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "GET",
+      "path": "/v1/admin/stores",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:75",
+      "capabilities": [
+        "commerce.store.directory.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "POST",
+      "path": "/v1/admin/skus",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:81",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "GET",
+      "path": "/v1/catalog",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:87",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "GET",
+      "path": "/v1/admin/skus",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:87",
+      "capabilities": [
+        "commerce.catalog.operate"
+      ],
+      "mode": "EXISTING_CATALOG"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "POST",
+      "path": "/v1/admin/campaigns",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:93",
+      "capabilities": [
+        "commerce.campaign.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "GET",
+      "path": "/v1/admin/campaigns",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:99",
+      "capabilities": [
+        "commerce.campaign.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "POST",
+      "path": "/v1/admin/campaigns/{id}/{version}/publish",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:108",
+      "capabilities": [
+        "commerce.campaign.publish"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "POST",
+      "path": "/v1/admin/campaigns/{id}/{version}/pause",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:114",
+      "capabilities": [
+        "commerce.campaign.pause"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "POST",
+      "path": "/v1/quotes",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:120",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "CommerceController",
+      "method": "GET",
+      "path": "/v1/quotes/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/CommerceController.java:126",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "MarketingAssetController",
+      "method": "POST",
+      "path": "/v1/admin/campaigns/{id}/{version}/preview",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/MarketingAssetController.java:29",
+      "capabilities": [
+        "commerce.campaign.preview"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingAssetController",
+      "method": "POST",
+      "path": "/v1/admin/audiences",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/MarketingAssetController.java:36",
+      "capabilities": [
+        "commerce.audience.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingAssetController",
+      "method": "GET",
+      "path": "/v1/admin/audiences",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/MarketingAssetController.java:43",
+      "capabilities": [
+        "commerce.audience.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingAssetController",
+      "method": "POST",
+      "path": "/v1/admin/rules",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/MarketingAssetController.java:50",
+      "capabilities": [
+        "commerce.rule.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingAssetController",
+      "method": "POST",
+      "path": "/v1/admin/rules/{id}/{version}/publish",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/MarketingAssetController.java:57",
+      "capabilities": [
+        "commerce.rule.publish"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingAssetController",
+      "method": "GET",
+      "path": "/v1/admin/rules",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/MarketingAssetController.java:64",
+      "capabilities": [
+        "commerce.rule.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingAssetController",
+      "method": "GET",
+      "path": "/v1/admin/rule-fields",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/MarketingAssetController.java:71",
+      "capabilities": [
+        "commerce.rule.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingAssetController",
+      "method": "POST",
+      "path": "/v1/admin/campaigns/{id}/{version}/{action:submit|approve|reject}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/MarketingAssetController.java:78",
+      "capabilities": [
+        "commerce.campaign.approve",
+        "commerce.campaign.reject",
+        "commerce.campaign.submit"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "action_selector": "path.action",
+      "actions": {
+        "submit": "commerce.campaign.submit",
+        "approve": "commerce.campaign.approve",
+        "reject": "commerce.campaign.reject"
+      },
+      "unknown_action": "DENY",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingAssetController",
+      "method": "GET",
+      "path": "/v1/admin/campaign-budgets",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/MarketingAssetController.java:86",
+      "capabilities": [
+        "commerce.budget.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CouponDeliveryController",
+      "method": "POST",
+      "path": "/v1/admin/coupon-deliveries",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/delivery/CouponDeliveryController.java:20",
+      "capabilities": [
+        "commerce.coupon_delivery.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CouponDeliveryController",
+      "method": "GET",
+      "path": "/v1/admin/coupon-deliveries",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/delivery/CouponDeliveryController.java:27",
+      "capabilities": [
+        "commerce.coupon_delivery.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CouponDeliveryController",
+      "method": "GET",
+      "path": "/v1/admin/coupon-deliveries/{id}/recipients",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/delivery/CouponDeliveryController.java:34",
+      "capabilities": [
+        "commerce.coupon_delivery.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CouponDeliveryController",
+      "method": "POST",
+      "path": "/v1/admin/coupon-deliveries/{id}/control",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/delivery/CouponDeliveryController.java:41",
+      "capabilities": [
+        "commerce.coupon_delivery.control"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "action_selector": "body.action",
+      "actions": {
+        "CANCEL": "commerce.coupon_delivery.control",
+        "RETRY": "commerce.coupon_delivery.control",
+        "REVOKE": "commerce.coupon_delivery.control"
+      },
+      "unknown_action": "DENY",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CouponDeliveryController",
+      "method": "POST",
+      "path": "/v1/admin/coupon-deliveries/pump",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/delivery/CouponDeliveryController.java:48",
+      "capabilities": [
+        "commerce.coupon_delivery.pump"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CampaignExecutionController",
+      "method": "GET",
+      "path": "/v1/admin/marketing-executions",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/execution/CampaignExecutionController.java:23",
+      "capabilities": [
+        "commerce.marketing_execution.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CampaignExecutionController",
+      "method": "GET",
+      "path": "/v1/admin/marketing-executions/{orderId}/{campaignId}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/execution/CampaignExecutionController.java:29",
+      "capabilities": [
+        "commerce.marketing_execution.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingEffectsController",
+      "method": "GET",
+      "path": "/v1/admin/marketing-effects",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/insight/MarketingEffectsController.java:25",
+      "capabilities": [
+        "commerce.marketing_effect.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingEffectsController",
+      "method": "GET",
+      "path": "/v1/admin/marketing-effects/journeys",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/insight/MarketingEffectsController.java:33",
+      "capabilities": [
+        "commerce.marketing_effect.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingEffectsController",
+      "method": "GET",
+      "path": "/v1/admin/marketing-effects/deliveries",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/insight/MarketingEffectsController.java:41",
+      "capabilities": [
+        "commerce.marketing_effect.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingEffectsController",
+      "method": "POST",
+      "path": "/v1/admin/marketing-effects/rebuild",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/insight/MarketingEffectsController.java:49",
+      "capabilities": [
+        "commerce.marketing_effect.rebuild"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MarketingEffectsController",
+      "method": "GET",
+      "path": "/v1/admin/journey-effects",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/insight/MarketingEffectsController.java:56",
+      "capabilities": [
+        "commerce.marketing_effect.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "POST",
+      "path": "/v1/admin/journeys",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:23",
+      "capabilities": [
+        "commerce.journey.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "GET",
+      "path": "/v1/admin/journeys",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:30",
+      "capabilities": [
+        "commerce.journey.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "POST",
+      "path": "/v1/admin/journeys/validate",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:37",
+      "capabilities": [
+        "commerce.journey.validate"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "POST",
+      "path": "/v1/admin/journeys/{id}/{version}/preview",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:43",
+      "capabilities": [
+        "commerce.journey.preview"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "POST",
+      "path": "/v1/admin/journeys/{id}/{version}/{action}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:50",
+      "capabilities": [
+        "commerce.journey.approve",
+        "commerce.journey.pause",
+        "commerce.journey.publish",
+        "commerce.journey.reject",
+        "commerce.journey.submit"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "action_selector": "path.action",
+      "actions": {
+        "submit": "commerce.journey.submit",
+        "approve": "commerce.journey.approve",
+        "reject": "commerce.journey.reject",
+        "publish": "commerce.journey.publish",
+        "pause": "commerce.journey.pause"
+      },
+      "unknown_action": "DENY",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "POST",
+      "path": "/v1/admin/journey-instances",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:58",
+      "capabilities": [
+        "commerce.journey_instance.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "GET",
+      "path": "/v1/admin/journey-instances",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:65",
+      "capabilities": [
+        "commerce.journey_instance.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "GET",
+      "path": "/v1/journey-instances",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:65",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "GET",
+      "path": "/v1/admin/journey-instances/{id}/history",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:72",
+      "capabilities": [
+        "commerce.journey_instance.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "GET",
+      "path": "/v1/journey-instances/{id}/history",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:72",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "POST",
+      "path": "/v1/admin/journey-instances/{id}/{action}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:79",
+      "capabilities": [
+        "commerce.journey_instance.control"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "action_selector": "path.action",
+      "actions": {
+        "cancel": "commerce.journey_instance.control",
+        "retry": "commerce.journey_instance.control"
+      },
+      "unknown_action": "DENY",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "POST",
+      "path": "/v1/admin/journeys/pump",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:86",
+      "capabilities": [
+        "commerce.journey.pump"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "GET",
+      "path": "/v1/admin/journey-scans",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:92",
+      "capabilities": [
+        "commerce.journey_scan.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "POST",
+      "path": "/v1/admin/journey-scans/{id}/{version}/retry",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:99",
+      "capabilities": [
+        "commerce.journey_scan.retry"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "JourneyController",
+      "method": "GET",
+      "path": "/v1/notifications",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/journey/JourneyController.java:106",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "SegmentController",
+      "method": "POST",
+      "path": "/v1/admin/segments",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentController.java:20",
+      "capabilities": [
+        "commerce.segment.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "SegmentController",
+      "method": "GET",
+      "path": "/v1/admin/segments",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentController.java:27",
+      "capabilities": [
+        "commerce.segment.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "SegmentController",
+      "method": "POST",
+      "path": "/v1/admin/segments/{id}/schedule",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentController.java:34",
+      "capabilities": [
+        "commerce.segment.schedule"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "SegmentController",
+      "method": "POST",
+      "path": "/v1/admin/segments/{id}/refresh",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentController.java:41",
+      "capabilities": [
+        "commerce.segment.refresh"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "SegmentController",
+      "method": "GET",
+      "path": "/v1/admin/segments/{id}/runs",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentController.java:48",
+      "capabilities": [
+        "commerce.segment.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "SegmentController",
+      "method": "POST",
+      "path": "/v1/admin/segments/pump",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentController.java:55",
+      "capabilities": [
+        "commerce.segment.pump"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "SegmentController",
+      "method": "POST",
+      "path": "/v1/admin/segment-runs/{id}/{action}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentController.java:61",
+      "capabilities": [
+        "commerce.segment.control"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "action_selector": "path.action",
+      "actions": {
+        "cancel": "commerce.segment.control",
+        "retry": "commerce.segment.control",
+        "retry-announcement": "commerce.segment.control"
+      },
+      "unknown_action": "DENY",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberBehaviorController",
+      "method": "GET",
+      "path": "/v1/admin/member-behavior/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/behavior/MemberBehaviorController.java:39",
+      "capabilities": [
+        "commerce.member_behavior.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberBehaviorController",
+      "method": "POST",
+      "path": "/v1/admin/member-behavior/{id}/profile",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/behavior/MemberBehaviorController.java:46",
+      "capabilities": [
+        "commerce.member_behavior.update"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberBehaviorController",
+      "method": "GET",
+      "path": "/v1/admin/member-behavior/{id}/events",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/behavior/MemberBehaviorController.java:54",
+      "capabilities": [
+        "commerce.member_behavior.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberBehaviorController",
+      "method": "GET",
+      "path": "/v1/members/me/behavior",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/behavior/MemberBehaviorController.java:62",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "MemberBehaviorController",
+      "method": "POST",
+      "path": "/v1/members/me/behavior/profile",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/behavior/MemberBehaviorController.java:68",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "MemberBehaviorController",
+      "method": "POST",
+      "path": "/v1/members/me/behavior/events",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/behavior/MemberBehaviorController.java:75",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "MemberBehaviorController",
+      "method": "GET",
+      "path": "/v1/members/me/behavior/events",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/behavior/MemberBehaviorController.java:91",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "MemberBehaviorController",
+      "method": "POST",
+      "path": "/v1/admin/member-behavior/rebuild",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/behavior/MemberBehaviorController.java:104",
+      "capabilities": [
+        "commerce.member_behavior.rebuild"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberBenefitController",
+      "method": "POST",
+      "path": "/v1/admin/member-cycle-benefits",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/benefit/MemberBenefitController.java:20",
+      "capabilities": [
+        "commerce.cycle_benefit.define"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberBenefitController",
+      "method": "GET",
+      "path": "/v1/admin/member-cycle-benefits",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/benefit/MemberBenefitController.java:27",
+      "capabilities": [
+        "commerce.cycle_benefit.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberBenefitController",
+      "method": "POST",
+      "path": "/v1/admin/member-cycle-benefits/{id}/grant",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/benefit/MemberBenefitController.java:33",
+      "capabilities": [
+        "commerce.cycle_benefit.grant"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberCycleController",
+      "method": "POST",
+      "path": "/v1/admin/member-cycles/policies",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/cycle/MemberCycleController.java:20",
+      "capabilities": [
+        "commerce.member_cycle.policy.publish"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberCycleController",
+      "method": "GET",
+      "path": "/v1/admin/member-cycles/policies",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/cycle/MemberCycleController.java:27",
+      "capabilities": [
+        "commerce.member_cycle.policy.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberCycleController",
+      "method": "POST",
+      "path": "/v1/admin/member-cycles/{id}/evaluate",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/cycle/MemberCycleController.java:34",
+      "capabilities": [
+        "commerce.member_cycle.evaluate"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberCycleController",
+      "method": "GET",
+      "path": "/v1/admin/member-cycles/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/cycle/MemberCycleController.java:41",
+      "capabilities": [
+        "commerce.member_cycle.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberCycleController",
+      "method": "GET",
+      "path": "/v1/members/me/cycle",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/cycle/MemberCycleController.java:48",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "MemberGrowthController",
+      "method": "POST",
+      "path": "/v1/admin/member-growth/policies",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/growth/MemberGrowthController.java:24",
+      "capabilities": [
+        "commerce.growth.policy.publish"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberGrowthController",
+      "method": "GET",
+      "path": "/v1/admin/member-growth/policies",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/growth/MemberGrowthController.java:31",
+      "capabilities": [
+        "commerce.growth.policy.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberGrowthController",
+      "method": "GET",
+      "path": "/v1/admin/member-growth/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/growth/MemberGrowthController.java:38",
+      "capabilities": [
+        "commerce.growth.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberGrowthController",
+      "method": "GET",
+      "path": "/v1/admin/member-growth/{id}/ledger",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/growth/MemberGrowthController.java:44",
+      "capabilities": [
+        "commerce.growth.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberGrowthController",
+      "method": "POST",
+      "path": "/v1/admin/member-growth/{id}/adjust",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/growth/MemberGrowthController.java:51",
+      "capabilities": [
+        "commerce.growth.adjust"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberGrowthController",
+      "method": "POST",
+      "path": "/v1/admin/member-growth/{id}/recalculate",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/growth/MemberGrowthController.java:58",
+      "capabilities": [
+        "commerce.growth.recalculate"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberGrowthController",
+      "method": "GET",
+      "path": "/v1/members/me/growth",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/growth/MemberGrowthController.java:65",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "MemberGrowthController",
+      "method": "GET",
+      "path": "/v1/members/me/growth/ledger",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/growth/MemberGrowthController.java:71",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "MemberGrowthController",
+      "method": "POST",
+      "path": "/v1/admin/member-tags",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/growth/MemberGrowthController.java:78",
+      "capabilities": [
+        "commerce.member_tag.define"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberGrowthController",
+      "method": "GET",
+      "path": "/v1/admin/member-tags",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/growth/MemberGrowthController.java:85",
+      "capabilities": [
+        "commerce.member_tag.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberGrowthController",
+      "method": "POST",
+      "path": "/v1/admin/member-tags/{id}/assign",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/growth/MemberGrowthController.java:92",
+      "capabilities": [
+        "commerce.member_tag.assign"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberGrowthController",
+      "method": "GET",
+      "path": "/v1/admin/member-tags/{id}/assignments",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/growth/MemberGrowthController.java:99",
+      "capabilities": [
+        "commerce.member_tag.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberOperationsController",
+      "method": "POST",
+      "path": "/v1/admin/members/{id}/profile",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/MemberOperationsController.java:20",
+      "capabilities": [
+        "commerce.member.profile.update"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberOperationsController",
+      "method": "POST",
+      "path": "/v1/admin/members/{id}/status",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/MemberOperationsController.java:27",
+      "capabilities": [
+        "commerce.member.status.update"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberOperationsController",
+      "method": "GET",
+      "path": "/v1/admin/members/{id}/history",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/MemberOperationsController.java:34",
+      "capabilities": [
+        "commerce.member.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberPointsController",
+      "method": "POST",
+      "path": "/v1/admin/member-points/policies",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/points/MemberPointsController.java:20",
+      "capabilities": [
+        "commerce.points.policy.publish"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberPointsController",
+      "method": "GET",
+      "path": "/v1/admin/member-points/policies",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/points/MemberPointsController.java:27",
+      "capabilities": [
+        "commerce.points.policy.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberPointsController",
+      "method": "GET",
+      "path": "/v1/admin/member-points/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/points/MemberPointsController.java:34",
+      "capabilities": [
+        "commerce.points.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberPointsController",
+      "method": "GET",
+      "path": "/v1/admin/member-points/{id}/ledger",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/points/MemberPointsController.java:41",
+      "capabilities": [
+        "commerce.points.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberPointsController",
+      "method": "POST",
+      "path": "/v1/admin/member-points/{id}/adjust",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/points/MemberPointsController.java:49",
+      "capabilities": [
+        "commerce.points.adjust"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberPointsController",
+      "method": "POST",
+      "path": "/v1/admin/member-points/{id}/expire",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/points/MemberPointsController.java:56",
+      "capabilities": [
+        "commerce.points.expire"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "MemberPointsController",
+      "method": "GET",
+      "path": "/v1/members/me/points",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/points/MemberPointsController.java:63",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "MemberPointsController",
+      "method": "GET",
+      "path": "/v1/members/me/points/ledger",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/points/MemberPointsController.java:69",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "ConsoleController",
+      "method": "GET",
+      "path": "/v1/runtime-capabilities",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/ConsoleController.java:38",
+      "capabilities": [],
+      "mode": "LEGACY_SESSION_METADATA"
+    },
+    {
+      "controller": "ConsoleController",
+      "method": "GET",
+      "path": "/v1/stores",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/ConsoleController.java:44",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "ConsoleController",
+      "method": "GET",
+      "path": "/v1/admin/orders",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/ConsoleController.java:51",
+      "capabilities": [
+        "commerce.order.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "ConsoleController",
+      "method": "GET",
+      "path": "/v1/admin/orders/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/ConsoleController.java:58",
+      "capabilities": [
+        "commerce.order.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "ConsoleController",
+      "method": "GET",
+      "path": "/v1/admin/orders/{id}/payment",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/ConsoleController.java:64",
+      "capabilities": [
+        "commerce.payment.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "ConsoleController",
+      "method": "POST",
+      "path": "/v1/admin/orders/{id}/payment/reconcile",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/ConsoleController.java:70",
+      "capabilities": [
+        "commerce.payment.reconcile"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "DashboardController",
+      "method": "GET",
+      "path": "/v1/admin/dashboard",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/DashboardController.java:42",
+      "capabilities": [
+        "commerce.dashboard.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING",
+      "additional_checks": [
+        "commerce.member.read",
+        "commerce.product.read",
+        "commerce.marketing_effect.read"
+      ],
+      "additional_check_semantics": "每个实际渲染/聚合源分别校验；无权片段不查询、不返回计数；初版相关源仅TENANT_ALL"
+    },
+    {
+      "controller": "OpsPageController",
+      "method": "POST",
+      "path": "/v1/admin/ops-pages",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/OpsPageController.java:23",
+      "capabilities": [
+        "commerce.ops_page.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "OpsPageController",
+      "method": "GET",
+      "path": "/v1/admin/ops-pages",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/OpsPageController.java:30",
+      "capabilities": [
+        "commerce.ops_page.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "OpsPageController",
+      "method": "POST",
+      "path": "/v1/admin/ops-pages/preview",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/OpsPageController.java:37",
+      "capabilities": [
+        "commerce.ops_page.preview"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING",
+      "additional_checks": [
+        "commerce.campaign.read",
+        "commerce.journey.read",
+        "commerce.budget.read",
+        "commerce.coupon_definition.read",
+        "commerce.entitlement_definition.read"
+      ],
+      "additional_check_semantics": "每个实际渲染/聚合源分别校验；无权片段不查询、不返回计数；初版相关源仅TENANT_ALL"
+    },
+    {
+      "controller": "OpsPageController",
+      "method": "GET",
+      "path": "/v1/admin/ops-pages/{id}/render",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/OpsPageController.java:43",
+      "capabilities": [
+        "commerce.ops_page.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING",
+      "additional_checks": [
+        "commerce.campaign.read",
+        "commerce.journey.read",
+        "commerce.budget.read",
+        "commerce.coupon_definition.read",
+        "commerce.entitlement_definition.read"
+      ],
+      "additional_check_semantics": "每个实际渲染/聚合源分别校验；无权片段不查询、不返回计数；初版相关源仅TENANT_ALL"
+    },
+    {
+      "controller": "OpsPageController",
+      "method": "GET",
+      "path": "/v1/admin/ops-pages/{id}/versions",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/OpsPageController.java:49",
+      "capabilities": [
+        "commerce.ops_page.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "OpsPageController",
+      "method": "POST",
+      "path": "/v1/admin/ops-pages/{id}/{version}/{action}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/OpsPageController.java:55",
+      "capabilities": [
+        "commerce.ops_page.approve",
+        "commerce.ops_page.pause",
+        "commerce.ops_page.publish",
+        "commerce.ops_page.reject",
+        "commerce.ops_page.rollback",
+        "commerce.ops_page.submit"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "action_selector": "path.action",
+      "actions": {
+        "submit": "commerce.ops_page.submit",
+        "approve": "commerce.ops_page.approve",
+        "reject": "commerce.ops_page.reject",
+        "publish": "commerce.ops_page.publish",
+        "pause": "commerce.ops_page.pause",
+        "rollback": "commerce.ops_page.rollback"
+      },
+      "unknown_action": "DENY",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "OpsPageController",
+      "method": "POST",
+      "path": "/v1/admin/ops-pages/{id}/{version}/actions/{action}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/OpsPageController.java:63",
+      "capabilities": [
+        "commerce.ops_page.execute"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "action_selector": "published_page.action_id",
+      "target_check": "OWNER_ACTION_AND_TARGET_CAPABILITY",
+      "unknown_action": "DENY",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING",
+      "target_capabilities": {
+        "CREATE_CAMPAIGN": "commerce.campaign.create",
+        "CREATE_COUPON": "commerce.coupon_definition.create",
+        "ENROLL_JOURNEY": "commerce.journey_instance.create"
+      }
+    },
+    {
+      "controller": "OrderController",
+      "method": "POST",
+      "path": "/v1/orders",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/order/OrderController.java:24",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "OrderController",
+      "method": "GET",
+      "path": "/v1/orders/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/order/OrderController.java:31",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "OrderController",
+      "method": "GET",
+      "path": "/v1/orders",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/order/OrderController.java:37",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "OrderController",
+      "method": "POST",
+      "path": "/v1/orders/{id}/cancel",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/order/OrderController.java:44",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "OrderController",
+      "method": "POST",
+      "path": "/v1/admin/inventory/receipts",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/order/OrderController.java:51",
+      "capabilities": [
+        "commerce.inventory.receive"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "OrderController",
+      "method": "GET",
+      "path": "/v1/admin/inventory",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/order/OrderController.java:58",
+      "capabilities": [
+        "commerce.inventory.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "PaymentController",
+      "method": "POST",
+      "path": "/v1/orders/{id}/payments",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:28",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "PaymentController",
+      "method": "GET",
+      "path": "/v1/orders/{id}/payment",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:35",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "PaymentController",
+      "method": "POST",
+      "path": "/v1/orders/{id}/payment/reconcile",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:41",
+      "capabilities": [],
+      "mode": "CUSTOMER_OR_LEGACY_IDENTITY"
+    },
+    {
+      "controller": "PaymentController",
+      "method": "POST",
+      "path": "/v1/admin/sandbox/payments/{id}/fact",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:47",
+      "capabilities": [],
+      "mode": "LOCAL_SANDBOX_ONLY"
+    },
+    {
+      "controller": "PaymentController",
+      "method": "POST",
+      "path": "/v1/admin/orders/expire",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:54",
+      "capabilities": [
+        "commerce.order.expire"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "PaymentController",
+      "method": "POST",
+      "path": "/v1/admin/orders/{id}/expiry/retry",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:60",
+      "capabilities": [
+        "commerce.order.expiry.retry"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "STORE_FROM_OWNER"
+    },
+    {
+      "controller": "PaymentController",
+      "method": "POST",
+      "path": "/v1/admin/events/pump",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:67",
+      "capabilities": [
+        "commerce.event.pump"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "PaymentController",
+      "method": "GET",
+      "path": "/v1/admin/events",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:73",
+      "capabilities": [
+        "commerce.event.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "PaymentController",
+      "method": "GET",
+      "path": "/v1/admin/events/health",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:80",
+      "capabilities": [
+        "commerce.event.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "PaymentController",
+      "method": "POST",
+      "path": "/v1/admin/events/{id}/retry",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:86",
+      "capabilities": [
+        "commerce.event.retry"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "PlatformRuntimeController",
+      "method": "GET",
+      "path": "/v1/platform/runtime",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/health/PlatformRuntimeController.java:20",
+      "capabilities": [],
+      "mode": "SEPARATE_PLATFORM_IDENTITY"
+    },
+    {
+      "controller": "RuntimeRecoveryController",
+      "method": "GET",
+      "path": "/v1/admin/runtime/work-types",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:27",
+      "capabilities": [
+        "commerce.runtime.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "RuntimeRecoveryController",
+      "method": "GET",
+      "path": "/v1/admin/runtime/stopped",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:33",
+      "capabilities": [
+        "commerce.runtime.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "RuntimeRecoveryController",
+      "method": "POST",
+      "path": "/v1/admin/runtime/recoveries",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:41",
+      "capabilities": [
+        "commerce.runtime.recover"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "RuntimeRecoveryController",
+      "method": "GET",
+      "path": "/v1/admin/runtime/recoveries",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:48",
+      "capabilities": [
+        "commerce.runtime.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "RuntimeRecoveryController",
+      "method": "GET",
+      "path": "/v1/admin/runtime/replay/classifications",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:56",
+      "capabilities": [
+        "commerce.runtime.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "RuntimeRecoveryController",
+      "method": "POST",
+      "path": "/v1/admin/runtime/replay/dry-run",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:62",
+      "capabilities": [
+        "commerce.runtime.replay.preview"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "RuntimeRecoveryController",
+      "method": "POST",
+      "path": "/v1/admin/runtime/replays",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:67",
+      "capabilities": [
+        "commerce.runtime.replay.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "RuntimeRecoveryController",
+      "method": "GET",
+      "path": "/v1/admin/runtime/replays",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:73",
+      "capabilities": [
+        "commerce.runtime.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "RuntimeRecoveryController",
+      "method": "GET",
+      "path": "/v1/admin/runtime/replays/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:79",
+      "capabilities": [
+        "commerce.runtime.read"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "RuntimeRecoveryController",
+      "method": "POST",
+      "path": "/v1/admin/runtime/replays/{id}/control",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:85",
+      "capabilities": [
+        "commerce.runtime.replay.control"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "action_selector": "body.action",
+      "actions": {
+        "PAUSE": "commerce.runtime.replay.control",
+        "RESUME": "commerce.runtime.replay.control",
+        "CANCEL": "commerce.runtime.replay.control"
+      },
+      "unknown_action": "DENY",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/catalog",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java:10",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/products",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java:10",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/collaboration/products",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java:10",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/iam/callback",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java:10",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "CentralScopeController",
+      "method": "GET",
+      "path": "/v1/operations/scoped/{type}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralScopeController.java:18",
+      "capabilities": [
+        "commerce.product.read",
+        "commerce.store.read"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "type_bindings": {
+        "store": [
+          "commerce.store.read"
+        ],
+        "product": [
+          "commerce.product.read"
+        ]
+      },
+      "unknown_type": "DENY"
+    },
+    {
+      "controller": "CentralScopeController",
+      "method": "GET",
+      "path": "/v1/operations/scoped/{type}/resources/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralScopeController.java:21",
+      "capabilities": [
+        "commerce.product.read",
+        "commerce.store.read"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "type_bindings": {
+        "store": [
+          "commerce.store.read"
+        ],
+        "product": [
+          "commerce.product.read"
+        ]
+      },
+      "unknown_type": "DENY"
+    },
+    {
+      "controller": "CentralScopeController",
+      "method": "GET",
+      "path": "/v1/operations/scoped/{type}/resources/{id}/actions",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralScopeController.java:24",
+      "capabilities": [
+        "commerce.product.read"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "type_bindings": {
+        "product": [
+          "commerce.product.read"
+        ]
+      },
+      "optional_action_hints": [
+        "commerce.product.update"
+      ],
+      "unknown_type": "DENY"
+    },
+    {
+      "controller": "CentralScopeController",
+      "method": "POST",
+      "path": "/v1/operations/scoped/{type}/resources/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralScopeController.java:27",
+      "capabilities": [
+        "commerce.product.update"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "type_bindings": {
+        "product": [
+          "commerce.product.update"
+        ]
+      },
+      "unknown_type": "DENY"
+    },
+    {
+      "controller": "CentralScopeController",
+      "method": "GET",
+      "path": "/v1/operations/scoped/{type}/export-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralScopeController.java:32",
+      "capabilities": [
+        "commerce.product.export",
+        "commerce.store.read"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "type_bindings": {
+        "store": [
+          "commerce.store.read"
+        ],
+        "product": [
+          "commerce.product.export"
+        ]
+      },
+      "unknown_type": "DENY"
+    },
+    {
+      "controller": "CentralScopeController",
+      "method": "POST",
+      "path": "/v1/operations/scoped/{type}/exports",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralScopeController.java:35",
+      "capabilities": [
+        "commerce.product.export",
+        "commerce.store.read"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "type_bindings": {
+        "store": [
+          "commerce.store.read"
+        ],
+        "product": [
+          "commerce.product.export"
+        ]
+      },
+      "unknown_type": "DENY"
+    },
+    {
+      "controller": "CentralScopeController",
+      "method": "POST",
+      "path": "/v1/operations/scoped/{type}/exports/{id}/start",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralScopeController.java:38",
+      "capabilities": [
+        "commerce.product.export",
+        "commerce.store.read"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "type_bindings": {
+        "store": [
+          "commerce.store.read"
+        ],
+        "product": [
+          "commerce.product.export"
+        ]
+      },
+      "unknown_type": "DENY"
+    },
+    {
+      "controller": "CentralScopeController",
+      "method": "POST",
+      "path": "/v1/operations/scoped/{type}/exports/{id}/advance",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralScopeController.java:41",
+      "capabilities": [
+        "commerce.product.export",
+        "commerce.store.read"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "type_bindings": {
+        "store": [
+          "commerce.store.read"
+        ],
+        "product": [
+          "commerce.product.export"
+        ]
+      },
+      "unknown_type": "DENY"
+    },
+    {
+      "controller": "CentralScopeController",
+      "method": "GET",
+      "path": "/v1/operations/scoped/{type}/exports/{id}",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralScopeController.java:44",
+      "capabilities": [
+        "commerce.product.export",
+        "commerce.store.read"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "type_bindings": {
+        "store": [
+          "commerce.store.read"
+        ],
+        "product": [
+          "commerce.product.export"
+        ]
+      },
+      "unknown_type": "DENY"
+    },
+    {
+      "controller": "CentralScopeController",
+      "method": "GET",
+      "path": "/v1/operations/scoped/{type}/exports/{id}/download",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralScopeController.java:47",
+      "capabilities": [
+        "commerce.product.export",
+        "commerce.store.read"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "type_bindings": {
+        "store": [
+          "commerce.store.read"
+        ],
+        "product": [
+          "commerce.product.export"
+        ]
+      },
+      "unknown_type": "DENY"
+    },
+    {
+      "controller": "StoreAccessController",
+      "method": "POST",
+      "path": "/v1/admin/store-grants",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/StoreAccessController.java:26",
+      "capabilities": [],
+      "mode": "LEGACY_GRANT_GOVERNANCE_ONLY"
+    },
+    {
+      "controller": "StoreAccessController",
+      "method": "POST",
+      "path": "/v1/admin/store-grants/{id}/status",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/StoreAccessController.java:33",
+      "capabilities": [],
+      "mode": "LEGACY_GRANT_GOVERNANCE_ONLY"
+    },
+    {
+      "controller": "StoreAccessController",
+      "method": "GET",
+      "path": "/v1/admin/store-grants",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/StoreAccessController.java:40",
+      "capabilities": [],
+      "mode": "LEGACY_GRANT_GOVERNANCE_ONLY"
+    },
+    {
+      "controller": "StoreAccessController",
+      "method": "GET",
+      "path": "/v1/operations/stores",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/StoreAccessController.java:47",
+      "capabilities": [
+        "commerce.store.read"
+      ],
+      "mode": "EXISTING_STORE_READ"
+    }
+  ]
+}

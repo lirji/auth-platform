@@ -18,6 +18,10 @@ on:
       - 'deploy/governance-p5-*'
       - 'deploy/governance-p6-*'
       - 'deploy/governance-p7-*'
+      - 'deploy/verify-commerce-contract.py'
+      - 'deploy/tests/test_commerce_contract.py'
+      - 'docs/design/oa-auth-unification/COMMERCE_PERMISSION_BINDINGS.json'
+      - 'docs/implementation/oa-auth/commerce-readiness/HTTP_INVENTORY.md'
       - 'deploy/tests/test_governance_p6*'
       - 'deploy/tests/test_governance_p7*'
       - 'compatibility/boot4-sdk/**'
@@ -44,6 +48,10 @@ on:
       - 'deploy/governance-p5-*'
       - 'deploy/governance-p6-*'
       - 'deploy/governance-p7-*'
+      - 'deploy/verify-commerce-contract.py'
+      - 'deploy/tests/test_commerce_contract.py'
+      - 'docs/design/oa-auth-unification/COMMERCE_PERMISSION_BINDINGS.json'
+      - 'docs/implementation/oa-auth/commerce-readiness/HTTP_INVENTORY.md'
       - 'deploy/tests/test_governance_p6*'
       - 'deploy/tests/test_governance_p7*'
       - 'compatibility/boot4-sdk/**'
@@ -97,6 +105,7 @@ jobs:
           GOVERNANCE_TEST_DB_PASSWORD: isolated-ci-fixture
       - name: Validate onboarding scripts
         run: |
+          python3 -m unittest discover -s deploy/tests -p 'test_commerce_contract.py' -v
           python3 -m unittest discover -s deploy/tests -p 'test_governance_p6*.py' -v
           python3 -m py_compile deploy/governance-p6-migration.py deploy/governance-p6-rehearsal.py
           python3 -m py_compile deploy/governance-p4-e2e.py deploy/governance-p4-runtime.py deploy/governance-approval-start-smoke.py deploy/governance-p5-commerce.py deploy/governance-p5-login.py deploy/governance-p5-packaged.py
