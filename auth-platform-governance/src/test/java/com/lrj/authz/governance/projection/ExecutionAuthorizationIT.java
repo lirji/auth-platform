@@ -194,6 +194,11 @@ class ExecutionAuthorizationIT {
     @Test void behaviorReferencesKeepRebuildSeparateFromProfileAndEvents() {
         tenantMemberReferences(List.of("member_behavior.read","member_behavior.update","member_behavior.rebuild"));
     }
+    /** 周期政策和礼包定义仅集合许可，读取/考核/补发绑定真实会员，不附赠其他能力。 */
+    @Test void cycleReferencesSeparatePolicyCollectionsFromActualMemberOperations() {
+        tenantMemberReferences(List.of("member_cycle.policy.read", "member_cycle.policy.publish", "member_cycle.read",
+                "member_cycle.evaluate", "cycle_benefit.read", "cycle_benefit.define", "cycle_benefit.grant"));
+    }
     private void tenantMemberReferences(List<String> suffixes) {
         var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
         var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
@@ -201,7 +206,8 @@ class ExecutionAuthorizationIT {
         try(var runtime=GovernanceRuntime.open(db,true)) {
             var jdbc=new JdbcTemplate(new DriverManagerDataSource(db.jdbcUrl(),db.username(),db.password()));
             for(String suffix:suffixes) {
-                boolean policy=suffix.startsWith("growth.policy.");
+                boolean policy=suffix.startsWith("growth.policy.") || suffix.startsWith("member_cycle.policy.")
+                        || suffix.equals("cycle_benefit.read") || suffix.equals("cycle_benefit.define");
                 boolean collectionOnly=policy || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
                 String type=policy?ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE:ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
                 String tenant=id(),code="member-"+id(),app="commerce-member-"+id(),cap=app+"."+suffix;

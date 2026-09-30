@@ -20,8 +20,10 @@ public final class ExecutionAuthorization {
             "merchant.read", ScopeDtos.MERCHANT_RESOURCE_TYPE, "merchant.create", ScopeDtos.MERCHANT_RESOURCE_TYPE,
             "store.directory.read", ScopeDtos.STORE_RESOURCE_TYPE, "store.create", ScopeDtos.STORE_RESOURCE_TYPE);
     private static final Set<String> MEMBER_CAPABILITIES = Set.of("member.read", "member.create", "member.profile.update", "member.status.update",
-            "growth.read", "growth.adjust", "growth.recalculate", "member_tag.read", "member_tag.define", "member_tag.assign", "member_behavior.read", "member_behavior.update", "member_behavior.rebuild");
-    private static final Set<String> MEMBER_POLICY_CAPABILITIES = Set.of("growth.policy.read", "growth.policy.publish");
+            "growth.read", "growth.adjust", "growth.recalculate", "member_tag.read", "member_tag.define", "member_tag.assign", "member_behavior.read", "member_behavior.update", "member_behavior.rebuild",
+            "member_cycle.read", "member_cycle.evaluate", "cycle_benefit.grant");
+    private static final Set<String> MEMBER_POLICY_CAPABILITIES = Set.of("growth.policy.read", "growth.policy.publish",
+            "member_cycle.policy.read", "member_cycle.policy.publish", "cycle_benefit.read", "cycle_benefit.define");
     // 字典定义、会员创建和租户级行为重建没有单个已有会员目标，只能使用集合许可。
     private static final Set<String> MEMBER_COLLECTION_ONLY = Set.of("member.create", "member_tag.define", "member_behavior.rebuild");
     private static final Set<String> CREATION = Set.of("merchant.create", "store.create");

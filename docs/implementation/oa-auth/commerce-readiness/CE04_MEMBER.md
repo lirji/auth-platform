@@ -169,3 +169,10 @@ behavior-ui-verify.log完整425项420PASS/5既有skip，CentralBehaviorMySqlTest
 已查看本次390-update-form、unknown、rebuild、390-detail、conflict、updated-detail、outage、revoked（401状态）和390-rebuild-form实际截图，表单与结果可读，窄屏表格仅容器横向滚动；这是实现自审，不声称用户视觉批准。behavior-ui-rehearsal-fixed.log与result.json保留；runtime_switched/production_ready均false，自有PG/IdP/JVM/Vite已finally停止，子网91—92与数据保留，原8602未切换。首轮主动中止的审计计数修正证据保留。
 
 完整425项420PASS/5既有skip、36工具/237入口/122能力/34角色、前端Prettier/build、node/py_compile及最终两仓hygiene/diff通过；Java formatter/静态分析限制保持。两仓behavior-ui-source-sha256.json记录并复核验证源文件摘要一致，验证后无产品代码修改。B2本地DONE，Git交付中；下一CE04-C周期与周期权益，技术盘点完成，其他会员和CE05—08仍未完成。
+
+
+## CE04-C0本地DONE
+
+B2已普通合并推送auth e568df0 / commerce 29c4fd7，CI待查（auth36677835210）。C0按CONTRACTS_COMMERCE_CYCLE新增七个有限执行组合，四个policy集合许可、三个实际会员Owner组合，最长60秒HUMAN与完整TENANT_ALL。未增加SDK协议/中央资源类型，商城C1尚未实施。
+
+cycle-core-unit.log全仓252PASS；真实自有PG6fe10ce0f0af与隔离SpiceDB运行ExecutionAuthorizationIT8方法PASS，新增七能力矩阵及原组合、类型/范围/期限/代际/撤权重授/到期验证。cycle-core-integration.log与result保留，自有PG finally已停止。SDK install、Boot4 test、全仓package、hygiene/diff通过，无Java formatter/静态分析的限制保持。验证后无产品修改。下一C1实际Owner/内部系统履约端口、两个独立族与V56。
