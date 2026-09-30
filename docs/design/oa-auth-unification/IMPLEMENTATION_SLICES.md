@@ -2,7 +2,7 @@
 
 保留源方案全部 58 个任务 ID；新增 P1-00 契约冻结、P2-05a SDK兼容验证，并将 P3-04 分为三个有界 pass，原 ID 作为汇总。机器依赖以 EXECUTION_DAG.json 为准；执行范围遵循最新用户指令和 PROGRESS_STATE，生产操作独立授权。
 
-P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真实集成测试通过**。P1-00 已冻结当前薄路径契约；继续实施已授权，产品片须有对应冻结契约。P1—P4全部DONE；用户已授权P6，执行上限为P6，P7前停止，交付状态以PROGRESS_STATE和DAG为准。
+P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真实集成测试通过**。P1-00 已冻结当前薄路径契约；继续实施已授权，产品片须有对应冻结契约。P1—P4全部DONE；用户已在P6交付后授权继续P7上线前加固；生产观察仍须独立目标/授权，交付状态以PROGRESS_STATE和DAG为准。
 
 | ID | 可观察结果 | Needs | Owner／主要路径 | 验收 | Pass／Runtime | 状态 |
 |---|---|---|---|---|---|---|
@@ -54,21 +54,21 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 | P5-05 | 内部真实业务接入验收 | P2-06, P3-07, P4-07 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 后端直调不能绕过 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P5-06 | 外部门店/商家协作真实验收 | P1-07, P3-07, P4-07 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 全流程及越权反例 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
 | P5-07 | 可用性与部署演练 | P5-01, P5-02, P5-03, P5-04, P5-05, P5-06 | 门户／试点 Owner；auth-console/project-portal、OA: oa-console、commerce: frontend | 登录回调、CORS、Cookie、错误提示 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE |
-| P6-01 | 迁移单元及旧写入方清单 | P5-07 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 无遗漏旧授权入口 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI交付中） |
-| P6-02 | 身份／角色／范围映射及dry-run | P6-01 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 无未知规则自动放宽 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI交付中） |
-| P6-03 | 幂等批量导入及增量衔接 | P6-02 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 重跑不重复、撤销不复活 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI交付中） |
-| P6-04 | 影子比较及差异解释 | P6-03 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 禁止OR放行，覆盖反向场景 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI交付中） |
-| P6-05 | 服务端权威路由及旧写冻结 | P6-04 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 每单元只有一个有效权威 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI交付中） |
-| P6-06 | 单批预生产切换与回退演练 | P6-05 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 回退仍保留最新拒绝约束 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI交付中） |
-| P6-07 | 生产候选报告和历史下线计划 | P6-06 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 与P7上线门禁关联 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI交付中） |
-| P7-01 | 部署与权限暴露面清单 | P6-07 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 各凭证与端点最小范围 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
-| P7-02 | 指标、日志、告警及错误口径 | P7-01 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | DENY和ERROR可区分 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
-| P7-03 | 固定数据夹具与容量测试 | P7-02 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 真实P95／P99、瓶颈和限制 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
-| P7-04 | 双实例、旧进程、超时与混部故障验证 | P7-03 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 关键安全不变量通过 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
-| P7-05 | 密钥与服务账号轮换 | P7-04 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 旧身份不可继续调用 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
-| P7-06 | 隔离备份恢复与图重建 | P7-05 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 权限不复活，水位重新建立 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
-| P7-07 | 单批上线评审与回退手册 | P7-03, P7-04, P7-05, P7-06 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 明确上线Owner及操作授权 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
-| P7-08 | 获准上线后有限观察和交接 | P7-07 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 不凭预生产报告声明生产完成 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | TODO |
+| P6-01 | 迁移单元及旧写入方清单 | P5-07 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 无遗漏旧授权入口 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI通过） |
+| P6-02 | 身份／角色／范围映射及dry-run | P6-01 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 无未知规则自动放宽 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI通过） |
+| P6-03 | 幂等批量导入及增量衔接 | P6-02 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 重跑不重复、撤销不复活 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI通过） |
+| P6-04 | 影子比较及差异解释 | P6-03 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 禁止OR放行，覆盖反向场景 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI通过） |
+| P6-05 | 服务端权威路由及旧写冻结 | P6-04 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 每单元只有一个有效权威 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI通过） |
+| P6-06 | 单批预生产切换与回退演练 | P6-05 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 回退仍保留最新拒绝约束 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI通过） |
+| P6-07 | 生产候选报告和历史下线计划 | P6-06 | IAM／旧系统 Owner；三仓迁移工具/服务端路由/管理写入口 | 与P7上线门禁关联 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地隔离范围；Git/CI通过） |
+| P7-01 | 部署与权限暴露面清单 | P6-07 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 各凭证与端点最小范围 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地有界范围） |
+| P7-02 | 指标、日志、告警及错误口径 | P7-01 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | DENY和ERROR可区分 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地有界范围） |
+| P7-03 | 固定数据夹具与容量测试 | P7-02 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 真实P95／P99、瓶颈和限制 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地有界范围） |
+| P7-04 | 双实例、旧进程、超时与混部故障验证 | P7-03 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 关键安全不变量通过 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地有界范围） |
+| P7-05 | 密钥与服务账号轮换 | P7-04 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 旧身份不可继续调用 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地有界范围） |
+| P7-06 | 隔离备份恢复与图重建 | P7-05 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 权限不复活，水位重新建立 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | DONE（本地有界范围） |
+| P7-07 | 单批上线评审与回退手册 | P7-03, P7-04, P7-05, P7-06 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 明确上线Owner及操作授权 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | BLOCKED（生产条件） |
+| P7-08 | 获准上线后有限观察和交接 | P7-07 | 运行／安全 Owner；三仓现有deploy/监控/恢复证据 | 不凭预生产报告声明生产完成 | implementation+focused-validation；按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB | BLOCKED（生产条件） |
 
 ## 当前下一片
 
@@ -98,4 +98,6 @@ P1-06 受控停用本地验收 DONE（170 单测、20 PG、30 HTTP；旧 JAR/V3 
 
 P1-05 本地验收 DONE：181 单测、29 PG、5 Casdoor、30 邀请与 30 既有 HTTP/CLI 检查；旧 JAR/V4 读取兼容 PASS。远程精确 CI 36392809729 SUCCESS（47ff9d9）。Q-PROVISION 已确认自动建立主体/员工成员并精确来源绑定；下一片 P1-04。
 
-P6当前入口：所选单元本地隔离演练31项通过，最终Git/CI交付中。见phase-6/P6_TEST_RESULT与P6-07_CANDIDATE_REPORT；生产身份映射、永久来源期限及持续影子等为生产门禁。
+P6历史入口：所选单元本地隔离演练31项通过，最终Git/CI已交付。见phase-6/P6_TEST_RESULT与P6-07_CANDIDATE_REPORT；生产身份映射、永久来源期限及持续影子等为生产门禁。
+
+当前P7：01—06本地有界范围完成，21项跨进程检查和2项进程故障IT通过；07已出评审材料但实际生产Owner/目标/授权缺失，08未上线未观察，保持BLOCKED。最终Git/CI见PROGRESS_STATE。

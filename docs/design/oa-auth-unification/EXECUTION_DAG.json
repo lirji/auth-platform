@@ -1,7 +1,7 @@
 {
   "schema_version": "oa-auth-project-execution-plan/1",
-  "plan_status": "P6_LOCAL_COMPLETE_GIT_CI_PASS",
-  "scope": "P6 authorized by user: 开始做P6. Execute P6-01 through P6-07 after required real migration inputs and environment gates; stop before P7; no production deployment.",
+  "plan_status": "P7_LOCAL_VALIDATED_RELEASE_HOLD_DELIVERY_PENDING",
+  "scope": "User 继续 after P6 delivery authorizes existing P7 preproduction hardening and isolated local verification; production deployment requires explicit target and authorization.",
   "source_task_count": 58,
   "task_count": 63,
   "topological_order": [
@@ -1485,10 +1485,12 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "completion_scope": "selected local bounded synthetic verification; production gates remain HOLD",
+      "evidence": "docs/implementation/oa-auth/phase-7/P7_TEST_RESULT.md"
     },
     {
       "id": "P7-02",
@@ -1507,10 +1509,12 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "completion_scope": "selected local bounded synthetic verification; production gates remain HOLD",
+      "evidence": "docs/implementation/oa-auth/phase-7/P7_TEST_RESULT.md"
     },
     {
       "id": "P7-03",
@@ -1529,13 +1533,15 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "additional_gates": [
         "容量试验目标与真实数据分布"
-      ]
+      ],
+      "completion_scope": "selected local bounded synthetic verification; production gates remain HOLD",
+      "evidence": "docs/implementation/oa-auth/phase-7/P7_TEST_RESULT.md"
     },
     {
       "id": "P7-04",
@@ -1554,10 +1560,12 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "completion_scope": "selected local bounded synthetic verification; production gates remain HOLD",
+      "evidence": "docs/implementation/oa-auth/phase-7/P7_TEST_RESULT.md"
     },
     {
       "id": "P7-05",
@@ -1576,10 +1584,12 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "completion_scope": "selected local bounded synthetic verification; production gates remain HOLD",
+      "evidence": "docs/implementation/oa-auth/phase-7/P7_TEST_RESULT.md"
     },
     {
       "id": "P7-06",
@@ -1598,13 +1608,15 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "DONE",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "additional_gates": [
         "隔离恢复目标和备份输入"
-      ]
+      ],
+      "completion_scope": "selected local bounded synthetic verification; production gates remain HOLD",
+      "evidence": "docs/implementation/oa-auth/phase-7/P7_TEST_RESULT.md"
     },
     {
       "id": "P7-07",
@@ -1626,10 +1638,13 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
-      "execution_authorized_this_task": false,
+      "status": "BLOCKED",
+      "execution_authorized_this_task": true,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
-      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列"
+      "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
+      "blockers": [
+        "review package prepared; actual production Owner, target, accepted limits and operational authorization missing"
+      ]
     },
     {
       "id": "P7-08",
@@ -1648,17 +1663,20 @@
       "runtime": "按本片实际需要使用隔离 PG/Casdoor/graph/OA/业务 DB",
       "parallel": false,
       "parallel_reason": "共享契约/迁移/schema Owner；当前未授予并行写入",
-      "status": "TODO",
+      "status": "BLOCKED",
       "execution_authorized_this_task": false,
       "contract_ownership": "用户 v0.2 设计输入；所属前置片冻结具体契约",
       "schema_migration_owner": "auth治理迁移唯一Owner；OA/commerce各自独立序列",
       "additional_gates": [
         "全部上线门禁、生产目标及生产部署授权"
+      ],
+      "blockers": [
+        "production deployment and observation not executed or authorized"
       ]
     }
   ],
-  "current_execution_ceiling": "P6",
-  "pause_after_phase": 6,
+  "current_execution_ceiling": "P7",
+  "pause_after_phase": 7,
   "confirmed_inputs": {
     "directory_authority": "OA",
     "rehearsal_environment": "local",

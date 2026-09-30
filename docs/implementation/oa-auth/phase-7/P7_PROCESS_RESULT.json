@@ -1,0 +1,21 @@
+[
+  {
+    "recovery_pid": 75015,
+    "scenario": "SIGKILL_AFTER_REMOTE_COMMIT",
+    "result": "PASS",
+    "real_lease_wait_ms": 14883,
+    "killed_pid": 74938,
+    "receipt_count": 1,
+    "operation_count": 1,
+    "killed_exit": 137
+  },
+  {
+    "old_pid": 75020,
+    "new_pid": 75104,
+    "scenario": "SIGSTOP_REVOKE_SIGCONT",
+    "stale_remote_code": 9,
+    "real_lease_wait_ms": 14971,
+    "result": "PASS",
+    "stale_remote_status": 400
+  }
+]

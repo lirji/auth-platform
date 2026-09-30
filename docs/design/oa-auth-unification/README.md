@@ -2,7 +2,7 @@
 
 本计划按用户提供的 `oa-auth-phased-plan` v0.2，落到三个现有仓库。**目标是在原项目中增量改造：auth 管理身份消费模型、应用与授权，OA 保留目录和审批职责，commerce 接入可信身份、页面权限及接口数据权限。**
 
-P0—P4已交付；P5统一入口、内部商品经营及外部门店协作已完成，三仓Git/CI交付通过。当前Git/CI状态见[当前进度](PROGRESS_STATE.md)；[P5运行说明](../../implementation/oa-auth/phase-5/P5_RUNTIME.md)包含独立客户端、同源打包和回退边界。P6完整CATALOG及所选租户本地隔离演练已通过31项跨进程检查，两仓已完成Git交付且最终远程CI全部通过；生产候选HOLD和历史退出条件见[候选报告](../../implementation/oa-auth/phase-6/P6-07_CANDIDATE_REPORT.md)。P7及生产部署未执行。
+P0—P4已交付；P5统一入口、内部商品经营及外部门店协作已完成，三仓Git/CI交付通过。当前Git/CI状态见[当前进度](PROGRESS_STATE.md)；[P5运行说明](../../implementation/oa-auth/phase-5/P5_RUNTIME.md)包含独立客户端、同源打包和回退边界。P6完整CATALOG及所选租户本地隔离演练已通过31项跨进程检查，两仓已完成Git交付且最终远程CI全部通过；生产候选HOLD和历史退出条件见[候选报告](../../implementation/oa-auth/phase-6/P6-07_CANDIDATE_REPORT.md)。P7现已完成本地有界加固验证，生产评审HOLD；[P7评审](../../implementation/oa-auth/phase-7/P7-07_RELEASE_REVIEW.md)与[运行手册](../../implementation/oa-auth/phase-7/P7_RUNTIME.md)记录真实容量、轮换和隔离恢复。生产部署/观察未执行。
 
 | 文档 | 用途 |
 |---|---|

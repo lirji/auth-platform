@@ -1,0 +1,17 @@
+{
+  "auth_baseline": "1871918",
+  "source_sha256": {
+    "auth-platform-server/src/main/java/com/lrj/authz/server/governance/GovernanceRequestMetrics.java": "0745c2b3e32d5a957c9969671994934818fcf79223a4d0670b12bb1e03427d1d",
+    "auth-platform-server/src/test/java/com/lrj/authz/server/governance/GovernanceRequestMetricsTest.java": "0999a2034944e17dcf4ff84c78e1abdeaf38bcb78df87166dfacde802263b541",
+    "deploy/governance-p7-rehearsal.py": "0ac351287c9dbb52010241e0b12075d16cae91f526b6d58c3328ac81b277a6a2",
+    "deploy/governance-p7-observe.sql": "9c390e83c0fb437e434d15406e69b88d834f6a85e332d44b18f3d27370fa4c9e",
+    ".github/workflows/authz-ci.yml": "5c2dd4a78f15a588aa779d569b610aec30344f15cedd7869a497cd1e1064dfdc"
+  },
+  "validation": {
+    "selected_reactor_unit": 150,
+    "projection_process_it": 2,
+    "local_cross_process": 21
+  },
+  "rehearsal": ".local/governance/p7/4c21b98cbbdc/result.json",
+  "production_accepted": false
+}
