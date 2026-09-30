@@ -1,5 +1,9 @@
 # 当前商城扩展续做
 
+CE05-A0本地DONE：稳定audience类型、read/create两独立有限集合能力；完整252单元、真实自有PG86a26d467cc2/SpiceDB共14项ExecutionAuthorizationIT、Boot4 1项及最终forceCreation install通过，两个运行Jar内嵌依赖和四源码摘要一致。hygiene无阻断，既有Java formatter/静态分析限制保留，无新迁移，自有PG已finally停止。A0 Git交付中，下一A1/A2与其他CE05—08未完成。R2已推送auth70b6228/commerce654d903，commerce CI36706768255 SUCCESS，auth CI36706764297仍运行中；保留commerce现有refactor/b-console-experience分支，待确认是否并行任务，原生产2HOLD不变。
+
+## 历史阶段摘要（当前状态以上方A0为准）
+
 CE05-R1本地DONE：RULE独立接管族、规则read/create/publish、真实不可变版本锁、原回执前权限复核与同事务审计，V62已应用不可改。完整468项463PASS/5既有skip，规则7项全PASS；最终真实7b1ff652c183（10.254.110.0/24）518PASS，无浏览器。42工具/256入口/122能力/34角色、两仓hygiene及auth2/commerce12源码摘要一致。下一R2规则员工页；其余CE05—08与原生产2HOLD未完成。
 
 CE05-R0本地DONE：marketing_rule稳定类型和read/create/publish三个独立有限能力；创建只集合，读取/发布绑定实际资产版本。完整252单元、真实自有PG5ff5f702ccbc/SpiceDB共13项ExecutionAuthorizationIT、SDK Boot4和最终forceCreation install通过，两个运行Jar嵌套依赖及4源码摘要一致。hygiene无阻断，Java formatter/静态分析限制保持。无新迁移，自有PG已finally停止；下一R1商城RULE族/实际Owner/事务审计，R2与其余CE05—08未完成。

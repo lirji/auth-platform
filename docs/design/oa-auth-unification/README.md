@@ -16,6 +16,7 @@ P0—P4已交付；P5统一入口、内部商品经营及外部门店协作已�
 | [IMPLEMENTATION_SLICES.md](IMPLEMENTATION_SLICES.md) | 唯一实施切片表；沿用源方案 P0—P7 任务 ID |
 | [EXECUTION_DAG.json](EXECUTION_DAG.json) | 依赖关系、责任路径及候选任务；不是执行成功记录 |
 | [SOURCE_MANIFEST.json](SOURCE_MANIFEST.json) | 用户方案逐文件摘要、版本与来源 |
+| [CONTRACTS_COMMERCE_AUDIENCES.md](CONTRACTS_COMMERCE_AUDIENCES.md) | CE05人群快照：集合授权、原版本/成员事务与员工页验收 |
 | [PROGRESS_STATE.md](PROGRESS_STATE.md) | 当前状态、授权边界、限制与下一步 |
 | [P0 基线](../../implementation/oa-auth/phase-0/baseline.md) | 三仓源码、版本、写入口和实际测试事实 |
 | [P1 首批计划](../../implementation/oa-auth/phase-0/phase-1-plan.md) | 首批变更顺序、契约冻结事项和明确验证命令 |

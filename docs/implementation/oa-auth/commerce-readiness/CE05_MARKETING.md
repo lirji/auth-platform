@@ -1,5 +1,7 @@
 # CE05 营销与权益扩展执行记录
 
+CE05-A0本地DONE：稳定audience类型、read/create两独立有限集合能力；完整252单元、真实自有PG86a26d467cc2/SpiceDB共14项ExecutionAuthorizationIT、Boot4 1项及最终forceCreation install通过，两个运行Jar内嵌依赖和四源码摘要一致。hygiene无阻断，既有Java formatter/静态分析限制保留，无新迁移，自有PG已finally停止。A0 Git交付中，下一A1/A2与其他CE05—08未完成。R2已推送auth70b6228/commerce654d903，commerce CI36706768255 SUCCESS，auth CI36706764297仍运行中；保留commerce现有refactor/b-console-experience分支，待确认是否并行任务，原生产2HOLD不变。
+
 ## 当前状态
 
 CE05-R2本地DONE：固定SSO规则目录/创建/发布三Tab、两个独立hint与两个原意图分别恢复；完整469项464PASS/5既有skip、规则8专项全PASS，最终真实200dbeb9873c（子网10.254.114.0/24）609PASS，规则12条浏览器与全部既有员工页回归通过。42工具/259入口/122能力/34角色、build/Prettier/两仓hygiene及auth4/commerce10源码摘要一致；实际8条规则身份审计、UI创建/发布各1次，同键不重复，旧1=PUBLISHED/最新2=DRAFT。1440/390表单/目录、409/未知/成功/503已查看；稳定布局后的正文与PNG均390，表格内部横滚。无新迁移，V49—V62不可改；下一CE05-A人群快照，其余CE05—08和原生产2HOLD未完成。
@@ -190,3 +192,10 @@ CE05-R2本地DONE：固定SSO规则目录/创建/发布三Tab、两个独立hint
 首次Java测试因旧专用MySQL已不存在而连接拒绝，已恢复独立commerce-rules-mysql-698708fb5f/43308，私密owned-rules.env保留，旧owned.env不覆盖。首轮浏览器103408e2a0ce/子网111在545PASS后隐藏Ant Design option定位停止，已改可见下拉精确文本。第二轮a1c60c4dcb31/子网112功能609PASS，但取图尺寸643；第三轮2c4a7f48441a/子网113在554PASS后更严格PNG断言停止。文档/正文均390的证据与本地Playwright取图实现确认响应式Descriptions布局时机，早取诊断632、等字体及两帧后两次390。该诊断重放真实库摘要只用于布局，不作授权证据。最终脚本等字体/两帧并poll完整scroll/offset/client宽度，仍严格要求正文和实际PNG390，未裁图/放宽阈值；容器上限只作用本页。
 
 本轮自有进程finally停止，原8602/OA未切换，无新worktree；四轮失败/成功库与私密证据、构建依赖及其他worktree保留。R1 auth8a54b0c/commerce74a5cf4，CI36701575411/36701590580均SUCCESS。R2 implementation-validation COMPLETED/PASS、update-progress-docs DONE（本地）；Git/CI另记。
+
+
+### CE05-A0验收
+
+CE05-A0本地DONE：稳定audience类型、read/create两独立有限集合能力；完整252单元、真实自有PG86a26d467cc2/SpiceDB共14项ExecutionAuthorizationIT、Boot4 1项及最终forceCreation install通过，两个运行Jar内嵌依赖和四源码摘要一致。hygiene无阻断，既有Java formatter/静态分析限制保留，无新迁移，自有PG已finally停止。A0 Git交付中，下一A1/A2与其他CE05—08未完成。R2已推送auth70b6228/commerce654d903，commerce CI36706768255 SUCCESS，auth CI36706764297仍运行中；保留commerce现有refactor/b-console-experience分支，待确认是否并行任务，原生产2HOLD不变。
+
+[人群契约](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_AUDIENCES.md)记录A0矩阵与后续A1/A2原业务约束。证据为私密commerce-contracts/audience-core-*，无凭据入Git。implementation-validation COMPLETED/PASS；A0 DONE（本地），整体目标未完成。
