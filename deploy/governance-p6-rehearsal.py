@@ -8,6 +8,7 @@ from pathlib import Path
 MERCHANT_RESOURCE_TYPE = 'merchant'
 MEMBER_RESOURCE_TYPE = 'commerce_member'
 MEMBER_POLICY_RESOURCE_TYPE = 'commerce_member_policy'
+CYCLE_CAPABILITIES = {'member_cycle.policy.read':MEMBER_POLICY_RESOURCE_TYPE,'member_cycle.policy.publish':MEMBER_POLICY_RESOURCE_TYPE,'member_cycle.read':MEMBER_RESOURCE_TYPE,'member_cycle.evaluate':MEMBER_RESOURCE_TYPE,'cycle_benefit.read':MEMBER_POLICY_RESOURCE_TYPE,'cycle_benefit.define':MEMBER_POLICY_RESOURCE_TYPE,'cycle_benefit.grant':MEMBER_RESOURCE_TYPE}
 BEHAVIOR_CAPABILITIES = ('member_behavior.read','member_behavior.update','member_behavior.rebuild')
 TAG_CAPABILITIES = ('member_tag.read','member_tag.define','member_tag.assign')
 GROWTH_CAPABILITIES = {'growth.policy.read':MEMBER_POLICY_RESOURCE_TYPE,'growth.policy.publish':MEMBER_POLICY_RESOURCE_TYPE,'growth.read':MEMBER_RESOURCE_TYPE,'growth.adjust':MEMBER_RESOURCE_TYPE,'growth.recalculate':MEMBER_RESOURCE_TYPE}
@@ -120,6 +121,8 @@ def rehearse(args, isolation=None):
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':MEMBER_RESOURCE_TYPE,'risk_level':'HIGH'} for code in TAG_CAPABILITIES]
         if args.behavior:
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':MEMBER_RESOURCE_TYPE,'risk_level':'HIGH'} for code in BEHAVIOR_CAPABILITIES]
+        if args.cycles:
+            manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':kind,'risk_level':'HIGH'} for code,kind in CYCLE_CAPABILITIES.items()]
         h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli','publish',run/'catalog.properties',run/'manifest.json')
         access={'access.tenant':tenant,'access.application':'commerce','access.environment':env,'access.manager':members['internal'],'access.generation':1,'access.capabilities':'commerce.catalog.operate','access.max-duration-seconds':3600,'access.operator':'p6-fixture','access.command':uid()}
         if args.inventory:access['access.capabilities'] += ',commerce.inventory.read,commerce.inventory.receive'
@@ -128,6 +131,7 @@ def rehearse(args, isolation=None):
         if args.growth:access['access.capabilities'] += ''.join(',commerce.'+code for code in GROWTH_CAPABILITIES)
         if args.tags:access['access.capabilities'] += ''.join(',commerce.'+code for code in TAG_CAPABILITIES)
         if args.behavior:access['access.capabilities'] += ''.join(',commerce.'+code for code in BEHAVIOR_CAPABILITIES)
+        if args.cycles:access['access.capabilities'] += ''.join(',commerce.'+code for code in CYCLE_CAPABILITIES)
         h.private(run/'access.properties',db+h.props(access));cli('AccessBootstrapCli',run/'access.properties')
         def authority(kind):
             c=fixture['clients'][kind];return {'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
@@ -607,6 +611,67 @@ def rehearse(args, isolation=None):
             expect('revoked behavior rebuild cannot replay receipt',18661,base+'/rebuild',batch_headers,behavior_batch,403)
             expect('behavior read survives write revocation',18661,base+'/'+target,user)
             behavior_browser('revoked')
+        if args.cycles:
+            for family in ('MEMBER_CYCLE','CYCLE_BENEFIT'):
+                insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':family,'state':'SHADOW'})
+                sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family="+q(family)+" AND state='SHADOW' AND version=1;")
+            cycle_base='/v1/admin/member-cycles';benefit_base='/v1/admin/member-cycle-benefits';cycle_member='ce04-cycle-member'
+            for target_id in (cycle_member,'ce04-cycle-system-member'):
+                expect('cycle actual member created '+target_id,18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':target_id,'actorId':target_id+'-customer','displayName':'Cycle fixture','memberLevel':'BASIC'})
+            expect('behavior does not imply cycle policy',18661,cycle_base+'/policies',user,status=403)
+            expect('legacy ADMIN cannot bypass cycle authority',18661,cycle_base+'/'+cycle_member,[('Authorization','Bearer '+admin_local)],status=403)
+            def cycle_grant(code):
+                role=expect('explicit cycle role '+code,18162,prefix+'/roles',admin,{**partition,'command_id':uid(),'role_code':'ce04-'+code.replace('.','-'),'role_version':1,'capabilities':['commerce.'+code]})['id']
+                kind=CYCLE_CAPABILITIES[code]
+                grant=expect('finite cycle grant '+code,18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role,'scope_rule':{'version':1,'resource_type':kind,'clauses':[{'kind':'TENANT_ALL','values':[],'include_root':False}]},'source_id':'ce04-'+code,'valid_from':now(-2),'valid_to':now(600)},202)['id']
+                projection();execution_ready(code,resource_type=kind);return grant
+            publish_grant=cycle_grant('member_cycle.policy.publish')
+            cycle_policy={'version':1,'effectiveFrom':now(-1),'periodDays':7,'levels':[{'code':'BASIC','minimumGrowth':0},{'code':'GOLD','minimumGrowth':100}]}
+            cycle_policy_headers=user+[('Idempotency-Key',uid())]
+            published=expect('cycle publish without policy read',18661,cycle_base+'/policies',cycle_policy_headers,cycle_policy)
+            if expect('cycle policy same key retry',18661,cycle_base+'/policies',cycle_policy_headers,cycle_policy)!=published:raise RuntimeError('cycle policy duplicate')
+            expect('cycle publish does not imply read',18661,cycle_base+'/policies',user,status=403)
+            expect('cycle period boundary rejected',18661,cycle_base+'/policies',user+[('Idempotency-Key',uid())],{**cycle_policy,'version':2,'periodDays':0},400)
+            evaluate_grant=cycle_grant('member_cycle.evaluate');cycle_evaluate_headers=user+[('Idempotency-Key',uid())]
+            view=expect('cycle evaluate without read',18661,cycle_base+'/'+cycle_member+'/evaluate',cycle_evaluate_headers,{})
+            if not view['enabled'] or view['policyVersion']!=1 or view['memberLevel']!='BASIC':raise RuntimeError('cycle actual assessment mismatch')
+            if expect('cycle evaluate same key retry',18661,cycle_base+'/'+cycle_member+'/evaluate',cycle_evaluate_headers,{})!=view:raise RuntimeError('cycle evaluation repeated')
+            expect('cycle evaluate does not imply read',18661,cycle_base+'/'+cycle_member,user,status=403)
+            expect('cycle missing member Owner denied',18661,cycle_base+'/missing-cycle-member/evaluate',user+[('Idempotency-Key',uid())],{},404)
+            # 权益定义尚属CE05，隔离准备调用现有真实Owner API，不冒充已迁移员工能力。
+            expect('cycle isolated entitlement source definition',18661,'/v1/admin/entitlement-definitions',[('Authorization','Bearer '+admin_local),('Idempotency-Key',uid())],{'benefitId':'ce04-cycle-tea','version':1,'storeId':store,'name':'Cycle fixture tea','units':2,'quota':50,'validFrom':now(-60),'validTo':now(864000),'validityDays':7})
+            define_grant=cycle_grant('cycle_benefit.define')
+            cycle_bundle={'bindingId':'ce04-cycle-bundle','policyVersion':1,'level':'BASIC','storeId':store,'validUntil':now(604800),'benefits':[{'benefitId':'ce04-cycle-tea','version':1}]};cycle_bundle_headers=user+[('Idempotency-Key',uid())]
+            defined=expect('cycle benefit define without cycle policy read',18661,benefit_base,cycle_bundle_headers,cycle_bundle)
+            if expect('cycle benefit definition same key retry',18661,benefit_base,cycle_bundle_headers,cycle_bundle)!=defined:raise RuntimeError('cycle bundle duplicate')
+            expect('cycle benefit define does not imply benefit read',18661,benefit_base+'?policyVersion=1',user,status=403)
+            grant_grant=cycle_grant('cycle_benefit.grant');cycle_award_headers=user+[('Idempotency-Key',uid())]
+            award=expect('cycle benefit grant without member cycle read',18661,benefit_base+'/'+cycle_member+'/grant',cycle_award_headers,{})
+            if len(award['grants'])!=1 or award['grants'][0]['status']!='REQUESTED':raise RuntimeError('cycle award not durably accepted')
+            if expect('cycle benefit grant same key retry',18661,benefit_base+'/'+cycle_member+'/grant',cycle_award_headers,{})!=award:raise RuntimeError('cycle award duplicate')
+            for code in ('member_cycle.policy.read','member_cycle.read','cycle_benefit.read'):cycle_grant(code)
+            history=expect('cycle independent policy history',18661,cycle_base+'/policies?after=0&limit=1',user)
+            if history!=[published] or expect('cycle policy next cursor empty',18661,cycle_base+'/policies?after=1&limit=1',user)!=[]:raise RuntimeError('cycle policy cursor mismatch')
+            if expect('cycle actual member snapshot',18661,cycle_base+'/'+cycle_member,user)!=view:raise RuntimeError('cycle member read mismatch')
+            if expect('cycle independent bundle read',18661,benefit_base+'?policyVersion=1',user)!=[defined]:raise RuntimeError('cycle bundle read mismatch')
+            expect('cycle foreign tenant denied',18661,cycle_base+'/'+cycle_member,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            expect('cycle system member assessed before employee revoke',18661,cycle_base+'/ce04-cycle-system-member/evaluate',user+[('Idempotency-Key',uid())],{})
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND (capability LIKE 'commerce.member_cycle.%' OR capability LIKE 'commerce.cycle_benefit.%')")[1]!='5':raise RuntimeError('cycle identity audit duplicate')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_cycle_benefit' AND resource_id='ce04-cycle-bundle'")[1]!='1':raise RuntimeError('cycle bundle audit wrong target')
+            record('cycle five commands have five real target audits')
+            for grant in (publish_grant,evaluate_grant,define_grant,grant_grant):expect('revoke independent cycle write',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':grant,'expected_version':1})
+            projection()
+            expect('revoked cycle publish cannot replay receipt',18661,cycle_base+'/policies',cycle_policy_headers,cycle_policy,403)
+            expect('revoked cycle evaluate cannot replay receipt',18661,cycle_base+'/'+cycle_member+'/evaluate',cycle_evaluate_headers,{},403)
+            expect('revoked cycle definition cannot replay receipt',18661,benefit_base,cycle_bundle_headers,cycle_bundle,403)
+            expect('revoked cycle grant cannot replay receipt',18661,benefit_base+'/'+cycle_member+'/grant',cycle_award_headers,{},403)
+            # 系统事件消费使用既有可信车道，员工撤权不取消已承诺周期权益。
+            for _ in range(4):expect('trusted cycle event pump after employee revoke',18661,'/v1/admin/events/pump',[('Authorization','Bearer '+admin_local)],{})
+            if sql("SELECT count(*) FROM benefit_grant WHERE tenant_id="+q(source)+" AND benefit_id='ce04-cycle-tea' AND member_id IN ('ce04-cycle-member','ce04-cycle-system-member')")[1]!='2':raise RuntimeError('system cycle event stopped or duplicated')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability='commerce.cycle_benefit.grant'")[1]!='1':raise RuntimeError('system cycle worker impersonated employee')
+            record('trusted cycle events complete without employee grants and do not duplicate awards')
+            expect('cycle read survives write revoke',18661,cycle_base+'/'+cycle_member,user)
+            expect('cycle benefit read survives write revoke',18661,benefit_base+'?policyVersion=1',user)
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -657,9 +722,12 @@ def rehearse(args, isolation=None):
         if args.behavior:
             expect('behavior auth outage fails closed',18661,'/v1/admin/member-behavior/ce04-behavior-member',user,status=503)
             behavior_browser('outage')
+        if args.cycles:
+            expect('cycle auth outage fails closed',18661,'/v1/admin/member-cycles/ce04-cycle-member',user,status=503)
+            expect('cycle benefit auth outage fails closed',18661,'/v1/admin/member-cycle-benefits?policyVersion=1',user,status=503)
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -669,6 +737,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
+    parser.add_argument('--cycles',action='store_true',help='finite cycle policy and benefit rehearsal; includes behavior regression')
     parser.add_argument('--behavior',action='store_true',help='finite member behavior rehearsal; includes tag regression')
     parser.add_argument('--tags',action='store_true',help='finite member tag rehearsal; includes growth regression')
     parser.add_argument('--growth',action='store_true',help='finite growth policy and account rehearsal; includes member regression')
@@ -679,6 +748,7 @@ def main():
     parser.add_argument('--identity-subnet',help='explicit unused RFC1918 /24 when Docker default pools are exhausted')
     args=parser.parse_args()
     if args.identity_subnet and not args.isolated_identity:parser.error('--identity-subnet requires --isolated-identity')
+    if args.cycles:args.behavior=True
     if args.behavior:args.tags=True
     if args.tags:args.growth=True
     if args.growth:args.member=True

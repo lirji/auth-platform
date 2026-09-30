@@ -176,3 +176,27 @@ behavior-ui-verify.log完整425项420PASS/5既有skip，CentralBehaviorMySqlTest
 B2已普通合并推送auth e568df0 / commerce 29c4fd7，CI待查（auth36677835210）。C0按CONTRACTS_COMMERCE_CYCLE新增七个有限执行组合，四个policy集合许可、三个实际会员Owner组合，最长60秒HUMAN与完整TENANT_ALL。未增加SDK协议/中央资源类型，商城C1尚未实施。
 
 cycle-core-unit.log全仓252PASS；真实自有PG6fe10ce0f0af与隔离SpiceDB运行ExecutionAuthorizationIT8方法PASS，新增七能力矩阵及原组合、类型/范围/期限/代际/撤权重授/到期验证。cycle-core-integration.log与result保留，自有PG finally已停止。SDK install、Boot4 test、全仓package、hygiene/diff通过，无Java formatter/静态分析的限制保持。验证后无产品修改。下一C1实际Owner/内部系统履约端口、两个独立族与V56。
+
+## CE04-C1验证中
+
+C0 auth6ded091已推送，CI36677995958 SUCCESS（含B2 auth基线）；B2 commerce CI36677845423 SUCCESS，auth原36677835210被C0推送取消。C1七能力/两个独立族、真实会员Owner、锁前许可与中央身份幂等、实际策略/礼包/会员审计已实现。V56在专用测试MySQL应用后不可修改。SDK固定6ded091，原安装/compile通过。
+
+策略集合读写、会员周期读/考核和礼包集合读写/补发保持原业务输入、范围与响应。新增MANDATORY内部policyForOperation/viewForOperation供已授权礼包和系统事件用例，避免误要求员工周期read；系统处理使用真实会员锁/ACTIVE，不构造员工ADMIN。已接受周期策略/考核与权益事件仍以系统职责履约，员工撤权不取消已承诺权益。
+
+两次定向Maven命令因父POM硬编码failIfNoTests止于shared-kernel，未执行业务测试；保持配置不变改跑完整verify。首轮cycle-verify.log中新增CentralCycleMySqlTest6项3失败：测试在撤权后才申请执行引用，认证层AccessDeniedException先于所断言DomainException，未达到目标业务门禁。已改为先取得引用再撤权，保持业务拒绝断言不变；没有修改产品代码。cycle-verify-fixed.log完整重跑中。首轮既有周期/发券/公平性等回归未失败，审计故障回滚与系统事件在STOPPED后履约测试已通过，但不据部分通过宣称C1完成。
+
+36工具/237入口通过，跨进程--cycles脚本已实现真实API策略/考核/礼包/补发及撤权后系统事件消费；尚未运行最终隔离联调。两仓cycle-source-sha256.json已记录当前验证源码，后续复核。C2只有私有页面契约草案，尚未实施。
+
+
+C1完整cycle-verify-fixed.log已431项426PASS/5既有skip，新增6项均通过，原MemberCycleTest及调度/权益/公平性/发券回归通过。随后hygiene拦截两处新增字符串比较：新增MemberApi.Status稳定code枚举供本次内部ACTIVE检查，policy类型比较复用既有Capability定义，DTO/判断语义不变。最终cycle-package-final.log、cycle-owner-final-tests.log6项与cycle-hygiene-final.log通过，source-final摘要另记。新内部MANDATORY端口只读原事务，远程授权在事务外，Commands/EventHandler沿原本地事务，四写审计故障回滚和系统事件测试均实证，无新增异步/MQ职责。
+
+首轮无浏览器rehearsal-59463c8a6bd9（子网93）在5项检查时为使用最终常量版主动SIGINT中止，finally停止自有进程；非业务失败或完整通过。第二轮子网94，cycle-owner-rehearsal-final.log运行中，联调结束前C1仍VERIFYING。
+
+
+### C1最终本地DONE
+
+第二轮rehearsal-8119c3656bbb最终284PASS，cycles_checked=true，runtime_switched/production_ready=false，无浏览器。真实中央独立政策发布无read、考核无read、礼包定义无policy.read/benefit.read、补发无cycle.read；原键重试、实际政策游标、实际Member周期与礼包、跨租户与缺失Owner、四写撤权后旧回执拒绝、两域实际中央停机503通过。五次API写效果恰五条实际策略/礼包/会员审计。员工撤权后真实事件pump完成两会员权益并保持来源去重，不产生伪员工grant审计。CATALOG进程恢复/后台撤权及所有既有域API回归完整通过。权益定义的隔离准备调用尚属CE05的原Owner API，不宣称其已迁移。
+
+完整cycle-verify-fixed.log431项426PASS/5既有skip；最终新增状态枚举与资源类型引用只替代等值字符串比较，之后cycle-package-final.log、cycle-owner-final-tests.log6项及cycle-hygiene-final.log通过，并用最终JAR完成上述联调。36工具/237入口与auth hygiene通过。两仓cycle-source-sha256/cycle-source-final-sha256复核一致；Java formatter/静态分析未配置限制保持。首轮测试准备顺序失败和59463c8a6bd9主动中止均保留，不改判定标准。自有PG/IdP/JVM已finally停止，子网93—94和证据数据保留；原8602未切换。
+
+C1本地DONE，Git交付中；下一C2两个独立SSO页和四动作提示，当前未实现页面。其余会员/积分及CE05—08未完成，原生产输入HOLD不变。
