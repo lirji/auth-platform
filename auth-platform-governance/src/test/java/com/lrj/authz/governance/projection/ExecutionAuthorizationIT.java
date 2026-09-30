@@ -190,6 +190,10 @@ class ExecutionAuthorizationIT {
     @Test void tagReferencesRejectFakeMemberForDefinitionAndKeepAssignmentsScoped() {
         tenantMemberReferences(List.of("member_tag.read","member_tag.define","member_tag.assign"));
     }
+    /** 行为重建只获得租户集合许可，不能以伪会员事实扩大为对象执行权限。 */
+    @Test void behaviorReferencesKeepRebuildSeparateFromProfileAndEvents() {
+        tenantMemberReferences(List.of("member_behavior.read","member_behavior.update","member_behavior.rebuild"));
+    }
     private void tenantMemberReferences(List<String> suffixes) {
         var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
         var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
@@ -198,7 +202,7 @@ class ExecutionAuthorizationIT {
             var jdbc=new JdbcTemplate(new DriverManagerDataSource(db.jdbcUrl(),db.username(),db.password()));
             for(String suffix:suffixes) {
                 boolean policy=suffix.startsWith("growth.policy.");
-                boolean collectionOnly=policy || suffix.equals("member.create") || suffix.equals("member_tag.define");
+                boolean collectionOnly=policy || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
                 String type=policy?ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE:ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
                 String tenant=id(),code="member-"+id(),app="commerce-member-"+id(),cap=app+"."+suffix;
                 var owner=person(runtime,tenant,code);var member=person(runtime,tenant,code);

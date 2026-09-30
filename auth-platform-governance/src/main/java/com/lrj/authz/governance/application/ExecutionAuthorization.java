@@ -20,10 +20,10 @@ public final class ExecutionAuthorization {
             "merchant.read", ScopeDtos.MERCHANT_RESOURCE_TYPE, "merchant.create", ScopeDtos.MERCHANT_RESOURCE_TYPE,
             "store.directory.read", ScopeDtos.STORE_RESOURCE_TYPE, "store.create", ScopeDtos.STORE_RESOURCE_TYPE);
     private static final Set<String> MEMBER_CAPABILITIES = Set.of("member.read", "member.create", "member.profile.update", "member.status.update",
-            "growth.read", "growth.adjust", "growth.recalculate", "member_tag.read", "member_tag.define", "member_tag.assign");
+            "growth.read", "growth.adjust", "growth.recalculate", "member_tag.read", "member_tag.define", "member_tag.assign", "member_behavior.read", "member_behavior.update", "member_behavior.rebuild");
     private static final Set<String> MEMBER_POLICY_CAPABILITIES = Set.of("growth.policy.read", "growth.policy.publish");
-    // 字典定义和会员创建都没有已有会员对象，只能使用全租户集合许可。
-    private static final Set<String> MEMBER_COLLECTION_ONLY = Set.of("member.create", "member_tag.define");
+    // 字典定义、会员创建和租户级行为重建没有单个已有会员目标，只能使用集合许可。
+    private static final Set<String> MEMBER_COLLECTION_ONLY = Set.of("member.create", "member_tag.define", "member_behavior.rebuild");
     private static final Set<String> CREATION = Set.of("merchant.create", "store.create");
     private static final long SYNC_MAX_SECONDS = 60;
     private static final long MAX_SECONDS = 37 * 86400L + 60;

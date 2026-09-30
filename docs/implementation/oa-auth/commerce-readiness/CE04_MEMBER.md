@@ -120,3 +120,10 @@ rehearsal-fdda68438ef6最终221PASS；标签五阶段10条浏览器细分检查�
 已实际查看本次define-form、390-define-form、assign成功、unknown、dictionary、conflict、390-revoke-form、revoked-association、390-assignments、outage截图：层级/文字和表单可用，窄屏表格仅容器横向滚动；初始desktop定义截图捕获表单校验消退中间态，后续390已清除，实际提交通过。截图是自审，不声称用户视觉批准。自有PG/IdP/JVM/Vite已finally停止，子网87/数据/私密证据保留；原8602未切换。
 
 最终419项414PASS/5skip、36工具/234入口、前端build/package及两仓hygiene/diff通过；Java formatter/静态分析未配置限制保持。最后产品变动仅操作枚举常量，发生于标签浏览器阶段前并已重新build/package；后端与完整回归相同。T2本地DONE，Git交付中；下一CE04-B行为，技术草案已盘点，其他会员与CE05—08仍未完成。
+
+
+## CE04-B0本地DONE
+
+T2已推送authfd9ef83/commerce4aafed1，CI36675135942/36675136986待查。B0消费CONTRACTS_COMMERCE_BEHAVIOR.md，有限member_behavior.read/update/rebuild三HIGH执行组合绑定commerce_member、最长60秒HUMAN和完整TENANT_ALL；重建scope-only，拒绝伪会员execution-check，read/update可使用实际会员Owner事实。没有新SDK方法/协议JSON/授权资源类型，商城实际Owner/重建用例和V55留B1，不把中央协议测试当业务接管。
+
+behavior-core-unit.log全仓252单元PASS；真实自有PG ebabed7fcae1与隔离SpiceDB运行ExecutionAuthorizationIT7方法PASS，新增行为三组合/重建scope-only/范围与类型/期限/代际/撤权重授/到期，既有组合回归。behavior-core-integration.log与-result.json保留，自有PG finally已停。SDK install、Boot4 test、全仓package、hygiene/diff通过（behavior-core-sdk/boot4/package/hygiene），没有Java formatter/静态分析的限制保持。验证后无产品代码变化；B0 Git交付后继续B1实际Member Owner/独立重建服务。
