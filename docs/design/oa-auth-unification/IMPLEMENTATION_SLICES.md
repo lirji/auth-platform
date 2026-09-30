@@ -105,4 +105,4 @@ P6历史入口：所选单元本地隔离演练31项通过，最终Git/CI已交�
 
 ## 2026-09-29 商城增量续做
 
-用户追加全模块契约扩展，保留原P0—P7稳定ID及完成历史。增量CE-00—CE-08见[扩展契约](CONTRACTS_COMMERCE_EXPANSION.md)；CE-01在DESIGN_REVIEW，依赖业务D1—D4的实现不提前开始。已批准P6的页面接入补充及审核工具见[续做计划](../../implementation/oa-auth/commerce-readiness/EXECUTION_PLAN.md)，两者不依赖新增业务能力。
+用户追加全模块契约扩展，保留原P0—P7稳定ID及完成历史。增量CE-00—CE-08见[扩展契约](CONTRACTS_COMMERCE_EXPANSION.md)；CE-01的D1—D4业务边界已批准，CE-02开始逐动作绑定和受限Actor设计。已批准P6的页面接入补充及审核工具见[续做计划](../../implementation/oa-auth/commerce-readiness/EXECUTION_PLAN.md)，两者不依赖新增业务能力。

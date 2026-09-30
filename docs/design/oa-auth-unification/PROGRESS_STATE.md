@@ -1,6 +1,6 @@
 # 当前商城扩展续做
 
-2026-09-29：用户批准剩余执行计划，并选择本轮扩展其他商城模块、先补能力与权限契约。当前[执行记录](../../implementation/oa-auth/commerce-readiness/EXECUTION_PLAN.md)为续做入口；[扩展契约草案](CONTRACTS_COMMERCE_EXPANSION.md)处于DESIGN_REVIEW，岗位/数据边界及高风险审批决定尚待用户回复。CATALOG页面接入与迁移审核工具本地验证通过（commerce388通过/5跳过、Python22项、隔离34项）；commerce 41c22ae产品/4b12706进度及auth aaf7c18/ece04d0已正常合并推送main，两仓初轮远程CI成功（auth36660687852、commerce36660768385）；补充完整密码/PKCE后本地34项再次通过，工具增量CI待收尾；未执行生产部署或真实迁移，原DAG保持63节点。
+2026-09-29：用户批准剩余执行计划，并选择本轮扩展其他商城模块、先补能力与权限契约。当前[执行记录](../../implementation/oa-auth/commerce-readiness/EXECUTION_PLAN.md)为续做入口；[扩展契约](CONTRACTS_COMMERCE_EXPANSION.md)业务边界已获批准：员工端、会员营销按租户/库存交易按门店、高风险独立权限且沿用现有审批；继续CE-02。CATALOG页面接入与迁移审核工具本地验证通过（commerce388通过/5跳过、Python22项、隔离34项）；commerce 41c22ae产品/4b12706进度及auth aaf7c18/ece04d0已正常合并推送main，两仓初轮远程CI成功（auth36660687852、commerce36660768385）；补充完整密码/PKCE后本地34项再次通过，最终CI auth36661541739、commerce36661542743均SUCCESS；未执行生产部署或真实迁移，原DAG保持63节点。
 
 ## 已交付P7基线
 

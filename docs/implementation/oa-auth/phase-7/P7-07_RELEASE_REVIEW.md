@@ -30,4 +30,4 @@
 
 后续独立身份服务与双新版容量基线见[P7_ISOLATED_CAPACITY](P7_ISOLATED_CAPACITY.md)；与原共享身份服务/混部结果分别记录。
 
-2026-09-29商城续做补充：完整CATALOG页面已有本地34项隔离检查（含真实浏览器），映射审核工具仍将真实未签字记录隔离。用户进一步要求其他商城模块纳入本轮，当前新增[权限契约草案](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_EXPANSION.md)待业务决定，其实现/逐动作映射尚未完成。[目标环境接受准备表](../commerce-readiness/TARGET_ACCEPTANCE.md)列出配置/容量/恢复/灰度/退出的具体缺失输入；生产HOLD保持。
+2026-09-29商城续做补充：完整CATALOG页面已有本地34项隔离检查（含真实浏览器），映射审核工具仍将真实未签字记录隔离。用户进一步要求其他商城模块纳入本轮，当前新增[权限契约](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_EXPANSION.md)已获员工范围和独立高风险权限的业务批准，其实现/逐动作映射尚未完成。[目标环境接受准备表](../commerce-readiness/TARGET_ACCEPTANCE.md)列出配置/容量/恢复/灰度/退出的具体缺失输入；生产HOLD保持。
