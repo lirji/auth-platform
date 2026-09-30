@@ -1,5 +1,6 @@
+import { GovernanceDrawer as Drawer } from './presentation'
 import { useState } from 'react'
-import { Alert, Button, Descriptions, Drawer, Input, Space, Modal } from 'antd'
+import { Alert, Button, Descriptions, Input, Space, Modal } from 'antd'
 import { previewCatalog, publishCatalog, type CatalogManifest, type CatalogPreview } from '../api/governance'
 import { Failure } from './feedback'
 import { useCommand } from './useCommand'

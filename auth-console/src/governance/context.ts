@@ -28,3 +28,23 @@ export function contextualEntry(href: string | null, tenant: string, environment
   url.searchParams.set('environment', environment)
   return url.href
 }
+
+/** 清除粘贴链接中的HTML转义残留；显式的规范字段优先，不从URL推断授权。 */
+export function normalizedSearch(params: URLSearchParams): URLSearchParams {
+  const next = new URLSearchParams(params)
+  for (const key of ['application', 'environment']) {
+    const alias = `amp;${key}`
+    if (!next.has(key) && next.has(alias)) next.set(key, next.get(alias)!)
+    next.delete(alias)
+  }
+  return next
+}
+
+/** 页面导航只保留目录位置和应用分区，避免把前一页详情/游标带入新任务。 */
+export function applicationSearch(params: URLSearchParams, application: string, environment: string): URLSearchParams {
+  const next = organizationSearch(params.get('tenant') ?? '')
+  if (params.get('after')) next.set('after', params.get('after')!)
+  next.set('application', application)
+  next.set('environment', environment)
+  return next
+}

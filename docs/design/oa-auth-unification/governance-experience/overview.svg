@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+<title id="title">权限控制台工作台设计稿</title><desc id="desc">静态规划稿，基于当前可见的 local-commerce、commerce、local、内部成员、有管理入口且无业务入口的事实。未实现的视觉设计，不代表运行截图。</desc>
+<defs><style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#172033} .muted{fill:#596579}.small{font-size:12px}.body{font-size:14px}.label{font-size:11px;letter-spacing:1.5px;fill:#596579}.bold{font-weight:600}.line{stroke:#e1e5ec;stroke-width:1}.icon{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;color:#596579}.blue{fill:#315efb}.white{fill:white}</style>
+<symbol id="arrow" viewBox="0 0 20 20"><path d="M4 10h12m-5-5 5 5-5 5" class="icon"/></symbol>
+<symbol id="grid" viewBox="0 0 20 20"><rect x="3" y="3" width="5" height="5" rx="1" class="icon"/><rect x="12" y="3" width="5" height="5" rx="1" class="icon"/><rect x="3" y="12" width="5" height="5" rx="1" class="icon"/><rect x="12" y="12" width="5" height="5" rx="1" class="icon"/></symbol>
+<symbol id="shield" viewBox="0 0 20 20"><path d="m10 2 6 3v5c0 4-6 8-6 8S4 14 4 10V5Z" class="icon"/><path d="m7 9 2 2 4-4" class="icon"/></symbol>
+<symbol id="sheet" viewBox="0 0 20 20"><rect x="4" y="2" width="12" height="16" rx="2" class="icon"/><path d="M7 7h6M7 10h6M7 13h4" class="icon"/></symbol>
+</defs>
+<rect width="1440" height="900" fill="#f5f6f8"/><rect width="224" height="900" fill="#fff"/><path d="M224 0v900" class="line"/>
+<rect x="24" y="24" width="34" height="34" rx="10" fill="#315efb"/><path d="M33 47 41 33l8 14m-12-4h8" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+<text x="70" y="39" font-size="17" font-weight="650">AUTH</text><text x="70" y="56" class="small muted">权限控制台</text>
+<text x="28" y="119" class="label">WORKSPACE</text><rect x="16" y="136" width="192" height="42" rx="8" fill="#eef3ff"/><rect x="16" y="149" width="3" height="16" rx="1.5" fill="#315efb"/>
+<use href="#grid" x="29" y="147" width="20" height="20"/><text x="60" y="163" class="body bold blue">我的工作台</text>
+<text x="28" y="222" class="small muted">个人访问</text><use href="#shield" x="29" y="246" width="20" height="20"/><text x="60" y="262" class="body">权限来源</text>
+<use href="#sheet" x="29" y="290" width="20" height="20"/><text x="60" y="306" class="body">申请与通知</text>
+<path d="M28 342h168" class="line"/><text x="28" y="375" class="small muted">授权管理</text>
+<use href="#shield" x="29" y="399" width="20" height="20"/><text x="60" y="415" class="body">角色与授予</text>
+<use href="#sheet" x="29" y="443" width="20" height="20"/><text x="60" y="459" class="body">申请策略</text>
+<circle cx="39" cy="496" r="4" class="icon"/><path d="M31 508c0-8 16-8 16 0m3-13h6m-3-3v6" class="icon"/><text x="60" y="503" class="body">外部邀请</text>
+<use href="#sheet" x="29" y="531" width="20" height="20"/><text x="60" y="547" class="body">授权审计</text>
+<path d="M24 818h176" class="line"/><circle cx="36" cy="846" r="4" fill="none" stroke="#596579"/><text x="49" y="851" class="small muted">当前环境 · local</text><text x="28" y="877" font-size="10" fill="#596579" letter-spacing="1">ACCESS, WITH CLARITY.</text>
+<rect x="225" width="1215" height="72" fill="#fff"/><path d="M224 72h1216" class="line"/>
+<text x="264" y="42" class="small muted">组织</text><text x="303" y="43" class="body bold">local-commerce</text><path d="m433 36 4 4 4-4" class="icon"/><path d="M464 24v24" class="line"/>
+<text x="488" y="43" class="body">commerce</text><rect x="582" y="24" width="46" height="24" rx="5" fill="#f5f6f8"/><text x="592" y="40" class="small muted">local</text>
+<text x="1178" y="43" class="body muted">接受邀请</text><path d="M1261 24v24" class="line"/><circle cx="1291" cy="36" r="17" fill="#eef3ff"/><text x="1284" y="41" class="small bold blue">内</text><text x="1318" y="42" class="small">内部成员</text><path d="m1390 34 4 4 4-4" class="icon"/>
+<text x="264" y="121" class="label">GOVERNANCE / OVERVIEW</text><text x="264" y="165" font-size="30" font-weight="650">我的工作台</text><text x="264" y="195" class="body muted">在同一个上下文中，确认访问范围，继续授权作业。</text>
+<rect x="1280" y="143" width="112" height="38" rx="8" fill="#fff" stroke="#8994a6"/><path d="M1295 158a6 6 0 1 1-1 8m0-8v5h5" class="icon"/><text x="1315" y="167" class="body">刷新应用</text>
+<rect x="264" y="232" width="720" height="398" rx="14" fill="#fff" stroke="#e1e5ec"/>
+<text x="292" y="264" class="label">01 / CURRENT APPLICATION</text><rect x="292" y="288" width="48" height="48" rx="12" fill="#eef3ff"/><path d="m305 302 11-5 11 5v16l-11 6-11-6Zm0 0 11 6 11-6m-11 6v16" stroke="#315efb" stroke-width="1.7" fill="none" stroke-linejoin="round"/>
+<text x="356" y="311" font-size="25" font-weight="600">commerce</text><text x="356" y="334" class="small muted">当前应用 · local</text>
+<path d="M292 363h664" class="line"/>
+<text x="292" y="399" class="small muted">业务访问</text><circle cx="303" cy="426" r="4" fill="#854b12"/><text x="318" y="431" font-size="17" font-weight="600">当前暂无可用业务入口</text>
+<text x="292" y="459" class="body muted">你仍可查看权限来源、申请进度，或继续已有的管理作业。</text>
+<path d="M292 484h664" class="line"/>
+<text x="292" y="515" class="small muted">管理授权</text><rect x="370" y="497" width="56" height="25" rx="6" fill="#eaf5ef"/><text x="383" y="514" class="small" fill="#176548" style="fill:#176548">可用</text><text x="292" y="544" class="body muted">管理权限与业务访问分别授权。</text>
+<rect x="292" y="566" width="164" height="38" rx="8" fill="#315efb"/><text x="309" y="590" class="body white">进入授权管理</text><path d="M429 585h11m-4-4 4 4-4 4" stroke="white" stroke-width="1.5" fill="none"/>
+
+<rect x="1016" y="232" width="376" height="398" rx="14" fill="#fff" stroke="#e1e5ec"/>
+<text x="1040" y="264" class="label">02 / PERSONAL ACCESS</text>
+<use href="#shield" x="1040" y="308" width="22" height="22"/><text x="1074" y="325" font-size="18" font-weight="600">权限来源</text><use href="#arrow" x="1344" y="308" width="22" height="22"/>
+<text x="1040" y="363" class="body muted">逐条查看授予你的固定角色、能力、</text><text x="1040" y="388" class="body muted">资源范围与有效期。</text>
+<path d="M1040 426h328" class="line"/>
+<use href="#sheet" x="1040" y="462" width="22" height="22"/><text x="1074" y="479" font-size="18" font-weight="600">申请与通知</text><use href="#arrow" x="1344" y="462" width="22" height="22"/>
+<text x="1040" y="518" class="body muted">跟进申请的审批进度，</text><text x="1040" y="543" class="body muted">以及审批后的实际生效状态。</text>
+<path d="M264 674h1128" class="line"/>
+<text x="264" y="710" font-size="15" font-weight="600">理解你的访问边界</text><text x="264" y="739" class="body muted">可以管理授权，并不自动获得业务访问权限。每一条授权都有独立的能力、范围与有效期。</text>
+<text x="264" y="847" class="small muted">组织 · local-commerce</text><text x="1194" y="847" class="small muted">静态设计稿 · 尚未实现</text>
+</svg>

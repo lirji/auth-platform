@@ -74,3 +74,13 @@ R2第三轮2c4a7f48441a/子网113在554PASS后PNG断言停止；同一时点docu
 
 
 CE05-R2本地DONE：固定SSO规则目录/创建/发布三Tab、两个独立hint与两个原意图分别恢复；完整469项464PASS/5既有skip、规则8专项全PASS，最终真实200dbeb9873c（子网10.254.114.0/24）609PASS，规则12条浏览器与全部既有员工页回归通过。42工具/259入口/122能力/34角色、build/Prettier/两仓hygiene及auth4/commerce10源码摘要一致；实际8条规则身份审计、UI创建/发布各1次，同键不重复，旧1=PUBLISHED/最新2=DRAFT。1440/390表单/目录、409/未知/成功/503已查看；稳定布局后的正文与PNG均390，表格内部横滚。无新迁移，V49—V62不可改；下一CE05-A人群快照，其余CE05—08和原生产2HOLD未完成。
+
+
+## GUX 权限控制台体验改版（独立于 CE，2026-09-30）
+
+用户已批准“设计并实现，可在本地浏览器验收”。GUX-01—04 本地有界实现与验证完成：共享导航/工作台、角色与授权、来源详情、申请/策略/邀请/审计统一，URL上下文规范化；真实API与权限语义保持。
+
+- `npm --prefix auth-console run build` 与6项上下文单测 PASS；hygiene无阻断，保留未配置formatter限制。
+- 真实Chrome桌面1440、窄屏390、200%缩放、键盘入口、表单校验/关闭保护及详情返回复核完成；限制与多轮修正见 [TEST_RESULT](governance-experience/TEST_RESULT.md)。未把静态SVG或外部奖项自评作为验收通过证据。
+- 本地5273现有容器静态文件已更新，备份/私密截图保留 `.local/governance-experience/`；未重建容器或修改数据库/授权数据。容器重建需按源码重新构建前端镜像。
+- Git交付按持续授权执行，精确结果见 [DELIVERY_RESULT](governance-experience/DELIVERY_RESULT.md)。CE与commerce其他任务边界不变。

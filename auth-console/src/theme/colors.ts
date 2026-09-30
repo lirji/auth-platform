@@ -1,6 +1,7 @@
 // 调色板单一来源:theme.ts 的 token 与需要行内色值的组件都从这里取,避免散落硬编码。
 export const colors = {
   primary: '#315EFB',
+  governanceMuted: '#596579',
   primarySoft: '#EEF3FF',
   success: '#16A36A',
   warning: '#D97706',

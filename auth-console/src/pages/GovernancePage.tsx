@@ -1,13 +1,17 @@
-import { createContext, useContext, useEffect } from 'react'
-import { Alert, Button, Card, Empty, Select, Space, Spin, Tag, Typography } from 'antd'
+import { createContext, useContext, useEffect, useState } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { Alert, Button, ConfigProvider, Drawer, Dropdown, Empty, Select, Skeleton } from 'antd'
+import { AppstoreOutlined, ArrowRightOutlined, AuditOutlined, CheckOutlined, DownOutlined, ExportOutlined, FileDoneOutlined, KeyOutlined, LogoutOutlined, MenuOutlined, ReloadOutlined, SafetyCertificateOutlined, SettingOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons'
 import { useAuth } from 'react-oidc-context'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { applications, organizations, type Organization, type Partition, type PortalApplication } from '../api/governance'
-import { PageHeader } from '../components/layout/PageHeader'
-import { contextKey, organizationSearch, safeEntry, contextualEntry } from '../governance/context'
+import { applicationSearch, contextKey, normalizedSearch, organizationSearch, safeEntry, contextualEntry } from '../governance/context'
 import { EntryState } from '../governance/codes'
 import { Failure } from '../governance/feedback'
+import { governanceTheme } from '../theme/theme'
+import { colors } from '../theme/colors'
+import '../styles/governance.css'
 
 export interface GovernanceContext { organization: Organization; application: PortalApplication; partition: Partition; queryKey: readonly unknown[] }
 const Context = createContext<GovernanceContext | undefined>(undefined)
@@ -17,14 +21,25 @@ export function useGovernanceContext() {
   return context
 }
 const kindLabels: Record<string, string> = { EMPLOYEE: '内部成员', PARTNER: '合作成员', GUEST: '访客' }
+const routes: Record<string, { title: string; description: string; icon: ReactNode }> = {
+  permissions: { title: '我的权限', description: '查看每一份权限的角色、范围与来源。', icon: <KeyOutlined /> },
+  requests: { title: '申请与通知', description: '从提交到生效，跟进每一次权限申请。', icon: <FileDoneOutlined /> },
+  access: { title: '授权管理', description: '用固定角色版本，为合适的成员授予明确范围的权限。', icon: <SafetyCertificateOutlined /> },
+  policies: { title: '申请策略', description: '定义可申请的角色、范围、期限和审批成员。', icon: <SettingOutlined /> },
+  invitations: { title: '外部邀请', description: '邀请合作成员加入组织，再按需授予业务权限。', icon: <TeamOutlined /> },
+  audit: { title: '授权审计', description: '追溯当前应用中的授权操作与处理结果。', icon: <AuditOutlined /> },
+  diagnostic: { title: '授权来源详情', description: '在同一条来源内确认能力、范围与生效状态。', icon: <SafetyCertificateOutlined /> },
+}
+const palette = { '--g-ink': colors.text, '--g-muted': colors.governanceMuted, '--g-blue': colors.primary, '--g-soft': colors.primarySoft, '--g-line': colors.border, '--g-canvas': colors.bgLayout } as CSSProperties
 
-/** 以本人组织为入口；每个标签页独立URL，切换后旧查询/表单整个卸载。 */
+/** 上下文与查询绑定真实成员代际；导航仅选择目录，不赋予任何权限。 */
 export default function GovernancePage() {
   const auth = useAuth()
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
   const location = useLocation()
   const qc = useQueryClient()
+  const [menuOpen, setMenuOpen] = useState(false)
   const subject = `${auth.user?.profile.iss ?? ''}:${auth.user?.profile.sub ?? ''}`
   const tenant = params.get('tenant') ?? ''
   const orgs = useQuery({ queryKey: ['governance', subject, 'organizations'], queryFn: ({ signal }) => organizations(signal), staleTime: 0, gcTime: 0, retry: false })
@@ -32,60 +47,66 @@ export default function GovernancePage() {
   const directoryKey = contextKey(subject, org ? org.membership_id : '', org ? org.generation : 0, { tenant_id: tenant, application_id: '', environment: '' })
   const after = params.get('after') ?? undefined
   const apps = useQuery({ queryKey: [...directoryKey, 'applications', after], queryFn: ({ signal }) => applications(tenant, after, signal), enabled: !!org, staleTime: 0, gcTime: 0, retry: false })
+  // 目录失败立即关闭旧业务入口，不用缓存数据伪装当前可访问状态。
   const entries = !apps.error ? apps.data?.items ?? [] : []
   const app = entries.find(item => item.application_id === params.get('application') && item.environment === params.get('environment'))
   const partition = { tenant_id: tenant, application_id: app?.application_id ?? '', environment: app?.environment ?? '' }
   const scopedKey = contextKey(subject, org ? org.membership_id : '', org ? org.generation : 0, partition)
   const scope = org && app ? { organization: org, application: app, partition, queryKey: scopedKey } : undefined
-  const home = location.pathname === '/governance' || location.pathname === '/governance/'
-
+  const route = location.pathname.split('/')[2] ?? ''
+  const home = !route
+  const page = routes[route]
+  const homeUrl = `/governance?${app ? applicationSearch(params, app.application_id, app.environment) : organizationSearch(tenant)}`
+  const pathFor = (item: PortalApplication, path: string) => `/governance/${path}?${applicationSearch(params, item.application_id, item.environment)}`
   useEffect(() => {
-    if (!tenant && orgs.data?.length) setParams(organizationSearch(orgs.data[0].tenant_id), { replace: true })
-  }, [tenant, orgs.data, setParams])
+    const next = normalizedSearch(params)
+    if (!tenant && orgs.data?.length) { setParams(organizationSearch(orgs.data[0].tenant_id), { replace: true }); return }
+    // 单一真实应用可自动选中；多应用必须显式选择，不猜测目标分区。
+    if (home && !next.has('application') && entries.length === 1) {
+      next.set('application', entries[0].application_id); next.set('environment', entries[0].environment)
+    }
+    if (next.toString() !== params.toString()) setParams(next, { replace: true })
+  }, [tenant, orgs.data, params, setParams, entries, home])
+  useEffect(() => { setMenuOpen(false); document.title = `${page?.title ?? '我的工作台'} · 权限控制台` }, [location.pathname, page])
   const changeOrganization = (id: string) => {
     void qc.cancelQueries({ queryKey: ['governance', subject] })
     qc.removeQueries({ queryKey: ['governance', subject], predicate: query => query.queryKey[2] !== 'organizations' })
     navigate(`/governance?${organizationSearch(id)}`)
   }
-  const choose = (item: PortalApplication, path: string) => {
-    const next = new URLSearchParams(params)
-    next.set('application', item.application_id); next.set('environment', item.environment)
-    navigate(`${path}?${next}`)
-  }
-  return <main className="app-content" style={{ width: '100%', boxSizing: 'border-box' }}>
-    <PageHeader title="我的工作台" description="在当前组织内查看应用、权限和申请进度。"
-      extra={<Space wrap><Link to="/invitations/accept">接受邀请</Link><Button onClick={() => void auth.signoutRedirect()}>退出登录</Button></Space>} />
-    <Card style={{ marginBottom: 20 }}>
-      <Space wrap size="middle">
-        <Typography.Text strong>当前组织</Typography.Text>
-        <Select aria-label="当前组织" placeholder="选择组织" value={org ? tenant : undefined} loading={orgs.isFetching}
-          style={{ width: 260, maxWidth: '100%' }} onChange={changeOrganization}
-          options={orgs.data?.map(item => ({ value: item.tenant_id, label: item.tenant_code }))} />
-        {org && <Tag>{kindLabels[org.member_kind] ?? org.member_kind}</Tag>}
-        {!home && <Link to={`/governance?${params}`}>返回我的应用</Link>}
-      </Space>
-    </Card>
-    {orgs.error ? <Failure error={orgs.error} retry={() => void orgs.refetch()} /> : orgs.isPending ? <Spin aria-label="正在加载组织" />
-      : !org ? <Empty description={tenant ? '当前组织不可用，请重新选择有效组织' : '当前没有有效组织'} />
-      : apps.error ? <Failure error={apps.error} retry={() => void apps.refetch()} /> : apps.isPending ? <Spin aria-label="正在加载应用" />
-      : home ? <>
-        <PageHeader title="我的应用" description="业务入口按当前权限展示；权限管理与业务访问分别授权。" extra={<Button loading={apps.isFetching} onClick={() => void apps.refetch()}>刷新应用</Button>} />
-        {!entries.length && <Empty description="当前没有关联应用" />}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 16 }}>
-          {entries.map(item => <Card key={`${item.application_id}/${item.environment}`} title={<span style={{ overflowWrap: 'anywhere' }}>{item.application_id}</span>} extra={<Tag>{item.environment}</Tag>}>
-            {item.menus.some(menu => safeEntry(menu.href)) ? <Space direction="vertical" style={{ width: '100%' }}>
-              {item.menus.filter(menu => safeEntry(menu.href)).map(menu => <Button key={menu.code} href={contextualEntry(menu.href, tenant, item.environment)} target="_blank" rel="noopener noreferrer">进入 {menu.code}</Button>)}
-            </Space> : <Typography.Paragraph type="secondary">{item.entry_state === EntryState.UNAVAILABLE ? '暂时无法确认业务权限，业务入口已关闭。可继续查看申请或管理进度。' : '当前暂无可用业务入口'}</Typography.Paragraph>}
-            <Space wrap style={{ marginTop: 16 }}><Button onClick={() => choose(item, '/governance/permissions')}>我的权限来源</Button><Button onClick={() => choose(item, '/governance/requests')}>我的申请与通知</Button></Space>
-            {item.management && <Button style={{ marginTop: 16 }} onClick={() => choose(item, '/governance/access')}>查看授权管理</Button>}
-            {item.management && <Space wrap style={{ marginTop: 12 }}><Button onClick={() => choose(item, '/governance/policies')}>申请策略</Button><Button onClick={() => choose(item, '/governance/invitations')}>外部邀请</Button><Button onClick={() => choose(item, '/governance/audit')}>授权审计</Button></Space>}
-          </Card>)}
-        </div>
-        <Space style={{ marginTop: 20 }}>
-          {after && <Button onClick={() => setParams(organizationSearch(tenant))}>返回首页</Button>}
-          {apps.data?.next_cursor && <Button onClick={() => { const next = organizationSearch(tenant); next.set('after', apps.data!.next_cursor!); setParams(next) }}>下一页应用</Button>}
-        </Space>
-      </> : scope ? <Context.Provider key={JSON.stringify(scopedKey)} value={scope}><Outlet /></Context.Provider>
-        : <Alert type="warning" showIcon message="当前应用不在本组织的关联目录中，请返回我的应用重新选择。" />}
-  </main>
+  const navigation = (keys: string[]) => keys.map(key => app ? <Link key={key} to={pathFor(app, key)} aria-current={route === key || key === 'access' && route === 'diagnostic' ? 'page' : undefined} className="g-nav-item">{routes[key].icon}<span>{routes[key].title}</span></Link> : <span key={key} className="g-nav-item g-nav-disabled" aria-disabled="true">{routes[key].icon}<span>{routes[key].title}</span></span>)
+  const sidebar = <>
+    <Link className="g-brand" to={homeUrl} aria-label="权限控制台工作台"><span className="g-brand-mark" aria-hidden="true"><i /><i /><i /><i /></span><span>权限控制台<small>ACCESS CONSOLE</small></span></Link>
+    <nav className="g-navigation" aria-label="权限控制台导航"><span className="g-nav-caption">工作空间</span><Link to={homeUrl} className="g-nav-item" aria-current={home ? 'page' : undefined}><AppstoreOutlined /><span>我的工作台</span></Link><span className="g-nav-caption">个人中心</span>{navigation(['permissions', 'requests'])}{app?.management && <><span className="g-nav-caption">应用管理</span>{navigation(['access', 'policies', 'invitations', 'audit'])}</>}{!app && <p className="g-nav-hint">选择应用后查看相关权限与任务。</p>}</nav>
+    <div className="g-sidebar-bottom"><span className="g-member-icon"><UserOutlined /></span><div><strong>{org ? kindLabels[org.member_kind] ?? org.member_kind : '组织成员'}</strong><small>{org ? org.tenant_code : '请先选择组织'}</small></div></div>
+  </>
+  return <ConfigProvider theme={governanceTheme}><div className="governance-shell" style={palette}>
+    <a className="g-skip" href="#governance-content">跳转到主要内容</a><aside className="g-sidebar">{sidebar}</aside>
+    <Drawer title="工作空间导航" open={menuOpen} onClose={() => setMenuOpen(false)} placement="left" width={280} rootClassName="governance-overlay g-mobile-drawer"><div className="governance-shell g-drawer-navigation" style={palette}>{sidebar}</div></Drawer>
+    <div className="g-workspace"><header className="g-topbar">
+      <Button className="g-mobile-menu" type="text" icon={<MenuOutlined />} aria-label="打开工作空间导航" onClick={() => setMenuOpen(true)} />
+      <div className="g-organization"><span className="g-context-label">组织</span><Select aria-label="当前组织" variant="borderless" placeholder="选择组织" value={org ? tenant : undefined} loading={orgs.isFetching} onChange={changeOrganization} options={orgs.data?.map(item => ({ value: item.tenant_id, label: item.tenant_code }))} /></div>
+      {app && <div className="g-current-app"><span aria-hidden="true">/</span><span>{app.application_id}</span><span className="g-environment">{app.environment}</span></div>}
+      <Dropdown trigger={['click']} menu={{ items: [{ key: 'invite', icon: <TeamOutlined />, label: <Link to="/invitations/accept">接受邀请</Link> }, { type: 'divider' }, { key: 'logout', icon: <LogoutOutlined />, label: '退出登录', onClick: () => void auth.signoutRedirect() }] }}><Button className="g-account" type="text" aria-label="账户菜单"><span className="g-avatar"><UserOutlined /></span><span className="g-account-label">我的账户</span><DownOutlined /></Button></Dropdown>
+    </header>{app && <div className="g-mobile-scope"><span>{app.application_id}</span><span className="g-environment">{app.environment}</span></div>}<main id="governance-content" className="g-content" tabIndex={-1}>
+      <div className="g-page-heading"><div><div className="g-eyebrow">{home ? 'WORKSPACE' : app?.application_id ?? 'ACCESS CONSOLE'}<span aria-hidden="true" />{home ? '工作空间' : '权限控制台'}</div><h1>{home ? '我的工作台' : page?.title ?? '权限控制台'}</h1><p>{home ? '让每一次访问，都有清晰的依据。' : page?.description}</p></div>{home && org && <Button icon={<ReloadOutlined />} loading={apps.isFetching} onClick={() => void apps.refetch()}>刷新应用</Button>}</div>
+      {orgs.error ? <Failure error={orgs.error} retry={() => void orgs.refetch()} /> : orgs.isPending ? <div className="g-loading" role="status" aria-label="正在加载组织"><Skeleton active /></div> : !org ? <div className="g-empty-panel"><Empty description={tenant ? '当前组织不可用，请重新选择有效组织' : '当前没有有效组织'} /></div> : apps.error ? <Failure error={apps.error} retry={() => void apps.refetch()} /> : apps.isPending ? <div className="g-loading" role="status" aria-label="正在加载应用"><Skeleton active /></div>
+        : home ? <>
+          <section aria-labelledby="g-applications"><div className="g-section-heading"><h2 id="g-applications">关联应用</h2><span>业务访问与应用管理分别授权</span></div>
+            {!entries.length ? <div className="g-empty-panel"><Empty description="当前组织暂无关联应用" /><p>关联应用后，可在这里查看入口与权限。</p></div> : <div className="g-application-grid">{entries.map(item => {
+              const menus = item.menus.filter(menu => safeEntry(menu.href))
+              return <article className="g-application" key={`${item.application_id}/${item.environment}`}>
+                <div className="g-app-intro"><div className="g-app-icon"><AppstoreOutlined /></div><div><span className="g-label">APPLICATION</span><h3>{item.application_id}</h3></div><span className="g-environment">{item.environment}</span></div>
+                <div className="g-access-area"><div className="g-access-caption"><span>业务访问</span><span className={`g-status ${menus.length ? 'g-status-available' : ''}`}>{menus.length ? '有可用入口' : item.entry_state === EntryState.UNAVAILABLE ? '暂时无法确认' : '暂无可用入口'}</span></div>{menus.length ? <div className="g-business-links">{menus.map(menu => <a key={menu.code} href={contextualEntry(menu.href, tenant, item.environment)} target="_blank" rel="noopener noreferrer">进入 {menu.code}<ExportOutlined /></a>)}</div> : <p>{item.entry_state === EntryState.UNAVAILABLE ? '暂时无法确认业务权限。请稍后刷新，或查看申请进度。' : '当前没有可进入的业务页面。你仍可查看权限来源，或提交权限申请。'}</p>}</div>
+                <div className="g-app-actions"><span className="g-management-state">{item.management ? <><CheckOutlined />具有应用管理权限</> : <>未获得应用管理权限</>}</span>{item.management ? <Link className="g-primary-link" to={pathFor(item, 'access')}>管理授权<ArrowRightOutlined /></Link> : <Link className="g-primary-link" to={pathFor(item, 'permissions')}>查看我的权限<ArrowRightOutlined /></Link>}</div>
+                {entries.length > 1 && <div className="g-multi-actions"><Link to={pathFor(item, 'permissions')}>我的权限</Link><Link to={pathFor(item, 'requests')}>申请与通知</Link></div>}
+              </article>
+            })}</div>}
+            {(after || apps.data?.next_cursor) && <div className="g-pagination">{after && <Button onClick={() => setParams(organizationSearch(tenant))}>返回应用首页</Button>}{apps.data?.next_cursor && <Button onClick={() => { const next = organizationSearch(tenant); next.set('after', apps.data!.next_cursor!); setParams(next) }}>下一页应用</Button>}</div>}
+          </section>
+          {app && <section className="g-personal-section" aria-labelledby="g-personal"><div className="g-section-heading"><h2 id="g-personal">我的权限事务</h2><span>{app.application_id} / {app.environment}</span></div><div className="g-task-list"><Link to={pathFor(app, 'permissions')} className="g-task"><span className="g-task-icon"><KeyOutlined /></span><div><h3>我的权限</h3><p>了解我能做什么，以及权限从哪里来</p></div><ArrowRightOutlined /></Link><Link to={pathFor(app, 'requests')} className="g-task"><span className="g-task-icon"><FileDoneOutlined /></span><div><h3>申请与通知</h3><p>申请所需权限，跟进审批与生效进度</p></div><ArrowRightOutlined /></Link></div></section>}
+          <div className="g-principle"><SafetyCertificateOutlined /><p><strong>权限始终有边界</strong><span>角色、资源范围与有效期共同定义一次访问。每份授权独立生效，也可独立追溯。</span></p></div>
+        </> : scope ? <Context.Provider key={JSON.stringify(scopedKey)} value={scope}><div className="g-route-content"><Outlet /></div></Context.Provider> : <Alert type="warning" showIcon message="当前应用不可用" description={<span>此应用不在当前组织的关联目录中。<Link to={homeUrl}>返回工作台重新选择</Link></span>} />}
+      <footer className="g-footer"><span>权限控制台</span><span>清晰授权 · 可追溯访问</span></footer>
+    </main></div>
+  </div></ConfigProvider>
 }

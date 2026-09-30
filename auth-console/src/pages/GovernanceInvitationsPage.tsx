@@ -1,5 +1,6 @@
+import { GovernanceDrawer as Drawer, GovernanceEmpty } from '../governance/presentation'
 import { useState } from 'react'
-import { Alert, Button, Card, Drawer, Form, Input, InputNumber, Modal, Select, Space, Table, Typography } from 'antd'
+import { Alert, Button, Card, Form, Input, InputNumber, Modal, Select, Space, Table, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { isAxiosError, HttpStatusCode } from 'axios'
 import { invitationAuthority, invitations, issueInvitation, revokeInvitation, type Invitation, type InvitationAuthority } from '../api/governance'
@@ -22,11 +23,11 @@ export default function GovernanceInvitationsPage() {
   if (authority.error) return isAxiosError(authority.error) && authority.error.response?.status === HttpStatusCode.Forbidden
     ? <Alert type="warning" showIcon message="当前没有外部邀请管理授权" description="邀请管理需要单独的受控委派，应用管理员不会自动取得此权限。" /> : <Failure error={authority.error} retry={refresh} />
   return <>
-    <Card title="外部成员邀请" loading={authority.isPending} extra={<Space><Button onClick={refresh}>刷新邀请</Button><Button type="primary" disabled={!authority.data} onClick={() => setOpen(true)}>创建邀请</Button></Space>}>
+    <Card title="邀请记录" loading={authority.isPending} extra={<Space><Button onClick={refresh}>刷新邀请</Button><Button type="primary" disabled={!authority.data} onClick={() => setOpen(true)}>创建邀请</Button></Space>}>
       <Alert type="info" showIcon message="邀请只建立外部成员关系，不授予业务权限。已接受的邀请不能通过撤销邀请停用成员。" style={{ marginBottom: 16 }} />
-      {result.error ? <Failure error={result.error} retry={refresh} /> : <Table<Invitation> loading={result.isPending} dataSource={result.data?.items} rowKey="id" pagination={false} scroll={{ x: 850 }} columns={[
+      {result.error ? <Failure error={result.error} retry={refresh} /> : <Table<Invitation> loading={result.isPending} locale={{ emptyText: <GovernanceEmpty title="暂无外部邀请" description="为指定合作成员或访客创建有期限的邀请。" /> }} dataSource={result.data?.items} rowKey="id" pagination={false} scroll={{ x: 850 }} columns={[
         { title: '目标登录标识', dataIndex: 'target_subject' }, { title: '成员类型', dataIndex: 'member_kind' },
-        { title: '邀请截止', render: (_, r) => new Date(r.expires_at).toLocaleString() }, { title: '成员截止', render: (_, r) => new Date(r.membership_valid_to).toLocaleString() },
+        { title: '邀请截止', render: (_, r) => new Date(r.expires_at).toLocaleString('zh-CN', { hour12: false }) }, { title: '成员截止', render: (_, r) => new Date(r.membership_valid_to).toLocaleString('zh-CN', { hour12: false }) },
         { title: '状态', render: (_, r) => r.state === InvitationState.PENDING && new Date(r.expires_at).getTime() <= Date.now() ? '已过期' : states[r.state] ?? r.state },
         { title: '操作', render: (_, r) => r.state === InvitationState.PENDING && <Button danger type="link" onClick={() => setSelected(r)}>撤销邀请</Button> },
       ]} />}
@@ -58,7 +59,7 @@ function InvitationForm({ authority, close, saved }: { authority: InvitationAuth
     })
     if (response) saved()
   }
-  return <Drawer title="创建外部成员邀请" open onClose={cancel} maskClosable={false} width={600} extra={<Button disabled={command.busy || command.unknown} onClick={cancel}>关闭</Button>}>
+  return <Drawer title="创建外部成员邀请" footer={!command.result && <Button type="primary" loading={command.busy} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原邀请' : '提交邀请'}</Button>} open onClose={cancel} maskClosable={false} width={600} extra={<Button disabled={command.busy || command.unknown} onClick={cancel}>关闭</Button>}>
     {!!command.error && <Failure error={command.error} />}
     {command.result ? <>
       <Alert type="success" message="邀请已创建，尚未建立业务授权" description="通过受控渠道把邀请编号与证明交给指定登录者。页面不会自动发送，也不会持久保存证明。" />
@@ -74,9 +75,9 @@ function InvitationForm({ authority, close, saved }: { authority: InvitationAuth
         <Form.Item name="invite_minutes" label="邀请有效分钟数" rules={[{ required: true }, { type: 'number', min: 1, max: Math.floor(authority.max_invitation_seconds / 60) }]}><InputNumber precision={0} style={{ width: '100%' }} /></Form.Item>
         <Form.Item name="member_minutes" label="成员有效分钟数" dependencies={['invite_minutes']} rules={[{ required: true }, { type: 'number', max: Math.floor(authority.max_membership_seconds / 60) }, { validator: (_, value: number) => value > form.getFieldValue('invite_minutes') ? Promise.resolve() : Promise.reject(new Error('成员期限须晚于邀请截止时间')) }]}><InputNumber precision={0} style={{ width: '100%' }} /></Form.Item>
         <Form.Item name="reason" label="邀请原因" rules={[{ required: true, whitespace: true }, { max: 1000 }]}><Input.TextArea rows={3} /></Form.Item>
-        <Button type="primary" htmlType="submit" loading={command.busy}>提交邀请</Button>
+
       </Form>
-      {command.unknown && <Button type="primary" loading={command.busy} onClick={() => void finish(form.getFieldsValue())}>重试原邀请</Button>}
+
     </>}
   </Drawer>
 }

@@ -1,5 +1,6 @@
+import { GovernanceDrawer as Drawer, CapabilityList, PermissionStatus, GovernanceEmpty } from '../governance/presentation'
 import { useState } from 'react'
-import { Alert, Button, Card, Descriptions, Drawer, Empty, Form, Input, InputNumber, List, Modal, Select, Space, Table, Typography } from 'antd'
+import { Alert, Button, Card, Descriptions, Form, Input, InputNumber, List, Modal, Select, Space, Table, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import { cancelRequest, myRequests, requestDetail, requestExecution, requestNotices, requestPolicies, submitRequest, type AccessRequest, type RequestPolicy } from '../api/governance'
@@ -23,19 +24,19 @@ export default function GovernanceRequestsPage() {
   const change = (key: string, value?: string) => { const next = new URLSearchParams(params); if (value) next.set(key, value); else next.delete(key); setParams(next) }
   const refresh = () => { void qc.invalidateQueries({ queryKey }) }
   return <>
-    <Card title="我的权限申请" extra={<Space><Button onClick={refresh}>刷新进度</Button><Button type="primary" onClick={() => setCreating(true)}>申请权限</Button></Space>}>
+    <Card title="申请记录" extra={<Space><Button onClick={refresh}>刷新进度</Button><Button type="primary" onClick={() => setCreating(true)}>申请权限</Button></Space>}>
       <Alert type="info" showIcon message="审批通过后仍需等待权限实际生效。通知失败时，可在这里查询当前进度。" style={{ marginBottom: 16 }} />
-      {list.error ? <Failure error={list.error} retry={() => void list.refetch()} /> : <Table<AccessRequest> rowKey="id" loading={list.isPending} dataSource={list.data?.items} pagination={false} scroll={{ x: 850 }} columns={[
-        { title: '申请原因', dataIndex: 'reason', width: 240 }, { title: '固定能力', render: (_, r) => r.capabilities.join('、') },
-        { title: '审批事实', render: (_, r) => requestLabels[r.state] ?? r.state },
-        { title: '截止时间', render: (_, r) => new Date(r.valid_to).toLocaleString() },
+      {list.error ? <Failure error={list.error} retry={() => void list.refetch()} /> : <Table<AccessRequest> rowKey="id" loading={list.isPending} locale={{ emptyText: <GovernanceEmpty title="还没有权限申请" description="需要额外权限时，从可申请策略中选择并说明用途。" /> }} dataSource={list.data?.items} pagination={false} scroll={{ x: 850 }} columns={[
+        { title: '申请原因', dataIndex: 'reason', width: 240 }, { title: '固定能力', width: 260, render: (_, r) => <CapabilityList values={r.capabilities} compact /> },
+        { title: '审批事实', render: (_, r) => <PermissionStatus state={r.state} /> },
+        { title: '截止时间', render: (_, r) => new Date(r.valid_to).toLocaleString('zh-CN', { hour12: false }) },
         { title: '操作', render: (_, r) => <Button type="link" onClick={() => change('request', r.id)}>查看进度</Button> },
       ]} />}
       <Space style={{ marginTop: 12 }}>{after && <Button onClick={() => change('request_after')}>申请首页</Button>}{list.data?.next_cursor && <Button onClick={() => change('request_after', list.data!.next_cursor!)}>下一页申请</Button>}</Space>
     </Card>
-    <Card title="我的通知" style={{ marginTop: 16 }}>
-      {notices.error ? <Failure error={notices.error} retry={() => void notices.refetch()} /> : <List loading={notices.isPending} dataSource={notices.data?.items} locale={{ emptyText: '暂无申请进度通知' }} renderItem={n =>
-        <List.Item actions={[<Button key="detail" type="link" onClick={() => change('request', n.request_id)}>查看申请</Button>]}><span>申请进度已更新 · {new Date(n.delivered_at).toLocaleString()}</span></List.Item>} />}
+    <Card title="进度通知" style={{ marginTop: 16 }}>
+      {notices.error ? <Failure error={notices.error} retry={() => void notices.refetch()} /> : <List loading={notices.isPending} dataSource={notices.data?.items} locale={{ emptyText: <GovernanceEmpty title="暂无进度通知" description="申请状态有变化时，可在这里查看已送达的通知。" /> }} renderItem={n =>
+        <List.Item actions={[<Button key="detail" type="link" onClick={() => change('request', n.request_id)}>查看申请</Button>]}><span>申请进度已更新 · {new Date(n.delivered_at).toLocaleString('zh-CN', { hour12: false })}</span></List.Item>} />}
       <Space>{noticeAfter && <Button onClick={() => change('notice_after')}>通知首页</Button>}{notices.data?.next_cursor && <Button onClick={() => change('notice_after', notices.data!.next_cursor!)}>下一页通知</Button>}</Space>
     </Card>
     {creating && <RequestForm close={() => setCreating(false)} saved={id => { refresh(); setCreating(false); change('request', id) }} />}
@@ -60,20 +61,20 @@ function RequestForm({ close, saved }: { close: () => void; saved: (id: string) 
     const response = await command.send(commandId => { const from = new Date(); return { ...partition, command_id: commandId, policy_id: values.policy, valid_from: from.toISOString(), valid_to: new Date(from.getTime() + values.minutes * 60000).toISOString(), reason: values.reason } })
     if (response) saved(response.id)
   }
-  return <Drawer title="申请固定范围权限" open onClose={cancel} width={600} maskClosable={false} extra={<Button disabled={command.busy || command.unknown} onClick={cancel}>关闭</Button>}>
+  return <Drawer title="申请固定范围权限" footer={<Button type="primary" loading={command.busy} disabled={!command.unknown && (policies.isPending || !!policies.error || !policies.data?.items.length)} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原申请' : '提交申请'}</Button>} open onClose={cancel} width={600} maskClosable={false} extra={<Button disabled={command.busy || command.unknown} onClick={cancel}>关闭</Button>}>
     {policies.error ? <Failure error={policies.error} retry={() => void policies.refetch()} /> : <>
-      {!policies.isPending && !policies.data?.items.length && <Empty description="当前没有可申请的策略" />}
+      {!policies.isPending && !policies.data?.items.length && <GovernanceEmpty title="当前没有可申请的策略" description="请联系应用管理员确认可申请范围，或稍后重新打开此页面。" />}
       {!!command.error && <Failure error={command.error} />}
       {command.unknown && <Alert type="warning" message="申请结果尚未确认，重试将保留原申请范围和时间。" />}
-      <Form form={form} layout="vertical" onValuesChange={() => setDirty(true)} onFinish={finish} initialValues={{ minutes: 5 }} disabled={command.busy || command.unknown}>
+      {(policies.isPending || !!policies.data?.items.length || command.unknown) && <Form form={form} layout="vertical" onValuesChange={() => setDirty(true)} onFinish={finish} initialValues={{ minutes: 5 }} disabled={command.busy || command.unknown}>
         <Form.Item name="policy" label="可申请策略" rules={[{ required: true, message: '请选择可申请策略' }]}><Select aria-label="可申请策略" loading={policies.isFetching} options={policies.data?.items.map(p => ({ value: p.id, label: `${p.role_code} · v${p.role_version} · 策略${p.policy_version}` }))} /></Form.Item>
         {policy && <PolicySummary policy={policy} />}
         <Form.Item name="minutes" label="申请有效分钟数（从提交时开始）" dependencies={['policy']} rules={[{ required: true }, { type: 'number', min: 1, max: Math.floor((policy?.max_duration_seconds ?? 60) / 60), message: '期限须在策略允许范围内' }]}><InputNumber style={{ width: '100%' }} min={1} precision={0} /></Form.Item>
         <Typography.Paragraph type="secondary">当前成员：{organization.member_kind}。成员有效期和审批资格会在服务端再次检查。</Typography.Paragraph>
         <Form.Item name="reason" label="申请原因" rules={[{ required: true, whitespace: true, message: '请说明用途' }, { max: 1000 }]}><Input.TextArea rows={3} maxLength={1000} /></Form.Item>
-        <Button type="primary" htmlType="submit" loading={command.busy}>提交申请</Button>
-      </Form>
-      {command.unknown && <Button type="primary" loading={command.busy} onClick={() => void finish(form.getFieldsValue())}>重试原申请</Button>}
+
+      </Form>}
+
       <Space style={{ marginTop: 16 }}>{after && <Button disabled={command.busy || command.unknown} onClick={() => { setAfter(undefined); form.resetFields(['policy']) }}>策略首页</Button>}{policies.data?.next_cursor && <Button disabled={command.busy || command.unknown} onClick={() => { setAfter(policies.data!.next_cursor!); form.resetFields(['policy']) }}>下一页策略</Button>}</Space>
     </>}
   </Drawer>
@@ -81,7 +82,7 @@ function RequestForm({ close, saved }: { close: () => void; saved: (id: string) 
 
 export function PolicySummary({ policy }: { policy: RequestPolicy }) {
   return <Descriptions bordered column={1} size="small" style={{ marginBottom: 20 }} items={[
-    { label: '固定能力', children: policy.capabilities.join('、') }, { label: '数据范围', children: <ScopeSummary rule={policy.scope_rule} /> },
+    { label: '固定能力', children: <CapabilityList values={policy.capabilities} /> }, { label: '数据范围', children: <ScopeSummary rule={policy.scope_rule} /> },
     { label: '最长有效时间', children: `${Math.floor(policy.max_duration_seconds / 60)} 分钟` },
   ]} />
 }
@@ -100,8 +101,8 @@ function RequestDetail({ id, close, saved }: { id: string; close: () => void; sa
         <Alert type="info" showIcon message={`实际状态：${executionLabels[e.display_state] ?? '待确认'}`} description={`审批事实：${requestLabels[r.state] ?? r.state}；审批通过不代表业务已可访问。`} style={{ marginBottom: 16 }} />
         <Descriptions column={1} bordered items={[
           { label: '申请编号', children: <Typography.Text copyable>{r.id}</Typography.Text> }, { label: '原始申请原因', children: r.reason },
-          { label: '固定能力', children: r.capabilities.join('、') }, { label: '固定范围', children: <ScopeSummary rule={r.scope_rule} /> },
-          { label: '固定有效期', children: `${new Date(r.valid_from).toLocaleString()} — ${new Date(r.valid_to).toLocaleString()}` },
+          { label: '固定能力', children: <CapabilityList values={r.capabilities} /> }, { label: '固定范围', children: <ScopeSummary rule={r.scope_rule} /> },
+          { label: '固定有效期', children: `${new Date(r.valid_from).toLocaleString('zh-CN', { hour12: false })} — ${new Date(r.valid_to).toLocaleString('zh-CN', { hour12: false })}` },
           { label: '流程启动', children: `${e.start_state} · 已尝试 ${e.start_attempts} 次${e.start_error ? ' · 暂未完成，请稍后刷新' : ''}` },
           { label: '投影回执', children: e.operation_id ?? '尚无当前版本回执' },
           { label: '其他来源', children: `${e.other_active_grant_count} 条当前有效记录；具体资源仍需实时判权。回收本申请不撤销这些来源。` },

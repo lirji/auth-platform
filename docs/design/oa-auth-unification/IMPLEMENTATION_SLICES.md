@@ -119,3 +119,19 @@ CE04最新：P0 auth dd07223已推送，CI36668768692 SUCCESS（含D2基线）�
 CE04最新：P1 auth2cb8c11/commerce1bc81f2已合并推送，两仓CI36669783915/36669785165 SUCCESS。P2本地DONE：407项402PASS/5skip、真实隔离137PASS含会员12条浏览器及共享壳回归、当前截图已查看；36项Python/227入口/hygiene无阻断，见CE04_MEMBER。下一CE04-G成长协议/Owner/UI细化；其余会员和CE05—08未完成。
 
 CE04-P2已普通合并推送auth21380a4/commerce359ac02，CI36670574749/36670578849待查。CE04-G0本地DONE（五成长执行能力）：既有251单测+新增Owner1、5真实PG+graph IT、SDK/Boot4/package/hygiene通过，见CE04_MEMBER与CONTRACTS_COMMERCE_GROWTH。下一G1 READY，商城成长业务/API/V53尚未实施。
+
+
+## GUX 权限控制台体验改版（2026-09-30）
+
+用户已明确批准“设计并实现，可在本地浏览器验收”。沿用 FRONTEND_ARCHITECTURE GUX 方向与现有 P1—P5 契约及 `auth-console/src/api/governance.ts`，不改变权限语义、API、数据库或其他产品。串行执行。
+
+| ID | 交付与可观察验收 | 依赖 | 状态 |
+|---|---|---|---|
+| GUX-01 | 上下文壳层、工作台、分组导航；组织切换清除旧状态、规范URL；真实首页→权限→返回可走通 | 现有P5 | DONE |
+| GUX-02 | 角色/成员授权、权限来源、诊断详情；详情分区、表格可读、抽屉窄屏可用；保留固定角色/同Grant/未知命令语义 | GUX-01 | DONE |
+| GUX-03 | 申请/通知、策略、邀请、审计；统一任务标题、状态与空态、表单验证/关闭保护 | GUX-02 | DONE |
+| GUX-04 | 真实浏览器视觉与交互复核、构建/单测/hygiene、进度及Git交付；不把自评当作外部奖项结果 | GUX-03 | DONE |
+
+测试边界：本地5273只更新静态前端并保留回退制品，不重建共享网络命名空间容器；使用真实API读取，浏览器不提交角色、授权或邀请写入。新增URL行为以单测覆盖。已覆盖桌面、窄屏、200%缩放、键盘入口、空态和表单验证；授权撤销/服务故障等运行中故障注入未执行，明确保留验证限制。无新增外部依赖。
+
+验收明细见 [TEST_RESULT](governance-experience/TEST_RESULT.md)，Git收尾见 [DELIVERY_RESULT](governance-experience/DELIVERY_RESULT.md)。DONE表示本次有界前端改版完成，不表示生产上线或外部奖项认证。

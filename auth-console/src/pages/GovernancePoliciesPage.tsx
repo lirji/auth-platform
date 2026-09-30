@@ -1,5 +1,6 @@
+import { GovernanceDrawer as Drawer, GovernanceEmpty } from '../governance/presentation'
 import { useState } from 'react'
-import { Alert, Button, Card, Drawer, Form, InputNumber, Modal, Select, Space, Table, Typography } from 'antd'
+import { Alert, Button, Card, Form, InputNumber, Modal, Select, Space, Table, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { accessState, managedPolicies, management, members, registerPolicy, type Management, type PolicyConfiguration, type Role } from '../api/governance'
 import { useGovernanceContext } from './GovernancePage'
@@ -20,9 +21,9 @@ export default function GovernancePoliciesPage() {
   const refresh = () => { void qc.invalidateQueries({ queryKey }) }
   if (authority.error || list.error) return <Failure error={authority.error ?? list.error} retry={refresh} />
   return <>
-    <Card title="权限申请策略" loading={authority.isPending} extra={<Space><Button onClick={refresh}>刷新策略</Button><Button type="primary" disabled={!authority.data} onClick={() => setOpen(true)}>创建申请策略</Button></Space>}>
+    <Card title="策略目录" loading={authority.isPending} extra={<Space><Button onClick={refresh}>刷新策略</Button><Button type="primary" disabled={!authority.data} onClick={() => setOpen(true)}>创建申请策略</Button></Space>}>
       <Alert type="info" showIcon message="策略固定角色版本、范围、期限和审批成员。新策略不修改已提交申请。" style={{ marginBottom: 16 }} />
-      <Table<PolicyConfiguration> rowKey={r => r.policy.id} dataSource={list.data?.items} loading={list.isPending} pagination={false} scroll={{ x: 780 }} columns={[
+      <Table<PolicyConfiguration> rowKey={r => r.policy.id} locale={{ emptyText: <GovernanceEmpty title="暂无申请策略" description="登记策略后，成员才能申请对应角色与固定范围。" /> }} dataSource={list.data?.items} loading={list.isPending} pagination={false} scroll={{ x: 780 }} columns={[
         { title: '固定角色', render: (_, r) => `${r.policy.role_code} · v${r.policy.role_version}` }, { title: '策略版本', render: (_, r) => r.policy.policy_version },
         { title: '上限', render: (_, r) => `${Math.floor(r.policy.max_duration_seconds / 60)} 分钟` }, { title: '配置状态', render: (_, r) => r.enabled ? '已登记（提交时重验）' : '停用' },
         { title: '操作', render: (_, r) => <Button type="link" onClick={() => setDetail(r)}>策略详情</Button> },
@@ -53,7 +54,7 @@ function PolicyForm({ authority, close, saved }: { authority: Management; close:
     const response = await command.send(id => { const member = people.data!.items.find(m => m.membership_id === values.member)!; return { ...partition, command_id: id, role_id: values.role_id, scope_rule: scopeRule(values), max_duration_seconds: values.minutes * 60, approver_membership_id: member.membership_id, approver_generation: member.generation, policy_version: values.policy_version } })
     if (response) saved()
   }
-  return <Drawer title="创建固定申请策略" open onClose={cancel} width={620} maskClosable={false} extra={<Button disabled={command.busy || command.unknown} onClick={cancel}>关闭</Button>}>
+  return <Drawer title="创建固定申请策略" footer={<Button type="primary" loading={command.busy} disabled={!command.unknown && (roles.isPending || people.isPending || !!roles.error || !!people.error)} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原策略' : '登记固定策略'}</Button>} open onClose={cancel} width={620} maskClosable={false} extra={<Button disabled={command.busy || command.unknown} onClick={cancel}>关闭</Button>}>
     {roles.error || people.error ? <Failure error={roles.error ?? people.error} retry={() => { void roles.refetch(); void people.refetch() }} /> : <>
       {!!command.error && <Failure error={command.error} />}
       {command.unknown && <Alert type="warning" message="策略创建结果未确认，请原样重试。" />}
@@ -65,9 +66,9 @@ function PolicyForm({ authority, close, saved }: { authority: Management; close:
         <Space style={{ marginBottom: 12 }}>{memberAfter && <Button onClick={() => { setMemberAfter(undefined); form.resetFields(['member']) }}>成员首页</Button>}{people.data?.next_cursor && <Button onClick={() => { setMemberAfter(people.data!.next_cursor!); form.resetFields(['member']) }}>下一页成员</Button>}</Space>
         <Form.Item name="minutes" label="最长授权分钟数" rules={[{ required: true }, { type: 'number', min: 1, max: Math.floor(authority.max_duration_seconds / 60) }]}><InputNumber precision={0} style={{ width: '100%' }} /></Form.Item>
         <Form.Item name="policy_version" label="策略版本" rules={[{ required: true }, { type: 'number', min: 1 }]}><InputNumber precision={0} /></Form.Item>
-        <Button type="primary" htmlType="submit" loading={command.busy}>登记固定策略</Button>
+
       </Form>
-      {command.unknown && <Button type="primary" loading={command.busy} onClick={() => void finish(form.getFieldsValue())}>重试原策略</Button>}
+
     </>}
   </Drawer>
 }
