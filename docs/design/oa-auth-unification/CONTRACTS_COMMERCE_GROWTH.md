@@ -20,7 +20,13 @@ G2独立SSO /operations/member-growth，复用AntDesign。原MemberGrowth组件�
 | ID | Owner与验收 | 状态 |
 |---|---|---|
 | CE04-G0 | auth有限5能力/两类型60秒执行scope，已有会员3能力check；完整租户/错误类型/事实/Owner/代际/撤权/重授/超时，旧11组合回归；SDK Boot4兼容 | DONE（本地） |
-| CE04-G1 | commerce MEMBER_GROWTH/V53/真实政策和成长Owner、稳定身份幂等、事务审计、真实MySQL并发失败与实际中央联调、客户/系统事实回归 | TODO |
+| CE04-G1 | commerce MEMBER_GROWTH/V53/真实政策和成长Owner、稳定身份幂等、事务审计、真实MySQL并发失败与实际中央联调、客户/系统事实回归 | DONE（本地，见CE04_MEMBER） |
 | CE04-G2 | 真实成长API/SSO及5独立权限页面，错误恢复与1440/390实际截图/交互 | TODO |
 
 G0政策能力不接受已有对象execution-check（ACCESS_DENIED），创建新版本不能伪造资源；仅execution-scope用于集合/创建。ScopeDtos新增政策类型常量只替代既有相同字符串，不增加ScopeResourceBindings允许语义或SDK API。有限类型匹配仍先于判权，不以startsWith通配新增能力。Owner注册、实际manifest和Grant仅在授权隔离演练里使用，不修改生产配置。
+
+## G1锁与兼容细节
+
+新增五个Capability共用MEMBER_GROWTH族，仅绑定六个既有成长HTTP入口（GET/POST policies、GET单会员/ledger、POST adjust/recalculate），同Controller标签和客户/me入口不接管。policy实际版本审计ID固定`growth-policy-<version>`，不是授权Facts；发布前只获取集合资格，原normalized Policy在中央模式追加稳定身份摘要。原政策生效时间、精度、门槛、不可变版本/唯一约束保持。
+
+成长实例的guard在命令回执前依次锁路由、锁真实会员并比较许可版本、再校验准入截止；guard不创建成长账户。原用例随后ensureAccount/accountCurrent、expectedVersion校验、贡献/等级/Outbox与身份审计在同一事务。钱包/账本员工分支读前Owner判权、读后范围/会员版本复核；MEMBER本人仍走byActor，current与observe/facts/scan系统接口保持。没有改变既有recalculate对状态的业务规则，没有给增长调整新增OA审批。V53已在本地专用MySQL成功应用后保持不可变。

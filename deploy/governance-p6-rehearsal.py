@@ -7,6 +7,8 @@ from pathlib import Path
 
 MERCHANT_RESOURCE_TYPE = 'merchant'
 MEMBER_RESOURCE_TYPE = 'commerce_member'
+MEMBER_POLICY_RESOURCE_TYPE = 'commerce_member_policy'
+GROWTH_CAPABILITIES = {'growth.policy.read':MEMBER_POLICY_RESOURCE_TYPE,'growth.policy.publish':MEMBER_POLICY_RESOURCE_TYPE,'growth.read':MEMBER_RESOURCE_TYPE,'growth.adjust':MEMBER_RESOURCE_TYPE,'growth.recalculate':MEMBER_RESOURCE_TYPE}
 
 
 def module(name, path):
@@ -110,11 +112,14 @@ def rehearse(args, isolation=None):
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':'merchant' if code.startswith('merchant.') else 'store','risk_level':'HIGH' if code.endswith('.create') else 'NORMAL'} for code in ('merchant.read','merchant.create','store.directory.read','store.create')]
         if args.member:
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':MEMBER_RESOURCE_TYPE,'risk_level':'HIGH'} for code in ('member.read','member.create','member.profile.update','member.status.update')]
+        if args.growth:
+            manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':kind,'risk_level':'HIGH'} for code,kind in GROWTH_CAPABILITIES.items()]
         h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli','publish',run/'catalog.properties',run/'manifest.json')
         access={'access.tenant':tenant,'access.application':'commerce','access.environment':env,'access.manager':members['internal'],'access.generation':1,'access.capabilities':'commerce.catalog.operate','access.max-duration-seconds':3600,'access.operator':'p6-fixture','access.command':uid()}
         if args.inventory:access['access.capabilities'] += ',commerce.inventory.read,commerce.inventory.receive'
         if args.directory:access['access.capabilities'] += ',commerce.merchant.read,commerce.merchant.create,commerce.store.directory.read,commerce.store.create'
         if args.member:access['access.capabilities'] += ',commerce.member.read,commerce.member.create,commerce.member.profile.update,commerce.member.status.update'
+        if args.growth:access['access.capabilities'] += ''.join(',commerce.'+code for code in GROWTH_CAPABILITIES)
         h.private(run/'access.properties',db+h.props(access));cli('AccessBootstrapCli',run/'access.properties')
         def authority(kind):
             c=fixture['clients'][kind];return {'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
@@ -123,6 +128,7 @@ def rehearse(args, isolation=None):
         service=secrets.token_urlsafe(48);server={'service.count':1,'service.1.id':'commerce-p6','service.1.application-id':'commerce','service.1.environment':env,'service.1.operation':'context.resolve','service.1.credential-sha256':hashlib.sha256(service.encode()).hexdigest(),'access.check.callers':'commerce-p6','scope.check.callers':'commerce-p6','execution.callers':'commerce-p6','scope.owner.commerce':'store,product'}
         if args.directory:server['scope.owner.commerce']='store,product,merchant'
         if args.member:server['scope.owner.commerce'] += ','+MEMBER_RESOURCE_TYPE
+        if args.growth:server['scope.owner.commerce'] += ','+MEMBER_POLICY_RESOURCE_TYPE
         server.update({'service.1.user.'+k:v for k,v in authority('business').items()});h.private(run/'server.properties',db+legacy+graph_settings+h.props(server))
         h.private(run/'consumer.properties',h.props({'central.url':'http://127.0.0.1:18161','central.credential':service,'central.application':'commerce','central.environment':env}))
         admin_token=up.token(h.ISSUER,fixture,'management','internal');user_token=up.token(h.ISSUER,fixture,'business','external')
@@ -403,6 +409,50 @@ def rehearse(args, isolation=None):
             if args.browser:
                 if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member' AND resource_id='ce04-ui-member'")[1]!='3':raise RuntimeError('member browser commands not exactly once')
                 record('member browser three effects and three audits exactly once')
+        if args.growth:
+            insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'MEMBER_GROWTH','state':'SHADOW'})
+            sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='MEMBER_GROWTH' AND state='SHADOW' AND version=1;")
+            base='/v1/admin/member-growth';target='ce04-growth-member'
+            expect('growth actual member created by independent core capability',18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':target,'actorId':'ce04-growth-customer','displayName':'Growth fixture','memberLevel':'BASIC'})
+            expect('core member does not imply growth policy',18661,base+'/policies',user,status=403)
+            expect('legacy ADMIN cannot bypass growth authority',18661,base+'/policies',[('Authorization','Bearer '+admin_local)],status=403)
+            def growth_grant(code):
+                kind=GROWTH_CAPABILITIES[code]
+                role=expect('explicit growth role '+code,18162,prefix+'/roles',admin,{**partition,'command_id':uid(),'role_code':'ce04-'+code.replace('.','-'),'role_version':1,'capabilities':['commerce.'+code]})['id']
+                rule={'version':1,'resource_type':kind,'clauses':[{'kind':'TENANT_ALL','values':[],'include_root':False}]}
+                gid=expect('finite growth grant '+code,18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role,'scope_rule':rule,'source_id':'ce04-'+code,'valid_from':now(-2),'valid_to':now(600)},202)['id']
+                projection();execution_ready(code,resource_type=kind);return gid
+            growth_grant('growth.policy.publish')
+            policy={'version':1,'effectiveFrom':now(-1),'growthPerYuan':'1.00','levels':[{'code':'BASIC','minimumGrowth':0},{'code':'SILVER','minimumGrowth':100}]}
+            policy_headers=user+[('Idempotency-Key',uid())]
+            published=expect('growth policy publish without read',18661,base+'/policies',policy_headers,policy)
+            if expect('growth policy receipt retry',18661,base+'/policies',policy_headers,policy)!=published:raise RuntimeError('growth policy receipt changed')
+            expect('growth policy publish does not imply read',18661,base+'/policies',user,status=403)
+            growth_grant('growth.policy.read')
+            if len(expect('growth policy independent read',18661,base+'/policies',user))!=1:raise RuntimeError('growth policy count incorrect')
+            adjust_grant=growth_grant('growth.adjust')
+            adjustment={'expectedVersion':0,'delta':150,'reason':'CE04 isolated growth calibration'};adjust_headers=user+[('Idempotency-Key',uid())]
+            adjusted=expect('growth adjust without wallet read',18661,base+'/'+target+'/adjust',adjust_headers,adjustment)
+            if adjusted['growth']!=150 or adjusted['version']!=1 or adjusted['memberLevel']!='SILVER':raise RuntimeError('growth adjustment effect incorrect')
+            if expect('growth adjust stable receipt retry',18661,base+'/'+target+'/adjust',adjust_headers,adjustment)!=adjusted:raise RuntimeError('growth adjustment repeated')
+            expect('growth adjustment does not imply wallet read',18661,base+'/'+target,user,status=403)
+            expect('growth adjustment does not imply recalculate',18661,base+'/'+target+'/recalculate',user+[('Idempotency-Key',uid())],{},403)
+            growth_grant('growth.read')
+            wallet=expect('growth real member wallet read',18661,base+'/'+target,user)
+            if wallet['growth']!=150:raise RuntimeError('growth wallet mismatch')
+            if len(expect('growth ledger exactly one adjustment',18661,base+'/'+target+'/ledger',user))!=1:raise RuntimeError('growth ledger duplicated')
+            expect('growth missing actual owner rejected',18661,base+'/foreign-member',user,status=404)
+            expect('growth foreign auth tenant denied',18661,base+'/'+target,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            growth_grant('growth.recalculate');recalc_headers=user+[('Idempotency-Key',uid())]
+            recalculated=expect('growth independent recalculation',18661,base+'/'+target+'/recalculate',recalc_headers,{})
+            if recalculated['growth']!=150 or recalculated['version']!=2:raise RuntimeError('growth recalculation effect incorrect')
+            if expect('growth recalculation receipt retry',18661,base+'/'+target+'/recalculate',recalc_headers,{})!=recalculated:raise RuntimeError('growth recalculation repeated')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.growth.%' AND store_id IS NULL")[1]!='3':raise RuntimeError('growth identity audit count incorrect')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member_policy' AND resource_id='growth-policy-1'")[1]!='1':raise RuntimeError('policy audit must bind actual version')
+            record('growth policy adjustment recalculation commit exactly once with actual audit types')
+            expect('growth revoke adjustment independently',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':adjust_grant,'expected_version':1});projection()
+            expect('revoked growth adjustment cannot replay old receipt',18661,base+'/'+target+'/adjust',adjust_headers,adjustment,403)
+            expect('growth read survives adjustment revocation',18661,base+'/'+target,user)
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -444,9 +494,10 @@ def rehearse(args, isolation=None):
         if args.member:
             expect('member auth outage fails closed',18661,'/v1/admin/members',user,status=503)
             member_browser('outage')
+        if args.growth:expect('growth auth outage fails closed',18661,'/v1/admin/member-growth/ce04-growth-member',user,status=503)
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -456,6 +507,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
+    parser.add_argument('--growth',action='store_true',help='finite growth policy and account rehearsal; includes member regression')
     parser.add_argument('--member',action='store_true',help='finite member core rehearsal; includes directory regression')
     parser.add_argument('--directory',action='store_true',help='finite directory read/create rehearsal; includes inventory regression')
     parser.add_argument('--inventory',action='store_true',help='explicit finite inventory roles in owned rehearsal only')
@@ -463,6 +515,7 @@ def main():
     parser.add_argument('--identity-subnet',help='explicit unused RFC1918 /24 when Docker default pools are exhausted')
     args=parser.parse_args()
     if args.identity_subnet and not args.isolated_identity:parser.error('--identity-subnet requires --isolated-identity')
+    if args.growth:args.member=True
     if args.member:args.directory=True
     if args.directory:args.inventory=True
     isolation=None

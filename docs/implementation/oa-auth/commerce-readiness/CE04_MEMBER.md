@@ -50,3 +50,17 @@ auth2cb8c11ab8f773edab94327bc79ac5996990799c与commerce1bc81f276520aa1c54b78c337
 验证：growth-core-unit.log全仓251既有单测PASS，新增政策Owner单测后growth-owner-unit.log四项Controller测试PASS（原3+新增1）；真实自有PG f7cc1b4cd6cd +隔离SpiceDB的ExecutionAuthorizationIT共5方法PASS，新增5能力矩阵覆盖两类型、禁止伪门店范围、错误类型/事实、未知能力、120秒拒绝、成员代际/分区、撤权/重授不能复活及到期；旧CATALOG/库存/目录/会员基础回归通过。growth-core-integration.log及-result.json保留，自有PG已finally停止。
 
 SDK install、Boot4兼容、全模块package PASS，growth-core-sdk.log/growth-core-boot4.log/growth-core-package.log；hygiene无阻断，仍限制无Java formatter/未配置静态分析。git diff --check通过。没有生产Owner配置、能力清单或Grant发布；下一G1真实成长Owner与V53。
+
+## CE04-G0交付 / G1验证中
+
+G0 auth51f637c7fc9dbff730da369adbd37c73b8a4db0e已推送，CI36670815592 SUCCESS（包含P2基线，原P2 auth36670574749被后续推送取消）；P2 commerce36670578849 SUCCESS。
+
+G1成长5能力/独立MEMBER_GROWTH路由、政策真实版本审计、会员Owner/版本锁及身份幂等已实现；V53已在专用测试MySQL及真实演练成功应用，不改历史。SDK来源固定51f637c并原安装脚本验证，compile/package PASS。新增CentralGrowthMySqlTest4项在修正后PASS：政策发布无读、真实会员调整/重算/只落一次、客户本人语义、代际摘要、Owner并发、Outbox失败回滚、撤权/STOPPED/503。
+
+真实联调rehearsal-fb6d4a99a58b共151项PASS，growth-owner-rehearsal.log；--growth隐含member/directory/inventory，显式政策Owner和5有限角色，policy publish-only、策略独立读、adjust无read/无recalculate、真实钱包/账本、外租户/缺失目标、重算独立、旧回执撤权拒绝、真实中央停止503、实际policy与member三条身份审计/业务效果一次以及旧各域回归通过。无浏览器验收，G2待实施。自有进程/PG/IdP由finally停止，子网10.254.84.0/24和数据保留。
+
+失败历史：growth-verify.log新测试2项在authenticate处抛SDK拒绝，却断言业务DomainException；测试改为先取得Actor再撤权，并保留HTTP403，未改产品代码以迁就测试。growth-verify-fixed.log的成长4项通过，但既有CouponDeliveryTest首轮处理16而固定断言20；源码DELIVERY策略为20项/500ms上限（非固定20），并行演练下预算耗尽符合该有界行为。未修改发券实现或放宽断言；演练停止后growth-verify-serial.log串行完整复验中，取得最终PASS前G1不标DONE。该时序敏感测试限制即使后续串行通过仍保留。
+
+### G1最终本地DONE
+
+串行完整growth-verify-serial.log BUILD SUCCESS：411项406PASS/5既有skip，新增成长4项及既有发券7项全部通过。此前500ms发券预算的时序敏感断言限制仍保留，未修改该实现/测试。真实隔离151PASS、36项Python/227入口契约、SDK固定来源/compile/package及两仓hygiene无阻断；验证后没有产品代码变化。hygiene没有Java formatter/静态分析的限制不变。G1本地DONE，下一G2真实页面/浏览器，未把成长后端当全CE04或全部迁移完成。
