@@ -2,6 +2,8 @@
 
 ## 当前状态
 
+CE05-E1本地DONE：ENTITLEMENT_DEFINITION/ENTITLEMENT两族、四独立权限、真实grantId/version、旧回执前路由/事实/期限复核与同事务身份审计，V61已应用不可改。完整460项455PASS/5既有skip，新增7项全PASS；真实独立58007c181423（10.254.107.0/24）477PASS，无浏览器。37工具/252入口/122能力/34角色、两仓hygiene及auth1/commerce8源码摘要一致。下一E2权益定义/实例页面；其余CE05—08和原生产2HOLD未完成。
+
 CE05-E0本地DONE：权益定义/实例两类型和四独立有限能力，定义只集合、实例绑定真实grantId/version；全仓252单元、真实自有PG b8c52c20066d/SpiceDB的ExecutionAuthorizationIT共12方法、SDK Boot4与最终forceCreation install均PASS，两个运行Jar嵌套依赖和4源码摘要一致。hygiene无阻断，原Java格式/静态分析限制保留。自有PG已finally停止，未新增迁移或基础设施，下一E1商城两个族/真实Owner/事务审计，E2页面与其余CE05—08未实施。
 
 CE05-CD2本地DONE：固定SSO券定义目录/创建两Tab、独立创建提示；完整453项448PASS/5既有skip，券定义7项全PASS；真实隔离83d4ad742f53（10.254.106.0/24）493PASS，其中券定义10条浏览器行为，含全部既有员工页回归及O2标识64字校准。37工具/252入口/122能力/34角色、build/Prettier/两仓hygiene与auth4/commerce11源码摘要一致。当前1440/390目录/表单、409、未知结果、退出确认、成功/503截图已查看。5条实际定义身份审计、UI两定义各1条，实际公开领取/受控兑换共2次且余额100。Java formatter/静态分析限制保留，无新迁移；V49—V60不可改。已推送auth6e3bfc9/commerce0e2ff49，CI36693981625/36693990527运行中；下一CE05-E权益定义/实例技术细化；其他CE05—08与生产2HOLD未完成。
@@ -69,3 +71,31 @@ CD2第二轮仅加载owned.env缺少原地址加密配置而失败；最终依�
 
 CE05-E0本地DONE：权益定义/实例两类型和四独立有限能力，定义只集合、实例绑定真实grantId/version；全仓252单元、真实自有PG b8c52c20066d/SpiceDB的ExecutionAuthorizationIT共12方法、SDK Boot4与最终forceCreation install均PASS，两个运行Jar嵌套依赖和4源码摘要一致。hygiene无阻断，原Java格式/静态分析限制保留。自有PG已finally停止，未新增迁移或基础设施，下一E1商城两个族/真实Owner/事务审计，E2页面与其余CE05—08未实施。
 证据：私密commerce-contracts/entitlements-core-{install,integration,boot4,final-install}.log、integration-result.json、source-sha256.json与hygiene.json。四组合同时验证错类型/能力/代际/环境/期限及撤权重授，旧能力回归保持。
+
+
+E0已正常合并推送auth3a4cef3，精确CI36694413067运行中。CD2 commerce0e2ff49/CI36693990527 SUCCESS；auth CD2 36693981625因后续E0提交取消，需以包含同基线的E0 CI核对。
+
+E1两仓原目录分支feat/commerce-entitlement-owner-rehearsal与feat/central-entitlement-operations实施：两族/真实Owner/事务审计/V61，SDK固定3a4cef3，compile与37工具/252入口PASS。新增CentralEntitlementMySqlTest7方法；首轮完整回归新夹具1FAIL/1ERROR：服务层重复定义实际DuplicateKeyException（HTTP统一409），编码标识的待补偿SQL夹具漏expires_at触发V12约束。已只修测试预期及expires_at，追加HTTP409断言；P6同类显式SQL夹具同步有效期。V61已执行不可改。最终entitlements-owner-verify-fixed.log/session89342运行中，尚未标E1 DONE。
+
+E0精确CI36694413067 SUCCESS，包含CD2 auth6e3bfc9基线；CD2 commerce CI36693990527已SUCCESS。
+
+
+E1修正后的7项权益MySQL测试全部PASS；完整verify-fixed只剩既有MemberGrowthTest.distinctRefundsAfterOldSnapshotsPreserveGrowthAndBehavior的5秒屏障超时（同CE04-C2已记录问题），未修改该测试/预算。两次定向Maven尝试均被父POM显式failIfNoTests阻断，没有执行目标测试；保留retry/retry-fixed日志，不绕过构建规则。最终重新完整运行entitlements-owner-verify-final.log；真实演练仍待该制品通过。37工具/252入口最终再验PASS。
+
+最终entitlements-owner-verify-final.log完整460项455PASS/5既有skip，7项权益、MemberGrowthTest原4方法及3架构测试均PASS，BUILD SUCCESS。未改并发预算/原测试。37工具/252入口、两仓hygiene（既有Java工具限制）和auth1/commerce8源码摘要一致；真实独立子网107演练session92374运行中，E1尚未标DONE。
+
+
+## CE05-E1验收
+
+CE05-E1本地DONE：ENTITLEMENT_DEFINITION/ENTITLEMENT两族、四独立权限、真实grantId/version、旧回执前路由/事实/期限复核与同事务身份审计，V61已应用不可改。完整460项455PASS/5既有skip，新增7项全PASS；真实独立58007c181423（10.254.107.0/24）477PASS，无浏览器。37工具/252入口/122能力/34角色、两仓hygiene及auth1/commerce8源码摘要一致。下一E2权益定义/实例页面；其余CE05—08和原生产2HOLD未完成。
+
+|验收|结果|私密证据|
+|---|---|---|
+|本地真实MySQL/全仓|460项455PASS/5既有skip；7权益专项、会员并发原4方法和3架构测试通过|commerce-contracts/entitlements-owner-verify-final.log|
+|真实独立授权与业务|477PASS，两读两写独立、实际Owner、编码冒号、原键/新键、跨租户、撤权旧回执拒绝与停机503|p6/rehearsal-58007c181423/result.json|
+|账本与客户兼容|定义3+实例2恰5身份审计；RECOVERED/WRITTEN_OFF各一条units2；实际积分兑换事件发放，撤权后客户核销2/余3、重试不重复、超扣拒绝、积分余50|同目录检查点与entitlement-fixture-origin.json|
+|源码/质量|37工具/252入口与hygiene通过，auth1/commerce8最终摘要匹配；Java formatter/静态分析未配置限制保留|commerce-contracts/entitlements-owner-{source-sha256,auth-hygiene-final,commerce-hygiene-final}.json|
+
+跨进程待补偿数据为明确的隔离SQL夹具，不宣称HTTP整单退款；MySQL专项从订单域真实预留/确认/事件/核销/冲正产生欠项。客户积分兑换、受理事件及核销为真实HTTP链路。自有进程finally停止，原8602未切换，无新worktree，全部私密证据和隔离库保留。
+
+首次两项新夹具错误已修；次轮既有MemberGrowthTest五秒屏障超时，定向两次被父POM显式failIfNoTests拦截。均保留原日志，最终原样完整重跑通过；未放宽业务/测试预算、数据库约束或构建门禁。技能状态implementation-validation COMPLETED/PASS；update-progress-docs E1 DONE（本地）。Git/CI另记。

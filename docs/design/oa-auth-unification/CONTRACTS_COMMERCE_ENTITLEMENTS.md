@@ -7,8 +7,8 @@
 |ID|结果与Owner|Needs|验收|运行边界|状态|
 |---|---|---|---|---|---|
 |CE05-E0|auth两资源类型、四独立有限执行能力|CD2本地DONE且Git交付|定义只集合；实例读取集合/实际grant，resolve实际grant；HUMAN/TENANT_ALL/60秒，错类型/能力/代际/环境/到期、撤权重授不复活，真实PG/授权图与SDK兼容|既有本地PG/SpiceDB，串行|DONE（本地）|
-|CE05-E1|commerce两个接管族、真实Owner/事务审计和追加迁移|E0验证交付|独立两写、真实Owner、审计回滚、幂等/撤权/STOPPED/503；客户核销/退款欠项与既有系统发放兼容|专用MySQL与新建隔离演练库，串行|READY|
-|CE05-E2|独立权益定义页和权益实例页及各自操作hint|E1验证交付|真实读写/409/未知原键/401/403/503、1440/390截图查看、SQL精确审计|既有SSO/AntDesign/Vite/Playwright，串行|TODO|
+|CE05-E1|commerce两个接管族、真实Owner/事务审计和追加迁移|E0验证交付|独立两写、真实Owner、审计回滚、幂等/撤权/STOPPED/503；客户核销/退款欠项与既有系统发放兼容|专用MySQL与新建隔离演练库，串行|DONE（本地）|
+|CE05-E2|独立权益定义页和权益实例页及各自操作hint|E1验证交付|真实读写/409/未知原键/401/403/503、1440/390截图查看、SQL精确审计|既有SSO/AntDesign/Vite/Playwright，串行|READY|
 
 E1/E2可在实施前按定义/实例拆稳定子ID以控制单片范围，但不改变四能力边界。生产映射/目标/Owner继续HOLD；不新增服务、缓存或消息组件。
 
@@ -37,3 +37,6 @@ Definition：benefitId/version/storeId/name/units/quota/validFrom/validTo/validi
 两固定SSO页`/operations/entitlement-definitions?tenant_id`和`/operations/entitlements?tenant_id`，分别目录/创建与目录/处理补偿。独立GET提示`/v1/operations/entitlement-definitions/create-access`、`/v1/operations/entitlements/resolve-access`，不附赠门店、会员或其他读权限。中央客户端固定允许列表，逐键校验查询参数并正确编码Identifiers字符；不向旧控制台写入凭据。
 
 沿现有真实API，不制造DTO字段；结果未知冻结原键/体/路径，切Tab/取消退出保留。409保留输入可纠正，401卸载工作区，403仅拒绝独立动作，503关闭写表单并允许重核验。真实浏览器验证无read写入、分页/跨组织清除、两补偿结论、撤权后保留读、实际停机与原样重试，当前1440/390截图需实际查看，并用真实SQL证明无重复审计/业务效果。
+
+
+E1验收：完整460项455PASS/5skip及真实独立477PASS；详见CE05_MARKETING。V61已应用且不可修改，E2不新增迁移。
