@@ -4175,6 +4175,25 @@
       "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
       "capabilities": [],
       "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "CouponDefinitionActionsController",
+      "method": "GET",
+      "path": "/v1/operations/coupon-definitions/create-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/benefit/coupon/CouponDefinitionActionsController.java",
+      "capabilities": [
+        "commerce.coupon_definition.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/coupon-definitions",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
     }
   ]
 }

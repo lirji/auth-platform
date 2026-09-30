@@ -24,7 +24,7 @@ CD2：沿SSO壳两Tab目录和创建定义、独立create-access；已知store/d
 |---|---|---|---|---|---|
 |CE05-CD0|auth ScopeDtos/ScopeResourceBindings/ExecutionAuthorization两有限能力；SDK格式兼容|CE04-O2 DONE|HUMAN/TENANT_ALL/60秒集合；错误类型/能力/代际/环境/到期、撤权重授不复活；真实PG+SpiceDB与SDK兼容|复用本地PG/图；串行|DONE（本地）|
 |CE05-CD1|commerce CouponService/EmployeeAccess/Authority/精确HTTP与V60（实施前复核）|CD0 DONE|真实MySQL创建/幂等/审计回滚/Owner/分页；共享客户目录无ADMIN旁路；真实中央撤权/503、客户领取及受控发放兼容|既有MySQL/隔离身份；串行|DONE（本地）|
-|CE05-CD2|固定SSO券定义目录/创建两Tab、独立hint|CD1 DONE|真实提交/未知原样重试/409纠正/401/403/503、1440/390截图查看、SQL审计无重复|既有Vite/Playwright；串行|READY|
+|CE05-CD2|固定SSO券定义目录/创建两Tab、独立hint|CD1 DONE|真实提交/未知原样重试/409纠正/401/403/503、1440/390截图查看、SQL审计无重复|既有Vite/Playwright；串行|DONE（本地）|
 
 CD0已验证，限定四个中央协议/执行授权/集成测试文件，不触碰商城Owner。CD1/CD2依赖上片验证及交付；生产人员/映射/环境仍HOLD，不新增服务、缓存、MQ或OA审批。后续权益实例/活动/旅程等另沿原批准CE05契约细化，不以券定义一片宣布CE05完成。
 

@@ -2,7 +2,9 @@
 
 2026-09-30：已批准商城员工扩展持续执行中。[执行记录](../../implementation/oa-auth/commerce-readiness/EXECUTION_PLAN.md)保持原稳定编号；业务边界为OA员工权威、会员/营销TENANT_ALL、库存/交易门店范围，高风险独立权限并沿原审批流程。CE02/03与CE04会员、成长、标签、行为、周期、积分、积分商品的API/页面纵向片均完成本地验证；最新O2真实隔离450PASS，commercec027daa/CI36688830234 SUCCESS，authc823750基线已由后续CD0包含。
 
-当前CE05-CD0 auth471cdb8已正常推送，252单元、真实PG/图11方法、SDK Boot4/install/hygiene与CI36689152601 SUCCESS。券定义CD1业务门禁/实际事务审计/V60本地DONE（452项447PASS/5skip，真实隔离415PASS），见[CE05_MARKETING](../../implementation/oa-auth/commerce-readiness/CE05_MARKETING.md)与[券定义契约](CONTRACTS_COMMERCE_COUPON_DEFINITIONS.md)。下一CD2 READY，其他CE05—08未完成；原63节点生产2HOLD保留，不等于当前扩展全部完成。原运行商城未切换，隔离资源证据保留，无生产部署。历史阶段记录如下，以本段为当前摘要。
+CE05-CD2本地DONE：固定SSO券定义目录/创建两Tab、独立创建提示；完整453项448PASS/5既有skip，券定义7项全PASS；真实隔离83d4ad742f53（10.254.106.0/24）493PASS，其中券定义10条浏览器行为，含全部既有员工页回归及O2标识64字校准。37工具/252入口/122能力/34角色、build/Prettier/两仓hygiene与auth4/commerce11源码摘要一致。当前1440/390目录/表单、409、未知结果、退出确认、成功/503截图已查看。5条实际定义身份审计、UI两定义各1条，实际公开领取/受控兑换共2次且余额100。Java formatter/静态分析限制保留，无新迁移；V49—V60不可改。Git交付中，下一CE05-E权益定义/实例技术细化；其他CE05—08与生产2HOLD未完成。
+
+CD1已正常合并推送auth700f2c9/commerceb36982e，CI36691487561/36691489137 SUCCESS。详细证据见[CE05_MARKETING](../../implementation/oa-auth/commerce-readiness/CE05_MARKETING.md)。历史阶段记录如下，以本段为当前摘要。
 
 ## 已交付P7基线
 

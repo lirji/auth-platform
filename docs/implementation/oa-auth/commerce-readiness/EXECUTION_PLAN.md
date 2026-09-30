@@ -23,7 +23,7 @@
 |商家/门店/经营授权|CommerceController、StoreAccessController；StoreAccessService/Mapper|CE03目录API/页面已交付；旧store-grants不新增中央写权限，改走治理委派|
 |库存额度|OrderController → InventoryApi/Mapper|CE02独立read/receive、门店Owner及员工页已交付|
 |会员档案/成长/标签/行为/周期/积分/积分商品|Member*Controller、PointOfferController|CE04各员工API/页面已交付；客户身份保持独立，不将OA成员当客户会员|
-|活动/效果/规则/预算/优惠券/发券/权益/人群/旅程|Marketing*、Campaign*、Segment/Journey/Coupon/Entitlement Controller|CE05进行中：券定义CD0已交付/CD1本地DONE，CD2 READY；其他待实施，审批/发放/调整/后台引用分开|
+|活动/效果/规则/预算/优惠券/发券/权益/人群/旅程|Marketing*、Campaign*、Segment/Journey/Coupon/Entitlement Controller|CE05进行中：券定义CD0/CD1已交付，CD2本地DONE；其他待实施，审批/发放/调整/后台引用分开|
 |订单/支付/履约/售后/退款|Order/Payment/Console/Aftersale Controller|待CE-06；由真实订单关联门店，资金操作独立|
 |低代码页面/事件/运行恢复/重放/总览|OpsPage/Payment/RuntimeRecovery/Dashboard|待CE-07；页面动作还检查目标业务能力，总览聚合不能泄露未授权域|
 |客户自助商城/钱包/购买/售后申请|MEMBER_PATHS+各Owner本人绑定|本轮盘点，身份权威需另定；员工SSO不自动接管|
@@ -108,3 +108,6 @@ CE04-O2本地DONE：446项441PASS/5skip，真实7fdcde67f634/子网103共450PASS
 CE05-CD0本地DONE：两券定义有限集合能力，252单元、真实自有PG8908d6c82bcf+授权图11方法、SDK/Boot4/install/hygiene及四源码摘要通过，见CE05_MARKETING与CONTRACTS_COMMERCE_COUPON_DEFINITIONS。O2已推送authc823750/commercec027daa，CI待查。下一CD1真实业务门禁与审计，CD2及其他CE05—08未完成。
 
 CE05-CD1本地DONE：452项447PASS/5skip、最终真实aa92413e7500/子网105共415PASS，三定义审计/两实际发券/余额100与原键一致；37工具/250入口/hygiene和摘要通过，V60不可改。失败夹具/脚本路径证据见CE05_MARKETING；下一CD2页面，其他CE05—08及生产2HOLD不变。
+
+
+CE05-CD2本地DONE：固定SSO券定义目录/创建两Tab、独立创建提示；完整453项448PASS/5既有skip，券定义7项全PASS；真实隔离83d4ad742f53（10.254.106.0/24）493PASS，其中券定义10条浏览器行为，含全部既有员工页回归及O2标识64字校准。37工具/252入口/122能力/34角色、build/Prettier/两仓hygiene与auth4/commerce11源码摘要一致。当前1440/390目录/表单、409、未知结果、退出确认、成功/503截图已查看。5条实际定义身份审计、UI两定义各1条，实际公开领取/受控兑换共2次且余额100。Java formatter/静态分析限制保留，无新迁移；V49—V60不可改。Git交付中，下一CE05-E权益定义/实例技术细化；其他CE05—08与生产2HOLD未完成。

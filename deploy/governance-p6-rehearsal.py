@@ -878,7 +878,13 @@ def rehearse(args, isolation=None):
                 if sql("SELECT CONCAT(status,':',version) FROM benefit_point_offer WHERE tenant_id="+q(source)+" AND offer_id='ce04-offer-ui-c'")[1]!='INACTIVE:1':raise RuntimeError('offer UI status mismatch')
                 if sql("SELECT JSON_UNQUOTE(JSON_EXTRACT(content_json,'$.kind')) FROM benefit_point_offer WHERE tenant_id="+q(source)+" AND offer_id='ce04-offer-ui-d'")[1]!='ENTITLEMENT':raise RuntimeError('offer UI asset kind mismatch')
             record('offer commands have exact actual identity audits and one atomic customer redemption')
+        def coupon_definition_browser(phase):
+            if not args.browser:return
+            subprocess.run(['node',str(root/'deploy/governance-ce05-coupon-definitions.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=150)
+            record('real coupon definition browser '+phase)
         if args.coupon_definitions:
+            if args.browser:
+                ui=json.loads((run/'catalog-ui.json').read_text());ui.update({'from':now(-60),'to':now(7200)});h.private(run/'coupon-definitions-ui.json',json.dumps(ui))
             insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'COUPON_DEFINITION','state':'SHADOW'})
             sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='COUPON_DEFINITION' AND state='SHADOW' AND version=1;")
             cd_base='/v1/admin/coupon-definitions'
@@ -901,10 +907,12 @@ def rehearse(args, isolation=None):
             expect('coupon definition duplicate immutable version',18661,cd_base,user+[('Idempotency-Key',uid())],cd_input,409)
             expect('coupon definition sub-cent precision rejected',18661,cd_base,user+[('Idempotency-Key',uid())],{**cd_input,'definitionId':'ce05-invalid-money','discountAmount':'0.001'},400)
             expect('coupon definition missing actual Owner',18661,cd_base,user+[('Idempotency-Key',uid())],{**cd_input,'definitionId':'ce05-invalid-store','storeId':'missing-coupon-store'},404)
+            coupon_definition_browser('create-only')
             coupon_definition_grant('coupon_definition.read')
             if expect('coupon definition latest version cursor',18661,cd_base+'?storeId='+store+'&after=ce05-&limit=1',user)!=[cd_a2]:raise RuntimeError('coupon latest version cursor mismatch')
             if expect('coupon definition stable second cursor',18661,cd_base+'?storeId='+store+'&after=ce05-coupon-a&limit=1',user)!=[cd_b]:raise RuntimeError('coupon second cursor mismatch')
-            if expect('coupon definition terminal cursor',18661,cd_base+'?storeId='+store+'&after=ce05-coupon-b&limit=1',user)!=[]:raise RuntimeError('coupon terminal cursor mismatch')
+            if expect('coupon definition terminal cursor',18661,cd_base+'?storeId='+store+'&after='+('ce05-coupon-ui-d' if args.browser else 'ce05-coupon-b')+'&limit=1',user)!=[]:raise RuntimeError('coupon terminal cursor mismatch')
+            coupon_definition_browser('read')
             expect('coupon definition foreign tenant denied',18661,cd_base+'?storeId='+store,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
             # 为受控发放建立真实兑换入口；此临时商品权限单独授予并撤销，券目录权限不替代它。
             cd_offer_grant=coupon_definition_grant('point_offer.define',POINT_OFFER_RESOURCE_TYPE)
@@ -913,8 +921,10 @@ def rehearse(args, isolation=None):
             projection()
             expect('revoked coupon definition cannot replay receipt',18661,cd_base,cd_headers,cd_input,403)
             expect('coupon definition read survives create revoke',18661,cd_base+'?storeId='+store,user)
+            coupon_definition_browser('revoked')
             visible=expect('customer public coupon catalogue remains local',18661,'/v1/coupon-definitions?storeId='+store,offer_customer_headers)
-            if [v for v in visible if v['content']['definitionId'].startswith('ce05-')]!=[cd_b]:raise RuntimeError('customer coupon catalogue leaked controlled latest or old public version')
+            expected_public=['ce05-coupon-b']+(['ce05-coupon-ui-c'] if args.browser else [])
+            if [v['content']['definitionId'] for v in visible if v['content']['definitionId'].startswith('ce05-')]!=expected_public:raise RuntimeError('customer coupon catalogue leaked controlled latest or old public version')
             claim_headers=offer_customer_headers+[('Idempotency-Key',uid())]
             cd_claim=expect('customer claims public coupon after employee revoke',18661,'/v1/coupons/ce05-coupon-b/1/claim',claim_headers,{})
             if expect('customer coupon claim original retry',18661,'/v1/coupons/ce05-coupon-b/1/claim',claim_headers,{})!=cd_claim:raise RuntimeError('customer public claim duplicated')
@@ -923,9 +933,13 @@ def rehearse(args, isolation=None):
             cd_receipt=expect('controlled coupon fulfillment after employee revoke',18661,'/v1/point-offers/ce05-coupon-offer/redeem',cd_redeem_headers,{})
             if expect('controlled coupon fulfillment original retry',18661,'/v1/point-offers/ce05-coupon-offer/redeem',cd_redeem_headers,{})!=cd_receipt:raise RuntimeError('controlled coupon duplicated')
             if expect('coupon fulfillment actual customer wallet',18661,'/v1/members/me/points',offer_customer_headers)['available']!=100:raise RuntimeError('coupon fulfillment balance mismatch')
-            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability='commerce.coupon_definition.create' AND resource_type='coupon_definition' AND store_id IS NULL")[1]!='3':raise RuntimeError('coupon definition exact audit mismatch')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability='commerce.coupon_definition.create' AND resource_type='coupon_definition' AND store_id IS NULL")[1]!=str(5 if args.browser else 3):raise RuntimeError('coupon definition exact audit mismatch')
             if sql("SELECT SUM(issued) FROM benefit_coupon_definition WHERE tenant_id="+q(source)+" AND definition_id LIKE 'ce05-%'")[1]!='2':raise RuntimeError('coupon actual issuance mismatch')
-            record('three coupon definition audits and two customer assets are atomic without employee impersonation')
+            if args.browser:
+                for definition_id,expected in (('ce05-coupon-ui-c','PUBLIC:0:0:0:1.25:0'),('ce05-coupon-ui-d','SOURCE_ONLY:1:10000:7:1.25:0')):
+                    if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability='commerce.coupon_definition.create' AND resource_type='coupon_definition' AND resource_id="+q(definition_id))[1]!='1':raise RuntimeError('coupon UI actual identity audit mismatch')
+                    if sql("SELECT CONCAT(issuance_mode,':',stackable,':',platform_funding_bps,':',COALESCE(validity_days,0),':',CAST(discount_amount AS DECIMAL(14,2)),':',issued) FROM benefit_coupon_definition WHERE tenant_id="+q(source)+" AND definition_id="+q(definition_id))[1]!=expected:raise RuntimeError('coupon UI persisted fields mismatch')
+            record('exact coupon definition audits and two customer assets are atomic without employee impersonation')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -990,6 +1004,7 @@ def rehearse(args, isolation=None):
         if args.coupon_definitions:
             expect('coupon definition auth outage fails closed',18661,cd_base+'?storeId='+store,user,status=503)
             expect('customer coupon catalogue during central outage',18661,'/v1/coupon-definitions?storeId='+store,offer_customer_headers)
+            coupon_definition_browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
         result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
