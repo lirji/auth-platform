@@ -72,7 +72,7 @@ P0 的 DONE 表示基线记录、差异和限制已交付，**不表示全部真
 
 ## 当前下一片
 
-P0—P3已交付；P4全部7节点DONE，真实验收通过。最终Git/CI见phase-4/P4_DELIVERY_RESULT及CI_RESULT。用户已授权P5，P5-01至07已完成，三仓Git/CI全部通过；最新指令已授权P6，P7及生产部署未授权；Q-EXT已确认真实commerce门店/商家协作。
+P0—P3已交付；P4全部7节点DONE，真实验收通过。最终Git/CI见phase-4/P4_DELIVERY_RESULT及CI_RESULT。用户已授权P5，P5-01至07已完成，三仓Git/CI全部通过；P6已交付，后续“继续”授权P7本地加固，生产部署仍未授权；Q-EXT已确认真实commerce门店/商家协作。
 
 ## 依赖与外部条件
 

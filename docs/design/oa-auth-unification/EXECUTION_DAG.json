@@ -1,6 +1,6 @@
 {
   "schema_version": "oa-auth-project-execution-plan/1",
-  "plan_status": "P7_LOCAL_VALIDATED_RELEASE_HOLD_DELIVERY_PENDING",
+  "plan_status": "P7_LOCAL_DELIVERED_RELEASE_HOLD",
   "scope": "User 继续 after P6 delivery authorizes existing P7 preproduction hardening and isolated local verification; production deployment requires explicit target and authorization.",
   "source_task_count": 58,
   "task_count": 63,
@@ -1692,5 +1692,10 @@
     "isolation": "用户授权选择既有运营租户做隔离演练；不切换现有商城",
     "catalog_decision": "2: preserve full legacy CATALOG capability before rehearsal"
   },
-  "production_gate": "HOLD; P7未执行；见P6-07_CANDIDATE_REPORT"
+  "production_gate": "HOLD; P7-01..06 selected local verification completed, P7-07 production inputs missing and P7-08 not executed; see phase-7/P7-07_RELEASE_REVIEW.md",
+  "p7_decisions": {
+    "capacity": "user approved bounded local baseline; production targets undefined",
+    "deployment": "no production target or authorization",
+    "evidence": "docs/implementation/oa-auth/phase-7/P7_TEST_RESULT.md"
+  }
 }

@@ -1,17 +1,17 @@
 # 当前P7进度
 
-P7_LOCAL_VALIDATED_RELEASE_HOLD_DELIVERY_PENDING。用户“继续”及“先做本地有界基线，生产目标待定”已落实。P7-01—06所选本地范围完成：21项真实跨进程检查、150受影响单测、2项真实进程CAS/崩溃恢复IT通过。P7-07已有评审与手册，但实际生产目标/Owner/接受指标/授权缺失，P7-08未执行；生产HOLD。
+P7_LOCAL_DELIVERED_RELEASE_HOLD。用户“继续”及“先做本地有界基线，生产目标待定”已落实。P7-01—06所选本地范围完成：21项真实跨进程检查、150受影响单测、2项真实进程CAS/崩溃恢复IT通过。P7-07已有评审与手册，但实际生产目标/Owner/接受指标/授权缺失，P7-08未执行；生产HOLD。
 
 - [本地验证与容量实测](../../implementation/oa-auth/phase-7/P7_TEST_RESULT.md)
 - [运行/轮换/恢复手册](../../implementation/oa-auth/phase-7/P7_RUNTIME.md)
 - [生产评审与未决项](../../implementation/oa-auth/phase-7/P7-07_RELEASE_REVIEW.md)
 
-仅auth仓有产品及工具修改，独立任务分支feat/iam-p7-hardening；commerce和OA无本轮改动，原商城健康。当前正常Git交付与远程CI进行中，不以本地验证代替CI。私有演练库、凭据、备份和日志保留；未新增worktree。
+仅auth仓有产品及工具修改，独立任务分支feat/iam-p7-hardening；commerce和OA无本轮改动，原商城健康。产品提交ac3062f/9f191e4已正常合并推送main，精确产品CI36649436539为SUCCESS；交付记录见[Git结果](../../implementation/oa-auth/phase-7/P7_DELIVERY_RESULT.md)与[CI结果](../../implementation/oa-auth/phase-7/CI_RESULT.md)。最终收尾为纯文档提交，产品/测试/运行树保持已验证版本。私有演练库、凭据、备份和日志保留；未新增worktree。
 
 ## P6已交付基线
 
 
-P6_LOCAL_COMPLETE_GIT_CI_PASS。用户选择2已落实，完整CATALOG中央经营与后台任务链路、幂等导入/墓碑、影子比较、单元路由/冻结和安全回退完成本地隔离演练。31项真实跨进程检查通过，最终本地验证通过，两仓已正常合并并推送main，最终远程CI全部PASS。P7/生产未执行。
+P6_LOCAL_COMPLETE_GIT_CI_PASS。用户选择2已落实，完整CATALOG中央经营与后台任务链路、幂等导入/墓碑、影子比较、单元路由/冻结和安全回退完成本地隔离演练。31项真实跨进程检查通过，最终本地验证通过，两仓已正常合并并推送main，最终远程CI全部PASS。P6交付当时P7/生产未执行；P7现状以上方当前记录为准。
 
 真实首批：commerce_local / operations-0abaaae0-6f24-42ea-a187-5093c70b96ad。1条旧授权的运营凭据已到期，保留拒绝；1条独立有限时正向夹具证明完整经营，不冒充真实迁移活跃用户。原运行商城8602健康，四类选定来源记录未变化。
 

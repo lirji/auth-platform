@@ -1,6 +1,6 @@
 # P7 本地验证结果
 
-所选本地范围：PASS_WITH_LIMITATIONS。21项跨进程检查完成；auth受影响reactor150项单测通过，ProjectionProcessIT两项真实子JVM/PG/SpiceDB测试通过。P7-07实际生产Owner/操作授权及P7-08观察仍BLOCKED；不宣称生产上线或无条件RELEASE_CANDIDATE。最终源码指纹见P7_CODE_EVIDENCE.json，远程CI待交付后核验。
+所选本地范围：PASS_WITH_LIMITATIONS。21项跨进程检查完成；auth受影响reactor150项单测通过，ProjectionProcessIT两项真实子JVM/PG/SpiceDB测试通过。P7-07实际生产Owner/操作授权及P7-08观察仍BLOCKED；不宣称生产上线或无条件RELEASE_CANDIDATE。最终源码指纹见P7_CODE_EVIDENCE.json，精确产品提交9f191e4的远程CI已通过，见[CI_RESULT](CI_RESULT.md)。
 
 | 验收 | 实际证据 |
 |---|---|
