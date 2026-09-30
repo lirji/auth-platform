@@ -57,8 +57,11 @@ def main():
     else:
         with open(ROOT/'migration.log','w') as out:
             subprocess.run(['docker','run',*network,'--rm','--env-file',str(env),IMAGE,'datastore','migrate','head'],check=True,stdout=out,stderr=subprocess.STDOUT)
+        # 本地多项目共享 PostgreSQL，默认 20+10 个常驻连接会耗尽 dev_infra 的连接上限。
         subprocess.run(['docker','run',*network,'-d','--name',NAME,'--label',f'auth-governance-phase={args.phase}','--cpus=1','--memory=512m',
-            '--env-file',str(env),'-p',f'127.0.0.1:{PORT}:8443',IMAGE,'serve','--http-enabled','--http-addr=:8443','--grpc-addr=:50051'],check=True,stdout=subprocess.DEVNULL)
+            '--env-file',str(env),'-p',f'127.0.0.1:{PORT}:8443',IMAGE,'serve','--http-enabled','--http-addr=:8443','--grpc-addr=:50051',
+            '--datastore-conn-pool-read-min-open=1','--datastore-conn-pool-read-max-open=4',
+            '--datastore-conn-pool-write-min-open=1','--datastore-conn-pool-write-max-open=2'],check=True,stdout=subprocess.DEVNULL)
     headers={'Authorization':'Bearer '+values['SPICEDB_GRPC_PRESHARED_KEY'],'Content-Type':'application/json'}
     deadline=time.monotonic()+45
     while True:

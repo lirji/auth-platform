@@ -7,7 +7,7 @@
 - Docker Desktop；Java 21；项目 Maven Wrapper。
 - 既有 dev_infra PostgreSQL 16：`dev-infra-postgres16-1`，宿主端口 45432。新建固定库/角色 `auth_governance`，与历史测试库分离，默认不删除。
 - 既有兼容治理验证的 Casdoor 4.11：localhost:18090。8000 的旧 Casdoor 保留给原环境。
-- 既有 P3 治理 SpiceDB：localhost:18544；使用全新 tenant UUID 分区，不覆盖已有图数据。
+- 既有 P3 治理 SpiceDB：localhost:18544；使用全新 tenant UUID 分区，不覆盖已有图数据。读池 min/max=1/4，写池 min/max=1/2，避免默认 30 个常驻连接耗尽共享 PostgreSQL。`governance-graph-isolation.py` 新建本地阶段图时同样采用此上限；已有实例需保留镜像、环境、端口、数据源再重建，不能只重启期待配置改变。
 - 私密身份夹具目录必须包含 `p2/identity/casdoor.json`、`casdoor-isolated/management-client.json`、`p3/graph/graph.properties`。这些文件不入 Git，不进入镜像。
 - 18090/18544 的容器须保持运行。当前本机对应 `auth-gov-casdoor-p1-f56b6f94d6bc`、`auth-governance-p3-graph`，已设 `unless-stopped`。它们虽有阶段命名，现已是此本地入口的有效依赖，清理测试容器时须排除。
 
