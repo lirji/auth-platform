@@ -1,90 +1,40 @@
-# ---- Maven / Java 构建产物 ----
+# Java / Maven 构建产物与诊断文件
 target/
 *.class
 *.jar
 *.war
 *.ear
 dependency-reduced-pom.xml
-# Maven Wrapper 采用 only-script 类型（无 jar）；wrapper 脚本与 properties 需提交，
-# 仅忽略构建时产生的临时文件
+.flattened-pom.xml
+pom.xml.versionsBackup
+pom.xml.releaseBackup
+pom.xml.next
+release.properties
 .mvn/timing.properties
 .mvn/.develocity/
+*.hprof
+*.jfr
+.jqwik-database
+hs_err_pid*
+replay_pid*
 
-# ---- IntelliJ IDEA ----
+# 当前 Maven Wrapper 为 only-script 类型，脚本及 properties 继续提交
+
+# IDE 本机配置；共享运行配置（如 .run/）继续提交
 .idea/
 *.iml
 *.ipr
 *.iws
 out/
-
-# ---- Eclipse / VS Code ----
 .classpath
 .project
 .settings/
 .factorypath
 .vscode/
 
-# ---- 日志 ----
-*.log
-logs/
-
-# ---- 环境与密钥（deploy/.env 含预共享 Bearer key，勿提交）----
-.env
-deploy/.env
-*.env.local
-
-# ---- auth-console（规划中的 React 前端）----
+# Node / Vite 依赖、构建缓存与测试报告；锁文件继续提交
 node_modules/
-auth-console/dist/
-auth-console/build/
-auth-console/.vite/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# ---- 操作系统 ----
-.DS_Store
-Thumbs.db
-
-# 操作系统与编辑器临时文件
-._*
-Desktop.ini
-*.swp
-*.swo
-*~
-
-# Java / Maven 本地构建与诊断产物
-*.hprof
-*.jfr
-.jqwik-database
-.flattened-pom.xml
-pom.xml.versionsBackup
-pom.xml.releaseBackup
-pom.xml.next
-release.properties
-hs_err_pid*
-replay_pid*
-
-# Python 开通脚本本地缓存
-**/__pycache__/
-*.py[cod]
-
-# 日志与本地运行临时文件
-*.log.*
-*.pid
-*.pid.lock
-*.tmp
-/tmp/
-/temp/
-/.local/
-
-# 本机 Agent 配置与会话状态（共享配置保留）
-.claude/settings.local.json
-/CODEX_PROGRESS.md
-/.codex/tasks/
-
-# Node / Vite 依赖、构建缓存与测试报告
+/auth-console/build/
 dist/
 .pnpm-store/
 .vite/
@@ -97,12 +47,51 @@ coverage/
 playwright-report/
 blob-report/
 test-results/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# 本地环境配置不入库，配置示例与模板保留
+# Python 测试及部署工具的本地缓存、虚拟环境
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# 本地环境变量；示例和模板必须可提交，不忽略全部 *.env / *.properties
+.env
 .env.*
+*.env.local
 !.env.example
 !.env.sample
 !.env.template
 !.env.*.example
 !.env.*.sample
 !.env.*.template
+
+# 私密运行配置、阶段测试证据、临时导出统一放根目录 .local/ 或 tmp/
+/.local/
+/tmp/
+/temp/
+/.ci-deps/
+logs/
+*.log
+*.log.*
+*.pid
+*.pid.lock
+*.tmp
+
+# 本机 Agent 设置；共享工程说明、设计与交付文档继续提交
+.claude/settings.local.json
+/.codex/tasks/
+# 本仓库的恢复记录仅供本地会话使用
+/CODEX_PROGRESS.md
+
+# 操作系统与编辑器临时文件
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
