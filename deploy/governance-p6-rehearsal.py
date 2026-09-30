@@ -532,11 +532,17 @@ def rehearse(args, isolation=None):
             expect('revoked tag assignment cannot replay receipt',18661,base+'/'+target+'/assign',assign_headers,assignment,403)
             expect('tag read survives assignment revocation',18661,base+'/'+target+'/assignments',user)
             tag_browser('revoked')
+        def behavior_browser(phase):
+            if not args.browser:return
+            subprocess.run(['node',str(root/'deploy/governance-ce04-behavior.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=120)
+            record('real behavior browser '+phase)
         if args.behavior:
+            if args.browser:h.private(run/'behavior-ui.json',(run/'catalog-ui.json').read_text())
             insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'MEMBER_BEHAVIOR','state':'SHADOW'})
             sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='MEMBER_BEHAVIOR' AND state='SHADOW' AND version=1;")
             base='/v1/admin/member-behavior';target='ce04-behavior-member'
             expect('behavior actual member created independently',18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':target,'actorId':'ce04-behavior-customer','displayName':'Behavior fixture','memberLevel':'BASIC'})
+            if args.browser:expect('behavior UI actual member created',18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':'ce04-behavior-ui-member','actorId':'ce04-behavior-ui-customer','displayName':'Behavior browser fixture','memberLevel':'BASIC'})
             expect('tags do not imply behavior access',18661,base+'/'+target,user,status=403)
             expect('legacy ADMIN cannot bypass behavior authority',18661,base+'/'+target,[('Authorization','Bearer '+admin_local)],status=403)
             def behavior_grant(code):
@@ -552,6 +558,7 @@ def rehearse(args, isolation=None):
             expect('behavior update does not imply rebuild',18661,base+'/rebuild',user+[('Idempotency-Key',uid())],{'after':'','limit':1},403)
             expect('behavior invalid birthday denied',18661,base+'/'+target+'/profile',user+[('Idempotency-Key',uid())],{**change,'birthday':'02-30','expectedVersion':1},400)
             expect('behavior stale profile rejected',18661,base+'/'+target+'/profile',user+[('Idempotency-Key',uid())],change,409)
+            behavior_browser('update-only')
             # 隔离客户凭据只用于原本人接口，中央员工不取得客户角色。
             customer_token=secrets.token_urlsafe(48)
             insert('platform_credential',{'tenant_id':source,'actor_id':'ce04-behavior-customer','role':'MEMBER','token_hash':hashlib.sha256(customer_token.encode()).hexdigest(),'expires_at':now(600).replace('T',' ').replace('Z','')})
@@ -576,6 +583,7 @@ def rehearse(args, isolation=None):
             if empty!={'next':second['next'],'scanned':0,'done':True}:raise RuntimeError('behavior empty cursor incorrect')
             expect('behavior rebuild remains bounded',18661,base+'/rebuild',user+[('Idempotency-Key',uid())],{'after':'','limit':51},400)
             expect('behavior rebuild does not imply read',18661,base+'/'+target,user,status=403)
+            behavior_browser('rebuild')
             behavior_grant('member_behavior.read')
             detail=expect('behavior independent detail from actual sources',18661,base+'/'+target,user)
             if detail['profile']!=profile or detail['facts']['browse30']!=1 or detail['facts']['completedOrders30']!=1 or detail['facts']['netSpend30']!='12.00':raise RuntimeError('behavior facts mismatch')
@@ -584,15 +592,21 @@ def rehearse(args, isolation=None):
             if expect('behavior next event cursor is empty',18661,base+'/'+target+'/events?after='+str(events[0]['sequenceId'])+'&limit=1',user)!=[]:raise RuntimeError('behavior cursor repeated')
             expect('behavior missing actual owner rejected',18661,base+'/foreign-member',user,status=404)
             expect('behavior foreign auth tenant denied',18661,base+'/'+target,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
-            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.member_behavior.%'")[1]!='4':raise RuntimeError('behavior audit count incorrect')
-            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member_behavior_batch' AND resource_id=command_key")[1]!='3':raise RuntimeError('behavior batch audit pretends member')
+            behavior_browser('read')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.member_behavior.%'")[1]!=('7' if args.browser else '4'):raise RuntimeError('behavior audit count incorrect')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member_behavior_batch' AND resource_id=command_key")[1]!=('4' if args.browser else '3'):raise RuntimeError('behavior batch audit pretends member')
             if sql("SELECT count(*) FROM member_behavior_order WHERE tenant_id="+q(source)+" AND member_id="+q(target))[1]!='1':raise RuntimeError('behavior projection repeated')
-            record('behavior four effects have actual member or durable batch audit exactly once')
+            if args.browser:
+                ui_detail=expect('behavior UI final profile has version two',18661,base+'/ce04-behavior-ui-member',user)
+                if ui_detail['profile']!={'birthday':'03-15','journeyEnabled':True,'version':2}:raise RuntimeError('behavior UI profile effect incorrect')
+                if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability='commerce.member_behavior.update' AND resource_type='commerce_member' AND resource_id='ce04-behavior-ui-member'")[1]!='2':raise RuntimeError('behavior UI profile duplicated')
+            record('behavior API and optional UI commands have actual member or durable batch audit exactly once')
             for grant in (update_grant,rebuild_grant):expect('revoke independent behavior write',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':grant,'expected_version':1})
             projection()
             expect('revoked behavior profile cannot replay receipt',18661,base+'/'+target+'/profile',change_headers,change,403)
             expect('revoked behavior rebuild cannot replay receipt',18661,base+'/rebuild',batch_headers,behavior_batch,403)
             expect('behavior read survives write revocation',18661,base+'/'+target,user)
+            behavior_browser('revoked')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -640,7 +654,9 @@ def rehearse(args, isolation=None):
         if args.tags:
             expect('tag auth outage fails closed',18661,'/v1/admin/member-tags',user,status=503)
             tag_browser('outage')
-        if args.behavior:expect('behavior auth outage fails closed',18661,'/v1/admin/member-behavior/ce04-behavior-member',user,status=503)
+        if args.behavior:
+            expect('behavior auth outage fails closed',18661,'/v1/admin/member-behavior/ce04-behavior-member',user,status=503)
+            behavior_browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
         result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}

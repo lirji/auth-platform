@@ -72,3 +72,6 @@ CE04-T2本地DONE：419项414PASS/5skip、真实隔离fdda68438ef6共221PASS（�
 CE04-B0本地DONE：3行为执行能力，重建集合许可/真实PG+graph7项/252单元/SDK Boot4 package/hygiene通过；T2已推送两仓，CI待查。下一B1实际会员Owner和最小订单来源重建，V55尚未实施。
 
 CE04-B1本地DONE：424项419PASS/5skip与真实无浏览器31b246afdc39共221PASS，V55不可改历史；36工具/234入口/hygiene通过。两次脚本失败及修复证据见CE04_MEMBER。B0 CI36675295449 SUCCESS。下一B2独立行为员工页，其他会员及CE05—08未完成。
+
+
+CE04-B2本地DONE：425项420PASS/5skip、真实隔离1d02cf3bcffd共267PASS（行为11条浏览器与全部既有员工页回归），当前1440/390截图已查看；36工具/237入口/hygiene无阻断。B1两仓CI36676623565/36676628487 SUCCESS。下一CE04-C周期/权益有限协议、实际Owner与系统履约兼容；其余会员及CE05—08未完成。
