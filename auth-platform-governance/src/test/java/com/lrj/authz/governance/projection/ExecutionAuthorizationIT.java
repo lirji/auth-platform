@@ -180,13 +180,23 @@ class ExecutionAuthorizationIT {
 
     /** 会员的租户范围不借门店语义，创建许可与实际目标事实分别验证。 */
     @Test void memberCoreReferencesBindFiniteCapabilitiesAndActualFactShape() {
+        tenantMemberReferences(List.of("member.read","member.create","member.profile.update","member.status.update"));
+    }
+    /** 成长政策无虚构对象；已有会员的成长动作仍核验真实会员事实和独立能力。 */
+    @Test void growthReferencesBindPolicyAndMemberCapabilitiesIndependently() {
+        tenantMemberReferences(List.of("growth.policy.read","growth.policy.publish","growth.read","growth.adjust","growth.recalculate"));
+    }
+    private void tenantMemberReferences(List<String> suffixes) {
         var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
         var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
         var graph=new SpiceDbProjectionGraph(props.getProperty("graph.http"),props.getProperty("graph.key"),Duration.ofSeconds(3));
         try(var runtime=GovernanceRuntime.open(db,true)) {
             var jdbc=new JdbcTemplate(new DriverManagerDataSource(db.jdbcUrl(),db.username(),db.password()));
-            for(String suffix:List.of("member.read","member.create","member.profile.update","member.status.update")) {
-                String type=ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE,tenant=id(),code="member-"+id(),app="commerce-member-"+id(),cap=app+"."+suffix;
+            for(String suffix:suffixes) {
+                boolean policy=suffix.startsWith("growth.policy.");
+                boolean collectionOnly=policy || suffix.equals("member.create");
+                String type=policy?ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE:ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
+                String tenant=id(),code="member-"+id(),app="commerce-member-"+id(),cap=app+"."+suffix;
                 var owner=person(runtime,tenant,code);var member=person(runtime,tenant,code);
                 var login=new VerifiedLogin(owner.issuer(),owner.subject());
                 runtime.catalog().register(app,owner.principalId(),"https://member.example","test",id());
@@ -210,7 +220,7 @@ class ExecutionAuthorizationIT {
                 assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,type),Instant.now().plusSeconds(120).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString()))).hasMessage("INVALID_ARGUMENT");
                 var facts=new Facts(tenant,type,"MEMBER-1",7,null,null,List.of(),null,null);
                 var resource=new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,facts));
-                if(suffix.equals("member.create"))assertThatThrownBy(()->executions.check(caller,resource)).hasMessage("ACCESS_DENIED");
+                if(collectionOnly)assertThatThrownBy(()->executions.check(caller,resource)).hasMessage("ACCESS_DENIED");
                 else assertThat(executions.check(caller,resource).decision()).isEqualTo("ALLOW");
                 for(var bad:List.of(new Facts(tenant,type,"MEMBER-1",7,null,null,List.of(),"S1",null),new Facts(tenant,"store","S1",7,null,null,List.of(),"S1",null),new Facts(id(),type,"MEMBER-1",7,null,null,List.of(),null,null)))
                     assertThatThrownBy(()->executions.check(caller,new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,bad)))).hasMessage("INVALID_ARGUMENT");
@@ -219,7 +229,7 @@ class ExecutionAuthorizationIT {
                 when(caller.environment()).thenReturn("other");assertThatThrownBy(()->executions.scope(caller,query)).hasMessage("ACCESS_DENIED");when(caller.environment()).thenReturn("test");
                 runtime.access().revoke(login,partition,id(),grant.id(),1);project(runtime,graph,partition);
                 assertThat(executions.scope(caller,query).decision()).isEqualTo("DENY");
-                if(!suffix.equals("member.create"))assertThat(executions.check(caller,resource).decision()).isEqualTo("DENY");
+                if(!collectionOnly)assertThat(executions.check(caller,resource).decision()).isEqualTo("DENY");
                 runtime.access().grantScoped(login,partition,id(),member.membershipId(),1,role.id(),all,id(),Instant.now(),Instant.now().plusSeconds(300));project(runtime,graph,partition);
                 assertThat(executions.scope(caller,query).alternatives()).isEmpty();
                 jdbc.update("update auth_governance.execution_reference set expires_at=clock_timestamp()-interval '1 second' where id=?",ref.executionId());

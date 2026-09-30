@@ -42,3 +42,11 @@ auth2cb8c11ab8f773edab94327bc79ac5996990799c与commerce1bc81f276520aa1c54b78c337
 已实际查看当前同版第一轮create-form/unknown/list/history/390-list/390-history以及最终status-form/390-status/conflict/outage/create-form/390-history/list截图；表单宽度/按钮/中文提示清楚，Drawer桌面保留上下文、390宽表在容器内滚动，状态/权限错误不保留可执行旧入口。只是自审，未声称用户视觉批准。失败run e56215a12fb5和成功run均保留；前端/业务代码未因定位修正改变，验收后仅CentralStoreErrors缩进对齐，无语义变化。
 
 最终Java407项402PASS/5skip、前端build/Prettier/package、36项Python、227入口/122能力/34角色契约及两仓hygiene无阻断。hygiene保留无Java formatter与未配置静态分析限制。自有PG/IdP/JVM/Vite均由finally停止，独立子网82/83与数据保留；不清理其他任务资源。P2本地DONE，Git交付中；下一CE04-G成长模块，其他会员和CE05—08仍未完成。
+
+## CE04-G0成长执行协议本地DONE
+
+消费CONTRACTS_COMMERCE_GROWTH.md，仅增加growth.policy.read/publish（commerce_member_policy）和growth.read/adjust/recalculate（commerce_member）五个精确组合，HUMAN最长60秒、完整TENANT_ALL。已有会员实例须真实Owner事实；政策集合/追加发布只允许scope，resource-check拒绝虚构已有对象。政策常量替换既有类型字符串，不增加ScopeResourceBindings解释范围或SDK公开API。实际商城成长Owner/API/V53/页面未实施，不将协议通过当成业务接管。
+
+验证：growth-core-unit.log全仓251既有单测PASS，新增政策Owner单测后growth-owner-unit.log四项Controller测试PASS（原3+新增1）；真实自有PG f7cc1b4cd6cd +隔离SpiceDB的ExecutionAuthorizationIT共5方法PASS，新增5能力矩阵覆盖两类型、禁止伪门店范围、错误类型/事实、未知能力、120秒拒绝、成员代际/分区、撤权/重授不能复活及到期；旧CATALOG/库存/目录/会员基础回归通过。growth-core-integration.log及-result.json保留，自有PG已finally停止。
+
+SDK install、Boot4兼容、全模块package PASS，growth-core-sdk.log/growth-core-boot4.log/growth-core-package.log；hygiene无阻断，仍限制无Java formatter/未配置静态分析。git diff --check通过。没有生产Owner配置、能力清单或Grant发布；下一G1真实成长Owner与V53。
