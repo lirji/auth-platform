@@ -31,7 +31,7 @@ O2：沿SSO壳，目录指定已知门店分页、独立定义和状态表单；
 
 目录输入已知storeId，不自动授予store.directory.read；GET /v1/admin/point-offers?storeId=<id>&after=<id>&limit=50，稳定offerId游标，切store重建查询。展示真实View.content:offerId/name/storeId/kind/assetId/assetVersion/points/quota/perMemberLimit/validFrom/validTo，加status/issued/version。客户是否可兑仍由本人兑换接口决定，管理页无客户兑换按钮。不把已发行issued误标余额。
 
-定义form显式offerId/storeId/name/kind(COUPON/ENTITLEMENT)/assetId/assetVersion/points/quota/perMemberLimit/validFrom/validTo；标识1—100字母数字下划线连字符，name128，assetVersion正安全整数；积分1—1e9，总额度1—1e6，个人限额1—1000；两datetime-local转UTC且截止晚于开始。已知资产编号和版本由业务Owner真实校验，不要求额外资产目录读取。明确规则不可变、创建后当前状态ACTIVE，窗口/资产资格另行校验。
+定义form显式offerId/storeId/name/kind(COUPON/ENTITLEMENT)/assetId/assetVersion/points/quota/perMemberLimit/validFrom/validTo；本页标识1—64字母数字下划线连字符（业务Identifiers最大64，不能用HTTP路由正则的100代替业务上限），name128，assetVersion正安全整数；积分1—1e9，总额度1—1e6，个人限额1—1000；两datetime-local转UTC且截止晚于开始。已知资产编号和版本由业务Owner真实校验，不要求额外资产目录读取。明确规则不可变、创建后当前状态ACTIVE，窗口/资产资格另行校验。
 
 停启form offerId/expectedVersion>=0/active显式布尔选择/reason<=256；停用只阻止新兑换，不撤销已发资产。409保留输入可纠正；三种结果状态与现有页一致：unknown固定原键/体/路径冻结，切Tab/取消退出保留，401卸载，403独立拒绝，503失败关闭。无默认审批字段，不新增OA审批。
 
