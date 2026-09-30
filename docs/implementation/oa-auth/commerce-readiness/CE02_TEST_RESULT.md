@@ -20,7 +20,9 @@ CE-02-D设计验证PASS。CE-02-A兼容协议和CE-03库存尚未实现；此结
 - 全模块 `./mvnw -B test`：248项通过，0失败/错误/跳过。
 - `ReliableAuthorizationIT`：13项真实PostgreSQL+SpiceDB通过（含新增会员Grant持久化/投影、两运行时判权、跨租户/伪门店拒绝、撤权前栅栏拒绝及投影后DENY）。使用新建自有PG，连接池每实例2；原P3图仅新增随机隔离租户/application测试事实。
 - Boot4 SDK兼容测试通过；旧SDK对新类型的失败关闭来自旧代码显式白名单审查，未声称运行了旧二进制对新服务的端到端演练。旧store/product行为由原单元和13项真实图测试回归。
-- Hygiene无阻断；沿用仓库源码样式，无独立Java格式化器/静态分析配置，报告IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS。
+- 首次Hygiene发现2处merchant资源代码字面量应使用命名常量；5860200交付记录提前写成通过，现更正并保留原hygiene-adapter.log。补充ScopeDtos.MERCHANT_RESOURCE_TYPE后重新验证；沿用仓库源码样式，无独立Java格式化器/静态分析配置。
 - 私有日志：`.local/governance/commerce-contracts/{unit,integration,boot4,hygiene-adapter}.log`。复用P7资源helper仅创建PG：eb6f374dc77f容器已停止，数据保留；未运行容量/灾备或修改共享IdP。
 
 CE-02-A验证PASS；与CE-02-D同一增量任务分支交付。库存与其他商城新模块仍未接管，真实映射和生产接受保持原阻塞，下一片CE-03-I。
+
+补充修正验证：协议模块测试再次通过；`hygiene-adapter-fixed.log`最终IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS，2项字面量阻断已消除，仅保留格式化器不可用限制。修正仅提取同值协议常量，不改资源语义。

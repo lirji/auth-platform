@@ -9,6 +9,8 @@ public final class ScopeDtos {
     public static final String STORE_RESOURCE_TYPE = "store";
     /** 商品的归属字段由commerce catalog模块提供。 */
     public static final String PRODUCT_RESOURCE_TYPE = "product";
+    /** 商家仅绑定自身资源，不隐含拥有其当前或将来门店的权限。 */
+    public static final String MERCHANT_RESOURCE_TYPE = "merchant";
     /** 范围响应大小有界，超出不能截断后放行。 */
     public static final int MAX_PLAN_BYTES = 262144;
 

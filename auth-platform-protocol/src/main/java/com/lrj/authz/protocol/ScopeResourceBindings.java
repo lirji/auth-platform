@@ -16,14 +16,14 @@ public final class ScopeResourceBindings {
 
     /** 未绑定类型失败关闭；服务端还必须显式登记调用应用为该类型Owner。 */
     public static boolean supports(String type) {
-        return type != null && (storeBound(type) || "merchant".equals(type) || TENANT_ONLY.contains(type));
+        return type != null && (storeBound(type) || ScopeDtos.MERCHANT_RESOURCE_TYPE.equals(type) || TENANT_ONLY.contains(type));
     }
 
     /** 同一资源类型在治理校验和SDK响应校验中使用同一范围语义。 */
     public static boolean allows(String type, Kind kind) {
         if (!supports(type) || kind == null) return false;
         if (kind == Kind.TENANT_ALL) return true;
-        if (kind == Kind.SPECIFIED_RESOURCES) return storeBound(type) || "merchant".equals(type);
+        if (kind == Kind.SPECIFIED_RESOURCES) return storeBound(type) || ScopeDtos.MERCHANT_RESOURCE_TYPE.equals(type);
         return kind == Kind.SPECIFIED_STORES && storeBound(type);
     }
 
