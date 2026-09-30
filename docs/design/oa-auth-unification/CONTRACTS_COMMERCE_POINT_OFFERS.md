@@ -4,7 +4,7 @@
 
 O0：中央登记point_offer稳定资源常量，有限三能力/HUMAN/最长60秒引用；read允许集合与真实商品事实，define只集合，status.update可真实商品事实；事实必须真实租户/offerId/version，不接受storeId/部门/供应商附加字段。有限执行组合、独立权限/范围/撤权后新grant不复活旧引用、60秒/代际/到期、真实PG与SpiceDB验证；无新协议JSON字段。
 
-O1：POINT_OFFER接管族，V58扩族而不自动切换；三个员工HTTPGET/POST /v1/admin/point-offers及POST/{id}/status。employee身份集中在精确路径；旧共享GET /v1/point-offers的非MEMBER调用也必须同一service权限门禁，不能绕过；MEMBER只见有效目录与原本人兑换。
+O1：POINT_OFFER接管族，V58扩族而不自动切换；V59追加point_offer实际审计资源约束；三个员工HTTPGET/POST /v1/admin/point-offers及POST/{id}/status。employee身份集中在精确路径；旧共享GET /v1/point-offers的非MEMBER调用也必须同一service权限门禁，不能绕过；MEMBER只见有效目录与原本人兑换。
 
 create在现有Commands事务中route/期限guard先于旧回执，授权使用集合许可，实际新offerId审计；真实门店及merchant ACTIVE，真实coupon/entitlement指定version绑定验证仍保留，不附赠这些资产管理权限。精确积分/额度/单会员限额和时间窗口沿原Offer。status先读取实际offer归属和version做资源判权，事务中锁route/offer复核授权事实，guard之后旧回执，业务expectedVersion CAS；稳定身份摘要与幂等键保持，审计失败整笔回滚。read按tenant/store/after/limit在SQL分页，Owner复核scope，不把未授权页面空集当成功。
 
@@ -19,7 +19,7 @@ O2：沿SSO壳，目录指定已知门店分页、独立定义和状态表单；
 |ID|前置|Owner与影响|可观察验收|状态|
 |---|---|---|---|---|
 |CE04-O0|PTS2 DONE|auth ScopeDtos/ScopeResourceBindings/ExecutionAuthorization；SDK同格式|三能力有限组合、租户范围/真实资源事实、代际/撤权/到期，真实PG+图和SDK共存|DONE（本地）|
-|CE04-O1|O0 DONE|commerce PointOfferService/EmployeeAccess/Authority/三员工HTTP，V58|真实MySQL Owner/审计回滚/幂等/客户兑换并发；真实中央403/503和STOPPED|TODO|
+|CE04-O1|O0 DONE|commerce PointOfferService/EmployeeAccess/Authority/三员工HTTP，V58/V59|真实MySQL Owner/审计回滚/幂等/客户兑换并发；真实中央403/503和STOPPED|DONE（本地）|
 |CE04-O2|O1 DONE|固定SSO员工积分兑换商品页、两个独立hint|真实目录/定义/状态、未知重试和错误状态、1440/390截图与实际审计|TODO|
 
 串行复用现有本地基础设施，不新增共享中间件。O1按仓库现有Mapper XML集中SQL，不改变customer DTO/事件/表权威。O0不宣称商城Owner已经接管；正式生产映射、人员和环境仍待定。
