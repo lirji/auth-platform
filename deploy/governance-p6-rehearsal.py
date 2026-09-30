@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """P6所选商城租户隔离演练；只写本工具新建库，原commerce_local保持只读。"""
-import argparse, base64, hashlib, http.client, importlib.util, json, os, secrets, shutil, socket, subprocess, time, uuid, urllib.parse, zipfile
+import argparse, base64, hashlib, http.client, importlib.util, json, os, re, secrets, shutil, socket, subprocess, time, uuid, urllib.parse, zipfile
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from pathlib import Path
@@ -12,6 +12,8 @@ POINT_OFFER_RESOURCE_TYPE = 'point_offer'
 COUPON_DEFINITION_RESOURCE_TYPE = 'coupon_definition'
 ENTITLEMENT_DEFINITION_RESOURCE_TYPE = 'entitlement_definition'
 ENTITLEMENT_RESOURCE_TYPE = 'entitlement'
+RULE_RESOURCE_TYPE = 'marketing_rule'
+RULE_CAPABILITIES = ('rule.read','rule.create','rule.publish')
 ENTITLEMENT_CAPABILITIES = {'entitlement_definition.read':ENTITLEMENT_DEFINITION_RESOURCE_TYPE,'entitlement_definition.create':ENTITLEMENT_DEFINITION_RESOURCE_TYPE,'entitlement.read':ENTITLEMENT_RESOURCE_TYPE,'entitlement.resolve':ENTITLEMENT_RESOURCE_TYPE}
 COUPON_DEFINITION_CAPABILITIES = ('coupon_definition.read','coupon_definition.create')
 OFFER_CAPABILITIES = ('point_offer.read','point_offer.define','point_offer.status.update')
@@ -24,6 +26,35 @@ GROWTH_CAPABILITIES = {'growth.policy.read':MEMBER_POLICY_RESOURCE_TYPE,'growth.
 
 def module(name, path):
     spec=importlib.util.spec_from_file_location(name,path);value=importlib.util.module_from_spec(spec);spec.loader.exec_module(value);return value
+
+
+PROJECTION_MAX_BATCHES = 8
+PROJECTION_TIMEOUT_SECONDS = 45
+PROJECTION_READY = 'READY'
+PROJECTION_PROGRESS = frozenset(('APPLIED', 'RECOVERED'))
+
+
+def complete_projection(kind, invoke, clock=time.monotonic):
+    """单次CLI只处理50条；仅推进已确认批次，READY前不得声称权限就绪。"""
+    deadline = clock() + PROJECTION_TIMEOUT_SECONDS
+    logs = []
+    for _ in range(PROJECTION_MAX_BATCHES):
+        remaining = deadline - clock()
+        if remaining <= 0:
+            raise RuntimeError('projection fixture deadline exceeded: ' + kind)
+        code, log = invoke(remaining)
+        logs.append(log)
+        states = re.findall(r'\bkind=(POLICY|DIRECTORY) result=([A-Z_]+)\b', log.read_text())
+        if clock() >= deadline:
+            raise RuntimeError('projection fixture deadline exceeded: ' + kind)
+        if len(states) != 1 or states[0][0] != kind:
+            raise RuntimeError('projection fixture result invalid: ' + log.name)
+        step = states[0][1]
+        if code == 0 and step == PROJECTION_READY:
+            return logs
+        if code != 2 or step not in PROJECTION_PROGRESS:
+            raise RuntimeError('projection fixture not ready: ' + log.name)
+    raise RuntimeError('projection fixture batch limit exceeded: ' + kind)
 
 
 def verify_auth_runtime(root):
@@ -65,12 +96,13 @@ def rehearse(args, isolation=None):
     def now(seconds=0):return (datetime.now(timezone.utc)+timedelta(seconds=seconds)).isoformat(timespec='milliseconds').replace('+00:00','Z')
     def record(name):
         checks.append({'check':name,'result':'PASS'});h.private(run/('checkpoint-%03d.json'%len(checks)),json.dumps(checks,ensure_ascii=False))
-    def cli(name,*arguments,expected=0):
+    def cli(name,*arguments,expected=0,timeout=45):
         package='com.lrj.authz.admin.governance.' if name=='ReliableProjectionCli' else 'com.lrj.authz.governance.cli.'
         file=run/(name+'-'+secrets.token_hex(4)+'.log')
         with os.fdopen(os.open(file,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600),'w') as log:
-            result=subprocess.run(['java','-Dloader.main='+package+name,'-cp',str(jars['admin']),'org.springframework.boot.loader.launch.PropertiesLauncher',*map(str,arguments)],stdout=log,stderr=subprocess.STDOUT,timeout=45)
-        if result.returncode!=expected:raise RuntimeError('CLI '+name+' unexpected exit '+str(result.returncode)+' private log '+file.name)
+            result=subprocess.run(['java','-Dloader.main='+package+name,'-cp',str(jars['admin']),'org.springframework.boot.loader.launch.PropertiesLauncher',*map(str,arguments)],stdout=log,stderr=subprocess.STDOUT,timeout=timeout)
+        if result.returncode not in ((expected,) if isinstance(expected,int) else expected):raise RuntimeError('CLI '+name+' unexpected exit '+str(result.returncode)+' private log '+file.name)
+        return result.returncode,file
     def request(port,path,headers=(),body=None):
         c=http.client.HTTPConnection('127.0.0.1',port,timeout=35)
         try:
@@ -151,6 +183,8 @@ def rehearse(args, isolation=None):
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':COUPON_DEFINITION_RESOURCE_TYPE,'risk_level':'NORMAL' if code.endswith('.read') else 'HIGH'} for code in COUPON_DEFINITION_CAPABILITIES]
         if args.entitlements:
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':kind,'risk_level':'HIGH'} for code,kind in ENTITLEMENT_CAPABILITIES.items()]
+        if args.rules:
+            manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':RULE_RESOURCE_TYPE,'risk_level':'NORMAL' if code.endswith('.read') else 'HIGH'} for code in RULE_CAPABILITIES]
         h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli','publish',run/'catalog.properties',run/'manifest.json')
         access={'access.tenant':tenant,'access.application':'commerce','access.environment':env,'access.manager':members['internal'],'access.generation':1,'access.capabilities':'commerce.catalog.operate','access.max-duration-seconds':3600,'access.operator':'p6-fixture','access.command':uid()}
         if args.inventory:access['access.capabilities'] += ',commerce.inventory.read,commerce.inventory.receive'
@@ -164,6 +198,7 @@ def rehearse(args, isolation=None):
         if args.offers:access['access.capabilities'] += ''.join(',commerce.'+code for code in OFFER_CAPABILITIES)
         if args.coupon_definitions:access['access.capabilities'] += ''.join(',commerce.'+code for code in COUPON_DEFINITION_CAPABILITIES)
         if args.entitlements:access['access.capabilities'] += ''.join(',commerce.'+code for code in ENTITLEMENT_CAPABILITIES)
+        if args.rules:access['access.capabilities'] += ''.join(',commerce.'+code for code in RULE_CAPABILITIES)
         h.private(run/'access.properties',db+h.props(access));cli('AccessBootstrapCli',run/'access.properties')
         def authority(kind):
             c=fixture['clients'][kind];return {'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
@@ -176,6 +211,7 @@ def rehearse(args, isolation=None):
         if args.offers:server['scope.owner.commerce'] += ','+POINT_OFFER_RESOURCE_TYPE
         if args.coupon_definitions:server['scope.owner.commerce'] += ','+COUPON_DEFINITION_RESOURCE_TYPE
         if args.entitlements:server['scope.owner.commerce'] += ','+ENTITLEMENT_DEFINITION_RESOURCE_TYPE+','+ENTITLEMENT_RESOURCE_TYPE
+        if args.rules:server['scope.owner.commerce'] += ','+RULE_RESOURCE_TYPE
         server.update({'service.1.user.'+k:v for k,v in authority('business').items()});h.private(run/'server.properties',db+legacy+graph_settings+h.props(server))
         h.private(run/'consumer.properties',h.props({'central.url':'http://127.0.0.1:18161','central.credential':service,'central.application':'commerce','central.environment':env}))
         admin_token=up.token(h.ISSUER,fixture,'management','internal');user_token=up.token(h.ISSUER,fixture,'business','external')
@@ -217,7 +253,9 @@ def rehearse(args, isolation=None):
         h.private(run/'batch-1.json',json.dumps(batch));cli('MigrationImportCli',run/'import.properties',run/'batch-1.json');cli('MigrationImportCli',run/'import.properties',run/'batch-1.json');record('real denial and separate finite proof imported idempotently')
         def projection():
             for kind in ('POLICY','DIRECTORY'):
-                file=run/('projection-'+secrets.token_hex(4)+'.properties');h.private(file,db+graph+h.props({**access,'projection.kind':kind}));cli('ReliableProjectionCli',file)
+                file=run/('projection-'+secrets.token_hex(4)+'.properties');h.private(file,db+graph+h.props({**access,'projection.kind':kind}))
+                logs=complete_projection(kind,lambda remaining:cli('ReliableProjectionCli',file,expected=(0,2),timeout=remaining))
+                if len(logs)>1:h.private(run/('projection-batches-'+secrets.token_hex(4)+'.json'),json.dumps({'kind':kind,'batches':len(logs),'final':'READY','logs':[log.name for log in logs]}))
         projection()
         def central_check(s):return {'check':{'tenant_id':tenant,'expected_membership_generation':1,'request_id':uid(),'capability':'commerce.catalog.operate','resource_type':'store'},'facts':{'tenant_id':tenant,'resource_type':'store','resource_id':s,'resource_version':0,'owner_principal_id':None,'department_id':None,'department_ancestors':[],'store_id':s,'supplier_id':None}}
         shadow=[]
@@ -1040,6 +1078,51 @@ def rehearse(args, isolation=None):
                     if sql("SELECT count(*) FROM benefit_ledger WHERE tenant_id="+q(source)+" AND grant_id="+q(gid)+" AND action="+q(conclusion)+" AND units=2 AND balance=0")[1]!='1':raise RuntimeError('entitlement UI compensation ledger mismatch')
                 if sql("SELECT CONCAT(units,':',quota,':',validity_days,':',reserved,':',issued) FROM benefit_definition WHERE tenant_id="+q(source)+" AND benefit_id='ce05-entitlement-ui-c'")[1]!='7:15:30:0:0':raise RuntimeError('entitlement UI definition fields mismatch')
             record('exact entitlement identity audits and explicit debt fixtures with real customer fulfillment')
+        if args.rules:
+            insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'RULE','state':'SHADOW'})
+            sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='RULE' AND state='SHADOW' AND version=1;")
+            rule_base='/v1/admin/rules';fields_path='/v1/admin/rule-fields'
+            for path in (rule_base,fields_path):
+                expect('other abilities do not imply rule read '+path,18661,path,user,status=403)
+                expect('legacy ADMIN cannot bypass rule read '+path,18661,path,local_admin,status=403)
+            def rule_grant(code):
+                role=expect('explicit rule role '+code,18162,prefix+'/roles',admin,{**partition,'command_id':uid(),'role_code':'ce05-r-'+code.replace('.','-'),'role_version':1,'capabilities':['commerce.'+code]})['id']
+                grant=expect('finite rule grant '+code,18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role,'scope_rule':{'version':1,'resource_type':RULE_RESOURCE_TYPE,'clauses':[{'kind':'TENANT_ALL','values':[],'include_root':False}]},'source_id':'ce05-r-'+code,'valid_from':now(-2),'valid_to':now(600)},202)['id']
+                projection();execution_ready(code,phase='rule-fixture',resource_type=RULE_RESOURCE_TYPE);return grant
+            rule_create_grant=rule_grant('rule.create')
+            rule_input={'ruleId':'ce05-rule:a','version':1,'name':'Central rule A','rule':{'kind':'COMPARE','field':'memberLevel','operator':'EQ','valueType':'TEXT','value':'BASIC','children':None}}
+            rule_headers=user+[('Idempotency-Key',uid())]
+            rule_a=expect('rule creation without read',18661,rule_base,rule_headers,rule_input)
+            if expect('rule creation original key',18661,rule_base,rule_headers,rule_input)!=rule_a:raise RuntimeError('rule creation duplicated')
+            for path in (rule_base,fields_path):expect('rule create does not imply read '+path,18661,path,user,status=403)
+            rule_a2=expect('new immutable rule version',18661,rule_base,user+[('Idempotency-Key',uid())],{**rule_input,'version':2,'rule':{**rule_input['rule'],'value':'VIP'}})
+            rule_b=expect('second actual rule resource',18661,rule_base,user+[('Idempotency-Key',uid())],{**rule_input,'ruleId':'ce05-rule:b'})
+            expect('duplicate immutable rule version conflict',18661,rule_base,user+[('Idempotency-Key',uid())],rule_input,409)
+            expect('central permit does not authorize injected fact field',18661,rule_base,user+[('Idempotency-Key',uid())],{**rule_input,'ruleId':'ce05-rule-invalid','rule':{**rule_input['rule'],'field':'clientInjected'}},400)
+            rule_publish_grant=rule_grant('rule.publish')
+            publish_path=rule_base+'/'+urllib.parse.quote(rule_input['ruleId'],safe='')+'/1/publish';publish_headers=user+[('Idempotency-Key',uid())]
+            published=expect('actual old rule version publish without read',18661,publish_path,publish_headers,{})
+            if published['status']!='PUBLISHED' or published['content']['version']!=1:raise RuntimeError('rule actual version mismatch')
+            if expect('rule publish original key',18661,publish_path,publish_headers,{})!=published:raise RuntimeError('rule publish original receipt mismatch')
+            if expect('already published new command retains original business success',18661,publish_path,user+[('Idempotency-Key',uid())],{})!=published:raise RuntimeError('published rule business behavior changed')
+            expect('missing actual rule version cannot publish',18661,rule_base+'/ce05-rule%3Aa/9/publish',user+[('Idempotency-Key',uid())],{},404)
+            expect('missing actual rule owner cannot publish',18661,rule_base+'/foreign/1/publish',user+[('Idempotency-Key',uid())],{},404)
+            expect('rule publish does not imply read',18661,rule_base,user,status=403)
+            rule_grant('rule.read')
+            if expect('latest rule directory keeps new draft over old published',18661,rule_base+'?after=ce05-&limit=1',user)!=[rule_a2]:raise RuntimeError('latest rule version leaked old content')
+            if expect('rule directory stable next cursor',18661,rule_base+'?after=ce05-rule%3Aa&limit=1',user)!=[rule_b]:raise RuntimeError('rule cursor mismatch')
+            if expect('rule terminal cursor',18661,rule_base+'?after=ce05-rule%3Ab&limit=1',user):raise RuntimeError('rule terminal cursor mismatch')
+            rule_fields=expect('trusted rule fields require independent read',18661,fields_path,user)
+            if rule_fields.get('memberLevel')!='TEXT' or rule_fields.get('orderAmount')!='DECIMAL' or len(rule_fields)!=14:raise RuntimeError('trusted fields mismatch')
+            expect('foreign rule tenant denied',18661,rule_base,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            for gid in (rule_create_grant,rule_publish_grant):expect('revoke rule write '+gid,18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':gid,'expected_version':1})
+            projection();expect('revoked rule creation cannot replay',18661,rule_base,rule_headers,rule_input,403)
+            expect('revoked rule publication cannot replay',18661,publish_path,publish_headers,{},403)
+            expect('rule directory read survives write revoke',18661,rule_base,user);expect('rule fields survive write revoke',18661,fields_path,user)
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='marketing_rule' AND store_id IS NULL")[1]!='5':raise RuntimeError('rule exact audit count mismatch')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability='commerce.rule.publish' AND resource_id='ce05-rule:a'")[1]!='2':raise RuntimeError('rule repeat command audit mismatch')
+            if sql("SELECT GROUP_CONCAT(CONCAT(version,':',status) ORDER BY version) FROM marketing_rule_asset WHERE tenant_id="+q(source)+" AND rule_id='ce05-rule:a'")[1]!='1:PUBLISHED,2:DRAFT':raise RuntimeError('rule immutable version states mismatch')
+            record('three rule definitions and two distinct publish commands have exact audits without replay duplicates')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -1110,9 +1193,12 @@ def rehearse(args, isolation=None):
             expect('entitlement instance central outage fails closed',18661,ent_base,user,status=503)
             expect('customer entitlement wallet remains local in outage',18661,'/v1/entitlements',offer_customer_headers)
             entitlement_browser('definitions','outage');entitlement_browser('instances','outage')
+        if args.rules:
+            expect('rule directory central outage fails closed',18661,rule_base,user,status=503)
+            expect('rule field directory central outage fails closed',18661,fields_path,user,status=503)
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -1122,6 +1208,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
+    parser.add_argument('--rules',action='store_true',help='finite rule create/read/publish and trusted fixed-version regression')
     parser.add_argument('--entitlements',action='store_true',help='finite entitlement definition and actual grant management; includes coupon regression')
     parser.add_argument('--coupon-definitions',action='store_true',help='finite coupon definition creation/read and customer issuance; includes offer regression')
     parser.add_argument('--offers',action='store_true',help='finite point offer management and customer redemption; includes points regression')
@@ -1137,6 +1224,7 @@ def main():
     parser.add_argument('--identity-subnet',help='explicit unused RFC1918 /24 when Docker default pools are exhausted')
     args=parser.parse_args()
     if args.identity_subnet and not args.isolated_identity:parser.error('--identity-subnet requires --isolated-identity')
+    if args.rules:args.entitlements=True
     if args.entitlements:args.coupon_definitions=True
     if args.coupon_definitions:args.offers=True
     if args.offers:args.points=True

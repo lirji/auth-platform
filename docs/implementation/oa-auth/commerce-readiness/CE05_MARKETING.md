@@ -2,6 +2,8 @@
 
 ## 当前状态
 
+CE05-R1本地DONE：RULE独立接管族、规则read/create/publish、真实不可变版本锁、原回执前权限复核与同事务审计，V62已应用不可改。完整468项463PASS/5既有skip，规则7项全PASS；最终真实7b1ff652c183（10.254.110.0/24）518PASS，无浏览器。42工具/256入口/122能力/34角色、两仓hygiene及auth2/commerce12源码摘要一致。下一R2规则员工页；其余CE05—08与原生产2HOLD未完成。
+
 CE05-R0本地DONE：marketing_rule稳定类型和read/create/publish三个独立有限能力；创建只集合，读取/发布绑定实际资产版本。完整252单元、真实自有PG5ff5f702ccbc/SpiceDB共13项ExecutionAuthorizationIT、SDK Boot4和最终forceCreation install通过，两个运行Jar嵌套依赖及4源码摘要一致。hygiene无阻断，Java formatter/静态分析限制保持。无新迁移，自有PG已finally停止；下一R1商城RULE族/实际Owner/事务审计，R2与其余CE05—08未完成。
 
 CE05-E2本地DONE：权益定义/实例两个固定SSO页、独立create/resolve提示和安全重试。完整461项456PASS/5既有skip、权益8项全PASS；真实0078780a5d6b（10.254.108.0/24）563PASS，其中两个权益页各10条浏览器检查，含所有既有员工页回归。37工具/256入口/122能力/34角色、build/Prettier/两仓hygiene及auth4/commerce11源码摘要一致。1440/390目录/表单及409/未知/取消退出/成功/503截图已查看。恰8身份审计、UI定义和两个补偿各1条；真实客户兑换/核销和撤权后履约兼容。无新迁移，V49—V61不可改。下一CE05-R营销规则细化；其余CE05—08及原生产2HOLD未完成。
@@ -132,3 +134,27 @@ E2已正常合并推送authf71ce0f/commerce36f4ca0，CI36698659804/36698659860�
 
 CE05-R0本地DONE：marketing_rule稳定类型和read/create/publish三个独立有限能力；创建只集合，读取/发布绑定实际资产版本。完整252单元、真实自有PG5ff5f702ccbc/SpiceDB共13项ExecutionAuthorizationIT、SDK Boot4和最终forceCreation install通过，两个运行Jar嵌套依赖及4源码摘要一致。hygiene无阻断，Java formatter/静态分析限制保持。无新迁移，自有PG已finally停止；下一R1商城RULE族/实际Owner/事务审计，R2与其余CE05—08未完成。
 证据：私密commerce-contracts/rules-core-{install,integration,boot4,final-install}.log、integration-result.json、source-sha256.json及hygiene.json。R0 implementation-validation COMPLETED/PASS；Git/CI另记。E2两仓CI36698659804/36698659860仍运行中。
+
+
+R0已正常合并推送auth5049380，CI36699041572运行中；E2 commerce36f4ca0/CI36698659860 SUCCESS，authE2需以精确状态或包含该基线的R0 CI核对。R1两仓原目录分支feat/commerce-rule-owner-rehearsal与feat/central-rule-operations已实施RULE族、三能力、真实不可变规则版本/锁/事务审计、字段目录Service门禁和V62（已应用不可改）；SDK固定5049380。compile/37工具/256入口PASS，CentralRuleMySqlTest7方法及完整rules-owner-verify.log/session8385运行中。P6 --rules包括全部既有后端回归已接线未运行；源码摘要auth1/commerce12已记录。
+
+R1完整rules-owner-verify.log共468项463PASS/5既有skip，7规则专项全PASS；两仓hygiene和auth1/commerce12源码摘要一致。真实--rules独立子网109/session1037运行中，尚不标DONE。R0精确CI36699041572 SUCCESS，包含E2 authf71ce0f基线；E2 auth36698659804取消、commerce36698659860 SUCCESS。
+
+
+R1首轮真实41130bc13832/子网109在475PASS后因ReliableProjectionCli返回APPLIED/exit2停止，日志ReliableProjectionCli-ca6750c9.log保留。源码ReliableProjection.step明确每批最多50条；本轮累计授权超过50，旧P6 projection()错误假设一次CLI必READY。已仅修演练调度为最多8批/总45秒，后续单进程timeout取剩余预算；仅APPLIED/RECOVERED可继续，最终必须code0+READY，BUSY/RETRY_WAIT/BLOCKED/未知/不匹配状态立即失败。新增5工具测试（总42PASS），256入口/hygiene通过，auth2/commerce12最终摘要更新。产品代码、Java468项版本及生产投影器/预算不变；第二轮子网110真实重新运行中。
+
+
+## CE05-R1验收
+
+CE05-R1本地DONE：RULE独立接管族、规则read/create/publish、真实不可变版本锁、原回执前权限复核与同事务审计，V62已应用不可改。完整468项463PASS/5既有skip，规则7项全PASS；最终真实7b1ff652c183（10.254.110.0/24）518PASS，无浏览器。42工具/256入口/122能力/34角色、两仓hygiene及auth2/commerce12源码摘要一致。下一R2规则员工页；其余CE05—08与原生产2HOLD未完成。
+
+|验收|结果|私密证据|
+|---|---|---|
+|真实MySQL与全仓|468项463PASS/5skip，规则7方法覆盖独立两写/读取、实际版本/64字编码HTTP、原键/代际、审计回滚、撤权/STOPPED/503、原规则树限制及可信内部引用|commerce-contracts/rules-owner-verify.log|
+|真实授权联调|518PASS；3次规则创建与2个独立发布命令恰5身份审计；同键不重复；旧版本1=PUBLISHED、最新版本2=DRAFT，目录不回退旧已发布版本；字段目录14项且独立read，撤权/停机失败关闭|p6/rehearsal-7b1ff652c183/result.json及检查点|
+|超过50条授权的投影|三次实际POLICY投影分别APPLIED→READY共2批；只有最终READY才继续业务验收|同目录projection-batches-*.json及关联CLI日志|
+|质量与版本|42工具/256入口、两仓hygiene、auth2/commerce12源码摘要一致；Java formatter/静态分析限制保留|commerce-contracts/rules-owner-{tools-batches,contract-final,auth-hygiene-batches,commerce-hygiene,source-sha256}*|
+
+首轮41130bc13832/子网109在475PASS后停于APPLIED，源于旧演练脚本假定单次CLI完成全量。生产ReliableProjection每批最多50条，本轮累计授权跨越该边界。只修演练调度：最多8批、总45秒，子进程使用剩余预算，仅APPLIED/RECOVERED推进，READY才通过；BUSY/RETRY_WAIT/BLOCKED、未知或不匹配状态立即拒绝。新增5项工具测试证明边界、状态及超时失败关闭。未改产品投影器、商城业务、Java验证版本或生产预算；失败日志保留。
+
+自有进程finally停止，原8602/OA未切换，无新worktree；两轮私密库/日志保留。R0 auth5049380精确CI36699041572 SUCCESS，包含E2 auth基线；E2 commerce CI36698659860 SUCCESS。R1 implementation-validation COMPLETED/PASS，update-progress-docs DONE（本地）；Git/CI另记。
