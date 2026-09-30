@@ -220,3 +220,12 @@ cycle-ui-verify.log完整432项427PASS/5既有skip，CentralCycleMySqlTest7项PA
 已查看本轮390政策/礼包表单、政策未知输入锁定、REQUESTED/空回执、390会员/礼包查询、未考核、撤权与停机截图，表单和结果可读、表格容器横向滚动；这是实现自审，不代表用户视觉批准。最终两仓源码摘要一致；完整432项427PASS/5skip、最终build/package/Prettier、36工具/243入口、语法及hygiene通过，无Java formatter/静态分析限制保持。首轮固定pump次数不足的失败和修复原因保留，不修改业务限额或权益/审计断言。
 
 自有PG/IdP/JVM/Vite已finally停止，子网95—96及数据/截图私密证据保留；runtime_switched/production_ready均false，原8602未切换。C2本地DONE，Git交付中；下一CE04-PTS积分（避免与基础会员P编号冲突），随后积分商品CE04-O及CE05—08，生产输入HOLD不变。
+
+
+## CE04-PTS0验证中
+
+C2已普通合并推送auth02cfdd7/commerce3c8a689，CI36681434469/36681436387待最终结果。PTS0消费CONTRACTS_COMMERCE_POINTS，五个有限积分组合：政策read/publish只commerce_member_policy集合，read/adjust/expire为实际commerce_member，均最长60秒HUMAN/TENANT_ALL。SDK JSON/端点/资源类型不变，未将商城积分Owner或页面宣称已接管。
+
+points-core-unit.log全仓252PASS；真实自有PG502110bc4f62及隔离SpiceDB执行ExecutionAuthorizationIT9方法PASS，含新增五能力及原矩阵，范围/类型/跨环境/代际/期限/撤权重授/到期检查通过。points-core-integration-result.json exit0，自有PG已finally停止。SDK/Boot4/package/hygiene进行中，源文件摘要points-core-source-sha256.json已记录。
+
+PTS0最终SDK install、Boot4 test、全仓package与hygiene/diff通过；Java formatter/静态分析未配置限制保持。源码摘要复核一致、验证后无修改，PTS0本地DONE，Git交付后继续PTS1真实积分Owner与V57。
