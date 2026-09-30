@@ -127,3 +127,27 @@ rehearsal-fdda68438ef6最终221PASS；标签五阶段10条浏览器细分检查�
 T2已推送authfd9ef83/commerce4aafed1，CI36675135942/36675136986待查。B0消费CONTRACTS_COMMERCE_BEHAVIOR.md，有限member_behavior.read/update/rebuild三HIGH执行组合绑定commerce_member、最长60秒HUMAN和完整TENANT_ALL；重建scope-only，拒绝伪会员execution-check，read/update可使用实际会员Owner事实。没有新SDK方法/协议JSON/授权资源类型，商城实际Owner/重建用例和V55留B1，不把中央协议测试当业务接管。
 
 behavior-core-unit.log全仓252单元PASS；真实自有PG ebabed7fcae1与隔离SpiceDB运行ExecutionAuthorizationIT7方法PASS，新增行为三组合/重建scope-only/范围与类型/期限/代际/撤权重授/到期，既有组合回归。behavior-core-integration.log与-result.json保留，自有PG finally已停。SDK install、Boot4 test、全仓package、hygiene/diff通过（behavior-core-sdk/boot4/package/hygiene），没有Java formatter/静态分析的限制保持。验证后无产品代码变化；B0 Git交付后继续B1实际Member Owner/独立重建服务。
+
+
+## CE04-B1验证中
+
+B0 authf7fa425已普通合并推送，CI36675295449待查；T2 commerce CI36675136986 SUCCESS，auth36675135942被B0推送取消，非失败或通过。B1三行为能力/MEMBER_BEHAVIOR独立族，真实Member Owner/版本锁/查询后复核、中央身份幂等/事务审计已实现。客户本人和内部事实保留原语义，偏好生日/旅程/ACTIVE/独立版本约束保持。
+
+历史重建保持同步1—50单/稳定游标，由专用应用服务取得独立集合许可，调用订单Owner只返回orderId/createdAt的内部SQL，再调用会员既有投影，不借ADMIN或返回商业数据。批次实际身份审计固定commerce_member_behavior_batch，以tenant/actor/operation/command_key对应持久命令，不伪造会员；空批次同样审计。V55已在专用测试MySQL应用不可改历史，SDK固定f7fa425并原安装脚本验证。
+
+完整behavior-verify.log BUILD SUCCESS：424项419PASS/5既有skip，其中新CentralBehaviorMySqlTest5项通过，真实MySQL覆盖独立无read修改/重建、客户本人兼容、Owner竞争/版本/生日/冻结/代际、批次分页及空回执、审计故障同时回滚资料/投影/命令/身份归属、撤权/STOPPED/503。既有MemberBehaviorTest6项包含真实下单/支付事实/履约/投影回归通过。36Python/234入口契约、compile/SDK、两仓hygiene无阻断（缺Java formatter/静态分析限制不变）。产品语义自完整回归未变，仅Controller中文注释澄清。
+
+真实--behavior无浏览器演练rehearsal-c1c16e0bba56（子网88）正在运行，behavior-owner-rehearsal.log；历史订单/成长来源为明确隔离种子，客户交互调用真实已上架SKU接口。实际跨进程结果齐备前不标B1 DONE；B2仅有私有技术细化草案，无页面产品改动。
+
+B1第一次真实演练c1c16e0bba56在169项通过后停于新脚本授权调用：错误使用普通/grants及membership字段，收到400 INVALID_ARGUMENT。已改为既有/scoped-grants、member_id/member_generation/source_id和202语义，补execution_ready；没有修改业务代码或放宽断言。失败证据/子网88保留，36项工具重跑PASS。第二轮使用已核对空闲子网89，behavior-owner-rehearsal-fixed.log正在运行，最终联调前仍VERIFYING。B0 CI36675295449 SUCCESS，包含T2 auth基线。
+
+B1第二轮b849379ea0ae已207PASS（含全部行为修改/客户事件/重建/游标/审计/撤权），但后续迁移delta因新行为batch变量覆盖原迁移batch而收到MigrationImportCli INVALID_ARGUMENT。仅修脚本为behavior_batch，保留原迁移对象与全部断言；产品未改。失败日志和子网89保留，36工具再次PASS。第三轮子网90，behavior-owner-rehearsal-final.log，最终完整通过前仍VERIFYING。
+
+
+### B1最终本地DONE
+
+第三轮rehearsal-31b246afdc39共221PASS，behavior_checked=true、runtime_switched=false、production_ready=false，无浏览器。实际中央独立update无read/rebuild、生日02-29/非法生日400/版本409、客户本人读取与真实商品浏览、重建无read/每批有界/连续游标和空回执、实际统计净额12.00/事件游标、外租户/缺失Owner、修改及三批重建恰4条实际目标审计、两个写权限撤销后同键拒绝且读取保留、真实中央停机503通过。CATALOG任务跨进程恢复/导入撤权/旧快照不可复活/STOPPED安全回退及旧各域回归完整通过。历史订单/成长数据为明确隔离种子，不冒充支付履约实测；既有6项行为测试覆盖真实业务链。
+
+完整424项419PASS/5既有skip、SDK固定来源/compile、36工具/234入口契约、两仓hygiene/diff无阻断；Java formatter/静态分析未配置限制保持。behavior-source-sha256.json记录并复核两仓验证源码摘要一致，产品语义自回归未改，仅Controller中文注释。第一次授权接口与第二次脚本变量失败均保留，最终修复未改业务或放宽断言。自有PG/IdP/JVM finally已停，子网88—90和数据/私密日志保留。原商城8602未切换。
+
+B1本地DONE，Git交付中；下一B2已正式细化三个工作区/两独立提示/真实浏览器，页面尚未实施。其余会员和CE05—08仍未完成，原生产输入HOLD不变。

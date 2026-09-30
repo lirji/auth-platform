@@ -18,7 +18,21 @@ B2固定/operations/member-behavior?tenant_id，已知会员详情/事件和独�
 |ID|依赖/可观察验收|状态|
 |---|---|---|
 |CE04-B0|T2；有限3中央执行组合、scope-only重建、真实PG+graph/SDK Boot4与既有组合回归|DONE（本地）|
-|CE04-B1|B0；实际Member Owner、独立族/V55、内部最小订单来源、真实MySQL与中央联调|TODO|
+|CE04-B1|B0；实际Member Owner、独立族/V55、内部最小订单来源、真实MySQL与中央联调|DONE（本地）|
 |CE04-B2|B1；独立SSO行为页、动作提示、真实读写/错误恢复与1440/390浏览器|TODO|
 
 本技术细化消费已批准TENANT_ALL和三个能力，不增加岗位或默认授权，不改变交易门店权限边界。重建只是既有会员行为投影维护，不是新的员工订单查询能力。V55仅新迁移，应用前后均不得修改既有V54历史；空批次的命令归属也不可伪装成真实会员对象。
+
+
+B1实现核对：重建由commerce-app应用服务编排OrderApi.behaviorSources与MemberBehaviorApi.projectOrder；前者只返回id/createdAt并在Owner SQL按tenant+稳定ID游标过滤，后者沿既有成长来源/会员锁当前读规则。原after/limit/next/scanned/done与旧幂等摘要JSON保持，中央模式才追加稳定身份。有限批次末尾再次核对本地许可期限，过期整批回滚。真实集成的历史订单/成长来源为明确隔离种子，不声明演练发生过实际支付/履约；既有MemberBehaviorTest保留真实下单/支付事实/履约/投影回归。
+
+
+## B2页面与动作提示契约
+
+固定/operations/member-behavior?tenant_id，三个Tab：行为查询、修改偏好、历史成交补建。沿原AntDesign/SSO布局，凭据局限本域允许API，不写旧全局Token。已知会员编号查询详情/事件，刷新和按真实sequenceId游标50；显示真实姓名/会员状态、偏好版本/生日月日/旅程接收状态、30日浏览/加购/成交笔数/净消费、最近订单/加购与未知成交时间。不请求其他域列表。
+
+修改独立hint GET operations/member-behavior/update-access，只提示完整租户能力；form已知memberId/expectedVersion>=0安全整数、birthday可空（提交null）或合法MM-DD含02-29、旅程接收/关闭显式选择、reason<=256。不能依赖behavior.read预填才能操作。服务端仍核对会员Owner和ACTIVE；409保留输入再核对版本。
+
+补建独立hint GET operations/member-behavior/rebuild-access；form after可空或稳定标识、limit1—50整数，真实返回next/scanned/done（扫描数不是新增/会员数），手动使用返回游标开启下一批。重建不要求read/update，不增加自动循环或后台调度。unknown冻结原key/path/body，原样重试；两个写区独立意图，退出/Tab保护，401卸载/403独立/503不冒充空结果。结果保留原目标/实际版本。
+
+真实浏览器阶段update-only/rebuild/read/revoked/outage；修改无read、生日校验/02-29、响应丢失相同key/body重试；重建无read和limit校验/真实游标；真实facts/events、409保留再纠正及未知无成交显示；单独撤销写保留读，外租户/401/真实503，1440/390实际查看。新增固定壳+两hint=237入口，能力/角色不变。

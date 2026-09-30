@@ -8,6 +8,7 @@ from pathlib import Path
 MERCHANT_RESOURCE_TYPE = 'merchant'
 MEMBER_RESOURCE_TYPE = 'commerce_member'
 MEMBER_POLICY_RESOURCE_TYPE = 'commerce_member_policy'
+BEHAVIOR_CAPABILITIES = ('member_behavior.read','member_behavior.update','member_behavior.rebuild')
 TAG_CAPABILITIES = ('member_tag.read','member_tag.define','member_tag.assign')
 GROWTH_CAPABILITIES = {'growth.policy.read':MEMBER_POLICY_RESOURCE_TYPE,'growth.policy.publish':MEMBER_POLICY_RESOURCE_TYPE,'growth.read':MEMBER_RESOURCE_TYPE,'growth.adjust':MEMBER_RESOURCE_TYPE,'growth.recalculate':MEMBER_RESOURCE_TYPE}
 
@@ -117,6 +118,8 @@ def rehearse(args, isolation=None):
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':kind,'risk_level':'HIGH'} for code,kind in GROWTH_CAPABILITIES.items()]
         if args.tags:
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':MEMBER_RESOURCE_TYPE,'risk_level':'HIGH'} for code in TAG_CAPABILITIES]
+        if args.behavior:
+            manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':MEMBER_RESOURCE_TYPE,'risk_level':'HIGH'} for code in BEHAVIOR_CAPABILITIES]
         h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli','publish',run/'catalog.properties',run/'manifest.json')
         access={'access.tenant':tenant,'access.application':'commerce','access.environment':env,'access.manager':members['internal'],'access.generation':1,'access.capabilities':'commerce.catalog.operate','access.max-duration-seconds':3600,'access.operator':'p6-fixture','access.command':uid()}
         if args.inventory:access['access.capabilities'] += ',commerce.inventory.read,commerce.inventory.receive'
@@ -124,6 +127,7 @@ def rehearse(args, isolation=None):
         if args.member:access['access.capabilities'] += ',commerce.member.read,commerce.member.create,commerce.member.profile.update,commerce.member.status.update'
         if args.growth:access['access.capabilities'] += ''.join(',commerce.'+code for code in GROWTH_CAPABILITIES)
         if args.tags:access['access.capabilities'] += ''.join(',commerce.'+code for code in TAG_CAPABILITIES)
+        if args.behavior:access['access.capabilities'] += ''.join(',commerce.'+code for code in BEHAVIOR_CAPABILITIES)
         h.private(run/'access.properties',db+h.props(access));cli('AccessBootstrapCli',run/'access.properties')
         def authority(kind):
             c=fixture['clients'][kind];return {'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
@@ -528,6 +532,67 @@ def rehearse(args, isolation=None):
             expect('revoked tag assignment cannot replay receipt',18661,base+'/'+target+'/assign',assign_headers,assignment,403)
             expect('tag read survives assignment revocation',18661,base+'/'+target+'/assignments',user)
             tag_browser('revoked')
+        if args.behavior:
+            insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'MEMBER_BEHAVIOR','state':'SHADOW'})
+            sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='MEMBER_BEHAVIOR' AND state='SHADOW' AND version=1;")
+            base='/v1/admin/member-behavior';target='ce04-behavior-member'
+            expect('behavior actual member created independently',18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':target,'actorId':'ce04-behavior-customer','displayName':'Behavior fixture','memberLevel':'BASIC'})
+            expect('tags do not imply behavior access',18661,base+'/'+target,user,status=403)
+            expect('legacy ADMIN cannot bypass behavior authority',18661,base+'/'+target,[('Authorization','Bearer '+admin_local)],status=403)
+            def behavior_grant(code):
+                role=expect('explicit finite '+code+' role',18162,prefix+'/roles',admin,{**partition,'command_id':uid(),'role_code':'ce04-'+code.replace('.','-'),'role_version':1,'capabilities':['commerce.'+code]})['id']
+                grant=expect('grant independent '+code,18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role,'scope_rule':{'version':1,'resource_type':MEMBER_RESOURCE_TYPE,'clauses':[{'kind':'TENANT_ALL','values':[],'include_root':False}]},'source_id':'ce04-'+code,'valid_from':now(-2),'valid_to':now(600)},202)['id']
+                projection();execution_ready(code,resource_type=MEMBER_RESOURCE_TYPE);return grant
+            update_grant=behavior_grant('member_behavior.update')
+            change={'expectedVersion':0,'birthday':'02-29','journeyEnabled':False,'reason':'CE04 independent preference'};change_headers=user+[('Idempotency-Key',uid())]
+            profile=expect('behavior update without read',18661,base+'/'+target+'/profile',change_headers,change)
+            if profile!={'birthday':'02-29','journeyEnabled':False,'version':1}:raise RuntimeError('behavior profile effect incorrect')
+            if expect('behavior stable update retry',18661,base+'/'+target+'/profile',change_headers,change)!=profile:raise RuntimeError('behavior repeated update')
+            expect('behavior update does not imply read',18661,base+'/'+target,user,status=403)
+            expect('behavior update does not imply rebuild',18661,base+'/rebuild',user+[('Idempotency-Key',uid())],{'after':'','limit':1},403)
+            expect('behavior invalid birthday denied',18661,base+'/'+target+'/profile',user+[('Idempotency-Key',uid())],{**change,'birthday':'02-30','expectedVersion':1},400)
+            expect('behavior stale profile rejected',18661,base+'/'+target+'/profile',user+[('Idempotency-Key',uid())],change,409)
+            # 隔离客户凭据只用于原本人接口，中央员工不取得客户角色。
+            customer_token=secrets.token_urlsafe(48)
+            insert('platform_credential',{'tenant_id':source,'actor_id':'ce04-behavior-customer','role':'MEMBER','token_hash':hashlib.sha256(customer_token.encode()).hexdigest(),'expires_at':now(600).replace('T',' ').replace('Z','')})
+            customer=[('Authorization','Bearer '+customer_token)]
+            own=expect('behavior customer self access survives employee cutover',18661,'/v1/members/me/behavior',customer)
+            if own['profile']!=profile:raise RuntimeError('customer preference mismatch')
+            expect('customer cannot use employee behavior API',18661,base+'/'+target,customer,status=403)
+            expect('customer behavior records actual published SKU',18661,'/v1/members/me/behavior/events',customer+[('Idempotency-Key',uid())],{'eventId':'ce04-behavior-event','kind':'BROWSE','storeId':store,'skuId':'p6-sku'})
+            rebuild_grant=behavior_grant('member_behavior.rebuild')
+            # 明示隔离历史订单/成长来源种子；不声称执行过真实支付或履约。
+            at=now().replace('T',' ').replace('Z','')
+            for order in ('ce04-behavior-order-a','ce04-behavior-order-b'):
+                insert('order_record',{'tenant_id':source,'order_id':order,'member_id':target,'store_id':store,'merchant_id':merchant,'quote_id':uid(),'payable':'20.00','status':'COMPLETED','payment_kind':'CHANNEL_REQUIRED','version':1,'created_at':at,'expires_at':at,'items_json':'[]','address_cipher':'isolated fixture','address_key_version':1})
+            insert('member_growth_order',{'tenant_id':source,'order_id':'ce04-behavior-order-a','member_id':target,'paid':'20.00','completed':True,'policy_version':0,'growth_rate':0,'net_spend':'12.00'})
+            behavior_batch={'after':'','limit':1};batch_key=uid();batch_headers=user+[('Idempotency-Key',batch_key)]
+            first=expect('behavior rebuild without read',18661,base+'/rebuild',batch_headers,behavior_batch)
+            if first!={'next':'ce04-behavior-order-a','scanned':1,'done':False}:raise RuntimeError('behavior first cursor incorrect')
+            if expect('behavior rebuild stable retry',18661,base+'/rebuild',batch_headers,behavior_batch)!=first:raise RuntimeError('behavior rebuild repeated')
+            second=expect('behavior rebuild next source without growth',18661,base+'/rebuild',user+[('Idempotency-Key',uid())],{'after':first['next'],'limit':1})
+            if second!={'next':'ce04-behavior-order-b','scanned':1,'done':False}:raise RuntimeError('behavior second cursor incorrect')
+            empty=expect('behavior empty batch receipt',18661,base+'/rebuild',user+[('Idempotency-Key',uid())],{'after':second['next'],'limit':1})
+            if empty!={'next':second['next'],'scanned':0,'done':True}:raise RuntimeError('behavior empty cursor incorrect')
+            expect('behavior rebuild remains bounded',18661,base+'/rebuild',user+[('Idempotency-Key',uid())],{'after':'','limit':51},400)
+            expect('behavior rebuild does not imply read',18661,base+'/'+target,user,status=403)
+            behavior_grant('member_behavior.read')
+            detail=expect('behavior independent detail from actual sources',18661,base+'/'+target,user)
+            if detail['profile']!=profile or detail['facts']['browse30']!=1 or detail['facts']['completedOrders30']!=1 or detail['facts']['netSpend30']!='12.00':raise RuntimeError('behavior facts mismatch')
+            events=expect('behavior independent event cursor',18661,base+'/'+target+'/events?after=0&limit=1',user)
+            if len(events)!=1 or events[0]['eventId']!='ce04-behavior-event':raise RuntimeError('behavior event missing')
+            if expect('behavior next event cursor is empty',18661,base+'/'+target+'/events?after='+str(events[0]['sequenceId'])+'&limit=1',user)!=[]:raise RuntimeError('behavior cursor repeated')
+            expect('behavior missing actual owner rejected',18661,base+'/foreign-member',user,status=404)
+            expect('behavior foreign auth tenant denied',18661,base+'/'+target,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.member_behavior.%'")[1]!='4':raise RuntimeError('behavior audit count incorrect')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member_behavior_batch' AND resource_id=command_key")[1]!='3':raise RuntimeError('behavior batch audit pretends member')
+            if sql("SELECT count(*) FROM member_behavior_order WHERE tenant_id="+q(source)+" AND member_id="+q(target))[1]!='1':raise RuntimeError('behavior projection repeated')
+            record('behavior four effects have actual member or durable batch audit exactly once')
+            for grant in (update_grant,rebuild_grant):expect('revoke independent behavior write',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':grant,'expected_version':1})
+            projection()
+            expect('revoked behavior profile cannot replay receipt',18661,base+'/'+target+'/profile',change_headers,change,403)
+            expect('revoked behavior rebuild cannot replay receipt',18661,base+'/rebuild',batch_headers,behavior_batch,403)
+            expect('behavior read survives write revocation',18661,base+'/'+target,user)
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -575,9 +640,10 @@ def rehearse(args, isolation=None):
         if args.tags:
             expect('tag auth outage fails closed',18661,'/v1/admin/member-tags',user,status=503)
             tag_browser('outage')
+        if args.behavior:expect('behavior auth outage fails closed',18661,'/v1/admin/member-behavior/ce04-behavior-member',user,status=503)
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -587,6 +653,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
+    parser.add_argument('--behavior',action='store_true',help='finite member behavior rehearsal; includes tag regression')
     parser.add_argument('--tags',action='store_true',help='finite member tag rehearsal; includes growth regression')
     parser.add_argument('--growth',action='store_true',help='finite growth policy and account rehearsal; includes member regression')
     parser.add_argument('--member',action='store_true',help='finite member core rehearsal; includes directory regression')
@@ -596,6 +663,7 @@ def main():
     parser.add_argument('--identity-subnet',help='explicit unused RFC1918 /24 when Docker default pools are exhausted')
     args=parser.parse_args()
     if args.identity_subnet and not args.isolated_identity:parser.error('--identity-subnet requires --isolated-identity')
+    if args.behavior:args.tags=True
     if args.tags:args.growth=True
     if args.growth:args.member=True
     if args.member:args.directory=True
