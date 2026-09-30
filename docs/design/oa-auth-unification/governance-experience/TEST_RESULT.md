@@ -41,7 +41,7 @@
 | 键盘入口 | 首次Tab显示有焦点描边的“跳转到主要内容”；Enter后Tab进入刷新应用，PASS |
 | 原始转义URL | 强制刷新后清理amp;application/amp;environment，显式正常参数优先；真实首页可用，PASS |
 
-本地私密证据目录 `.local/governance-experience/`：`home-1440.png`、`access-1440.png`、`home-390.png`、`request-empty-390.png`、`home-390-navigation-fixed.png`。其余状态在会话截图中实际查看；静态 `overview.svg` / `narrow.svg` 是设计稿，不是运行证据。截图含本地账号/浏览器信息，不提交仓库。
+本地私密证据目录 `.local/governance-experience/`：`home-1440.png`、`access-1440.png`、`home-390.png`、`request-empty-390.png`、`home-390-navigation-fixed.png`、`home-final-desktop.png`。其余状态在会话截图中实际查看；静态 `overview.svg` / `narrow.svg` 是设计稿，不是运行证据。截图含本地账号/浏览器信息，不提交仓库。
 
 ## 自查与修正轮次
 

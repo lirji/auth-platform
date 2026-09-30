@@ -84,3 +84,5 @@ CE05-R2本地DONE：固定SSO规则目录/创建/发布三Tab、两个独立hint
 - 真实Chrome桌面1440、窄屏390、200%缩放、键盘入口、表单校验/关闭保护及详情返回复核完成；限制与多轮修正见 [TEST_RESULT](governance-experience/TEST_RESULT.md)。未把静态SVG或外部奖项自评作为验收通过证据。
 - 本地5273现有容器静态文件已更新，备份/私密截图保留 `.local/governance-experience/`；未重建容器或修改数据库/授权数据。容器重建需按源码重新构建前端镜像。
 - Git交付按持续授权执行，精确结果见 [DELIVERY_RESULT](governance-experience/DELIVERY_RESULT.md)。CE与commerce其他任务边界不变。
+
+GUX Git/CI收尾：4954b54与同页导航修正aa23e3b均已正常合并推送main；精确CI36723258438/36724101530均SUCCESS。最终源码/制品摘要及修正重验见TEST_RESULT；后续仅纯交付文档。运行浏览器已退出调试模拟并停留新版工作台。
