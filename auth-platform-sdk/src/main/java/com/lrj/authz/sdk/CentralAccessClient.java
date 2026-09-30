@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.*;
 import com.lrj.authz.protocol.CentralAccessDtos.*;
 import com.lrj.authz.protocol.ScopeAccessDtos.*;
 import com.lrj.authz.protocol.ScopeDtos;
+import com.lrj.authz.protocol.ScopeResourceBindings;
 import com.lrj.authz.protocol.GovernanceDtos.AccessContext;
 import java.time.Instant;
 import java.net.*;
@@ -54,7 +55,7 @@ public final class CentralAccessClient {
     /** 只在当前后端调用使用，完整验证版本/主体/范围后才允许交给SQL适配器。 */
     public Plan scopePlan(String user,Check request){
         validate(request);Plan p=post("scope-plan",user,request,Plan.class,ScopeDtos.MAX_PLAN_BYTES);
-        if(p==null||!Set.of(ScopeDtos.STORE_RESOURCE_TYPE,ScopeDtos.PRODUCT_RESOURCE_TYPE).contains(request.resourceType()))throw unavailable();
+        if(p==null||!ScopeResourceBindings.supports(request.resourceType()))throw unavailable();
         validateEnvelope(request,p.schemaVersion(),p.requestId(),p.capability(),p.resourceType(),p.decision(),p.decisionId(),p.context());
         validUntil(p.validUntil());
         if(!uuid(p.policyPartitionId())||!uuid(p.directoryPartitionId())||p.policyEpoch()<1||p.directoryEpoch()<1||p.manifestVersion()<1||p.tenantVersion()<1
@@ -65,7 +66,7 @@ public final class CentralAccessClient {
             Set<ScopeDtos.Kind> kinds=EnumSet.noneOf(ScopeDtos.Kind.class);
             for(var c:a.clauses()){
                 if(c==null||c.kind()==null||!kinds.add(c.kind())||c.includeRoot()||c.values()==null||c.values().size()>100
-                    ||!Set.of(ScopeDtos.Kind.TENANT_ALL,ScopeDtos.Kind.SPECIFIED_STORES,ScopeDtos.Kind.SPECIFIED_RESOURCES).contains(c.kind()))throw unavailable();
+                    ||!ScopeResourceBindings.allows(request.resourceType(),c.kind()))throw unavailable();
                 if((c.kind()==ScopeDtos.Kind.TENANT_ALL)!=c.values().isEmpty()||new HashSet<>(c.values()).size()!=c.values().size()
                     ||c.values().stream().anyMatch(v->!resourceId(v)))throw unavailable();
             }

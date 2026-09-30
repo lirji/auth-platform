@@ -124,4 +124,20 @@ class CentralAccessClientTest {
         assertThatThrownBy(()->client.checkResource("user-token",request,facts)).isInstanceOf(CentralAccessException.class);
     }
 
+    @Test void newResourceResponseCannotSmuggleStoreOrIndividualMemberScopes() throws Exception {
+        var member = new Check(tenant, 1L, UUID.randomUUID().toString(), "commerce.member.read", "commerce_member");
+        var original = plan();
+        var allowed = new Plan("1", member.requestId(), member.capability(), member.resourceType(), "ALLOW", UUID.randomUUID().toString(),
+                original.context(), original.policyPartitionId(), 1, original.directoryPartitionId(), 1, 1, 1,
+                original.validUntil(), List.of(new Alternative(UUID.randomUUID().toString(), 1, List.of(new Clause(Kind.TENANT_ALL, List.of(), false)))));
+        response.set(json.writeValueAsString(allowed));
+        assertThat(client.requireScope("user-token", member).alternatives()).hasSize(1);
+        for (Kind kind : List.of(Kind.SPECIFIED_STORES, Kind.SPECIFIED_RESOURCES)) {
+            var bad = new Plan(allowed.schemaVersion(), allowed.requestId(), allowed.capability(), allowed.resourceType(), allowed.decision(),
+                    allowed.decisionId(), allowed.context(), allowed.policyPartitionId(), 1, allowed.directoryPartitionId(), 1, 1, 1,
+                    allowed.validUntil(), List.of(new Alternative(UUID.randomUUID().toString(), 1, List.of(new Clause(kind, List.of("S1"), false)))));
+            response.set(json.writeValueAsString(bad));
+            assertThatThrownBy(() -> client.requireScope("user-token", member)).isInstanceOf(CentralAccessException.class);
+        }
+    }
 }

@@ -36,9 +36,7 @@ public class GovernanceScopeController {
     public JsonNode resource(HttpServletRequest request)throws IOException{
         var input=AccessWeb.read(request.getInputStream(),ResourceCheck.class);var c=input.check();var context=context(request,c);var facts=input.facts();
         if(facts==null||!context.tenantId().equals(facts.tenantId())||!c.resourceType().equals(facts.resourceType())
-            ||!resourceId(facts.resourceId())||facts.resourceVersion()<0||!resourceId(facts.storeId())
-            ||facts.ownerPrincipalId()!=null||facts.departmentId()!=null||facts.supplierId()!=null||facts.departmentAncestors()==null||!facts.departmentAncestors().isEmpty()
-            ||(ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())&&!facts.resourceId().equals(facts.storeId())))throw invalid();
+            ||!ScopeResourceBindings.validFacts(facts))throw invalid();
         Evaluation result=access.evaluate(context,c.capability(),c.resourceType());
         boolean allowed=ScopeRules.matches(context.tenantId(),context.principalId(),result.alternatives(),facts);
         return GovernanceWeb.body(new ResourceDecision("1",c.requestId(),c.capability(),c.resourceType(),facts.resourceId(),facts.resourceVersion(),allowed?"ALLOW":"DENY",result.decisionId(),context,result.validUntil().toString()));
@@ -52,6 +50,5 @@ public class GovernanceScopeController {
         if(!settings.owners().getOrDefault(result.applicationId(),Set.of()).contains(c.resourceType()))throw new GovernanceException(GovernanceException.Code.ACCESS_DENIED);
         return result;
     }
-    private static boolean resourceId(String value){return value!=null&&value.matches("[A-Za-z0-9_:/.-]{1,100}");}
     private static GovernanceException invalid(){return new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);}
 }

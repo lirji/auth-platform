@@ -50,4 +50,16 @@ class ScopeRulesTest {
         var a = List.of(new Alternative("g", 1, rule.clauses()));
         assertThat(ScopeRules.matches("T", "U", a, new Facts("T", "store", "S001", 1, null, null, List.of(), null, null))).isFalse();
     }
+    @Test void memberScopeRemainsTenantOnlyAndNeverUsesEmployeeDepartmentOrStore() {
+        var member = new Rule(1, "commerce_member", List.of(new Clause(Kind.TENANT_ALL, List.of(), false)));
+        var paths = ScopeRules.select("commerce.member.read", "commerce_member",
+                List.of(new ScopeRules.Candidate("g", List.of("commerce.member.read"), member)), Set.of("g"));
+        assertThat(ScopeRules.matches("T", "U", paths, new Facts("T", "commerce_member", "M1", 1, null, null, List.of(), null, null))).isTrue();
+        assertThat(ScopeRules.matches("T", "U", paths, new Facts("T2", "commerce_member", "M1", 1, null, null, List.of(), null, null))).isFalse();
+        assertThat(ScopeRules.matches("T", "U", paths, new Facts("T", "commerce_member", "M1", 1, null, null, List.of(), "S1", null))).isFalse();
+        for (Kind kind : List.of(Kind.SPECIFIED_STORES, Kind.SPECIFIED_RESOURCES, Kind.DEPARTMENT)) {
+            assertThatThrownBy(() -> ScopeRules.validated(new Rule(1, "commerce_member", List.of(new Clause(kind, List.of("S1"), false))))).hasMessage("SCOPE_UNSUPPORTED");
+        }
+        assertThatThrownBy(() -> ScopeRules.validated(new Rule(1, "unknown_type", member.clauses()))).hasMessage("SCOPE_UNSUPPORTED");
+    }
 }

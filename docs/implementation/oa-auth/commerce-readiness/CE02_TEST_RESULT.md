@@ -10,3 +10,17 @@
 - 源码核对发现并记录ScopeRules/SDK/server资源白名单、execution仅CATALOG、V46本地有效凭据及V48单CATALOG接管约束；按切片补齐，不靠给用户ADMIN绕过。
 
 CE-02-D设计验证PASS。CE-02-A兼容协议和CE-03库存尚未实现；此结果不是完整新增模块或生产迁移验收。新资源Owner配置/真实映射、角色授予、切换均未执行。
+
+## CE-02-A 有限资源协议
+
+实现：新增纯Java ScopeResourceBindings，治理ScopeRules、SDK范围响应、server Owner配置及资源事实校验统一复用。保留store/product三种范围；merchant只允许全租户/指定商家资源，18个无可信门店归属的会员营销等类型只允许TENANT_ALL。新类型事实不接收门店/员工/部门/供应商字段。未登记Owner仍拒绝；没有修改任何运行配置、清单或已有Grant。ExecutionAuthorization仍只支持既有CATALOG，库存精确扩展属于CE-03-I。
+
+验证：
+
+- 全模块 `./mvnw -B test`：248项通过，0失败/错误/跳过。
+- `ReliableAuthorizationIT`：13项真实PostgreSQL+SpiceDB通过（含新增会员Grant持久化/投影、两运行时判权、跨租户/伪门店拒绝、撤权前栅栏拒绝及投影后DENY）。使用新建自有PG，连接池每实例2；原P3图仅新增随机隔离租户/application测试事实。
+- Boot4 SDK兼容测试通过；旧SDK对新类型的失败关闭来自旧代码显式白名单审查，未声称运行了旧二进制对新服务的端到端演练。旧store/product行为由原单元和13项真实图测试回归。
+- Hygiene无阻断；沿用仓库源码样式，无独立Java格式化器/静态分析配置，报告IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS。
+- 私有日志：`.local/governance/commerce-contracts/{unit,integration,boot4,hygiene-adapter}.log`。复用P7资源helper仅创建PG：eb6f374dc77f容器已停止，数据保留；未运行容量/灾备或修改共享IdP。
+
+CE-02-A验证PASS；与CE-02-D同一增量任务分支交付。库存与其他商城新模块仍未接管，真实映射和生产接受保持原阻塞，下一片CE-03-I。

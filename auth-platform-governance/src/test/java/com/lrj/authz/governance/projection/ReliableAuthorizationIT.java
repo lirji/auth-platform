@@ -140,6 +140,32 @@ class ReliableAuthorizationIT {
         assertThat(auth.allowed(c,cap,new Facts(partition.tenantId(),"product","P002",1,null,null,List.of(),"S001",null))).isFalse();
         assertThat(auth.allowed(c,cap,new Facts(partition.tenantId(),"product","P001",1,null,null,List.of(),"S002",null))).isFalse();
     }
+    @Test void tenantMemberGrantPersistsProjectsAndRevokesAcrossRuntimes() {
+        var f=fixture();String cap=f.p.applicationId()+".member.read";
+        runtime.catalog().publish(f.login,new Manifest("1",f.p.applicationId(),2,List.of(
+                new Capability(f.p.applicationId()+".read","store",Risk.NORMAL),
+                new Capability(f.p.applicationId()+".refund","store",Risk.HIGH),
+                new Capability(cap,"commerce_member",Risk.HIGH)),List.of()),id());
+        var owner=runtime.identity().contextForLogin(f.login.issuer(),f.login.subject(),f.p.tenantId(),null);
+        var partition=new Partition(f.p.tenantId(),f.p.applicationId(),"member-test");
+        runtime.access().bootstrap(partition,new Delegation(owner.membershipId(),1,AccessValues.json(List.of(cap)),3600),"test",id());
+        var role=runtime.access().createRole(f.login,partition,id(),"member-reader",1,List.of(cap));
+        runtime.access().enableStrict(f.login,partition,id());
+        var member=new Fixture(partition,f.login,f.member,role);
+        var rule=new Rule(1,"commerce_member",List.of(new Clause(com.lrj.authz.protocol.ScopeDtos.Kind.TENANT_ALL,List.of(),false)));
+        var grant=runtime.access().grantScoped(f.login,partition,id(),f.member.membershipId(),1,role.id(),rule,id(),Instant.now(),Instant.now().plusSeconds(300));
+        // 真实数据库拒绝给无门店归属的会员设置伪门店范围，拒绝后仍可投影合法Grant。
+        var invalid=new Rule(1,"commerce_member",List.of(new Clause(com.lrj.authz.protocol.ScopeDtos.Kind.SPECIFIED_STORES,List.of("S1"),false)));
+        assertThatThrownBy(()->runtime.access().grantScoped(f.login,partition,id(),f.member.membershipId(),1,role.id(),invalid,id(),Instant.now(),Instant.now().plusSeconds(300))).hasMessage("SCOPE_UNSUPPORTED");
+        project(member);var c=context(member);var auth=second.reliableAuthorization(graph);
+        var facts=new Facts(partition.tenantId(),"commerce_member","M1",1,null,null,List.of(),null,null);
+        assertThat(auth.allowed(c,cap,facts)).isTrue();
+        assertThat(auth.allowed(c,cap,new Facts(id(),"commerce_member","M1",1,null,null,List.of(),null,null))).isFalse();
+        assertThat(auth.allowed(c,cap,new Facts(partition.tenantId(),"commerce_member","M1",1,null,null,List.of(),"S1",null))).isFalse();
+        runtime.access().revoke(f.login,partition,id(),grant.id(),1);
+        assertThatThrownBy(()->auth.allowed(c,cap,facts)).hasMessage("AUTHZ_STATE_NOT_READY");
+        project(member);assertThat(auth.allowed(c,cap,facts)).isFalse();
+    }
     private void awaitAllowed(Fixture f,String store){
         // 独立双水位允许保守短暂拒绝；等待图量化快照追平，不把旧DENY改为ALLOW。
         var auth=second.reliableAuthorization(graph);var c=context(f);long deadline=System.nanoTime()+10_000_000_000L;

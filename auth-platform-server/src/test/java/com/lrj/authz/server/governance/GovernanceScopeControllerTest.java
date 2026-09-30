@@ -54,4 +54,20 @@ class GovernanceScopeControllerTest {
         var node=(com.fasterxml.jackson.databind.node.ObjectNode)json.valueToTree(check);node.put("principal_id",id());
         assertThatThrownBy(()->controller.plan(request(node))).hasMessage("INVALID_ARGUMENT");verifyNoInteractions(authorization);
     }
+    @Test void tenantOnlyFactsNeedExplicitOwnerAndRejectFakeStore() throws Exception {
+        var member = new CentralAccessDtos.Check(tenant, 1L, id(), "commerce.member.read", "commerce_member");
+        var facts = new Facts(tenant, "commerce_member", "M1", 1, null, null, List.of(), null, null);
+        assertThatThrownBy(() -> controller.resource(request(new ResourceCheck(member, facts)))).hasMessage("ACCESS_DENIED");
+        verifyNoInteractions(authorization);
+        var registered = new GovernanceScopeController(contexts, authorization,
+                new GovernanceScopeConfiguration.ScopeSettings(null, Set.of("consumer"), Map.of("commerce", Set.of("commerce_member"))));
+        when(authorization.evaluate(any(), anyString(), anyString())).thenAnswer(invocation ->
+                new Evaluation(id(), null, List.of(new Alternative(id(), 1, List.of(new Clause(Kind.TENANT_ALL, List.of(), false)))), Instant.now().plusSeconds(25)));
+        assertThat(registered.resource(request(new ResourceCheck(member, facts))).path("decision").asText()).isEqualTo("ALLOW");
+        for (var invalid : List.of(
+                new Facts(tenant, "commerce_member", "M1", 1, null, null, List.of(), "S1", null),
+                new Facts(id(), "commerce_member", "M1", 1, null, null, List.of(), null, null))) {
+            assertThatThrownBy(() -> registered.resource(request(new ResourceCheck(member, invalid)))).hasMessage("INVALID_ARGUMENT");
+        }
+    }
 }

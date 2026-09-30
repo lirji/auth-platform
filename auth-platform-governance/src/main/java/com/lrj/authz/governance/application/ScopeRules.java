@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lrj.authz.protocol.ScopeDtos.*;
+import com.lrj.authz.protocol.ScopeResourceBindings;
 import java.util.*;
 import static com.lrj.authz.governance.application.GovernanceException.Code.*;
 
@@ -23,8 +24,8 @@ public final class ScopeRules {
         if (input == null || input.version() != 1 || input.resourceType() == null
                 || input.clauses() == null || input.clauses().isEmpty() || input.clauses().size() > 4) throw invalid();
         CatalogManifest.code(input.resourceType());
-        // 当前真实资源绑定为门店和商品；未确定拥有者/部门/供应商语义前绝不猜测字段。
-        if (!Set.of(com.lrj.authz.protocol.ScopeDtos.STORE_RESOURCE_TYPE, com.lrj.authz.protocol.ScopeDtos.PRODUCT_RESOURCE_TYPE).contains(input.resourceType())) throw new GovernanceException(SCOPE_UNSUPPORTED);
+        // 只有已固定Owner字段语义的类型可解释范围，未知类型不能退化成全租户。
+        if (!ScopeResourceBindings.supports(input.resourceType())) throw new GovernanceException(SCOPE_UNSUPPORTED);
         Set<Kind> seen = EnumSet.noneOf(Kind.class);
         List<Clause> clauses = new ArrayList<>();
         for (Clause c : input.clauses()) {
@@ -36,7 +37,7 @@ public final class ScopeRules {
             for (String value : c.values()) {
                 if (value == null || !value.matches("[A-Za-z0-9_:/.-]{1,100}") || !values.add(value)) throw invalid();
             }
-            if (c.kind() != Kind.TENANT_ALL && c.kind() != Kind.SPECIFIED_STORES && c.kind() != Kind.SPECIFIED_RESOURCES)
+            if (!ScopeResourceBindings.allows(input.resourceType(), c.kind()))
                 throw new GovernanceException(SCOPE_UNSUPPORTED);
             clauses.add(new Clause(c.kind(), List.copyOf(values), c.includeRoot()));
         }
@@ -74,7 +75,7 @@ public final class ScopeRules {
     /** 资源事实必须来自已认证Owner；租户边界在路径OR之外始终取AND。 */
     public static boolean matches(String tenant, String principal, List<Alternative> alternatives, Facts facts) {
         if (tenant == null || principal == null || facts == null || !tenant.equals(facts.tenantId())
-                || facts.resourceId() == null || facts.resourceVersion() < 0 || alternatives.size() > 100) return false;
+                || !ScopeResourceBindings.validFacts(facts) || alternatives.size() > 100) return false;
         for (Alternative alternative : alternatives) {
             Rule rule = validated(new Rule(alternative.scopeVersion(), facts.resourceType(), alternative.clauses()));
             if (rule.clauses().stream().allMatch(c -> switch (c.kind()) {

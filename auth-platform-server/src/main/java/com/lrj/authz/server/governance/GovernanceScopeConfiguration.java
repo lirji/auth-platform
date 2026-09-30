@@ -21,7 +21,7 @@ public class GovernanceScopeConfiguration {
         for(String key:p.stringPropertyNames())if(key.startsWith("scope.owner.")){
             String app=key.substring("scope.owner.".length());CatalogManifest.code(app);
             Set<String> types=new HashSet<>(List.of(p.getProperty(key).split(",",-1)));
-            if(types.isEmpty()||!Set.of("store","product").containsAll(types))throw invalid();owners.put(app,Set.copyOf(types));
+            if(types.isEmpty()||!types.stream().allMatch(com.lrj.authz.protocol.ScopeResourceBindings::supports))throw invalid();owners.put(app,Set.copyOf(types));
         }
         if(owners.isEmpty()||owners.size()>32)throw invalid();
         return new ScopeSettings(new SpiceDbProjectionGraph(p.getProperty("scope.graph.http"),p.getProperty("scope.graph.key"),Duration.ofSeconds(3)),Set.copyOf(allowed),Map.copyOf(owners));
