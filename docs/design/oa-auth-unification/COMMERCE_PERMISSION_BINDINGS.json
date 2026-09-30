@@ -3984,6 +3984,36 @@
       "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
       "capabilities": [],
       "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "TagActionsController",
+      "method": "GET",
+      "path": "/v1/operations/member-tags/define-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/TagActionsController.java",
+      "capabilities": [
+        "commerce.member_tag.define"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "TagActionsController",
+      "method": "GET",
+      "path": "/v1/operations/member-tags/assign-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/TagActionsController.java",
+      "capabilities": [
+        "commerce.member_tag.assign"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/member-tags",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
     }
   ]
 }

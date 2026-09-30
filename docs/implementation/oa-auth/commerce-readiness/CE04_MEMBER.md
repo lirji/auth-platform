@@ -104,3 +104,19 @@ T0 auth6bfaae7已推送，CI36673611219待查；G2 auth36673405496被后续推�
 实际rehearsal-c1893723fb4a最终182PASS，tags_checked/growth_checked均true，runtime_switched/production_ready均false；真实标签定义无read/无assign、独立assign无read、字典/关联读、真实目标与外租户拒绝、关联版本冲突、撤销后保留/重授递增、四次效果恰四条审计（字典真实tag类型1、会员分配3）、撤权后旧回执拒绝且read保留、真实中央停止503及各域后台恢复回归通过。自有PG/IdP/JVM由finally停止，子网86与数据保留。
 
 完整417项412PASS/5skip加最终标签5项窄测试（新增上限1项）、36项工具/231入口、SDK安装/package、两仓hygiene与diff检查通过；产品代码验证后无修改。T1本地DONE，Git交付中；下一T2页面/浏览器，标签后端通过不代表页面或其他域已完成。
+
+
+## CE04-T2验证中
+
+T1已交付auth10239a5/commercea85e62f，CI36674310063/36674311269均SUCCESS；T0 CI36673611219 SUCCESS。T2固定SSO标签页、两个独立提示与精确路由已实现，完整tag-ui-verify.log共419项414PASS/5既有skip，标签6项含独立提示/旧ADMIN/401/范围代际/503，静态壳GET和非GET安全回归通过；36项Python/234入口/122能力/34岗位通过。
+
+hygiene首轮报告标签操作字面值，已用封闭TagOperation常量表达，无业务语义变化；之后tag-ui-build-final.log、tag-ui-package-final.log与tag-ui-hygiene-final.log通过，Java formatter/静态分析未配置限制保持。真实浏览器rehearsal-fdda68438ef6（子网87）正在运行，Vite验证当前常量版源码；演练复制的JAR包含相同后端，最终JAR已重新打包。尚未据部分浏览器通过标DONE。
+
+
+### T2最终本地DONE
+
+rehearsal-fdda68438ef6最终221PASS；标签五阶段10条浏览器细分检查，成长11/基础会员12/目录11/库存9/CATALOG9共享回归全部通过。真实PKCE定义标签无read/assign、独立分配无read、真实提交响应丢失后原输入/相同key/body重试、取消退出和Tab保留；实际字典/会员关联读取、错误版本409保留后纠正、撤销保留关联且版本2、独立撤权保留read/define、外租户/401及真实中央停机503通过。SQL/API证实UI三次效果与API四次效果恰7条身份审计，无重复字典/分配。
+
+已实际查看本次define-form、390-define-form、assign成功、unknown、dictionary、conflict、390-revoke-form、revoked-association、390-assignments、outage截图：层级/文字和表单可用，窄屏表格仅容器横向滚动；初始desktop定义截图捕获表单校验消退中间态，后续390已清除，实际提交通过。截图是自审，不声称用户视觉批准。自有PG/IdP/JVM/Vite已finally停止，子网87/数据/私密证据保留；原8602未切换。
+
+最终419项414PASS/5skip、36工具/234入口、前端build/package及两仓hygiene/diff通过；Java formatter/静态分析未配置限制保持。最后产品变动仅操作枚举常量，发生于标签浏览器阶段前并已重新build/package；后端与完整回归相同。T2本地DONE，Git交付中；下一CE04-B行为，技术草案已盘点，其他会员与CE05—08仍未完成。

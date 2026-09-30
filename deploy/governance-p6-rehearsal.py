@@ -473,11 +473,17 @@ def rehearse(args, isolation=None):
             expect('revoked growth adjustment cannot replay old receipt',18661,base+'/'+target+'/adjust',adjust_headers,adjustment,403)
             expect('growth read survives adjustment revocation',18661,base+'/'+target,user)
             growth_browser('revoked')
+        def tag_browser(phase):
+            if not args.browser:return
+            subprocess.run(['node',str(root/'deploy/governance-ce04-tags.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=120)
+            record('real tag browser '+phase)
         if args.tags:
+            if args.browser:h.private(run/'tag-ui.json',(run/'catalog-ui.json').read_text())
             insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'MEMBER_TAG','state':'SHADOW'})
             sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='MEMBER_TAG' AND state='SHADOW' AND version=1;")
             base='/v1/admin/member-tags';target='ce04-tag-member'
             expect('tag actual member created independently',18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':target,'actorId':'ce04-tag-customer','displayName':'Tag fixture','memberLevel':'BASIC'})
+            if args.browser:expect('tag UI actual member created',18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':'ce04-tag-ui-member','actorId':'ce04-tag-ui-customer','displayName':'Tag browser fixture','memberLevel':'BASIC'})
             expect('growth does not imply tag access',18661,base,user,status=403)
             expect('legacy ADMIN cannot bypass tag authority',18661,base,[('Authorization','Bearer '+admin_local)],status=403)
             def tag_grant(code):
@@ -492,13 +498,16 @@ def rehearse(args, isolation=None):
             expect('tag definition does not imply read',18661,base,user,status=403)
             assignment={'tagId':'ce04-tag','active':True,'expectedVersion':0,'reason':'CE04 isolated classification'}
             expect('tag definition does not imply assignment',18661,base+'/'+target+'/assign',user+[('Idempotency-Key',uid())],assignment,403)
+            tag_browser('define-only')
             assignment_grant=tag_grant('member_tag.assign');assign_headers=user+[('Idempotency-Key',uid())]
             assigned=expect('tag assignment without read',18661,base+'/'+target+'/assign',assign_headers,assignment)
             if not assigned['active'] or assigned['version']!=1:raise RuntimeError('tag assignment effect incorrect')
             if expect('tag assignment stable retry',18661,base+'/'+target+'/assign',assign_headers,assignment)!=assigned:raise RuntimeError('tag assignment repeated')
             expect('tag assignment does not imply read',18661,base+'/'+target+'/assignments',user,status=403)
+            tag_browser('assign')
             tag_grant('member_tag.read')
-            if expect('tag independent dictionary read',18661,base,user)!=[definition]:raise RuntimeError('tag dictionary mismatch')
+            expected_definitions=[definition]+([{'tagId':'ce04-ui-tag','name':'页面会员标签'}] if args.browser else [])
+            if expect('tag independent dictionary read',18661,base,user)!=expected_definitions:raise RuntimeError('tag dictionary mismatch')
             if expect('tag independent member assignments',18661,base+'/'+target+'/assignments',user)!=[assigned]:raise RuntimeError('tag association mismatch')
             expect('tag missing actual owner rejected',18661,base+'/foreign-member/assignments',user,status=404)
             expect('tag foreign auth tenant denied',18661,base,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
@@ -507,12 +516,18 @@ def rehearse(args, isolation=None):
             if revoked['active'] or revoked['version']!=2:raise RuntimeError('tag deactivation incorrect')
             restored=expect('tag reactivation increments version',18661,base+'/'+target+'/assign',user+[('Idempotency-Key',uid())],{**assignment,'expectedVersion':2,'reason':'Restore reviewed classification'})
             if not restored['active'] or restored['version']!=3:raise RuntimeError('tag reactivation incorrect')
-            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.member_tag.%' AND store_id IS NULL")[1]!='4':raise RuntimeError('tag audit count incorrect')
+            tag_browser('read')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.member_tag.%' AND store_id IS NULL")[1]!=('7' if args.browser else '4'):raise RuntimeError('tag audit count incorrect')
             if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member_tag' AND resource_id='ce04-tag'")[1]!='1':raise RuntimeError('tag definition audit pretends member')
-            record('tag definition and three assignment effects have exactly four actual target audits')
+            if args.browser:
+                ui_tags=expect('tag UI inactive association retains version two',18661,base+'/ce04-tag-ui-member/assignments',user)
+                if len(ui_tags)!=1 or ui_tags[0]['active'] or ui_tags[0]['version']!=2:raise RuntimeError('tag UI assignment effect incorrect')
+                if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member_tag' AND resource_id='ce04-ui-tag'")[1]!='1':raise RuntimeError('tag UI definition repeated')
+            record('tag API and optional UI effects have exactly one audit per successful command')
             expect('revoke tag assignment independently',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':assignment_grant,'expected_version':1});projection()
             expect('revoked tag assignment cannot replay receipt',18661,base+'/'+target+'/assign',assign_headers,assignment,403)
             expect('tag read survives assignment revocation',18661,base+'/'+target+'/assignments',user)
+            tag_browser('revoked')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -557,7 +572,9 @@ def rehearse(args, isolation=None):
         if args.growth:
             expect('growth auth outage fails closed',18661,'/v1/admin/member-growth/ce04-growth-member',user,status=503)
             growth_browser('outage')
-        if args.tags:expect('tag auth outage fails closed',18661,'/v1/admin/member-tags',user,status=503)
+        if args.tags:
+            expect('tag auth outage fails closed',18661,'/v1/admin/member-tags',user,status=503)
+            tag_browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
         result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}

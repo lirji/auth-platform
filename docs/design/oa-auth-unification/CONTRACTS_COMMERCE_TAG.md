@@ -14,7 +14,7 @@ T0中央有限3能力，define scope-only/read+assign资源check；T1真实商�
 |---|---|---|
 | CE04-T0 | G2；auth有限3能力/60秒HUMAN/全租户/define只scope，真实PG+graph对范围/类型/Owner/代际/撤权重授/到期与旧组合回归；SDK/Boot4 | DONE（本地） |
 | CE04-T1 | T0；MEMBER_TAG/V54、实际字典审计类型、真实Member Owner/事务/版本/64上限/幂等/撤权与真实MySQL/跨进程中央验收 | DONE（本地） |
-| CE04-T2 | T1；独立SSO标签页/提示与真实读写、错误恢复/1440及390截图/既有页面回归 | TODO |
+| CE04-T2 | T1；独立SSO标签页/提示与真实读写、错误恢复/1440及390截图/既有页面回归 | DONE（本地） |
 
 T0仅增加有限执行能力，不把协议测试中的合成会员事实当真实商城Owner验收；T1按实际会员Owner完成。read在字典列表用scope、在assignments用Member facts，define不接受伪会员resource-check。未知能力和伪门店/部门范围继续失败关闭。审计类型commerce_member_tag仅本地业务目标分类，不新建中央授权资源类型，也不允许调用方任意传入审计类型。
 
@@ -25,3 +25,13 @@ MemberTagService注入已有EmployeeAccess及MemberMapper，无新业务接口/D
 define/assign在中央模式把稳定principal/membership/generation追加原幂等摘要，LEGACY/SHADOW保留原摘要。define审计固定映射commerce_member_tag和真实tagId，assign审计仍是commerce_member和真实memberId；路径参数、Owner事实和审计目标的职责分开。EmployeeAuthority只有MEMBER_TAG_DEFINE可作此固定映射，HTTP不能指定审计类型。V54只扩族/审计check及中文注释，保留所有旧类型/触发器；已执行后不可修改。
 
 验证T1以真实MySQL覆盖字典定义不隐含读、分配不隐含读、关联版本/撤销/重授/冻结/CLOSED、活跃64上限与名额释放、Owner竞争、审计异常回滚业务与命令、代际摘要、缺失/外租户目标、撤权/STOPPED/503；实际中央有限600秒角色联调另证scope与资源事实，标签定义审计1条、分配/撤销/重授审计3条，旧模块后台恢复回归。客户/内部规则消费仍沿原Growth facts，不把员工撤权套在已承诺系统作业上。
+
+## T2页面与提示实施契约
+
+固定/operations/member-tags?tenant_id=<UUID>，沿现有SSO/AntDesign。仅允许真实字典GET/POST admin/member-tags与已有会员GET {id}/assignments、POST {id}/assign，以及两独立提示GET operations/member-tags/{define|assign}-access；提示固定对应能力、OPERATOR/执行引用与scope双核验，不替代提交时Owner。静态壳/SSO allowlist增加该固定页，未接管能力不被旧聚合MemberGrowth组件隐式请求。
+
+字典列表按tagId游标50条，定义表单tagId/name沿既有DTO；会员关联按已知memberId查询，列表显示tagId/active/version/source/reason并按tagId游标50条，不暗中请求会员姓名或成长。独立分配岗位用已知memberId/tagId/expectedVersion/active/reason；选择分配或撤销时提交布尔active，不凭本地UI推断版本/会员状态。定义不隐含读，分配不隐含字典/会员读取；首次关联版本0，后续必须核对关联版本；注销限制、64活跃上限仍以服务端为准。
+
+两个写区各保留原path/body/key，未知结果锁输入并只能原样重试，之后403不能丢弃原意图。409保留输入；401卸载业务；403单区拒绝；503不能当空列表/成功。切Tab保留输入，退出/离开提示未保存和未知意图。界面复用原有布局/字号/中文文案，不换设计系统。
+
+真实验收定义无读、分配无读、真实响应丢失相同键重试、版本409后纠正、撤销保留关联并增加版本、独立撤权/外租户/401/真实依赖503、列表/表单/结果/未知/冲突及1440/390截图实际查看，共享成长/会员/目录/库存/CATALOG回归。新增静态壳加两个提示共3入口，预期231→234，不新增能力/岗位/schema/依赖。

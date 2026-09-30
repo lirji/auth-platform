@@ -66,3 +66,5 @@ CE04-G2本地DONE：413项408PASS/5skip、真实隔离183PASS（324fea9731d5）�
 CE04-G2已推送auth8351043/commerce646ebd5；CI待查。CE04-T0本地DONE：标签3有限执行能力、define scope-only、252单元/真实PG+graph6项/SDK Boot4 package/hygiene通过，见CE04_MEMBER与CONTRACTS_COMMERCE_TAG。下一T1真实Owner/标签字典实际审计目标/V54，尚未实施。
 
 CE04-T1本地DONE：完整417项412PASS/5skip与最终标签5项窄测试（含后补64上限）通过，真实隔离c1893723fb4a共182PASS，无浏览器；V54已应用不可改。36项工具/231入口/hygiene无阻断，见CE04_MEMBER。下一T2独立标签页，其他会员与CE05—08仍未完成。
+
+CE04-T2本地DONE：419项414PASS/5skip、真实隔离fdda68438ef6共221PASS（标签10条浏览器，含所有既有员工页回归），1440/390及错误/重试/撤销/停机截图已查看；36工具/234入口与hygiene通过。T1两仓CI36674310063/36674311269 SUCCESS。下一CE04-B行为技术细化，其他会员及CE05—08仍未完成。
