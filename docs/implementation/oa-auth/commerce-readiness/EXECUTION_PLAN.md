@@ -60,3 +60,5 @@ CE04最新：P1 auth2cb8c11/commerce1bc81f2已合并推送，两仓CI36669783915
 CE04-P2已普通合并推送auth21380a4/commerce359ac02，CI36670574749/36670578849待查。CE04-G0本地DONE（五成长执行能力）：既有251单测+新增Owner1、5真实PG+graph IT、SDK/Boot4/package/hygiene通过，见CE04_MEMBER与CONTRACTS_COMMERCE_GROWTH。下一G1 READY，商城成长业务/API/V53尚未实施。
 
 CE04-G1本地DONE：411项406PASS/5skip、真实成长中央联调151PASS（fb6d4a99a58b），V53已应用不可改历史；五能力/独立路由/真实Owner/幂等/事务审计均验证。G0 CI36670815592及P2 commerce36670578849 SUCCESS。G1 Git交付中，下一G2页面与浏览器；发券500ms预算时序敏感测试的失败历史见CE04_MEMBER，不隐去。
+
+CE04-G2本地DONE：413项408PASS/5skip、真实隔离183PASS（324fea9731d5），成长11/会员12/目录11/库存9/CATALOG9浏览器细分检查，当前1440/390/表单/钱包/冲突/未知/重算/停机截图已查看；36项工具、231入口及hygiene无阻断。原公平性回归暴露的游标缺陷单独commerce45b74ee修复，旧版确定性FAIL/新版PASS与原公平性检查保留，详见CE04_MEMBER和commerce独立修复说明。下一CE04-T标签技术细化，其他会员与CE05—08仍未完成。

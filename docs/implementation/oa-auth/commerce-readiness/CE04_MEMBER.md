@@ -64,3 +64,21 @@ G1成长5能力/独立MEMBER_GROWTH路由、政策真实版本审计、会员Own
 ### G1最终本地DONE
 
 串行完整growth-verify-serial.log BUILD SUCCESS：411项406PASS/5既有skip，新增成长4项及既有发券7项全部通过。此前500ms发券预算的时序敏感断言限制仍保留，未修改该实现/测试。真实隔离151PASS、36项Python/227入口契约、SDK固定来源/compile/package及两仓hygiene无阻断；验证后没有产品代码变化。hygiene没有Java formatter/静态分析的限制不变。G1本地DONE，下一G2真实页面/浏览器，未把成长后端当全CE04或全部迁移完成。
+
+G1已交付commerce5d78721；auth83e38b2经合并已有main成为e23cb52并正常推送。main中其他任务8b0af28/ffb82a5的Docker治理控制台和连接池限制原样保留，合并无冲突，合并后36项工具/227入口再次通过；未部署这些变更。CI待查。G2按既定技术细化开始。
+
+## G2验证中与独立轮转修复
+
+G1两仓CI36671974503/36671965481 SUCCESS。G2独立SSO页面/三提示/五权限工作区、真实钱包/账本/政策与原意图重试已实现；实际后端成长5项、静态壳/非GET门禁通过，36项Python、231入口/122能力/34角色、build/Prettier/hygiene无阻断，hygiene工具限制保持。完整growth-ui-verify-final.log 412项407PASS/5skip，但前一growth-ui-verify.log触发原OrderExpiryLaneTest公平性失败，未忽略失败或改断言。
+
+独立可控时钟复现：领取查询耗尽预算后零尝试仍推进游标，小租户被跳过、热租户先获第二个quantum。已用独立fix/tenant-budget-cursor提交commerce45b74ee（只含轮转修复、确定性测试、说明文档）普通合并推送，G2分支依赖此修复。修复前探针FAIL、后PASS；修复版完整growth-ui-budget-fixed-verify.log 413项408PASS/5skip，其中TenantRotationTest10项/OrderExpiryLaneTest3项通过，原发券7项也通过。旧失败历史保留，不将偶发重跑通过当成问题消失。CI36672968400待查，独立修复说明在commerce docs/TENANT_ROTATION_BUDGET_FIX.md。
+
+真实--growth --browser演练rehearsal-324fea9731d5正在10.254.85.0/24运行，私密证据growth-ui-rehearsal.log；浏览器/当前截图未验收前G2不标DONE。其他会员与CE05—08、原生产HOLD仍未完成。
+
+### G2最终本地DONE
+
+rehearsal-324fea9731d5最终183PASS；成长6阶段11条浏览器细分检查，基础会员12、目录11、库存9、CATALOG9全部回归。真实PKCE、政策publish-only、两位小数/首档与门槛递增/动态等级增删、人工调整无read、0值校验/真实409保留输入后纠正、真实提交丢失响应锁定原输入/原键重试、切Tab与取消退出保留意图、独立政策读和钱包/账本、显式重算、单独撤权/外租户/实际401/实际中央停止503通过。分页首批真实2条政策/1条账本和末页按钮禁用已验，未额外伪造大列表。SQL/API确认UI成长250/账户版本2/仅1条账本，与API路径共6条身份审计，政策审计各绑定真实版本1、2，未知重试无重复效果。
+
+已实际查看当前版policy-form、390-policy-form、policies、wallet、390-wallet、unknown、conflict、recalculate-form、outage截图：桌面布局/层级与现有员工页一致；窄屏表单和钱包保持在视口内，账本在表格内部横向滚动；提示、禁用输入和重试按钮清楚，非用户视觉批准。自有PG/IdP/JVM/Vite由finally停止，独立子网85/数据/私密截图保留，原8602未切换。浏览器后产品代码无变化。
+
+最终413项408PASS/5既有skip（含独立轮转修复）、36项Python、231入口/122能力/34岗位快照、前端build/Prettier、两仓hygiene/diff无阻断，未配置Java formatter/静态分析限制保持。G2本地DONE，Git交付进行中；标签T草案仅在私有目录，尚未实施，下一按既定顺序继续T0/T1/T2。CE04其余能力和CE05—08不能算完成。

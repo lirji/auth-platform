@@ -1,6 +1,6 @@
 # 商城HTTP入口实测源码清单
 
-基线 commerce-platform 31dbdcd；当前任务仅增加静态 `/operations/catalog` 壳。逐个注解展开多路径，CE-04-P2新增会员壳与三独立提示后共 227 条。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
+基线 commerce-platform 31dbdcd；当前任务仅增加静态 `/operations/catalog` 壳。逐个注解展开多路径，CE-04-G2新增成长壳与三独立提示后共 231 条。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
 
 | Controller | 方法 | 路径 | 当前入口身份 | 源码 |
 |---|---|---|---|---|
@@ -231,3 +231,8 @@
 | MemberActionsController | GET | `/v1/operations/members/profile-access` | CENTRAL_OPERATOR / independent hint | `commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/MemberActionsController.java:22` |
 | MemberActionsController | GET | `/v1/operations/members/status-access` | CENTRAL_OPERATOR / independent hint | `commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/MemberActionsController.java:25` |
 | CentralPageController | GET | `/operations/members` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java:10` |
+
+| GrowthActionsController | GET | `/v1/operations/member-growth/policy-access` | EMPLOYEE_CENTRAL_PLANNED | `commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/GrowthActionsController.java` |
+| GrowthActionsController | GET | `/v1/operations/member-growth/adjust-access` | EMPLOYEE_CENTRAL_PLANNED | `commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/GrowthActionsController.java` |
+| GrowthActionsController | GET | `/v1/operations/member-growth/recalculate-access` | EMPLOYEE_CENTRAL_PLANNED | `commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/GrowthActionsController.java` |
+| CentralPageController | GET | `/operations/member-growth` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java` |

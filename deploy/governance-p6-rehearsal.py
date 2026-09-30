@@ -409,11 +409,17 @@ def rehearse(args, isolation=None):
             if args.browser:
                 if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member' AND resource_id='ce04-ui-member'")[1]!='3':raise RuntimeError('member browser commands not exactly once')
                 record('member browser three effects and three audits exactly once')
+        def growth_browser(phase):
+            if not args.browser:return
+            subprocess.run(['node',str(root/'deploy/governance-ce04-growth.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=120)
+            record('real growth browser '+phase)
         if args.growth:
+            if args.browser:h.private(run/'growth-ui.json',(run/'catalog-ui.json').read_text())
             insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'MEMBER_GROWTH','state':'SHADOW'})
             sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='MEMBER_GROWTH' AND state='SHADOW' AND version=1;")
             base='/v1/admin/member-growth';target='ce04-growth-member'
             expect('growth actual member created by independent core capability',18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':target,'actorId':'ce04-growth-customer','displayName':'Growth fixture','memberLevel':'BASIC'})
+            if args.browser:expect('growth UI actual member created',18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':'ce04-growth-ui-member','actorId':'ce04-growth-ui-customer','displayName':'Growth browser fixture','memberLevel':'BASIC'})
             expect('core member does not imply growth policy',18661,base+'/policies',user,status=403)
             expect('legacy ADMIN cannot bypass growth authority',18661,base+'/policies',[('Authorization','Bearer '+admin_local)],status=403)
             def growth_grant(code):
@@ -428,8 +434,9 @@ def rehearse(args, isolation=None):
             published=expect('growth policy publish without read',18661,base+'/policies',policy_headers,policy)
             if expect('growth policy receipt retry',18661,base+'/policies',policy_headers,policy)!=published:raise RuntimeError('growth policy receipt changed')
             expect('growth policy publish does not imply read',18661,base+'/policies',user,status=403)
+            growth_browser('publish-only')
             growth_grant('growth.policy.read')
-            if len(expect('growth policy independent read',18661,base+'/policies',user))!=1:raise RuntimeError('growth policy count incorrect')
+            if len(expect('growth policy independent read',18661,base+'/policies',user))!=(2 if args.browser else 1):raise RuntimeError('growth policy count incorrect')
             adjust_grant=growth_grant('growth.adjust')
             adjustment={'expectedVersion':0,'delta':150,'reason':'CE04 isolated growth calibration'};adjust_headers=user+[('Idempotency-Key',uid())]
             adjusted=expect('growth adjust without wallet read',18661,base+'/'+target+'/adjust',adjust_headers,adjustment)
@@ -437,22 +444,31 @@ def rehearse(args, isolation=None):
             if expect('growth adjust stable receipt retry',18661,base+'/'+target+'/adjust',adjust_headers,adjustment)!=adjusted:raise RuntimeError('growth adjustment repeated')
             expect('growth adjustment does not imply wallet read',18661,base+'/'+target,user,status=403)
             expect('growth adjustment does not imply recalculate',18661,base+'/'+target+'/recalculate',user+[('Idempotency-Key',uid())],{},403)
+            growth_browser('adjust')
             growth_grant('growth.read')
             wallet=expect('growth real member wallet read',18661,base+'/'+target,user)
             if wallet['growth']!=150:raise RuntimeError('growth wallet mismatch')
             if len(expect('growth ledger exactly one adjustment',18661,base+'/'+target+'/ledger',user))!=1:raise RuntimeError('growth ledger duplicated')
             expect('growth missing actual owner rejected',18661,base+'/foreign-member',user,status=404)
             expect('growth foreign auth tenant denied',18661,base+'/'+target,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            growth_browser('read')
             growth_grant('growth.recalculate');recalc_headers=user+[('Idempotency-Key',uid())]
             recalculated=expect('growth independent recalculation',18661,base+'/'+target+'/recalculate',recalc_headers,{})
             if recalculated['growth']!=150 or recalculated['version']!=2:raise RuntimeError('growth recalculation effect incorrect')
             if expect('growth recalculation receipt retry',18661,base+'/'+target+'/recalculate',recalc_headers,{})!=recalculated:raise RuntimeError('growth recalculation repeated')
-            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.growth.%' AND store_id IS NULL")[1]!='3':raise RuntimeError('growth identity audit count incorrect')
+            growth_browser('recalculate')
+            if args.browser:
+                ui_wallet=expect('growth UI actual wallet after single adjustment and recalculation',18661,base+'/ce04-growth-ui-member',user)
+                if ui_wallet['growth']!=250 or ui_wallet['version']!=2:raise RuntimeError('growth UI wallet duplicated or incorrect')
+                if len(expect('growth UI unknown retry commits only one ledger entry',18661,base+'/ce04-growth-ui-member/ledger',user))!=1:raise RuntimeError('growth UI ledger duplicated')
+                if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member_policy' AND resource_id='growth-policy-2'")[1]!='1':raise RuntimeError('growth UI policy audit incorrect')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.growth.%' AND store_id IS NULL")[1]!=('6' if args.browser else '3'):raise RuntimeError('growth identity audit count incorrect')
             if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member_policy' AND resource_id='growth-policy-1'")[1]!='1':raise RuntimeError('policy audit must bind actual version')
             record('growth policy adjustment recalculation commit exactly once with actual audit types')
             expect('growth revoke adjustment independently',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':adjust_grant,'expected_version':1});projection()
             expect('revoked growth adjustment cannot replay old receipt',18661,base+'/'+target+'/adjust',adjust_headers,adjustment,403)
             expect('growth read survives adjustment revocation',18661,base+'/'+target,user)
+            growth_browser('revoked')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -494,7 +510,9 @@ def rehearse(args, isolation=None):
         if args.member:
             expect('member auth outage fails closed',18661,'/v1/admin/members',user,status=503)
             member_browser('outage')
-        if args.growth:expect('growth auth outage fails closed',18661,'/v1/admin/member-growth/ce04-growth-member',user,status=503)
+        if args.growth:
+            expect('growth auth outage fails closed',18661,'/v1/admin/member-growth/ce04-growth-member',user,status=503)
+            growth_browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
         result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}

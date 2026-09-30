@@ -3943,6 +3943,47 @@
       "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
       "capabilities": [],
       "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "GrowthActionsController",
+      "method": "GET",
+      "path": "/v1/operations/member-growth/policy-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/GrowthActionsController.java",
+      "capabilities": [
+        "commerce.growth.policy.publish"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "GrowthActionsController",
+      "method": "GET",
+      "path": "/v1/operations/member-growth/adjust-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/GrowthActionsController.java",
+      "capabilities": [
+        "commerce.growth.adjust"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "GrowthActionsController",
+      "method": "GET",
+      "path": "/v1/operations/member-growth/recalculate-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/GrowthActionsController.java",
+      "capabilities": [
+        "commerce.growth.recalculate"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/member-growth",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
     }
   ]
 }
