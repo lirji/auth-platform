@@ -9,8 +9,7 @@ def module(name, path):
     spec=importlib.util.spec_from_file_location(name,path);value=importlib.util.module_from_spec(spec);spec.loader.exec_module(value);return value
 
 
-def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--commerce-root',default='../commerce-platform');args=parser.parse_args()
+def rehearse(args, isolation=None):
     root=Path(__file__).resolve().parents[1];commerce=Path(args.commerce_root).resolve()
     migration=module('p6_snapshot',root/'deploy/governance-p6-migration.py')
     up=module('p6_access',root/'deploy/governance-access-smoke.py');h=up.h
@@ -18,9 +17,16 @@ def main():
     snapshot,_=migration.read_json(root/selected['source_snapshot'],selected['source_sha256'])
     source=selected['source_tenant'];migration.identifier(source)
     suffix=secrets.token_hex(6);run=root/'.local/governance/p6'/('rehearsal-'+suffix);run.mkdir(mode=0o700)
-    subprocess.run(['python3',str(root/'deploy/governance-test-db.py'),'--directory',str(run/'database')],check=True,stdout=subprocess.DEVNULL)
-    dbfile=run/'database/database.properties';db=h.read_private(dbfile)
-    fixture=json.loads(h.read_private(root/'.local/governance/p2/identity/casdoor.json'));ops=json.loads(h.read_private(root/'.local/governance/casdoor-isolated/management-client.json'))
+    if isolation is None:
+        subprocess.run(['python3',str(root/'deploy/governance-test-db.py'),'--directory',str(run/'database')],check=True,stdout=subprocess.DEVNULL)
+        dbfile=run/'database/database.properties'
+        fixture_path=root/'.local/governance/p2/identity/casdoor.json';management_path=root/'.local/governance/casdoor-isolated/management-client.json'
+    else:
+        dbfile=isolation.db['config'];h.ISSUER=isolation.issuer
+        fixture_path=isolation.run/'identity/casdoor.json';management_path=isolation.management_config
+        h.private(run/'identity-evidence.json',json.dumps({'mode':'DEDICATED_IDP_AND_PG','resources':str(isolation.run),'issuer':isolation.issuer}))
+    db=h.read_private(dbfile)
+    fixture=json.loads(h.read_private(fixture_path));ops=json.loads(h.read_private(management_path))
     graph=h.read_private(root/'.local/governance/p3/graph/graph.properties');legacy=h.read_private(root/'.local/governance/p2/graph/graph.properties')
     jars={k:root/f'auth-platform-{k}/target/auth-platform-{k}-0.1.0-SNAPSHOT.jar' for k in ('admin','server')}
     local_jar=run/'commerce.jar';shutil.copy2(commerce/'commerce-app/target/commerce-app-0.1.0-SNAPSHOT.jar',local_jar)
@@ -166,6 +172,16 @@ def main():
             expect('original expired source identity remains denied',18661,'/v1/operations/products?storeId='+original['resource_id'],[('Authorization','Bearer '+source_tokens[original['actor_id']])],status=401)
         expect('old admin cannot bypass central guard',18661,'/v1/operations/products?storeId='+store,[('Authorization','Bearer '+admin_local)],status=403)
         expect('central cross-store denied',18661,'/v1/operations/products?storeId='+other,user,status=403)
+        def browser(phase):
+            if not args.browser:return
+            subprocess.run(['node',str(root/'deploy/governance-p6-catalog.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=120)
+            record('real central catalog browser '+phase)
+        if args.browser:
+            h.private(run/'catalog-ui.json',json.dumps({'token':user_token,'authority':h.ISSUER,'client':fixture['clients']['business']['name'],'tenant':tenant,'store':store,'other':other}))
+            pilot_class=module('p6_browser_start',root/'deploy/governance-p5-commerce.py').CommercePilot
+            pilot=pilot_class.__new__(pilot_class)
+            pilot.run,pilot.h=run,h
+            pilot.start(['node','node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','18665','--strictPort'],commerce/'frontend','catalog-vite',18665,dict(os.environ,VITE_IAM_ENABLED='true',VITE_IAM_AUTHORITY=h.ISSUER,VITE_IAM_CLIENT_ID=fixture['clients']['business']['name'],COMMERCE_API_URL='http://127.0.0.1:18661'))
         def post(name,path,body,key=None):return expect(name,18661,'/v1/operations/'+path,user+[('Idempotency-Key',key or uid())],body)
         post('central create product','products',{'productId':'p6-product','storeId':store,'title':'P6 product','category':'C','brand':'B'})
         sku=post('central create sku','skus',{'skuId':'p6-sku','productId':'p6-product','storeId':store,'title':'P6 sku','unitPrice':'10.00','specifications':[{'name':'size','value':'S'}]})
@@ -175,6 +191,7 @@ def main():
         post('central specification template','specification-templates',{'templateId':'p6-template','version':1,'storeId':store,'name':'P6 template','fields':[{'name':'size','values':['S','M']}]})
         post('central merchandising','products/p6-product/merchandising',{'storeId':store,'expectedVersion':0,'categoryId':'p6-category','templateId':None,'templateVersion':None,'description':'P6 details','images':[],'reason':'P6 metadata'})
         post('central barcode','skus/p6-sku/barcode',{'storeId':store,'expectedVersion':0,'barcode':'12345678','reason':'P6 barcode'})
+        browser('active')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -194,6 +211,7 @@ def main():
             time.sleep(.25)
         else:raise RuntimeError('background revocation was not exercised')
         expect('central denies after imported revocation' ,18661,'/v1/operations/products?storeId='+store,user,status=403)
+        browser('revoked')
         cli('MigrationImportCli',run/'import.properties',run/'batch-1.json',expected=2);record('old snapshot cannot resurrect newer tombstone')
         # 安全回退只停止，不把中央撤权后仍为true的旧授权重新变成权威。
         sql("UPDATE catalog_authority_route SET state='STOPPED',version=version+1 WHERE tenant_id="+q(source)+" AND state='CENTRAL';")
@@ -204,12 +222,32 @@ def main():
         sql("UPDATE catalog_authority_route SET state='CENTRAL',version=version+1 WHERE tenant_id="+q(source)+" AND state='STOPPED';")
         expect('resumed central retains denial',18661,'/v1/operations/products?storeId='+store,user,status=403)
         h.stop(auth);expect('central outage does not use legacy allow',18661,'/v1/operations/products?storeId='+store,user,status=503)
+        browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
+
+
+def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--commerce-root',default='../commerce-platform')
+    parser.add_argument('--browser',action='store_true')
+    parser.add_argument('--isolated-identity',action='store_true')
+    args=parser.parse_args()
+    isolation=None
+    try:
+        if args.isolated_identity:
+            # 复用P7已验证的自有资源生命周期；这里只准备身份/数据库，不运行容量或恢复测试。
+            root=Path(__file__).resolve().parents[1]
+            isolation=module('p6_identity_runtime',root/'deploy/governance-p7-rehearsal.py').Rehearsal(1,True,True)
+            isolation.prepare_database();isolation.prepare_identity()
+            subprocess.run(['python3',str(root/'deploy/governance-casdoor-fixture.py'),'--base',isolation.issuer,'--phase','tokens','--directory',str(isolation.run/'identity'),'--management-config',str(isolation.management_config)],check=True,stdout=subprocess.DEVNULL)
+        rehearse(args,isolation)
+    finally:
+        if isolation:isolation.close()
 
 
 if __name__=='__main__':

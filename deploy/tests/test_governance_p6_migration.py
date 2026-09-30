@@ -32,6 +32,52 @@ class MigrationTest(unittest.TestCase):
                 'membership_id': '00000000-0000-4000-8000-000000000003', 'generation': 1, 'identity_evidence': 'explicit-fixture-binding'}},
             'permissions': {'CATALOG': {'capabilities': ['commerce.catalog.operate'], 'approved_by': 'fixture-owner', 'decision_ref': 'isolated-test', 'valid_from': '2026-01-01T00:00:00Z', 'valid_to': '2026-01-03T00:00:00Z', 'validity_decision': 'explicit finite synthetic test'}}}
 
+    def review(self, previous=None):
+        return migration.prepare_review(self.snapshot, 'a' * 64, 'source', '2026-01-04T00:00:00Z', previous)
+
+    def test_review_retains_expiry_without_guessing_oa_identity(self):
+        report = self.review()
+        actor = report['actors'][0]
+        self.assertFalse(actor['operator_credential_available'])
+        self.assertIsNone(actor['principal_id'])
+        self.assertIsNone(actor['identity_evidence'])
+        self.assertFalse(report['ready_for_import'])
+        self.assertFalse(report['cutover_authorized'])
+        self.assertIsNone(report['records'][0]['target_valid_to'])
+
+    def test_review_cannot_join_same_resource_from_another_tenant(self):
+        self.snapshot['tables']['store_record'][0]['tenant_id'] = 'other'
+        report = self.review()
+        self.assertEqual('RESOURCE_REFERENCE_MISSING', report['records'][0]['resource_review'])
+        self.assertIsNone(report['records'][0]['store'])
+
+    def test_review_tracks_missing_records_and_non_increasing_versions(self):
+        previous = copy.deepcopy(self.snapshot)
+        previous['tables']['store_record'].append({**previous['tables']['store_record'][0], 'store_id': 'deleted'})
+        self.snapshot['tables']['store_record'][0]['status'] = 'INACTIVE'
+        changes = self.review(previous)['changes']
+        self.assertEqual({'MISSING_REQUIRES_TOMBSTONE_REVIEW', 'VERSION_CONFLICT'}, {c['kind'] for c in changes})
+        self.assertFalse(self.review(previous)['ready_for_import'])
+
+    def test_review_tracks_revocation_and_rejects_backwards_snapshots(self):
+        previous = copy.deepcopy(self.snapshot)
+        grant = self.snapshot['tables']['store_operator_grant'][0]
+        grant.update(active=0, version=8)
+        changes = self.review(previous)['changes']
+        self.assertEqual('CHANGED', changes[0]['kind'])
+        self.assertEqual(0, changes[0]['after']['active'])
+        previous['source']['snapshot_at'] = '2026-01-02T00:00:00Z'
+        with self.assertRaises(ValueError):
+            self.review(previous)
+
+    def test_review_records_all_grants_missing_without_silently_succeeding(self):
+        previous = copy.deepcopy(self.snapshot)
+        self.snapshot['tables']['store_operator_grant'] = []
+        report = self.review(previous)
+        self.assertEqual('MISSING_REQUIRES_TOMBSTONE_REVIEW', report['changes'][0]['kind'])
+        self.assertFalse(report['ready_for_import'])
+        self.assertEqual([], report['actors'])
+
     def report(self):
         return migration.dry_run(self.snapshot, 'a' * 64, self.mapping)
 

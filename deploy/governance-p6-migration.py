@@ -201,6 +201,63 @@ def dry_run(snapshot, snapshot_hash, mapping):
             'cutover_authorized': False}
 
 
+def prepare_review(snapshot, snapshot_hash, tenant, evaluation, previous=None):
+    """输出人工核对材料，绝不从同名账号推断OA身份或把源删除自动变成授权。"""
+    tables = snapshot_tables(snapshot)
+    identifier(tenant)
+    require(isinstance(evaluation, str) and (evaluation.endswith('Z') or re.search(r'[+-]\d\d:\d\d$', evaluation)), 'EVALUATION_ZONE_REQUIRED')
+    now = timestamp(evaluation)
+    require(now >= timestamp(snapshot['source']['snapshot_at']), 'EVALUATION_PRECEDES_SNAPSHOT')
+    grants = [g for g in tables['store_operator_grant'] if g['tenant_id'] == tenant]
+    prior = snapshot_tables(previous) if previous is not None else None
+    require(bool(grants) or prior is not None and any(g['tenant_id'] == tenant for g in prior['store_operator_grant']), 'SOURCE_TENANT_HAS_NO_GRANTS')
+    actors = []
+    for actor in sorted({g['actor_id'] for g in grants}):
+        credentials = [c for c in tables['platform_credential'] if c['tenant_id'] == tenant and c['actor_id'] == actor]
+        actors.append({'source_actor': actor, 'credential_metadata': credentials,
+                       'operator_credential_available': any(c['role'] == 'OPERATOR' and c['active'] and timestamp(c['expires_at']) > now for c in credentials),
+                       'oa_subject_ref': None, 'principal_id': None, 'membership_id': None,
+                       'generation': None, 'identity_evidence': None, 'reviewed_by': None,
+                       'status': 'EXACT_IDENTITY_MAPPING_REQUIRED'})
+    stores = {s['store_id']: s for s in tables['store_record'] if s['tenant_id'] == tenant}
+    merchants = {m['merchant_id']: m for m in tables['merchant_record'] if m['tenant_id'] == tenant}
+    records = []
+    for grant in sorted(grants, key=lambda g: g['grant_id']):
+        store = stores.get(grant['resource_id']) if grant['resource_type'] == 'STORE' else None
+        merchant = merchants.get(store['merchant_id']) if store else None
+        records.append({'source': grant, 'fingerprint': digest(grant), 'store': store, 'merchant': merchant,
+                        'resource_review': 'RESOURCE_SEMANTICS_UNSUPPORTED' if grant['resource_type'] != 'STORE' else 'RESOURCE_REFERENCE_MISSING' if not store or not merchant else 'OWNER_REFERENCE_PRESENT',
+                        'target_valid_from': None, 'target_valid_to': None, 'validity_decision': None})
+    changes = []
+    if previous is not None:
+        require(all(previous['source'].get(k) == snapshot['source'].get(k) for k in ('database', 'database_container')), 'SNAPSHOT_SOURCE_MISMATCH')
+        require(timestamp(previous['source']['snapshot_at']) <= timestamp(snapshot['source']['snapshot_at']), 'SNAPSHOT_ORDER_INVALID')
+        # 资源状态/归属变化也会影响授权；只比较所选租户且保存完整来源版本。
+        for table, fields in TABLES.items():
+            if table == 'platform_credential':
+                before = sorted((c for c in prior[table] if c['tenant_id'] == tenant), key=canonical)
+                after = sorted((c for c in tables[table] if c['tenant_id'] == tenant), key=canonical)
+                if before != after:
+                    changes.append({'table': table, 'kind': 'CREDENTIAL_SET_CHANGED', 'before': before, 'after': after})
+                continue
+            key = fields[1]
+            before = {r[key]: r for r in prior[table] if r['tenant_id'] == tenant}
+            after = {r[key]: r for r in tables[table] if r['tenant_id'] == tenant}
+            for record_id in sorted(before.keys() | after.keys()):
+                old, new = before.get(record_id), after.get(record_id)
+                if old == new:
+                    continue
+                kind = 'MISSING_REQUIRES_TOMBSTONE_REVIEW' if new is None else 'ADDED' if old is None else 'CHANGED'
+                if old and new and new['version'] <= old['version']:
+                    kind = 'VERSION_CONFLICT'
+                changes.append({'table': table, 'id': record_id, 'kind': kind, 'before': old, 'after': new})
+    return {'format': 'p6-commerce-mapping-review/v1', 'source_sha256': snapshot_hash,
+            'source_tenant': tenant, 'evaluation_at': evaluation, 'authority': 'OA',
+            'actors': actors, 'records': records, 'changes': changes,
+            'decisions': {'target_partition': None, 'capability_mapping': None, 'owner_approval': None},
+            'ready_for_import': False, 'cutover_authorized': False}
+
+
 def compare_shadow(samples):
     """只有完整ALLOW/DENY相等才收敛；双边ERROR也不能当成一致拒绝。"""
     require(isinstance(samples, list) and 0 < len(samples) <= MAX_ROWS, 'INVALID_SHADOW_SAMPLES')
@@ -258,6 +315,14 @@ def main(argv=None):
     dry.add_argument('--sha256', required=True)
     dry.add_argument('--mapping', required=True)
     dry.add_argument('--output', required=True)
+    review = commands.add_parser('prepare-review')
+    review.add_argument('--snapshot', required=True)
+    review.add_argument('--sha256', required=True)
+    review.add_argument('--tenant', required=True)
+    review.add_argument('--evaluation-at', required=True)
+    review.add_argument('--previous')
+    review.add_argument('--previous-sha256')
+    review.add_argument('--output', required=True)
     args = parser.parse_args(argv)
     try:
         if args.action == 'snapshot':
@@ -266,6 +331,16 @@ def main(argv=None):
             print(json.dumps({'result': 'SNAPSHOT_SAVED', 'sha256': hashlib.sha256(Path(args.output).read_bytes()).hexdigest(), 'counts': {t: len(v) for t, v in result['tables'].items()}}))
             return 0
         snapshot, actual = read_json(args.snapshot, args.sha256)
+        if args.action == 'prepare-review':
+            require(bool(args.previous) == bool(args.previous_sha256), 'PREVIOUS_HASH_REQUIRED')
+            previous = read_json(args.previous, args.previous_sha256)[0] if args.previous else None
+            report = prepare_review(snapshot, actual, args.tenant, args.evaluation_at, previous)
+            report['previous_sha256'] = args.previous_sha256
+            write_private(args.output, report)
+            print(json.dumps({'result': 'REVIEW_REQUIRED', 'actors': len(report['actors']),
+                              'records': len(report['records']), 'changes': len(report['changes']),
+                              'ready_for_import': False, 'cutover_authorized': False}))
+            return 2
         mapping, _ = read_json(args.mapping)
         report = dry_run(snapshot, actual, mapping)
         write_private(args.output, report)
