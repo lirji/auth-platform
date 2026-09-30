@@ -28,7 +28,7 @@ public class GovernanceExecutionController {
         String credential=credential(request); caller(credential);
         var input=AccessWeb.read(request.getInputStream(),Issue.class);
         if(input==null||input.check()==null)throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);
-        var check=input.check();
+        var check=input.check(); requireOwner(check.resourceType());
         var context=contexts.resolve(credential,GovernanceWeb.singleHeader(request.getHeaders("X-User-Access-Token")),new ResolveRequest(check.tenantId(),check.expectedMembershipGeneration()));
         return GovernanceWeb.body(executions.issue(context,input));
     }
@@ -37,6 +37,22 @@ public class GovernanceExecutionController {
     public JsonNode check(HttpServletRequest request)throws IOException {
         var caller=caller(credential(request));
         return GovernanceWeb.body(executions.check(caller,AccessWeb.read(request.getInputStream(),Check.class)));
+    }
+    /** 已签发集合引用仍受Owner类型允许列表约束，不能伪造待创建对象事实。 */
+    @PostMapping(value="/execution-scope",consumes="application/json")
+    public JsonNode scope(HttpServletRequest request)throws IOException {
+        var caller=caller(credential(request));
+        var input=AccessWeb.read(request.getInputStream(),ScopeCheck.class);
+        if(input==null||input.check()==null)throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);
+        requireOwner(input.check().resourceType());
+        var body=GovernanceWeb.body(executions.scope(caller,input));
+        if(body.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length>com.lrj.authz.protocol.ScopeDtos.MAX_PLAN_BYTES)
+            throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE);
+        return body;
+    }
+    private void requireOwner(String resource) {
+        if(resource==null)throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);
+        if(!settings.resources().contains(resource))throw new GovernanceException(GovernanceException.Code.ACCESS_DENIED);
     }
     private CallerService caller(String credential) {
         var caller=contexts.authenticateCaller(credential);

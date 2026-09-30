@@ -21,7 +21,7 @@ public class GovernanceExecutionConfiguration {
         var callers=new HashSet<>(List.of(value.split(",",-1)));
         callers.forEach(CatalogManifest::code);
         if(callers.isEmpty()||!scope.callers().containsAll(callers)||!scope.owners().getOrDefault("commerce",Set.of()).contains("store"))throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);
-        return new ExecutionSettings(Set.copyOf(callers));
+        return new ExecutionSettings(Set.copyOf(callers), scope.owners().getOrDefault("commerce", Set.of()));
     }
-    record ExecutionSettings(Set<String> callers) {}
+    record ExecutionSettings(Set<String> callers, Set<String> resources) {}
 }

@@ -10,4 +10,6 @@ public final class ExecutionAccessDtos {
                             GovernanceDtos.AccessContext context, String capability, String resourceType, String expiresAt) {}
     /** 事实由资源Owner当前读库生成，引用不得跨调用服务或租户使用。 */
     public record Check(String executionId, ScopeAccessDtos.ResourceCheck resource) {}
+    /** 集合/创建没有对象事实，只返回引用原路径与当前权限的交集。 */
+    public record ScopeCheck(String executionId, CentralAccessDtos.Check check) {}
 }

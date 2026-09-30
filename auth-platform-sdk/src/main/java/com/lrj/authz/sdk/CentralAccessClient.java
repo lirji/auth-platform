@@ -55,6 +55,9 @@ public final class CentralAccessClient {
     /** 只在当前后端调用使用，完整验证版本/主体/范围后才允许交给SQL适配器。 */
     public Plan scopePlan(String user,Check request){
         validate(request);Plan p=post("scope-plan",user,request,Plan.class,ScopeDtos.MAX_PLAN_BYTES);
+        return validatePlan(request,p);
+    }
+    private Plan validatePlan(Check request,Plan p) {
         if(p==null||!ScopeResourceBindings.supports(request.resourceType()))throw unavailable();
         validateEnvelope(request,p.schemaVersion(),p.requestId(),p.capability(),p.resourceType(),p.decision(),p.decisionId(),p.context());
         validUntil(p.validUntil());
@@ -73,6 +76,12 @@ public final class CentralAccessClient {
             if(kinds.contains(ScopeDtos.Kind.TENANT_ALL)&&kinds.size()!=1)throw unavailable();
         }
         return p;
+    }
+    /** 只用服务凭据复核目录引用，不能改成代理任意用户或缓存一次ALLOW。 */
+    public Plan executionScope(String executionId, Check request) {
+        validate(request); if(!uuid(executionId)) throw new IllegalArgumentException("invalid execution reference");
+        var p=postService("execution-scope",null,new com.lrj.authz.protocol.ExecutionAccessDtos.ScopeCheck(executionId,request),Plan.class,ScopeDtos.MAX_PLAN_BYTES);
+        return validatePlan(request,p);
     }
     /** 无允许路径直接拒绝，不让业务层把空列表解释成全范围。 */
     public Plan requireScope(String user,Check request){var p=scopePlan(user,request);if(!"ALLOW".equals(p.decision()))throw new AccessDeniedException("CENTRAL_ACCESS_DENIED");return p;}

@@ -42,3 +42,7 @@
 - CE03-I：auth29052d05f37d7fc6001c1ef567e420a8b1bd05a4（feat/central-inventory-reference）及commerceb7715cec54d1cfcc02d5d9ab722bfba74fa8e09b（feat/central-inventory-access）已普通快进合并并推送main；CI36664884469、36664884967均SUCCESS。包含实现/迁移/测试/文档，未混入后续UI。
 - 验证：商城397项392PASS/5skip、PG+graph执行引用两项IT、真实中央+商城隔离51PASS。证据详见CE03_INVENTORY.md。没有生产部署、真实Grant发布或旧授权收缩。
 - 正继续CE03-U，在原两仓新建本任务UI分支；没有新worktree。专用MySQL43308重启供本轮测试，最终保留数据并停机；私密证据不纳入提交。
+
+## CE03-U Git交付
+
+本地验证后已正常合并推送：auth db96617c41618f54cc28785fff77cb439af91e07（feat/central-inventory-ui-contract），commerce 8cf2a584b067ddee34a883d48758b07c8c8cbf8d（feat/central-inventory-ui）。CI36666230427/36666232081仍运行，尚不声明远程PASS。当前auth已从该main创建feat/commerce-directory-execution继续CE03-D0；commerce main干净，目录产品代码尚未修改。

@@ -116,3 +116,5 @@ CE-03-I：库存后端本地验证PASS；397 Java项（392通过/5跳过）、2�
 CE-03-U IN_PROGRESS：库存SSO页和独立read/receive动作提示已实现，HTTP契约220入口；当前验收含真实响应丢失后同键重试、只读/撤写/401/403/503及1440/390视口。前置CE03-I已推送，远程CI待完成。CE03-D暂不与本切片混合提交。
 
 2026-09-29 CE03-U本地DONE：真实库存SSO页/动作提示/未知结果幂等恢复；398项Java393PASS/5skip，隔离58项PASS含库存9条/原CATALOG9条浏览器细分，1440/390截图已查看。见commerce-readiness/CE03_INVENTORY.md失败历史和限制。Git/CI交付进行中；下一步CE03-D集合/创建协议及商家门店接管，其他模块未完成。
+
+CE03-D细分：D0集合执行范围协议本地DONE（250单测/3真实PG+graph IT/Boot4兼容PASS），见CONTRACTS_COMMERCE_DIRECTORY和commerce-readiness/CE03_DIRECTORY.md。D1商家门店业务Owner接管、D2真实目录页尚未实施；不把D0当整片完成。

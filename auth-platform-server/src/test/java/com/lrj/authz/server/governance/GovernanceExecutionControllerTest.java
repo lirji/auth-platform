@@ -13,11 +13,27 @@ class GovernanceExecutionControllerTest {
     @Test void forbiddenCallerAndInjectedActorStopBeforePersistence() {
         var contexts=mock(InternalContextService.class);var executions=mock(ExecutionAuthorization.class);var caller=mock(CallerService.class);
         when(contexts.authenticateCaller(anyString())).thenReturn(caller);when(caller.callerServiceId()).thenReturn("other");when(caller.applicationId()).thenReturn("commerce");
-        var controller=new GovernanceExecutionController(contexts,executions,new GovernanceExecutionConfiguration.ExecutionSettings(Set.of("commerce-p6")));
+        var controller=new GovernanceExecutionController(contexts,executions,new GovernanceExecutionConfiguration.ExecutionSettings(Set.of("commerce-p6"),Set.of("store")));
         var request=new MockHttpServletRequest();request.addHeader("Authorization","Bearer "+"s".repeat(48));request.setContent("{}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         assertThatThrownBy(()->controller.check(request)).hasMessage("ACCESS_DENIED");
         when(caller.callerServiceId()).thenReturn("commerce-p6");
         request.setContent("{\"principal_id\":\"injected\"}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         assertThatThrownBy(()->controller.check(request)).hasMessage("INVALID_ARGUMENT");verifyNoInteractions(executions);
     }
+    @Test void collectionScopeRequiresRegisteredCallerAndExplicitResourceOwner() throws Exception {
+        var contexts=mock(InternalContextService.class);var executions=mock(ExecutionAuthorization.class);var caller=mock(CallerService.class);
+        when(contexts.authenticateCaller(anyString())).thenReturn(caller);when(caller.callerServiceId()).thenReturn("commerce-p6");when(caller.applicationId()).thenReturn("commerce");
+        var settings=new GovernanceExecutionConfiguration.ExecutionSettings(Set.of("commerce-p6"),Set.of("store"));
+        var controller=new GovernanceExecutionController(contexts,executions,settings);
+        var request=new MockHttpServletRequest();request.addHeader("Authorization","Bearer "+"s".repeat(48));
+        var check=new CentralAccessDtos.Check(UUID.randomUUID().toString(),1L,UUID.randomUUID().toString(),"commerce.merchant.read","merchant");
+        var input=new ExecutionAccessDtos.ScopeCheck(UUID.randomUUID().toString(),check);
+        request.setContent(com.lrj.authz.governance.web.GovernanceWeb.body(input).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        assertThatThrownBy(()->controller.scope(request)).hasMessage("ACCESS_DENIED");verifyNoInteractions(executions);
+        var enabled=new GovernanceExecutionController(contexts,executions,new GovernanceExecutionConfiguration.ExecutionSettings(Set.of("commerce-p6"),Set.of("store","merchant")));
+        request.setContent(com.lrj.authz.governance.web.GovernanceWeb.body(input).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        enabled.scope(request);verify(executions).scope(eq(caller),eq(input));
+        when(caller.callerServiceId()).thenReturn("other");assertThatThrownBy(()->enabled.scope(request)).hasMessage("ACCESS_DENIED");
+    }
+
 }

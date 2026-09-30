@@ -102,6 +102,26 @@ class CentralAccessClientTest {
         var expired=json.readTree(good).deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)expired).put("valid_until","2020-01-01T00:00:00Z");response.set(expired.toString());
         assertThatThrownBy(()->client.scopePlan("user-token",request)).isInstanceOf(CentralAccessException.class);
     }
+    @Test void executionScopeUsesServiceOnlyAndRejectsMalformedOrExpandedResponses() throws Exception {
+        var userHeader = new AtomicReference<String>(); var route = new AtomicReference<String>();
+        server.removeContext("/internal/governance/v1/access");
+        server.createContext("/internal/governance/v1/access", exchange -> {
+            userHeader.set(exchange.getRequestHeaders().getFirst("X-User-Access-Token")); route.set(exchange.getRequestURI().getPath());
+            exchange.getRequestBody().readAllBytes();byte[] bytes=response.get().getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type","application/json");exchange.sendResponseHeaders(status.get(),bytes.length);
+            exchange.getResponseBody().write(bytes);exchange.close();
+        });
+        var scopeRequest=new Check(tenant,1L,request.requestId(),"commerce.store.directory.read","store");
+        String execution=UUID.randomUUID().toString(),good=json.writeValueAsString(plan()).replace(request.capability(),scopeRequest.capability());response.set(good);
+        assertThat(client.executionScope(execution,scopeRequest).alternatives()).hasSize(1);
+        assertThat(userHeader.get()).isNull();assertThat(route.get()).endsWith("/execution-scope");
+        for(String bad:List.of("{}",good.replace("SPECIFIED_STORES","SELF"),good.replace(tenant,UUID.randomUUID().toString()),
+                good.replace(request.requestId(),UUID.randomUUID().toString()),good.replace("\"policy_epoch\":1","\"policy_epoch\":0")," ".repeat(262145))) {
+            response.set(bad);assertThatThrownBy(()->client.executionScope(execution,scopeRequest)).isInstanceOf(CentralAccessException.class);
+        }
+        response.set("{}");status.set(403);assertThatThrownBy(()->client.executionScope(execution,scopeRequest)).isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(()->client.executionScope("invalid",scopeRequest)).isInstanceOf(IllegalArgumentException.class);
+    }
     @Test void emptyDeniedScopeCannotBecomeUnrestrictedSql()throws Exception{
         var data=(com.fasterxml.jackson.databind.node.ObjectNode)json.valueToTree(plan());data.put("decision","DENY");data.putArray("alternatives");response.set(data.toString());
         assertThat(client.scopePlan("user-token",request).alternatives()).isEmpty();assertThatThrownBy(()->client.requireScope("user-token",request)).isInstanceOf(AccessDeniedException.class);

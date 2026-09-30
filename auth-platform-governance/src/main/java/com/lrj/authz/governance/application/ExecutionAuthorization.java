@@ -16,6 +16,10 @@ import static com.lrj.authz.governance.application.GovernanceException.Code.*;
 public final class ExecutionAuthorization {
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final Set<String> SYNCHRONOUS_INVENTORY = Set.of("inventory.read", "inventory.receive");
+    private static final Map<String,String> DIRECTORY = Map.of(
+            "merchant.read", ScopeDtos.MERCHANT_RESOURCE_TYPE, "merchant.create", ScopeDtos.MERCHANT_RESOURCE_TYPE,
+            "store.directory.read", ScopeDtos.STORE_RESOURCE_TYPE, "store.create", ScopeDtos.STORE_RESOURCE_TYPE);
+    private static final Set<String> CREATION = Set.of("merchant.create", "store.create");
     private static final long SYNC_MAX_SECONDS = 60;
     private static final long MAX_SECONDS = 37 * 86400L + 60;
     private final ExecutionMapper mapper;
@@ -29,15 +33,19 @@ public final class ExecutionAuthorization {
         if(input==null||input.check()==null)throw error(INVALID_ARGUMENT);
         var check=input.check(); BootstrapCommand.uuid(check.requestId());
         boolean inventory = SYNCHRONOUS_INVENTORY.stream().anyMatch(suffix -> (context.applicationId() + "." + suffix).equals(check.capability()));
-        if(!context.tenantId().equals(check.tenantId())||(!inventory && !(context.applicationId()+".catalog.operate").equals(check.capability()))||!com.lrj.authz.protocol.ScopeDtos.STORE_RESOURCE_TYPE.equals(check.resourceType())
+        String directoryType = directoryType(context, check.capability());
+        boolean directory = directoryType != null;
+        boolean expectedResource = directory ? directoryType.equals(check.resourceType()) : ScopeDtos.STORE_RESOURCE_TYPE.equals(check.resourceType());
+        if(!context.tenantId().equals(check.tenantId())||(!inventory && !directory && !(context.applicationId()+".catalog.operate").equals(check.capability()))||!expectedResource
             ||!com.lrj.authz.governance.domain.IdentityModels.PrincipalKind.HUMAN.code().equals(context.actorType())
             ||(check.expectedMembershipGeneration()!=null&&check.expectedMembershipGeneration()!=context.membershipGeneration()))throw error(ACCESS_DENIED);
         Instant until;
         try { until=Instant.parse(input.expiresAt()); } catch(RuntimeException e) { throw error(INVALID_ARGUMENT); }
         Instant now=mapper.now();
-        if(until.getNano()%1000!=0||!until.isAfter(now)||until.isAfter(now.plusSeconds(inventory ? SYNC_MAX_SECONDS : MAX_SECONDS)))throw error(INVALID_ARGUMENT);
+        if(until.getNano()%1000!=0||!until.isAfter(now)||until.isAfter(now.plusSeconds(inventory || directory ? SYNC_MAX_SECONDS : MAX_SECONDS)))throw error(INVALID_ARGUMENT);
         var result=access.evaluate(context,check.capability(),check.resourceType());
-        if(result.alternatives().isEmpty())throw error(ACCESS_DENIED);
+        var paths = permitted(context, check.capability(), result.alternatives());
+        if(paths.isEmpty())throw error(ACCESS_DENIED);
         String fingerprint=AccessValues.hash(context.principalId(),context.membershipId(),context.membershipGeneration(),context.membershipVersion(),context.principalVersion(),
             context.tenantId(),context.applicationId(),context.environment(),context.callerServiceId(),check.capability(),check.resourceType(),until);
         Instant expiry=until;
@@ -50,7 +58,7 @@ public final class ExecutionAuthorization {
             }
             if(mapper.active(context.membershipId())>=10000)throw error(DEPENDENCY_UNAVAILABLE);
             var row=new ExecutionMapper.Row(UUID.randomUUID().toString(),context.callerServiceId(),context.applicationId(),context.environment(),context.membershipId(),
-                check.requestId(),fingerprint,write(context),check.capability(),check.resourceType(),write(new Paths(result.stamp().directoryId(),result.stamp().directoryEpoch(),result.alternatives())),expiry);
+                check.requestId(),fingerprint,write(context),check.capability(),check.resourceType(),write(new Paths(result.stamp().directoryId(),result.stamp().directoryEpoch(),paths)),expiry);
             if(mapper.insert(row)!=1)throw error(DEPENDENCY_UNAVAILABLE);
             return reference(row);
         });
@@ -76,6 +84,38 @@ public final class ExecutionAuthorization {
         boolean allowed=ScopeRules.matches(context.tenantId(),context.principalId(),eligible,facts);
         Instant until=current.validUntil().isBefore(row.expiresAt())?current.validUntil():row.expiresAt();
         return new ResourceDecision("1",request.requestId(),row.capability(),row.resourceType(),facts.resourceId(),facts.resourceVersion(),allowed?"ALLOW":"DENY",current.decisionId(),context,until.toString());
+    }
+    /** 集合只取得原Grant的完整交集；新授予不能扩大既有引用，创建只允许全租户路径。 */
+    public ScopeAccessDtos.Plan scope(CallerService caller, ScopeCheck input) {
+        if(input == null || input.check() == null) throw error(INVALID_ARGUMENT);
+        BootstrapCommand.uuid(input.executionId());
+        var request = input.check(); BootstrapCommand.uuid(request.requestId());
+        var row = mapper.find(input.executionId());
+        if(row == null || !caller.callerServiceId().equals(row.caller()) || !caller.applicationId().equals(row.application())
+                || !caller.environment().equals(row.environment())) throw error(ACCESS_DENIED);
+        var context = read(row.contextJson(), AccessContext.class);
+        if(directoryType(context, row.capability()) == null || !row.expiresAt().isAfter(mapper.now())
+                || !context.tenantId().equals(request.tenantId()) || !row.capability().equals(request.capability())
+                || !row.resourceType().equals(request.resourceType())
+                || (request.expectedMembershipGeneration() != null && request.expectedMembershipGeneration() != context.membershipGeneration())) throw error(ACCESS_DENIED);
+        var current = access.evaluate(context, row.capability(), row.resourceType());
+        var original = read(row.pathsJson(), Paths.class);
+        if(!original.directoryId().equals(current.stamp().directoryId()) || original.directoryEpoch() != current.stamp().directoryEpoch()) throw error(ACCESS_DENIED);
+        var eligible = permitted(context, row.capability(), current.alternatives().stream().filter(original.alternatives()::contains).toList());
+        var stamp = current.stamp();
+        Instant until = current.validUntil().isBefore(row.expiresAt()) ? current.validUntil() : row.expiresAt();
+        return new ScopeAccessDtos.Plan("1", request.requestId(), row.capability(), row.resourceType(), eligible.isEmpty() ? "DENY" : "ALLOW",
+                current.decisionId(), context, stamp.policyId(), stamp.policyEpoch(), stamp.directoryId(), stamp.directoryEpoch(),
+                stamp.manifestVersion(), stamp.tenantVersion(), until.toString(), eligible);
+    }
+    /** 精确能力与类型绑定；名称相似或未知后缀不能取得执行权。 */
+    private static String directoryType(AccessContext context, String capability) {
+        return DIRECTORY.entrySet().stream().filter(e -> (context.applicationId() + "." + e.getKey()).equals(capability)).map(Map.Entry::getValue).findFirst().orElse(null);
+    }
+    /** 创建资源不能拼接若干指定资源路径当成对未来对象的全租户授权。 */
+    private static List<Alternative> permitted(AccessContext context, String capability, List<Alternative> paths) {
+        if(CREATION.stream().noneMatch(s -> (context.applicationId() + "." + s).equals(capability))) return paths;
+        return paths.stream().filter(a -> a.clauses().size() == 1 && a.clauses().getFirst().kind() == ScopeDtos.Kind.TENANT_ALL).toList();
     }
     private record Paths(String directoryId,long directoryEpoch,List<Alternative> alternatives) {}
     private static Reference reference(ExecutionMapper.Row row) { return new Reference("1",row.requestId(),row.id(),read(row.contextJson(),AccessContext.class),row.capability(),row.resourceType(),row.expiresAt().toString()); }
