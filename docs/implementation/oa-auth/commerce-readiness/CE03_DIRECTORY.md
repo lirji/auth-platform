@@ -15,8 +15,16 @@
 
 失败历史：新增SDK403测试沿用了上一轮超大响应，客户端正确先因有界响应失败返回不可用而非预期拒绝。已重置正常错误响应再测，未放宽有界校验；directory-unit-final.log失败和directory-unit-verified.log成功均保留。最初无新增用例的编译/旧单测PASS不替代最终验证。
 
-D0实现与本地验证DONE；Git/CI交付另记。没有新schema、业务表、真实Grant/Owner配置或生产部署。D1/D2尚未实现。
+D0实现与本地验证DONE；auth2557de1已合并推送main，CI36666736638 SUCCESS。没有新schema、业务表、真实Grant/Owner配置或生产部署。D1结果见下；D2尚未实现。
 
 ## 下一片
 
 D1先落实EmployeeAccess集合许可/身份审计及V51兼容扩展，由Merchant/Store Owner负责SQL过滤与创建准入；D2绑定真实列表/创建SSO页面。不能给中央Actor ADMIN，不能向领域传Token，不能拿CATALOG或store.read替代store.directory.read，不能伪造待创建对象Facts。真实OA映射和生产验收输入HOLD保持。
+
+## D1 商城Owner本地DONE
+
+commerce分支feat/central-commerce-directory。四能力精确HTTP接管、EmployeeAccess.ScopePermit/CentralEmployeeCheck.scope、CENTRAL/STOPPED防旧ADMIN回退已实现；merchant/store list由本域Mapper参数化路径在LIMIT前过滤并前后复核；create全租户许可、Commands前置路由锁、稳定身份幂等、真实目标类型审计同事务。内部requireActive与客户browse保持既有契约。V51在专用MySQL成功应用，保留V49/V50历史、旧库存写入与所有路由状态触发器。
+
+本地完整401项（396PASS/5可选skip）通过，directory-verify.log；新CentralDirectoryMySqlTest3项实际MySQL+HTTP但SDK为协议桩。hygiene首轮两处Service沿用tab文件新增空格缩进阻断，按原风格修正后最终无阻断；仅保留无formatter和事务人工审查提示。真实中央/IdP/商城联调rehearsal-16693ea0d846共83项PASS（含库存/CATALOG回归）；directory-owner-rehearsal.log及该目录result.json保留。四独立能力就绪、指定商家/门店过滤先于LIMIT、部分范围创建拒绝、全租户创建、真实父商家检查、身份审计、相同键仅执行一次、撤权后旧回执拒绝和中央故障503均通过。没有浏览器验收，D2仍待实施。
+
+兼容边界：V51允许旧库存二进制继续写历史形状，但旧CE03-U二进制不检查DIRECTORY族。因此所有承载该族的应用实例升级后才允许CENTRAL；回退需使用已认识DIRECTORY路由的版本并置STOPPED，不能仅回滚到旧UI版恢复旧ADMIN。没有真实租户切换。

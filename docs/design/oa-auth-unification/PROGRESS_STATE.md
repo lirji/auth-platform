@@ -30,12 +30,5 @@ P6_LOCAL_COMPLETE_GIT_CI_PASS。用户选择2已落实，完整CATALOG中央经�
 
 P0—P5历史交付保持，P5 Git/CI见phase-5/P5_DELIVERY_RESULT.md。两仓复用原目录feat/iam-p6-migration，OA既有用户改动未触碰；无新worktree。auth233单测+1真实PG/图IT、commerce393项（388通过/5可选跳过）、Python17项和31跨进程检查均完成。auth产品c8df1b1 / CI 36637749220与commerce最终main 31dbdcd / CI 36637949125均SUCCESS。精确记录见[P6交付](../../implementation/oa-auth/phase-6/P6_DELIVERY_RESULT.md)和[CI结果](../../implementation/oa-auth/phase-6/CI_RESULT.md)。私有隔离库、快照、凭据和日志保留，不入库。
 
-CE-02-D：逐入口契约及验证完成；[适配契约](CONTRACTS_COMMERCE_ADAPTER.md)拆出CE-02-A/CE-03-I/U/D，前者为下个有界实现。CE-02整体仍进行中，未发布未授权的新模块能力。
 
-CE-02-A：有限资源协议实现/验证PASS（248单测、13真实PG+graph、Boot4兼容）。新增Owner需显式配置，未发布新能力或修改Grant；CE-03-I为下一片，详见[CE02结果](../../implementation/oa-auth/commerce-readiness/CE02_TEST_RESULT.md)。
-
-CE-03-I：库存后端本地验证PASS；397 Java项（392通过/5跳过）、2真实执行引用IT、51跨进程检查。详情[CE03_INVENTORY](../../implementation/oa-auth/commerce-readiness/CE03_INVENTORY.md)。CE-03-U页面为下一片，未将新模块全量接管写成完成。
-
-2026-09-29 CE03-U本地DONE：真实库存SSO页/动作提示/未知结果幂等恢复；398项Java393PASS/5skip，隔离58项PASS含库存9条/原CATALOG9条浏览器细分，1440/390截图已查看。见commerce-readiness/CE03_INVENTORY.md失败历史和限制。Git/CI交付进行中；下一步CE03-D集合/创建协议及商家门店接管，其他模块未完成。
-
-CE03-D细分：D0集合执行范围协议本地DONE（250单测/3真实PG+graph IT/Boot4兼容PASS），见CONTRACTS_COMMERCE_DIRECTORY和commerce-readiness/CE03_DIRECTORY.md。D1商家门店业务Owner接管、D2真实目录页尚未实施；不把D0当整片完成。
+CE03当前状态（2026-09-29）：I/U已正常合并推送，两仓CI均SUCCESS（库存UI auth36666230427、commerce36666232081）。D0 auth2557de1已合并推送，CI36666736638 SUCCESS。D1商家/门店后端本地DONE：401 Java项396PASS/5可选skip、真实中央/IdP/商城83项PASS，V51在专用库成功应用，详情commerce-readiness/CE03_DIRECTORY.md。D1 Git交付进行中；下一READY为D2目录SSO页面，CE04—08未实施，生产输入HOLD不变。

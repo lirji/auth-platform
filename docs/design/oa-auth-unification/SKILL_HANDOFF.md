@@ -91,12 +91,5 @@ runtime-and-deploy沿用已选组件，新增显式本地独立身份服务和�
 - task-git-delivery / ci-cd-gate：依用户常驻授权从独立任务分支正常合并推送；初轮两仓CI成功，最终工具补充CI及提交见commerce-readiness/DELIVERY_RESULT。没有生产部署、OA修改或清理。
 - recommended_next：已获数据边界及高风险审批选择，逐动作能力/受限Actor/接管状态设计推进CE-02；真实映射签字和生产目标仍未确定。
 
-CE-02-D：逐入口契约及验证完成；[适配契约](CONTRACTS_COMMERCE_ADAPTER.md)拆出CE-02-A/CE-03-I/U/D，前者为下个有界实现。CE-02整体仍进行中，未发布未授权的新模块能力。
 
-CE-02-A：有限资源协议实现/验证PASS（248单测、13真实PG+graph、Boot4兼容）。新增Owner需显式配置，未发布新能力或修改Grant；CE-03-I为下一片，详见[CE02结果](../../implementation/oa-auth/commerce-readiness/CE02_TEST_RESULT.md)。
-
-CE-03-I：库存后端本地验证PASS；397 Java项（392通过/5跳过）、2真实执行引用IT、51跨进程检查。详情[CE03_INVENTORY](../../implementation/oa-auth/commerce-readiness/CE03_INVENTORY.md)。CE-03-U页面为下一片，未将新模块全量接管写成完成。
-
-2026-09-29 CE03-U本地DONE：真实库存SSO页/动作提示/未知结果幂等恢复；398项Java393PASS/5skip，隔离58项PASS含库存9条/原CATALOG9条浏览器细分，1440/390截图已查看。见commerce-readiness/CE03_INVENTORY.md失败历史和限制。Git/CI交付进行中；下一步CE03-D集合/创建协议及商家门店接管，其他模块未完成。
-
-CE03-D细分：D0集合执行范围协议本地DONE（250单测/3真实PG+graph IT/Boot4兼容PASS），见CONTRACTS_COMMERCE_DIRECTORY和commerce-readiness/CE03_DIRECTORY.md。D1商家门店业务Owner接管、D2真实目录页尚未实施；不把D0当整片完成。
+CE03当前状态（2026-09-29）：I/U已正常合并推送，两仓CI均SUCCESS（库存UI auth36666230427、commerce36666232081）。D0 auth2557de1已合并推送，CI36666736638 SUCCESS。D1商家/门店后端本地DONE：401 Java项396PASS/5可选skip、真实中央/IdP/商城83项PASS，V51在专用库成功应用，详情commerce-readiness/CE03_DIRECTORY.md。D1 Git交付进行中；下一READY为D2目录SSO页面，CE04—08未实施，生产输入HOLD不变。

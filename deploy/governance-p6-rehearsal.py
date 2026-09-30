@@ -5,6 +5,8 @@ from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from pathlib import Path
 
+MERCHANT_RESOURCE_TYPE = 'merchant'
+
 
 def module(name, path):
     spec=importlib.util.spec_from_file_location(name,path);value=importlib.util.module_from_spec(spec);spec.loader.exec_module(value);return value
@@ -103,15 +105,19 @@ def rehearse(args, isolation=None):
         manifest={'schema_version':'1','application':'commerce','manifest_version':1,'capabilities':[{'code':'commerce.catalog.operate','resource_type':'store','risk_level':'HIGH'}],'menus':[]}
         if args.inventory:
             manifest['capabilities'] += [{'code':'commerce.inventory.'+action,'resource_type':'store','risk_level':'NORMAL' if action=='read' else 'HIGH'} for action in ('read','receive')]
+        if args.directory:
+            manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':'merchant' if code.startswith('merchant.') else 'store','risk_level':'HIGH' if code.endswith('.create') else 'NORMAL'} for code in ('merchant.read','merchant.create','store.directory.read','store.create')]
         h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli','publish',run/'catalog.properties',run/'manifest.json')
         access={'access.tenant':tenant,'access.application':'commerce','access.environment':env,'access.manager':members['internal'],'access.generation':1,'access.capabilities':'commerce.catalog.operate','access.max-duration-seconds':3600,'access.operator':'p6-fixture','access.command':uid()}
         if args.inventory:access['access.capabilities'] += ',commerce.inventory.read,commerce.inventory.receive'
+        if args.directory:access['access.capabilities'] += ',commerce.merchant.read,commerce.merchant.create,commerce.store.directory.read,commerce.store.create'
         h.private(run/'access.properties',db+h.props(access));cli('AccessBootstrapCli',run/'access.properties')
         def authority(kind):
             c=fixture['clients'][kind];return {'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
         graph_settings=''.join('scope.'+line+'\n' for line in graph.splitlines() if line.startswith('graph.'))
         h.private(run/'admin.properties',db+legacy+graph_settings+h.props(authority('management')))
         service=secrets.token_urlsafe(48);server={'service.count':1,'service.1.id':'commerce-p6','service.1.application-id':'commerce','service.1.environment':env,'service.1.operation':'context.resolve','service.1.credential-sha256':hashlib.sha256(service.encode()).hexdigest(),'access.check.callers':'commerce-p6','scope.check.callers':'commerce-p6','execution.callers':'commerce-p6','scope.owner.commerce':'store,product'}
+        if args.directory:server['scope.owner.commerce']='store,product,merchant'
         server.update({'service.1.user.'+k:v for k,v in authority('business').items()});h.private(run/'server.properties',db+legacy+graph_settings+h.props(server))
         h.private(run/'consumer.properties',h.props({'central.url':'http://127.0.0.1:18161','central.credential':service,'central.application':'commerce','central.environment':env}))
         admin_token=up.token(h.ISSUER,fixture,'management','internal');user_token=up.token(h.ISSUER,fixture,'business','external')
@@ -272,6 +278,57 @@ def rehearse(args, isolation=None):
             stocks=expect('inventory read survives independent write revocation',18661,inventory_path,user)
             if len(stocks)!=1 or stocks[0]['available']!=inventory_expected:raise RuntimeError('revoked inventory changed stock')
             inventory_browser('revoked-write')
+        if args.directory:
+            insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'DIRECTORY','state':'SHADOW'})
+            sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='DIRECTORY' AND state='SHADOW' AND version=1;")
+            merchant=sql('SELECT merchant_id FROM store_record WHERE tenant_id='+q(source)+' AND store_id='+q(store))[1]
+            def directory_grant(code,full=False):
+                resource='merchant' if code.startswith('merchant.') else 'store'
+                role_id=expect('explicit directory role '+code+str(full),18162,prefix+'/roles',admin,{**partition,'command_id':uid(),'role_code':'ce03-'+code.replace('.','-')+('-full' if full else '-limited'),'role_version':1,'capabilities':['commerce.'+code]})['id']
+                rule={'version':1,'resource_type':resource,'clauses':[{'kind':'TENANT_ALL' if full else 'SPECIFIED_RESOURCES' if resource==MERCHANT_RESOURCE_TYPE else 'SPECIFIED_STORES','values':[] if full else [merchant if resource==MERCHANT_RESOURCE_TYPE else store],'include_root':False}]}
+                return expect('finite directory grant '+code+str(full),18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role_id,'scope_rule':rule,'source_id':'ce03-'+code+str(full),'valid_from':now(-2),'valid_to':now(600)},202)['id']
+            def directory_ready(code):
+                observations=[];stable=0
+                for attempt in range(40):
+                    check={'tenant_id':tenant,'expected_membership_generation':1,'request_id':uid(),'capability':'commerce.'+code,'resource_type':'merchant' if code.startswith('merchant.') else 'store'}
+                    status,ref=request(18161,'/internal/governance/v1/access/executions',dual,{'check':check,'expires_at':now(45)})
+                    result={'issue_status':status};decision=ref.get('code')
+                    if status==HTTPStatus.OK:
+                        check['request_id']=uid();status,plan=request(18161,'/internal/governance/v1/access/execution-scope',dual,{'execution_id':ref['execution_id'],'check':check})
+                        decision=plan.get('decision') if status==HTTPStatus.OK else plan.get('code');result.update(scope_status=status,decision=decision)
+                    observations.append(result)
+                    allowed=status==HTTPStatus.OK and decision=='ALLOW';stable=stable+1 if allowed else 0
+                    if stable>=4:
+                        h.private(run/('directory-'+code+'-ready.json'),json.dumps(observations));record('directory scope ready '+code);return
+                    if not allowed and decision not in ('DENY','ACCESS_DENIED','AUTHZ_STATE_NOT_READY'):raise RuntimeError('unexpected directory readiness decision '+str(decision))
+                    time.sleep(.25)
+                h.private(run/('directory-'+code+'-ready.json'),json.dumps(observations));raise RuntimeError('directory scope not ready '+code)
+            expect('CATALOG and inventory do not imply directory',18661,'/v1/admin/merchants',user,status=403)
+            expect('old ADMIN cannot bypass directory route',18661,'/v1/admin/stores',[('Authorization','Bearer '+admin_local)],status=403)
+            for code in ('merchant.read','store.directory.read'):directory_grant(code)
+            projection()
+            for code in ('merchant.read','store.directory.read'):directory_ready(code)
+            merchants=expect('merchant directory scoped before LIMIT',18661,'/v1/admin/merchants?limit=1',user)
+            stores=expect('store directory scoped before LIMIT',18661,'/v1/admin/stores?limit=1',user)
+            if len(merchants)!=1 or merchants[0]['merchantId']!=merchant or len(stores)!=1 or stores[0]['storeId']!=store:raise RuntimeError('directory range failed')
+            expect('directory foreign tenant denied',18661,'/v1/admin/stores',[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            for code in ('merchant.create','store.create'):directory_grant(code)
+            projection()
+            create_merchant={'merchantId':'ce03-new-merchant','name':'CE03 merchant'};create_store={'storeId':'ce03-new-store','merchantId':'ce03-new-merchant','name':'CE03 store'}
+            expect('specified merchant grant cannot create',18661,'/v1/admin/merchants',user+[('Idempotency-Key',uid())],create_merchant,403)
+            expect('specified store grant cannot create',18661,'/v1/admin/stores',user+[('Idempotency-Key',uid())],create_store,403)
+            merchant_writer=directory_grant('merchant.create',True);directory_grant('store.create',True);projection()
+            for code in ('merchant.create','store.create'):directory_ready(code)
+            merchant_headers=user+[('Idempotency-Key',uid())]
+            created=expect('whole tenant creates merchant',18661,'/v1/admin/merchants',merchant_headers,create_merchant)
+            if expect('directory idempotent command replay',18661,'/v1/admin/merchants',merchant_headers,create_merchant)!=created:raise RuntimeError('directory replay changed result')
+            expect('whole tenant creates store under actual merchant',18661,'/v1/admin/stores',user+[('Idempotency-Key',uid())],create_store)
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='merchant' AND resource_id='ce03-new-merchant' AND store_id IS NULL")[1]!='1':raise RuntimeError('merchant identity audit incorrect')
+            record('directory audit binds actual merchant with no fake store')
+            expect('directory create foreign parent rejected',18661,'/v1/admin/stores',user+[('Idempotency-Key',uid())],{**create_store,'storeId':'ce03-no-store','merchantId':'missing-merchant'},404)
+            expect('revoke directory create independently',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':merchant_writer,'expected_version':1});projection()
+            expect('directory revoked create cannot replay receipt',18661,'/v1/admin/merchants',merchant_headers,create_merchant,403)
+            expect('directory read survives create revocation',18661,'/v1/admin/merchants',user)
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -307,9 +364,10 @@ def rehearse(args, isolation=None):
         if args.inventory:
             expect('inventory dependency outage fails closed',18661,inventory_path,user,status=503)
             inventory_browser('outage')
+        if args.directory:expect('directory auth outage fails closed',18661,'/v1/admin/stores',user,status=503)
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -319,9 +377,11 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
+    parser.add_argument('--directory',action='store_true',help='finite directory read/create rehearsal; includes inventory regression')
     parser.add_argument('--inventory',action='store_true',help='explicit finite inventory roles in owned rehearsal only')
     parser.add_argument('--isolated-identity',action='store_true')
     args=parser.parse_args()
+    if args.directory:args.inventory=True
     isolation=None
     try:
         if args.isolated_identity:

@@ -45,4 +45,8 @@
 
 ## CE03-U Git交付
 
-本地验证后已正常合并推送：auth db96617c41618f54cc28785fff77cb439af91e07（feat/central-inventory-ui-contract），commerce 8cf2a584b067ddee34a883d48758b07c8c8cbf8d（feat/central-inventory-ui）。CI36666230427/36666232081仍运行，尚不声明远程PASS。当前auth已从该main创建feat/commerce-directory-execution继续CE03-D0；commerce main干净，目录产品代码尚未修改。
+本地验证后已正常合并推送：auth db96617c41618f54cc28785fff77cb439af91e07（feat/central-inventory-ui-contract），commerce 8cf2a584b067ddee34a883d48758b07c8c8cbf8d（feat/central-inventory-ui）。CI36666230427/36666232081均SUCCESS。D0 auth2557de1c70625f19fe18b60a11ecb022298939a0已合并推送main，CI36666736638 SUCCESS。
+
+## CE03-D1待交付
+
+auth feat/commerce-directory-owner-contract与commerce feat/central-commerce-directory：实现/迁移/验收文档本地DONE，401项Java396PASS/5skip和83项真实隔离检查。验证后仅修正四个Java文件缩进（无语义变化）并同步文档，hygiene无阻断。新V51已执行不得改历史。下一片D2尚未混入本次交付；实际Git结果随后补记。

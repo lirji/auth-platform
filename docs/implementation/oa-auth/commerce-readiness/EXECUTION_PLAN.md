@@ -50,3 +50,5 @@
 CE-03-I库存read/receive后端已通过本地完整/真实中央联调，见[CE03结果](CE03_INVENTORY.md)；下一片CE-03-U员工页面，尚未完成全模块接入。
 
 2026-09-29 CE03-U本地DONE：真实库存SSO页/动作提示/未知结果幂等恢复；398项Java393PASS/5skip，隔离58项PASS含库存9条/原CATALOG9条浏览器细分，1440/390截图已查看。见commerce-readiness/CE03_INVENTORY.md失败历史和限制。Git/CI交付进行中；下一步CE03-D集合/创建协议及商家门店接管，其他模块未完成。
+
+CE03当前状态（2026-09-29）：I/U已正常合并推送，两仓CI均SUCCESS（库存UI auth36666230427、commerce36666232081）。D0 auth2557de1已合并推送，CI36666736638 SUCCESS。D1商家/门店后端本地DONE：401 Java项396PASS/5可选skip、真实中央/IdP/商城83项PASS，V51在专用库成功应用，详情commerce-readiness/CE03_DIRECTORY.md。D1 Git交付进行中；下一READY为D2目录SSO页面，CE04—08未实施，生产输入HOLD不变。
