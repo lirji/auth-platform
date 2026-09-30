@@ -17,8 +17,21 @@ PTS2：固定SSO积分页，策略查询/发布、已知会员钱包与账本、
 |---|---|---|---|---|
 |CE04-PTS0|CE04-C2本地DONE|auth ExecutionAuthorization/现有集成矩阵；无新协议类型|五能力有限HUMAN/TENANT_ALL/60秒、集合或真实会员事实、范围/代际/撤权/到期，SDK共存|DONE（本地）|
 |CE04-PTS1|PTS0|commerce MemberPointsService、EmployeeAccess/Authority、6员工HTTP绑定、V57|真实MySQL事务/Owner与既有积分业务回归、真实中央联调|DONE（本地）|
-|CE04-PTS2|PTS1|积分员工SSO页与三个独立hint|真实读写/未知重试/错误/撤权/503，1440/390截图|TODO|
+|CE04-PTS2|PTS1|积分员工SSO页与三个独立hint|真实读写/未知重试/错误/撤权/503，1440/390截图|DONE（本地）|
 
 公开DTO及路径沿MemberPointsApi/MemberPointsController，不新增审批状态字段。GET policies、GET member wallet/ledger，POST policies、member adjust/expire分别映射上述五能力；MEMBER_PATHS只保留绑定本人。policy只scope、不得构造会员事实；钱包及账本在真实Member范围内读后复核；两会员写guard先路由再会员版本，截止复核早于原幂等回执。人工调整仍有原原因和预期账户版本，两种版本不同职责，不把动态Member或Account版本混入稳定身份摘要。
 
 原会员草案CE04-G/T/B/C/P的最后P指积分类别，现细化为PTS0/1/2，已交付基础会员P0/1/2的稳定ID保持。积分商品独立CE04-O，后续再细化，不借PTS赋予商品定义或客户兑换能力。
+
+
+## PTS2页面与三个动作提示
+
+固定 /operations/member-points?tenant_id，沿已交付SSO/AntDesign。单页五工作区：政策查询、发布积分政策、指定会员钱包/账本、调整积分、推进积分到期（五Tabs）。三个提示独立 /v1/operations/member-points/{policy|adjust|expire}-access；不要求基础会员列表或积分读取。
+
+政策表 actualversion/effectiveFrom/earnPerYuan/expiryDays/spendEnabled/pointsPerYuan/maxDeductionBps，稳定after版本分页limit50，日期本机显示。发布form version正安全整数、datetime-local转UTC、获取率字符串两位小数0—1000、expiry1—366、spendEnabled显式开关、pointsPerYuan1—100000、maxDeductionBps整数0—10000且页面说明10000=100%。不会自动赠分或改历史订单。无等级数组。
+
+钱包展示available可用、held冻结、debt待偿扣回、credit有效批次余额、version账户版本和实际memberId，不把成长或现金金额混入。账本显示真实ADJUST/EARN/REVOKE/EXPIRE/HOLD/SPEND/RELEASE/REFUND/EXCHANGE稳定码对应中文，以及delta/available/held/debt/policyVersion/reason/time/sourceId，sequence游标50，安全整数检查。已知会员查询policies保留字冲突明确拒绝，沿当前API不更改身份契约。
+
+调整form memberId/expectedVersion>=0/非零整数delta±1e9/reason<=256；不凭空读取最新版本，不附赠read。到期form只有memberId，明确单次最多100已到期批次、只推进到期，不延长有效期、不生成新增积分；结果真实Wallet，不编造完成批次数。三写各自固定原键/体/路径unknown冻结+原样重试、切Tab/取消退出保留、409保留可纠正、401卸载、403独立/503失败关闭。
+
+实际browser policy-only/adjust/expire/read/revoked/outage：独立无read、政策边界、真实409原输入保留、三写服务端成功丢响应原样重试、wallet五余额、真实账本、源数据到期由演练SQL显式设置、无隐式读取写入、跨租户清除/撤写保留读/401/503、1440/390截图实际查看。命令数/账本数/政策真实版本和身份审计SQL一致。既有周期/行为/其他页回归保持。页面实现及验收完成前保持IN_PROGRESS。

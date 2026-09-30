@@ -704,11 +704,19 @@ def rehearse(args, isolation=None):
             expect('cycle read survives write revoke',18661,cycle_base+'/'+cycle_member,user)
             expect('cycle benefit read survives write revoke',18661,benefit_base+'?policyVersion=1',user)
             cycle_browser('revoked')
+        def points_browser(phase):
+            if not args.browser:return
+            subprocess.run(['node',str(root/'deploy/governance-ce04-points.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=150)
+            record('real points browser '+phase)
         if args.points:
+            if args.browser:
+                ui=json.loads((run/'catalog-ui.json').read_text());ui.update(policyAt=now(3600));h.private(run/'points-ui.json',json.dumps(ui))
             insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'MEMBER_POINTS','state':'SHADOW'})
             sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='MEMBER_POINTS' AND state='SHADOW' AND version=1;")
             points_base='/v1/admin/member-points';points_member='ce04-points-member'
             expect('points actual member created independently',18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':points_member,'actorId':'ce04-points-customer','displayName':'Points fixture','memberLevel':'BASIC'})
+            if args.browser:
+                expect('points UI actual member',18661,'/v1/admin/members',user+[('Idempotency-Key',uid())],{'memberId':'ce04-points-ui-member','actorId':'ce04-points-ui-customer','displayName':'Points browser fixture','memberLevel':'BASIC'})
             expect('cycle permissions do not imply points read',18661,points_base+'/'+points_member,user,status=403)
             expect('legacy ADMIN cannot bypass points authority',18661,points_base+'/'+points_member,[('Authorization','Bearer '+admin_local)],status=403)
             def points_grant(code):
@@ -722,6 +730,7 @@ def rehearse(args, isolation=None):
             if expect('points policy original key retry',18661,points_base+'/policies',points_policy_headers,points_policy)!=published:raise RuntimeError('points policy duplicated')
             expect('points publish does not imply read',18661,points_base+'/policies',user,status=403)
             expect('points policy precision rejected',18661,points_base+'/policies',user+[('Idempotency-Key',uid())],{**points_policy,'version':2,'earnPerYuan':'1.001'},400)
+            points_browser('publish-only')
             points_adjust_grant=points_grant('points.adjust');points_adjustment={'expectedVersion':0,'delta':150,'reason':'explicit isolated manual correction'};points_adjust_headers=user+[('Idempotency-Key',uid())]
             adjusted=expect('points adjustment without wallet read',18661,points_base+'/'+points_member+'/adjust',points_adjust_headers,points_adjustment)
             if adjusted['available']!=150 or adjusted['version']!=1:raise RuntimeError('points adjustment amount mismatch')
@@ -729,16 +738,20 @@ def rehearse(args, isolation=None):
             expect('points adjust does not imply read',18661,points_base+'/'+points_member,user,status=403)
             expect('points stale account version rejected',18661,points_base+'/'+points_member+'/adjust',user+[('Idempotency-Key',uid())],points_adjustment,409)
             expect('points missing actual Owner denied',18661,points_base+'/missing-points-member/adjust',user+[('Idempotency-Key',uid())],points_adjustment,404)
+            points_browser('adjust')
             points_expire_grant=points_grant('points.expire');points_expire_headers=user+[('Idempotency-Key',uid())]
             # 只在自有演练库把本次积分批次置为到期，未等待30天，不宣称业务真实到期。
             sql("UPDATE member_point_lot SET expires_at=UTC_TIMESTAMP(3)-INTERVAL 1 SECOND WHERE tenant_id="+q(source)+" AND member_id="+q(points_member))
             expired=expect('points expiry without wallet read',18661,points_base+'/'+points_member+'/expire',points_expire_headers,{})
             if expired['available']!=0 or expired['version']!=2:raise RuntimeError('points expiry did not archive actual lot')
             if expect('points expiry original key retry',18661,points_base+'/'+points_member+'/expire',points_expire_headers,{})!=expired:raise RuntimeError('points duplicate expiry')
+            if args.browser:
+                sql("UPDATE member_point_lot SET expires_at=UTC_TIMESTAMP(3)-INTERVAL 1 SECOND WHERE tenant_id="+q(source)+" AND member_id='ce04-points-ui-member'")
+            points_browser('expire')
             for code in ('points.policy.read','points.read'):points_grant(code)
             next_policy={**points_policy,'version':2,'effectiveFrom':now(3600)}
             expect('points immutable future policy',18661,points_base+'/policies',user+[('Idempotency-Key',uid())],next_policy)
-            if expect('points first policy cursor',18661,points_base+'/policies?after=0&limit=1',user)!=[published] or expect('points terminal policy cursor',18661,points_base+'/policies?after=2&limit=1',user)!=[]:raise RuntimeError('points policy cursor mismatch')
+            if expect('points first policy cursor',18661,points_base+'/policies?after=0&limit=1',user)!=[published] or expect('points terminal policy cursor',18661,points_base+'/policies?after='+str(3 if args.browser else 2)+'&limit=1',user)!=[]:raise RuntimeError('points policy cursor mismatch')
             if expect('points actual expired wallet',18661,points_base+'/'+points_member,user)!=expired:raise RuntimeError('points wallet mismatch')
             ledger=expect('points actual immutable ledger',18661,points_base+'/'+points_member+'/ledger',user)
             if [e['action'] for e in ledger]!=['ADJUST','EXPIRE']:raise RuntimeError('points ledger duplicate or missing expiry')
@@ -748,15 +761,25 @@ def rehearse(args, isolation=None):
             insert('platform_credential',{'token_hash':hashlib.sha256(customer_token.encode()).hexdigest(),'tenant_id':source,'actor_id':'ce04-points-customer','role':'MEMBER','expires_at':now(600).replace('T',' ').replace('Z','')})
             if expect('points customer own wallet remains local',18661,'/v1/members/me/points',[('Authorization','Bearer '+customer_token)])!=expired:raise RuntimeError('points customer wallet mismatch')
             expect('points customer cannot use employee entry',18661,points_base+'/'+points_member,[('Authorization','Bearer '+customer_token)],status=403)
-            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.points.%' AND store_id IS NULL")[1]!='4':raise RuntimeError('points audit count mismatch')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability LIKE 'commerce.points.%' AND store_id IS NULL")[1]!=str(7 if args.browser else 4):raise RuntimeError('points audit count mismatch')
             if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member_policy' AND resource_id='points-policy-1'")[1]!='1':raise RuntimeError('points policy wrong audit target')
-            record('points four commands have exactly four actual target audits')
+            if args.browser:
+                ui_ledger=expect('points UI immutable ledger',18661,points_base+'/ce04-points-ui-member/ledger',user)
+                if [entry['action'] for entry in ui_ledger]!=['ADJUST','EXPIRE']:raise RuntimeError('points UI duplicate ledger')
+                ui_wallet=expect('points UI actual expired wallet',18661,points_base+'/ce04-points-ui-member',user)
+                if ui_wallet['available']!=0 or ui_wallet['version']!=2:raise RuntimeError('points UI wallet mismatch')
+                if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member_policy' AND resource_id='points-policy-3'")[1]!='1':raise RuntimeError('points UI policy audit mismatch')
+                for capability in ('commerce.points.adjust','commerce.points.expire'):
+                    if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability="+q(capability)+" AND resource_id='ce04-points-ui-member'")[1]!='1':raise RuntimeError('points UI member audit mismatch')
+            points_browser('read')
+            record('points commands have exactly one actual target audit each')
             for grant in (points_publish_grant,points_adjust_grant,points_expire_grant):expect('revoke independent points write',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':grant,'expected_version':1})
             projection()
             expect('revoked points policy cannot replay receipt',18661,points_base+'/policies',points_policy_headers,points_policy,403)
             expect('revoked points adjustment cannot replay receipt',18661,points_base+'/'+points_member+'/adjust',points_adjust_headers,points_adjustment,403)
             expect('revoked points expiry cannot replay receipt',18661,points_base+'/'+points_member+'/expire',points_expire_headers,{},403)
             expect('points read survives write revocation',18661,points_base+'/'+points_member,user)
+            points_browser('revoked')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -813,6 +836,7 @@ def rehearse(args, isolation=None):
             cycle_browser('outage')
         if args.points:
             expect('points auth outage fails closed',18661,'/v1/admin/member-points/ce04-points-member',user,status=503)
+            points_browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
         result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}

@@ -249,3 +249,17 @@ PTS1完整points-verify-fixed.log最终438项433PASS/5既有skip，新增Central
 完整438项433PASS/5既有skip、36工具/243入口/122能力/34角色、SDK/compile及两仓hygiene通过；Java formatter/静态分析限制保持，两仓points-source-sha256摘要复核一致。V57已应用不可改，验证后无代码变化。自有PG/IdP/JVM已finally停止，子网97数据/私密证据保留，原8602未切换。PTS0 CI36681665256 SUCCESS（包含C2 auth基线）；C2 commerce CI36681436387原版重跑中，前次成长并发屏障超时保留。PTS1本地DONE，Git交付中；下一PTS2页面，随后CE04-O及CE05—08，生产输入HOLD不变。
 
 C2 commerce CI36681436387第二次原版运行SUCCESS；未修改并发测试或预算，首次屏障超时证据保留。
+
+
+## CE04-PTS2验证中
+
+PTS1已普通合并推送auth67d4978/commercef1b99cb，两仓CI36682762638/36682764819 SUCCESS。PTS2在独立分支实现 /operations/member-points 固定SSO页：政策/钱包账本查询与三个独立命令、精确GET hints。业务DTO保留实际积分字段，政策spendEnabled显式布尔选择；调整保留原因/expectedVersion，原键未知重试；到期最多100批次且结果只显示真实钱包。无需附赠积分或会员读取权限。
+
+points-ui-verify.log完整439项434PASS/5既有skip，CentralPointsMySqlTest7项PASS，前端build/Prettier通过；36工具与247入口（122能力、34角色）契约一致，两仓hygiene无阻断、Java formatter/静态分析限制保留。points-ui-source-sha256记录auth4/commerce11源码。真实rehearsal-b5f6eeb0aebf子网98运行中，完成并查看截图前不标DONE；未改V57或运行基础设施。
+
+
+### PTS2最终本地DONE
+
+真实rehearsal-b5f6eeb0aebf（子网98）397项PASS，包含积分11条浏览器检查和全部已交付员工页面回归。实际PKCE登录、独立无read的发布/调整/到期、显式false消费抵扣、输入精度与零值校验、真实409保留输入、三写服务端成功丢响应后原键/体重试、切Tab/取消退出保持未知意图、真实钱包/游标账本、撤写保留读、跨租户清除、401卸载及实际中央停机503均通过。SQL核对API4+UI3恰7条身份审计，UI实际policy-3、会员调整/到期各一次，UI账本恰ADJUST/EXPIRE两条、账户version2/available0，无重复效果。
+
+完整439项434PASS/5既有skip、前端build/Prettier、36工具/247入口/122能力/34角色和两仓hygiene通过；Java formatter/静态分析限制保持。实际1440/390表单、列表/钱包、未知、冲突及停机截图已查看；两仓points-ui-source-sha256摘要复核一致。自有PG/IdP/JVM/Vite已finally停止、数据/截图保留；runtime_switched/production_ready=false，原8602未切换。无新迁移，V57不改。PTS2本地DONE待正常Git交付，下一CE04-O0积分商品协议，CE04-O1/O2和CE05—08未完成。

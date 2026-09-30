@@ -4104,6 +4104,47 @@
       "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
       "capabilities": [],
       "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "PointsActionsController",
+      "method": "GET",
+      "path": "/v1/operations/member-points/policy-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/PointsActionsController.java",
+      "capabilities": [
+        "commerce.points.policy.publish"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "PointsActionsController",
+      "method": "GET",
+      "path": "/v1/operations/member-points/adjust-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/PointsActionsController.java",
+      "capabilities": [
+        "commerce.points.adjust"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "PointsActionsController",
+      "method": "GET",
+      "path": "/v1/operations/member-points/expire-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/PointsActionsController.java",
+      "capabilities": [
+        "commerce.points.expire"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/member-points",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
     }
   ]
 }
