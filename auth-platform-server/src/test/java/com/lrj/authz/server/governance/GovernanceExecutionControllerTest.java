@@ -36,6 +36,21 @@ class GovernanceExecutionControllerTest {
         when(caller.callerServiceId()).thenReturn("other");assertThatThrownBy(()->enabled.scope(request)).hasMessage("ACCESS_DENIED");
     }
 
+    /** 新政策类型必须单独登记Owner，会员类型登记不能授予政策权限。 */
+    @Test void policyCollectionRequiresItsOwnExplicitOwner() throws Exception {
+        var contexts=mock(InternalContextService.class);var executions=mock(ExecutionAuthorization.class);var caller=mock(CallerService.class);
+        when(contexts.authenticateCaller(anyString())).thenReturn(caller);when(caller.callerServiceId()).thenReturn("commerce-p6");when(caller.applicationId()).thenReturn("commerce");
+        var check=new CentralAccessDtos.Check(UUID.randomUUID().toString(),1L,UUID.randomUUID().toString(),"commerce.growth.policy.publish",ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE);
+        var input=new ExecutionAccessDtos.ScopeCheck(UUID.randomUUID().toString(),check);
+        var request=new MockHttpServletRequest();request.addHeader("Authorization","Bearer "+"s".repeat(48));
+        byte[] body=com.lrj.authz.governance.web.GovernanceWeb.body(input).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        request.setContent(body);
+        var restricted=new GovernanceExecutionController(contexts,executions,new GovernanceExecutionConfiguration.ExecutionSettings(Set.of("commerce-p6"),Set.of(ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE)));
+        assertThatThrownBy(()->restricted.scope(request)).hasMessage("ACCESS_DENIED");verifyNoInteractions(executions);
+        var enabled=new GovernanceExecutionController(contexts,executions,new GovernanceExecutionConfiguration.ExecutionSettings(Set.of("commerce-p6"),Set.of(ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE)));
+        request.setContent(body);enabled.scope(request);verify(executions).scope(eq(caller),eq(input));
+    }
+
     @Test void resourceExecutionRequiresExplicitMemberOwnerBeforeEvaluatingReference() throws Exception {
         var contexts=mock(InternalContextService.class);var executions=mock(ExecutionAuthorization.class);var caller=mock(CallerService.class);
         when(contexts.authenticateCaller(anyString())).thenReturn(caller);when(caller.callerServiceId()).thenReturn("commerce-p6");when(caller.applicationId()).thenReturn("commerce");

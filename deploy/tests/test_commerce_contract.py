@@ -28,7 +28,7 @@ class CommerceContractTest(unittest.TestCase):
 
     def test_baseline_matches_reviewed_inventory_without_publishing(self):
         self.assertEqual(checker.validate(self.contract, self.actual),
-                         dict(status='PASS', capabilities=122, routes=223, role_snapshots=34, published=False))
+                         dict(status='PASS', capabilities=122, routes=227, role_snapshots=34, published=False))
 
     def test_missing_route_or_new_source_route_is_not_silently_skipped(self):
         self.contract['routes'].pop()

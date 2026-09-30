@@ -19,7 +19,9 @@ public final class ExecutionAuthorization {
     private static final Map<String,String> DIRECTORY = Map.of(
             "merchant.read", ScopeDtos.MERCHANT_RESOURCE_TYPE, "merchant.create", ScopeDtos.MERCHANT_RESOURCE_TYPE,
             "store.directory.read", ScopeDtos.STORE_RESOURCE_TYPE, "store.create", ScopeDtos.STORE_RESOURCE_TYPE);
-    private static final Set<String> MEMBER_CORE = Set.of("member.read", "member.create", "member.profile.update", "member.status.update");
+    private static final Set<String> MEMBER_CAPABILITIES = Set.of("member.read", "member.create", "member.profile.update", "member.status.update",
+            "growth.read", "growth.adjust", "growth.recalculate");
+    private static final Set<String> MEMBER_POLICY_CAPABILITIES = Set.of("growth.policy.read", "growth.policy.publish");
     private static final String MEMBER_CREATION = "member.create";
     private static final Set<String> CREATION = Set.of("merchant.create", "store.create");
     private static final long SYNC_MAX_SECONDS = 60;
@@ -77,9 +79,12 @@ public final class ExecutionAuthorization {
             ||(request.expectedMembershipGeneration()!=null&&request.expectedMembershipGeneration()!=context.membershipGeneration()))throw error(ACCESS_DENIED);
         // 执行事实必须与引用绑定类型一致；会员不能借门店/部门字段制造细粒度授权。
         boolean member = ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE.equals(row.resourceType());
+        boolean policy = ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE.equals(row.resourceType());
         if(facts == null || !context.tenantId().equals(facts.tenantId()) || !row.resourceType().equals(facts.resourceType())
-                || (!member && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
-        if(member && (!MEMBER_CORE.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
+                || (!member && !policy && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
+        // 政策是版本化集合；追加发布没有已有对象，本片只提供集合许可。
+        if(policy) throw error(ACCESS_DENIED);
+        if(member && (!MEMBER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
                 || (context.applicationId() + "." + MEMBER_CREATION).equals(row.capability()))) throw error(ACCESS_DENIED);
         var current=access.evaluate(context,row.capability(),row.resourceType());
         var original=read(row.pathsJson(),Paths.class);
@@ -115,12 +120,14 @@ public final class ExecutionAuthorization {
     }
     /** 精确能力与类型绑定；名称相似或未知后缀不能取得执行权。 */
     private static String scopedType(AccessContext context, String capability) {
-        if(MEMBER_CORE.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
+        if(MEMBER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
+        if(MEMBER_POLICY_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE;
         return DIRECTORY.entrySet().stream().filter(e -> (context.applicationId() + "." + e.getKey()).equals(capability)).map(Map.Entry::getValue).findFirst().orElse(null);
     }
     /** 创建资源不能拼接若干指定资源路径当成对未来对象的全租户授权。 */
     private static List<Alternative> permitted(AccessContext context, String capability, List<Alternative> paths) {
         if(!ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && CREATION.stream().noneMatch(s -> (context.applicationId() + "." + s).equals(capability))) return paths;
         return paths.stream().filter(a -> a.clauses().size() == 1 && a.clauses().getFirst().kind() == ScopeDtos.Kind.TENANT_ALL).toList();
     }

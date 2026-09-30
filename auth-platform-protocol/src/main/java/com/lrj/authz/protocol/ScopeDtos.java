@@ -13,6 +13,7 @@ public final class ScopeDtos {
     public static final String MERCHANT_RESOURCE_TYPE = "merchant";
     /** 商城客户会员是租户级业务资源，与OA员工主体分离。 */
     public static final String COMMERCE_MEMBER_RESOURCE_TYPE = "commerce_member";
+    public static final String COMMERCE_MEMBER_POLICY_RESOURCE_TYPE = "commerce_member_policy";
     /** 范围响应大小有界，超出不能截断后放行。 */
     public static final int MAX_PLAN_BYTES = 262144;
 

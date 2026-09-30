@@ -3902,6 +3902,47 @@
       "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
       "capabilities": [],
       "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "MemberActionsController",
+      "method": "GET",
+      "path": "/v1/operations/members/create-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/MemberActionsController.java",
+      "capabilities": [
+        "commerce.member.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "MemberActionsController",
+      "method": "GET",
+      "path": "/v1/operations/members/profile-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/MemberActionsController.java",
+      "capabilities": [
+        "commerce.member.profile.update"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "MemberActionsController",
+      "method": "GET",
+      "path": "/v1/operations/members/status-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/MemberActionsController.java",
+      "capabilities": [
+        "commerce.member.status.update"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "hint_only": true
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/members",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
     }
   ]
 }
