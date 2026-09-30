@@ -17,3 +17,9 @@
 OA既有CODEX_PROGRESS.md、identity-authz-governance/PROGRESS_STATE.md、DEPLOYMENT_RESULT.md、.local/、tmp/均未改。原commerce-platform-app-1保持running/healthy，未切换任何真实商城单元。
 
 SKILL_HANDOFF: task-git-delivery，status=COMPLETED，gate=PASS（实现提交/合并/推送及精确产品CI通过；此记录随纯文档收尾提交交付）；scope=P7-01..06本地范围与P7-07评审材料，不包含生产接受。
+
+## P7认证分类修复交付
+
+分支`fix/p7-authentication-baseline`，提交`e16a4ddfa009bdac025adfe6640f828cab9fdf8f`已按用户常驻授权正常fast-forward合并并推送origin/main。本地209项单测、22项隔离演练通过；精确产品远程CI36655346503成功，当前修复task-git-delivery=COMPLETED/PASS。没有生产部署、tag/release或新worktree。
+
+源码指纹与全部失败样本摘要见P7_AUTH_FIX_EVIDENCE。新增私有诊断目录.local/governance/p7-auth-diagnosis，以及运行b286c3d8481c/fd17d59c70ab的配置、备份和日志需保留；所有本轮自有容器/进程已停止，无删除授权。原商城running/healthy，commerce/OA提交及OA既有脏文件与上文一致。Auth最终记录随纯文档收尾提交交付，产品与测试树保持e16a4dd；CI绑定精确产品SHA。

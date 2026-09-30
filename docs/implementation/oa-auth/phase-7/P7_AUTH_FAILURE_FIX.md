@@ -20,7 +20,7 @@ CasdoorAccessTokenVerifier在校验active值之前，识别非布尔active、err
 
 ## 验证与交付
 
-本地reactor验证：209项单测通过（protocol14/core27/governance86/server28/admin54），新增案例净增5项；Python语法及git diff检查通过。完整演练fd17d59c70ab的22项检查全部通过，源码SHA256与统计见[P7_AUTH_FIX_EVIDENCE](P7_AUTH_FIX_EVIDENCE.json)；Git/CI待交付。不复用上轮9f191e4的CI作为当前源码的通过证据。
+本地reactor验证：209项单测通过（protocol14/core27/governance86/server28/admin54），新增案例净增5项；Python语法及git diff检查通过。完整演练fd17d59c70ab的22项检查全部通过，源码SHA256与统计见[P7_AUTH_FIX_EVIDENCE](P7_AUTH_FIX_EVIDENCE.json)；产品提交e16a4ddfa009bdac025adfe6640f828cab9fdf8f已正常合并推送main，远程CI36655346503成功；见[CI_RESULT](CI_RESULT.md)和[P7_DELIVERY_RESULT](P7_DELIVERY_RESULT.md)。不复用上轮9f191e4的CI作为当前源码的通过证据。
 
 已知边界：本修复纠正错误分类，不消除共享PG连接争用，不能把503解释成容量达标。P6基线有意保留旧行为供混部对照，不篡改旧制品。OA与商城源码/既有运行单元不变，生产P7-07/08继续BLOCKED。
 
@@ -41,3 +41,5 @@ CasdoorAccessTokenVerifier在校验active值之前，识别非布尔active、err
 恢复17.606秒、2道新水位、单条备份后撤权重放、readiness重试0，允许/撤销/到期行为通过。该恢复实测仍非生产RTO/RPO。
 
 实施/验证Handoff：backend-implementation、implementation-validation完成本轮有界修复与验证；实现者复核，无独立代理审查。生产容量HOLD不因错误分类修复解除。所有本轮自有进程/容器停止，备份、配置及诊断数据保留在私有.local；无删除操作。
+
+Code Hygiene Gate（base=5882ae1）为IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS，无阻断项；仓库无统一formatter、独立静态分析未配置，周边格式及差异检查通过。未引入新工具或全仓格式化。

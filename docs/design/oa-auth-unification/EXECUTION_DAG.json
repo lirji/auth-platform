@@ -1697,5 +1697,17 @@
     "capacity": "user approved bounded local baseline; production targets undefined",
     "deployment": "no production target or authorization",
     "evidence": "docs/implementation/oa-auth/phase-7/P7_TEST_RESULT.md"
+  },
+  "p7_auth_failure_remediation": {
+    "scope": [
+      "P7-02",
+      "P7-03",
+      "P7-04"
+    ],
+    "status": "LOCAL_DELIVERED_GIT_CI_PASS",
+    "product_commit": "e16a4ddfa009bdac025adfe6640f828cab9fdf8f",
+    "ci_run": 36655346503,
+    "evidence": "docs/implementation/oa-auth/phase-7/P7_AUTH_FAILURE_FIX.md",
+    "capacity_limit": "shared Casdoor PostgreSQL connection contention remains; production targets undefined"
   }
 }

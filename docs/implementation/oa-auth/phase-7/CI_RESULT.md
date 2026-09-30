@@ -11,3 +11,10 @@ commerce/OA无本轮修改，不重复触发两仓CI。最终auth交付状态纯
 生产发布/部署N/A。即使CI通过，P7-07真实生产条件及P7-08观察仍受独立门禁约束。
 
 SKILL_HANDOFF: ci-cd-gate，status=COMPLETED，gate=PASS（精确产品提交验证通过）。
+
+## P7认证分类修复 CI
+
+目标产品提交：`e16a4ddfa009bdac025adfe6640f828cab9fdf8f`。
+[Auth Platform CI 36655346503](https://github.com/lirji/auth-platform/actions/runs/36655346503)：SUCCESS；本轮ci-cd-gate=COMPLETED/PASS。上文9f191e4仅为历史基线。
+
+本地209项单测、22项隔离演练与源码指纹见P7_AUTH_FAILURE_FIX/P7_AUTH_FIX_EVIDENCE；真实HTTP200错误注入和P6对照在本地执行，CI执行既有完整身份/治理/投影/SDK/前端检查。本修复无schema/依赖/SDK变化。纯文档交付收尾不触发CI，不能称其新SHA另跑过检查。
