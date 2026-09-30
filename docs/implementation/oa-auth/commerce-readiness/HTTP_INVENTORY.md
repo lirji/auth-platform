@@ -1,6 +1,6 @@
 # 商城HTTP入口实测源码清单
 
-基线 commerce-platform 31dbdcd；当前任务仅增加静态 `/operations/catalog` 壳。逐个注解展开多路径，CE-03-D2新增目录壳与两创建提示后共 223 条。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
+基线 commerce-platform 31dbdcd；当前任务仅增加静态 `/operations/catalog` 壳。逐个注解展开多路径，CE-04-P2新增会员壳与三独立提示后共 227 条。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
 
 | Controller | 方法 | 路径 | 当前入口身份 | 源码 |
 |---|---|---|---|---|
@@ -227,3 +227,7 @@
 | DirectoryActionsController | GET | `/v1/operations/directory/merchants/create-access` | CENTRAL_EMPLOYEE / merchant.create hint | `commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/DirectoryActionsController.java` |
 | DirectoryActionsController | GET | `/v1/operations/directory/stores/create-access` | CENTRAL_EMPLOYEE / store.create hint | `commerce-app/src/main/java/com/lrj/commerce/app/http/commerce/DirectoryActionsController.java` |
 | CentralPageController | GET | `/operations/directory` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java` |
+| MemberActionsController | GET | `/v1/operations/members/create-access` | CENTRAL_OPERATOR / independent hint | `commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/MemberActionsController.java:19` |
+| MemberActionsController | GET | `/v1/operations/members/profile-access` | CENTRAL_OPERATOR / independent hint | `commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/MemberActionsController.java:22` |
+| MemberActionsController | GET | `/v1/operations/members/status-access` | CENTRAL_OPERATOR / independent hint | `commerce-app/src/main/java/com/lrj/commerce/app/http/member/operations/MemberActionsController.java:25` |
+| CentralPageController | GET | `/operations/members` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java:10` |

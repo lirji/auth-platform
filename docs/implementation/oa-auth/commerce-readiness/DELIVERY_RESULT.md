@@ -60,3 +60,5 @@ D2实际交付：auth3a8f7e9（feat/commerce-directory-ui-contract）、commerce
 CE04-P0本地DONE，251单测/4真实PG+graph IT/Boot4兼容/package/hygiene无阻断；auth feat/commerce-member-execution只包含协议/Owner门禁/测试/契约/证据，无商城后续P1实现。Git交付进行中。
 
 CE04最新：P0 auth dd07223已推送，CI36668768692 SUCCESS（含D2基线）；D2 commerce CI36668436980 SUCCESS，auth旧run36668435670取消。P1本地DONE：406项401PASS/5skip、实际隔离114PASS（rehearsal-451c622849b4）、36项工具/223入口契约及hygiene无阻断，见CE04_MEMBER.md。下一CE04-P2 READY，后续会员和CE05—08未完成；原63节点DAG与生产HOLD不变。
+
+CE04最新：P1 auth2cb8c11/commerce1bc81f2已合并推送，两仓CI36669783915/36669785165 SUCCESS。P2本地DONE：407项402PASS/5skip、真实隔离137PASS含会员12条浏览器及共享壳回归、当前截图已查看；36项Python/227入口/hygiene无阻断，见CE04_MEMBER。下一CE04-G成长协议/Owner/UI细化；其余会员和CE05—08未完成。

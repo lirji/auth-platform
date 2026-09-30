@@ -353,7 +353,12 @@ def rehearse(args, isolation=None):
                     expect('revoke directory read '+code,18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':gid,'expected_version':1})
                 projection();execution_ready('store.create','create-only')
                 directory_browser('create-only')
+        def member_browser(phase):
+            if not args.browser:return
+            subprocess.run(['node',str(root/'deploy/governance-ce04-member.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=120)
+            record('real member browser '+phase)
         if args.member:
+            if args.browser:h.private(run/'member-ui.json',(run/'catalog-ui.json').read_text())
             insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'MEMBER_PROFILE','state':'SHADOW'})
             sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='MEMBER_PROFILE' AND state='SHADOW' AND version=1;")
             expect('directory does not imply member access',18661,'/v1/admin/members',user,status=403)
@@ -363,24 +368,29 @@ def rehearse(args, isolation=None):
                 rule={'version':1,'resource_type':MEMBER_RESOURCE_TYPE,'clauses':[{'kind':'TENANT_ALL','values':[],'include_root':False}]}
                 gid=expect('finite member grant '+code,18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role,'scope_rule':rule,'source_id':'ce04-'+code,'valid_from':now(-2),'valid_to':now(600)},202)['id']
                 projection();execution_ready(code,resource_type=MEMBER_RESOURCE_TYPE);return gid
-            member_create=member_grant('member.create')
+            member_grant('member.create')
+            member_browser('create-only')
             body={'memberId':'ce04-member','actorId':'ce04-customer','displayName':'CE04 member','memberLevel':'BASIC'}
             create_headers=user+[('Idempotency-Key',uid())]
             created=expect('member create without read',18661,'/v1/admin/members',create_headers,body)
             if expect('member create receipt replay',18661,'/v1/admin/members',create_headers,body)!=created:raise RuntimeError('member creation receipt changed')
             expect('member create does not imply read',18661,'/v1/admin/members',user,status=403)
             profile_grant=member_grant('member.profile.update')
+            member_browser('profile')
             profile_headers=user+[('Idempotency-Key',uid())];profile={'expectedVersion':0,'value':'Updated member','reason':'CE04 isolated update'}
             changed=expect('member profile capability updates actual owner',18661,'/v1/admin/members/ce04-member/profile',profile_headers,profile)
             if changed['version']!=1 or expect('member profile idempotent retry',18661,'/v1/admin/members/ce04-member/profile',profile_headers,profile)!=changed:raise RuntimeError('member profile receipt mismatch')
             expect('member profile cannot change status',18661,'/v1/admin/members/ce04-member/status',user+[('Idempotency-Key',uid())],{'expectedVersion':1,'value':'CLOSED','reason':'denied'},403)
             member_grant('member.read')
             member_rows=expect('member tenant list',18661,'/v1/admin/members',user)
-            if len(member_rows)!=1 or member_rows[0]['memberId']!='ce04-member':raise RuntimeError('member list scope incorrect')
+            expected_members={'ce04-member','ce04-ui-member'} if args.browser else {'ce04-member'}
+            if {row['memberId'] for row in member_rows}!=expected_members:raise RuntimeError('member list scope incorrect')
+            member_browser('read')
             if len(expect('member real owner history',18661,'/v1/admin/members/ce04-member/history',user))!=1:raise RuntimeError('member history missing')
             expect('member foreign target denied',18661,'/v1/admin/members/foreign-member/history',user,status=404)
             expect('member foreign tenant denied',18661,'/v1/admin/members',[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
             member_grant('member.status.update')
+            member_browser('status')
             closed=expect('member closes with independent status capability',18661,'/v1/admin/members/ce04-member/status',user+[('Idempotency-Key',uid())],{'expectedVersion':1,'value':'CLOSED','reason':'CE04 close'})
             if closed['status']!='CLOSED' or closed['version']!=2:raise RuntimeError('member terminal state incorrect')
             expect('closed member cannot reopen',18661,'/v1/admin/members/ce04-member/status',user+[('Idempotency-Key',uid())],{'expectedVersion':2,'value':'ACTIVE','reason':'reopen denied'},409)
@@ -389,6 +399,10 @@ def rehearse(args, isolation=None):
             expect('revoke member profile independently',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':profile_grant,'expected_version':1});projection()
             expect('revoked member profile cannot replay old receipt',18661,'/v1/admin/members/ce04-member/profile',profile_headers,profile,403)
             expect('member read survives profile revocation',18661,'/v1/admin/members',user)
+            member_browser('revoked')
+            if args.browser:
+                if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='commerce_member' AND resource_id='ce04-ui-member'")[1]!='3':raise RuntimeError('member browser commands not exactly once')
+                record('member browser three effects and three audits exactly once')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -427,7 +441,9 @@ def rehearse(args, isolation=None):
         if args.directory:
             expect('directory auth outage fails closed',18661,'/v1/admin/stores',user,status=503)
             directory_browser('outage')
-        if args.member:expect('member auth outage fails closed',18661,'/v1/admin/members',user,status=503)
+        if args.member:
+            expect('member auth outage fails closed',18661,'/v1/admin/members',user,status=503)
+            member_browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
         result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}

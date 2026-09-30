@@ -23,3 +23,22 @@ P1消费正式会员契约：MEMBER_PROFILE独立族、四精确能力、真实�
 失败历史保留：member-compile.log错误枚举名已改既有INVALID_INPUT；member-verify.log首次测试故障注入触发MANDATORY代理（改AopTestUtils取得spy设置）以及旧库存测试对现已接入会员入口仍期望401（已认证无权应403）。第一次演练c1091cdbe5fa因Docker默认地址池耗尽而停止，未删除历史资源；工具增加显式RFC1918 /24参数，核对既有Docker子网后本次使用10.254.81.0/24。公共/IPv6/过宽/非规范子网单测拒绝，Docker负责重叠检查。36项Python测试、223真实入口/122能力/34角色离线契约核对、两仓hygiene及diff检查通过；hygiene保留无Java formatter/未配置静态分析限制，不冒充自动事务审查。
 
 本片没有页面验收、生产授权或真实OA导入。下一P2页面及成长/标签/行为/周期/积分、CE05—08未完成。回退必须使用认识MEMBER_PROFILE族的版本和STOPPED路由，旧二进制不具备该隔离能力；5秒仅准入期限，不宣称跨库即时撤权。Git/CI结果随后记录。
+
+## CE04-P1 Git交付
+
+auth2cb8c11ab8f773edab94327bc79ac5996990799c与commerce1bc81f276520aa1c54b78c337c99ce413299561b已按任务分支普通合并推送main。CI36669783915、36669785165均SUCCESS。期间auth其他任务782ae3d仅修改gitignore且已在origin/main，保留该提交及其gitignore-hygiene工作树，未清理或夹带其未提交内容。
+
+## CE04-P2验证中
+
+会员固定SSO页、列表/历史Drawer、三个独立写工作区及精确提示API已实现。407项Java402PASS/5skip，member-ui-verify.log；5项CentralMemberMySqlTest含三提示的独立/旧ADMIN/401/范围/epoch/503验证；静态壳GET与非GET门禁回归。最终登录说明文字后重跑frontend build/package，member-ui-build-final.log/member-ui-package.log；Prettier/hygiene无阻断，227入口契约/36项Python PASS。无schema/依赖新增。
+
+第一轮真实浏览器rehearsal-e56215a12fb5到108项PASS，包含会员SSO、create-only、真实响应丢失同键恢复、409保留输入后修改、真实历史Drawer和窄屏；状态Select的role=option定位超时，截图显示菜单正常，已修测试为实际可见Ant选项，业务断言/产品代码未改。失败截图及日志保留。第二轮--identity-subnet 10.254.83.0/24正在完整复跑，未据首轮部分通过标DONE。
+
+
+### P2最终本地DONE
+
+最终rehearsal-aa0b96471601共137项PASS，会员6阶段共12条真实浏览器细分检查；目录/库存/CATALOG共享壳回归全部通过。会员create-only真实PKCE、输入校验、真实提交后丢失响应、原输入锁定/相同键重试、退出取消/切Tab保留；profile-only无read可改、409保留输入再纠正；真实历史包含前后值/原因/操作人/版本，Esc关闭回原列表；独立状态权限注销后恢复409；profile撤权不影响read/status；外租户、logout/401移除内容、真实中央停机503通过。SQL确认UI创建/改名/注销三次效果恰三条身份审计。脚本未伪造成功响应或业务数据。
+
+已实际查看当前同版第一轮create-form/unknown/list/history/390-list/390-history以及最终status-form/390-status/conflict/outage/create-form/390-history/list截图；表单宽度/按钮/中文提示清楚，Drawer桌面保留上下文、390宽表在容器内滚动，状态/权限错误不保留可执行旧入口。只是自审，未声称用户视觉批准。失败run e56215a12fb5和成功run均保留；前端/业务代码未因定位修正改变，验收后仅CentralStoreErrors缩进对齐，无语义变化。
+
+最终Java407项402PASS/5skip、前端build/Prettier/package、36项Python、227入口/122能力/34角色契约及两仓hygiene无阻断。hygiene保留无Java formatter与未配置静态分析限制。自有PG/IdP/JVM/Vite均由finally停止，独立子网82/83与数据保留；不清理其他任务资源。P2本地DONE，Git交付中；下一CE04-G成长模块，其他会员和CE05—08仍未完成。

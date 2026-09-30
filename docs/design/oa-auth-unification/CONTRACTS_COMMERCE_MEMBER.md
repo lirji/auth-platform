@@ -24,7 +24,7 @@ CE04-P2复用现有SSO、AntDesign和真实会员列表/创建/历史/修改状�
 |---|---|---|---|---|
 |CE04-P0|CE03-D|auth协议Owner可签发并复核4会员执行引用|真实PG+graph：四能力独立、TENANT_ALL、错误事实/类型/租户/代际、60秒、撤销/重授；HTTP显式Owner门禁；旧库存/CATALOG/目录回归；无Runtime变更|DONE（已推送/CI SUCCESS）|
 |CE04-P1|CE04-P0|commerce基础会员API中央接管|真实MySQL身份幂等/审计、版本并发/合法状态、旧ADMIN/聚合拒绝、客户/内部原行为；实际中央跨进程|DONE（本地）|
-|CE04-P2|CE04-P1|基础会员员工页面可用|真实API/SSO/操作与错误恢复，当前版本1440/390截图实际查看|TODO|
+|CE04-P2|CE04-P1|基础会员员工页面可用|真实API/SSO/操作与错误恢复，当前版本1440/390截图实际查看|DONE（本地）|
 |CE04-G/T/B/C/P|CE04-P2及前一片|成长、标签、行为、周期、积分各自API+页面薄片|各片执行前细化对应已批准能力、Owner、合法迁移/幂等/审计/客户回归；后台系统职能留CE08|TODO|
 
 各片串行修改共享协议/路由/schema；没有并行Agent授权。本文件不提前授予未实施能力，也不将生产输入不足扩散为本地开发阻塞。
@@ -36,3 +36,15 @@ EmployeeAccess新增ResourceFact(type/id/version)及ResourcePermit(ScopePermit, 
 list/stats先scope、SQL本来就按可信tenant过滤、返回前复核相同范围指纹；history先全租户资格、Owner真实会员事实、resource-check、SQL游标查询，返回前再次scope并校验Owner版本未变。change选定封闭action后先scope、真实Owner读取和resource-check；Commands guard先共享锁权威路由、再FOR UPDATE锁会员并比较与许可事实版本，之后才读回执。新命令继续原expectedVersion、CLOSED终态、状态允许集合和影响行数规则。同键重试重新取得当前事实，不将易变资源版本放入幂等摘要，稳定principal/member/generation加入摘要；真实变更/history和身份审计共事务。
 
 新增V52仅允许MEMBER_PROFILE族和commerce_member审计资源（store_id为空、resource_id非空），保留V51旧库存/目录兼容与状态触发器，不改变原业务表或旧迁移。HTTP仅精确GET/POST members及单ID的profile/status/history，未知action/额外路径不匹配；旧客户current与业务内部requireActive/lockForOperation保持，未接管其他能力不能使用本片OPERATOR引用。SKU/目录/inventory既有测试全回归。
+
+## P2页面与动作提示细化
+
+固定GET /operations/members?tenant_id=<UUID>，沿用现有SSO、同源safeReturn允许列表和AntDesign主题。只由本页客户端携中央Token和X-Tenant-Id，精确允许基础会员列表/创建、单ID profile/status/history和下述三个提示，不提供旧控制台通用客户端。
+
+新增GET /v1/operations/members/create-access、profile-access、status-access，各固定映射独立member.create/profile.update/status.update。返回{allowed:true}，调用原scope前后指纹比较；必须OPERATOR+执行引用，旧ADMIN拒绝。提示只说明当前租户操作资格，不授权任何对象；实际提交仍由P1读取真实Owner事实并核对。无读权限也可按已知编号/版本创建或修改，不能隐含member.read。
+
+页面主任务为会员列表（50条游标）及独立新建/资料修改/状态修改Tabs；列表行可打开审计Drawer。独立修改岗位按已知会员编号/版本填写，不伪造详情。创建字段复用Create，修改复用Change及固定profile/status路径，历史复用History按version游标。表单名称唯一；中文状态ACTIVE/FROZEN/CLOSED；注销显示不可恢复提示并按原工作流提交，不新增OA审批。审计显示真实前后值、原因、操作人、时间和版本。
+
+所有提示403仅影响对应操作；读取403不隐藏已授写入口。401隐藏业务页、503不当空列表；409保留输入并提示核对最新版本。POST网络/5xx结果未知锁定原body+Idempotency-Key，原样重试；其后403不得遗失未知意图。切Tab保留输入，退出/浏览器离开提醒未保存内容，审计关闭返回原列表游标。
+
+验收包括真实SSO、列表/审计Drawer、创建独立于读、资料/状态独立、注销终态、未知结果同键重试、409冲突、撤权、真实依赖停止、退出/401、1440/390无页面横向溢出和当前各布局截图实际查看。旧目录/库存/CATALOG共享登录壳消费者回归。无新Runtime/依赖/schema。
