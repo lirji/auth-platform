@@ -67,7 +67,8 @@ export default function GovernancePage() {
     }
     if (next.toString() !== params.toString()) setParams(next, { replace: true })
   }, [tenant, orgs.data, params, setParams, entries, home])
-  useEffect(() => { setMenuOpen(false); document.title = `${page?.title ?? '我的工作台'} · 权限控制台` }, [location.pathname, page])
+  // 同页链接也会创建导航记录；按导航键关闭抽屉，避免只监听路径时遮住当前任务。
+  useEffect(() => { setMenuOpen(false); document.title = `${page?.title ?? '我的工作台'} · 权限控制台` }, [location.key, page])
   const changeOrganization = (id: string) => {
     void qc.cancelQueries({ queryKey: ['governance', subject] })
     qc.removeQueries({ queryKey: ['governance', subject], predicate: query => query.queryKey[2] !== 'organizations' })

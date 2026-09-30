@@ -7,9 +7,9 @@
 - 基线 `4747ac4`，任务分支 `feat/governance-console-design`，最终提交见 [DELIVERY_RESULT](DELIVERY_RESULT.md)。
 - React/AntD/真实治理 API 沿用现有依赖及契约，无新增数据库、种子、API或依赖。
 - 本地 `http://localhost:5273/governance`，真实组织 local-commerce、应用 commerce、环境 local；复用当前登录会话。业务无可用入口与有应用管理权限分别显示。
-- 最终 `auth-console/src` 文件按路径排序，以 `path + NUL + bytes + NUL` 累积的 SHA256：`c1ccf69a821128f31f6132ce4ef42cab53659ea3d392c0a7533387a0511266c7`。
-- 构建的 `index.html` 与5273实际HTTP正文摘要一致：`102c6c8e3cb4de9d92c23ab404f167f8efb8f052397fcd3f622f0c7255500f98`。
-- 制品：`index-DuOefmx4.js`、`index-DrInSnuQ.css`。最终浏览器复核后未改产品源码。
+- 最终 `auth-console/src` 文件按路径排序，以 `path + NUL + bytes + NUL` 累积的 SHA256：`57db9e2a80f92b5a178f814be45e34eadf243a4c379528a805b0c0cd74049da1`。
+- 构建的 `index.html` 与5273实际HTTP正文摘要一致：`79b2761761a653a9d89d1d4f637842ea44ca2d8eee4bc19af87de7b930c294ab`。
+- 制品：`index-BETBziHw.js`、`index-DrInSnuQ.css`。最后一次同页导航修正后已重跑构建/6单测/hygiene，并在390视口重验；其余布局与表单源码保持前一轮验证版本。
 
 ## 自动检查
 
@@ -41,7 +41,7 @@
 | 键盘入口 | 首次Tab显示有焦点描边的“跳转到主要内容”；Enter后Tab进入刷新应用，PASS |
 | 原始转义URL | 强制刷新后清理amp;application/amp;environment，显式正常参数优先；真实首页可用，PASS |
 
-本地私密证据目录 `.local/governance-experience/`：`home-1440.png`、`access-1440.png`、`home-390.png`、`request-empty-390.png`。其余状态在会话截图中实际查看；静态 `overview.svg` / `narrow.svg` 是设计稿，不是运行证据。截图含本地账号/浏览器信息，不提交仓库。
+本地私密证据目录 `.local/governance-experience/`：`home-1440.png`、`access-1440.png`、`home-390.png`、`request-empty-390.png`、`home-390-navigation-fixed.png`。其余状态在会话截图中实际查看；静态 `overview.svg` / `narrow.svg` 是设计稿，不是运行证据。截图含本地账号/浏览器信息，不提交仓库。
 
 ## 自查与修正轮次
 
@@ -50,6 +50,8 @@
 3. 状态轮：空申请策略不再出现不可完成的表单；状态文案区分受理、审批、投影确认及实际访问。成员列表非全量范围引导查看详情，避免猜测资源规则。
 4. 响应轮：发现空表格仍继承桌面宽度，修正窄屏空表头/列宽；补齐窄屏应用/环境上下文。再次查看390申请空态及角色抽屉。
 5. 收尾轮：授权标签/游标移入URL，验证详情返回保留标签；1440、200%缩放、键盘跳转与最终构建/单测复核。
+
+6. 边界复查：真实复现移动菜单点击当前工作台不关闭；关闭逻辑改为监听导航记录键，同页导航也关闭并归还焦点。修正后再次浏览器验证，重新构建/6单测/hygiene通过，更新源码与制品摘要。
 
 ## 限制与运行说明
 
