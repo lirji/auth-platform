@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useCatalog } from './catalog/useCatalog'
 import { useProjectReachability } from './catalog/useProjectReachability'
 import { useProjectOrder } from './catalog/useProjectOrder'
-import { filterProjects } from './catalog/viewModel'
+import { filterProjects, projectLinkAttributes } from './catalog/viewModel'
 import type { ProjectEntry } from './catalog/types'
 import { EmptyState, ErrorState, LoadingState } from './components/AsyncState'
 import { ProjectCard } from './components/ProjectCard'
@@ -14,6 +14,7 @@ export default function App() {
   const { state, retry } = useCatalog()
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('全部')
+  const [onlyAvailable, setOnlyAvailable] = useState(false)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dropTargetId, setDropTargetId] = useState<string | null>(null)
 
@@ -21,11 +22,20 @@ export default function App() {
   const { ordered, moveTo, moveBy, reset, hasCustomOrder } = useProjectOrder(projects)
   const { reachability, refresh: refreshReachability, checking } = useProjectReachability(projects)
   const categories = useMemo(() => [...new Set(projects.map((project) => project.category))], [projects])
-  const visible = useMemo(() => filterProjects(ordered, query, category), [category, ordered, query])
+  const availableCount = projects.filter((project) => projectLinkAttributes(
+    project, reachability[project.id] ?? (project.healthUrl ? 'checking' : 'unchecked'),
+  )).length
+  const visible = useMemo(() => filterProjects(ordered, query, category).filter((project) => (
+    !onlyAvailable || projectLinkAttributes(
+      project, reachability[project.id] ?? (project.healthUrl ? 'checking' : 'unchecked'),
+    ) !== null
+  )), [category, onlyAvailable, ordered, query, reachability])
+  const filtered = Boolean(query.trim()) || category !== '全部' || onlyAvailable
 
   const clearFilters = () => {
     setQuery('')
     setCategory('全部')
+    setOnlyAvailable(false)
   }
 
   const finishDrag = () => {
@@ -40,21 +50,29 @@ export default function App() {
           <span className="brand-mark" aria-hidden="true">◆</span>
           <span>能力门户</span>
         </a>
-        <span className="public-badge"><span aria-hidden="true">◎</span> 无需登录即可浏览</span>
+        <div className="topbar-meta">
+          <a className="browse-link" href="#catalog-title">浏览项目 <span aria-hidden="true">↓</span></a>
+          <span className="public-badge"><span aria-hidden="true">◎</span> 无需登录即可浏览</span>
+        </div>
       </header>
 
       <main>
         <section className="hero">
           <p className="eyebrow">UNIFIED CAPABILITY HUB</p>
           <h1>发现并进入<br /><span>正在提供的技术能力</span></h1>
-          <p className="hero-copy">一站式浏览身份、AI、推荐、规则、流程、协同办公、风控、对账、权益、交易与仓储能力。各台登录组织不同，不要填成同一个。创建活动只能使用同一业务租户（货主）已投放的商品。</p>
+          <p className="hero-copy">从统一入口找到你需要的项目，快速进入身份、AI、规则、交易与协作工作台。</p>
           {state.kind === 'ready' && (
             <SearchFilters
               query={query}
               category={category}
               categories={categories}
+              onlyAvailable={onlyAvailable}
+              availableCount={availableCount}
+              filtered={filtered}
               onQuery={setQuery}
               onCategory={setCategory}
+              onOnlyAvailable={setOnlyAvailable}
+              onClear={clearFilters}
             />
           )}
         </section>
@@ -63,12 +81,12 @@ export default function App() {
           <div className="section-heading">
             <div>
               <p className="eyebrow">PROJECTS</p>
-              <h2 id="catalog-title">能力项目</h2>
-              <p className="order-hint">按卡片左上角手柄拖动可调整顺序，本机浏览器会记住；也可选中手柄后用方向键微调。</p>
+              <h2 id="catalog-title" tabIndex={-1}>能力项目</h2>
+              <p className="order-hint">拖动卡片手柄调整顺序，或选中后用方向键移动；本机浏览器会记住。</p>
             </div>
             {state.kind === 'ready' && (
               <div className="section-meta">
-                <span>{visible.length} / {projects.length} 个项目</span>
+                <span className="result-count" role="status">显示 <strong>{visible.length}</strong> / {projects.length} 个项目</span>
                 {hasCustomOrder && (
                   <button type="button" onClick={reset}>恢复默认顺序</button>
                 )}
@@ -108,13 +126,19 @@ export default function App() {
             </div>
           )}
           {state.kind === 'ready' && visible.length === 0 && (
-            <EmptyState filtered={Boolean(query) || category !== '全部'} onClear={clearFilters} />
+            onlyAvailable && checking ? (
+              <div className="state-card" role="status">
+                <div className="state-icon" aria-hidden="true">↻</div>
+                <h2>正在检测项目状态</h2>
+                <p>检测完成后，将显示当前可进入的项目。</p>
+              </div>
+            ) : <EmptyState filtered={filtered} onClear={clearFilters} />
           )}
         </section>
       </main>
 
       <footer>
-        <span>能力门户只负责发现并进入项目，登录与权限由各项目自己处理。</span>
+        <span>免登录浏览目录 · 登录和权限由各项目独立管理</span>
       </footer>
     </div>
   )
