@@ -1,6 +1,6 @@
 # CE05-J 旅程及营销效果中央权限技术细化
 
-状态：BUSINESS_APPROVED / IMPLEMENTING。2026-10-02 用户明确授权完整并行执行；本片仅在指定 auth/commerce 隔离任务树实施，主流程负责集成和远程 main 发布。沿用 CONTRACTS_COMMERCE_EXPANSION 与 Phase8/LP08 原业务动作、DTO、分页、UTC和状态机，无新增服务、组件或审批。
+状态：BUSINESS_APPROVED / 本片 LOCAL_VALIDATED_DONE（远程集成由主流程收尾）。2026-10-02 用户明确授权完整并行执行；本片仅在指定 auth/commerce 隔离任务树实施，主流程负责集成和远程 main 发布。沿用 CONTRACTS_COMMERCE_EXPANSION 与 Phase8/LP08 原业务动作、DTO、分页、UTC和状态机，无新增服务、组件或审批。
 
 ## 稳定能力、对象与期限
 
@@ -39,11 +39,13 @@ report首批TENANT_ALL，storeId仅真实业务过滤。UTC from/to<=93天、原
 | ID | 可观察结果 | Needs | Owner与验收 | 状态 |
 |---|---|---|---|---|
 | CE05-J0 | Auth旅程15有限能力及三report集合能力 | 既有D0/D1稳定协议；本技术细化 | protocol/governance，真实PG/SpiceDB18独立Grant/type/对象/期限/HUMAN/原Grant撤权重授/跨进程；SDK/全仓/当前归档 | VALIDATED |
-| CE05-J1-D | 九定义能力与五状态动作、publish固定政策 | J0验证 | Commerce JourneyService/Mapper/runtime/iam/migration，真实MySQL/HTTP原键/身份审计/内容与CAS/纯预览/回滚/锁等待 | TODO |
-| CE05-J1-I | 原手工实例、历史/控制/节点执行/安全取消 | J1-D | 原源跨重启/撤权/到期、客户本人兼容、SQL动作后回滚、并发恢复/已提交效果保留 | TODO |
-| CE05-J1-S | 事件/生命周期SYSTEM政策及扫描恢复 | J1-I | 实际事件/UTC/偏好/退款/window/单会员原子checkpoint/停服政策/STOPPED/unknown历史源 | TODO |
-| CE05-J2 | 三真实SSO旅程页及所有有限操作 | J1-D/I/S验证 | 实际PKCE独立能力/写岗无read、原键/unknown、桌面/390/320关联操作与SQL/当前制品截图 | TODO |
-| CE05-EF1 | report三能力Owner及内部有界重建 | J0与J1 | 真实MySQL/query/UTC93天/覆盖/退款/命令回滚/独立授权/事件兼容 | TODO |
-| CE05-EF2 | 两真实SSO报表/执行页 | EF1验证 | 独立read/rebuild-only/execution、实际DTO/金额/覆盖与游标、401/403/503/原键和视觉 | TODO |
+| CE05-J1-D | 九定义能力与五状态动作、publish固定政策 | J0验证 | Commerce JourneyService/Mapper/runtime/iam/migration，真实MySQL/HTTP原键/身份审计/内容与CAS/纯预览/回滚/锁等待 | VALIDATED |
+| CE05-J1-I | 原手工实例、历史/控制/节点执行/安全取消 | J1-D | 原源跨重启/撤权/到期、客户本人兼容、SQL动作后回滚、并发恢复/已提交效果保留 | VALIDATED |
+| CE05-J1-S | 事件/生命周期SYSTEM政策及扫描恢复 | J1-I | 实际事件/UTC/偏好/退款/window/单会员原子checkpoint/停服政策/STOPPED/unknown历史源 | VALIDATED |
+| CE05-J2 | 三真实SSO旅程页及所有有限操作 | J1-D/I/S验证 | 实际PKCE独立能力/写岗无read、原键/unknown、桌面/390/320关联操作与SQL/当前制品截图 | VALIDATED |
+| CE05-EF1 | report三能力Owner及内部有界重建 | J0与J1 | 真实MySQL/query/UTC93天/覆盖/退款/命令回滚/独立授权/事件兼容 | VALIDATED |
+| CE05-EF2 | 两真实SSO报表/执行页 | EF1验证 | 独立read/rebuild-only/execution、实际DTO/金额/覆盖与游标、401/403/503/原键和视觉 | VALIDATED |
 
 共享协议/认证与migration均本任务单Owner串行，不并发写；独有库/分区/端口验证，不用原D2 18161/18162/18660—18666、5273、8602或清空共享数据。只本地逻辑提交，主Agent统一main集成/push。完整CE00—08及Auth实际菜单资源目标保持active，候选122/岗位34不等于全量实现或发布。
+
+2026-10-02 配对Commerce J1/EF1 e900616已落完整Owner和26项真实MySQL；J2/EF2最终运行 c4ead219d8dc、Source22检查点、真实原Grant到期、同键坏回执/SQL、52当前图与1真实交互测试PASS。详细验收在配对Commerce `docs/implementation/enterprise-iam-integration/CE05_JOURNEY_UI.md` 与 `.local/journeys/j2-evidence-v1`。Auth共享 J0/ad09213/5e7abbf 原PG/图/单元证据保留，不用最新XML冒充原历史18方法；完整应用发布仍由主流程/IR继续。
