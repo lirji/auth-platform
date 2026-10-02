@@ -15,11 +15,14 @@ spec.loader.exec_module(checker)
 class CommerceContractTest(unittest.TestCase):
     def setUp(self):
         self.contract = json.loads((ROOT / 'docs/design/oa-auth-unification/COMMERCE_PERMISSION_BINDINGS.json').read_text())
-        lines = (ROOT / 'docs/implementation/oa-auth/commerce-readiness/HTTP_INVENTORY.md').read_text().splitlines()[6:]
+        lines = (ROOT / 'docs/implementation/oa-auth/commerce-readiness/HTTP_INVENTORY.md').read_text().splitlines()
         self.actual = set()
         for line in lines:
             if line.startswith('| '):
                 fields = [x.strip().strip('`') for x in line.strip('|').split('|')]
+                if fields[1:3] == ['方法', '路径']:
+                    continue
+                self.assertIn(fields[1], {'GET', 'POST', 'PUT', 'PATCH', 'DELETE'})
                 self.actual.add((fields[1], fields[2].replace('&#124;', '|')))
 
     def reject(self):
@@ -28,7 +31,7 @@ class CommerceContractTest(unittest.TestCase):
 
     def test_baseline_matches_reviewed_inventory_without_publishing(self):
         self.assertEqual(checker.validate(self.contract, self.actual),
-                         dict(status='PASS', capabilities=122, routes=262, role_snapshots=34, published=False))
+                         dict(status='PASS', capabilities=122, routes=271, role_snapshots=34, published=False))
 
     def test_missing_route_or_new_source_route_is_not_silently_skipped(self):
         self.contract['routes'].pop()

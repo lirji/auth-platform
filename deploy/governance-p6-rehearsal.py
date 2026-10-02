@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """P6所选商城租户隔离演练；只写本工具新建库，原commerce_local保持只读。"""
-import argparse, base64, hashlib, http.client, importlib.util, json, os, re, secrets, shutil, socket, subprocess, time, uuid, urllib.parse, zipfile
+import argparse, base64, hashlib, http.client, io, importlib.util, json, os, re, secrets, shutil, socket, subprocess, time, uuid, urllib.parse, zipfile
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from pathlib import Path
@@ -71,6 +71,50 @@ def verify_auth_runtime(root):
                 current=root/f'auth-platform-{module}/target'/name
                 if hashlib.sha256(archive.read('BOOT-INF/lib/'+name)).digest()!=hashlib.sha256(current.read_bytes()).digest():
                     raise RuntimeError(f'{application} runtime contains stale {module}; rebuild with -Dmaven.jar.forceCreation=true package')
+
+
+
+def compare_browser_backend(baseline, packaged):
+    """隔离SSO配置仅改变前端；后端类、资源及依赖内容必须与已验证运行包一致。"""
+    with zipfile.ZipFile(baseline) as old, zipfile.ZipFile(packaged) as new:
+        def names(archive):
+            return {n for n in archive.namelist() if not n.endswith('/') and
+                    ((n.startswith('BOOT-INF/classes/') and not n.startswith('BOOT-INF/classes/static/'))
+                     or n.startswith('BOOT-INF/lib/'))}
+        expected = names(old)
+        if expected != names(new):raise RuntimeError('packaged browser changed backend entries')
+        for name in expected:
+            left, right = old.read(name), new.read(name)
+            if left == right:continue
+            if not name.startswith('BOOT-INF/lib/') or not name.endswith('.jar'):
+                raise RuntimeError('packaged browser changed backend payload: '+name)
+            # 强制重新打包可能只改变ZIP时间戳，不能因此跳过实际依赖内容核对。
+            with zipfile.ZipFile(io.BytesIO(left)) as a, zipfile.ZipFile(io.BytesIO(right)) as b:
+                entries = {n for n in a.namelist() if not n.endswith('/')}
+                if entries != {n for n in b.namelist() if not n.endswith('/')} or any(a.read(n)!=b.read(n) for n in entries):
+                    raise RuntimeError('packaged browser changed dependency payload: '+name)
+        return {'backend_entries':len(expected),'libraries':sum(n.startswith('BOOT-INF/lib/') for n in expected)}
+
+
+def prepare_browser_jar(commerce, run, environment, baseline):
+    """只用当前源码和本次独有IdP配置构建；最终浏览器直接访问JAR，不经过开发服务器。"""
+    paths = [p for folder in ('src','public') for p in (commerce/'frontend'/folder).rglob('*') if p.is_file()]
+    paths += [commerce/'frontend'/n for n in ('package.json','package-lock.json','vite.config.ts','tsconfig.json')]
+    def fingerprint():return {str(p.relative_to(commerce)):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
+    source = fingerprint()
+    with os.fdopen(os.open(run/'browser-package.log',os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600),'w') as log:
+        subprocess.run(['npm','run','build'],cwd=commerce/'frontend',env=environment,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=180)
+        subprocess.run(['mvn','-B','-pl','commerce-app','-am','package','-Pwith-ui','-DskipTests','-Dmaven.jar.forceCreation=true'],cwd=commerce,env=environment,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=300)
+    if source != fingerprint():raise RuntimeError('frontend source changed during packaged browser build')
+    jar=run/'commerce-browser.jar';shutil.copy2(commerce/'commerce-app/target/commerce-app-0.1.0-SNAPSHOT.jar',jar)
+    fence=compare_browser_backend(baseline,jar)
+    dist=commerce/'frontend/dist';files=[p for p in dist.rglob('*') if p.is_file()]
+    with zipfile.ZipFile(jar) as archive:
+        for file in files:
+            if archive.read('BOOT-INF/classes/static/'+file.relative_to(dist).as_posix()) != file.read_bytes():
+                raise RuntimeError('packaged browser contains stale frontend: '+file.name)
+    fence.update(frontend_source_sha256=source,frontend_files=len(files),jar_sha256=hashlib.sha256(jar.read_bytes()).hexdigest(),mode='PACKAGED_JAR')
+    return jar,fence
 
 
 def rehearse(args, isolation=None):
@@ -310,7 +354,30 @@ def rehearse(args, isolation=None):
             pilot_class=module('p6_browser_start',root/'deploy/governance-p5-commerce.py').CommercePilot
             pilot=pilot_class.__new__(pilot_class)
             pilot.run,pilot.h=run,h
-            pilot.start(['node','node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','18665','--strictPort'],commerce/'frontend','catalog-vite',18665,dict(os.environ,VITE_IAM_ENABLED='true',VITE_IAM_AUTHORITY=h.ISSUER,VITE_IAM_CLIENT_ID=fixture['clients']['business']['name'],COMMERCE_API_URL='http://127.0.0.1:18661'))
+            ui_environment=dict(os.environ,VITE_IAM_ENABLED='true',VITE_IAM_AUTHORITY=h.ISSUER,VITE_IAM_CLIENT_ID=fixture['clients']['business']['name'],COMMERCE_API_URL='http://127.0.0.1:18661')
+            if args.packaged_browser:
+                browser_jar,browser_fence=prepare_browser_jar(commerce,run,ui_environment,local_jar)
+                h.private(run/'browser-artifact-fence.json',json.dumps(browser_fence,ensure_ascii=False,indent=2))
+                # 两个回环进程只访问本轮隔离库；浏览器进程关闭所有后台worker。
+                browser_environment=dict(runtime,COMMERCE_PORT='18665',COMMERCE_WORKERS_ENABLED='false')
+                pilot.start(['java','-Xmx384m','-jar',str(browser_jar),'--server.address=127.0.0.1','--commerce.iam.store-read.enabled=true','--commerce.iam.catalog.enabled=true','--commerce.iam.employee.enabled=true','--commerce.iam.store-read.configuration='+str(run/'consumer.properties')],commerce,'commerce-browser-packaged',18665,browser_environment)
+                expect('packaged browser backend healthy',18665,'/actuator/health')
+                record('packaged browser backend unchanged and all compiled frontend bytes match')
+                # Vite会绕过后端静态安全链；在长矩阵前核验真实JAR的精确匿名壳与业务拒绝。
+                for path in ('/operations/audiences','/operations/campaigns','/operations/campaign-budgets'):
+                    connection=http.client.HTTPConnection('127.0.0.1',18665,timeout=15)
+                    try:
+                        connection.request('GET',path,headers={'Accept':'text/html'})
+                        response=connection.getresponse();html=response.read(1048577)
+                        if response.status!=HTTPStatus.OK or 'text/html' not in response.getheader('Content-Type','') or len(html)>1048576 or b'id="root"' not in html:
+                            raise RuntimeError('packaged browser anonymous shell failed: '+path)
+                    finally:connection.close()
+                    record('packaged browser anonymous static shell '+path)
+                    expect('packaged browser static POST remains authenticated '+path,18665,path,body={},status=401)
+                for path in ('/v1/admin/audiences','/v1/admin/campaigns','/v1/admin/campaign-budgets','/v1/operations/campaigns/create-access','/operations/unregistered'):
+                    expect('packaged browser anonymous business or unknown entry denied '+path,18665,path,status=401)
+            else:
+                pilot.start(['node','node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','18665','--strictPort'],commerce/'frontend','catalog-vite',18665,ui_environment)
         def post(name,path,body,key=None):return expect(name,18661,'/v1/operations/'+path,user+[('Idempotency-Key',key or uid())],body)
         post('central create product','products',{'productId':'p6-product','storeId':store,'title':'P6 product','category':'C','brand':'B'})
         sku=post('central create sku','skus',{'skuId':'p6-sku','productId':'p6-product','storeId':store,'title':'P6 sku','unitPrice':'10.00','specifications':[{'name':'size','value':'S'}]})
@@ -334,8 +401,9 @@ def rehearse(args, isolation=None):
             expect('CATALOG does not imply inventory read',18661,inventory_path,user,status=403)
             expect('old ADMIN cannot bypass inventory route',18661,inventory_path,[('Authorization','Bearer '+admin_local)],status=403)
             def inventory_grant(action):
+                # 完整CE05浏览器矩阵超过十分钟；本轮有限测试授权须覆盖末尾跨能力撤权检查。
                 role_id=expect('explicit inventory '+action+' role',18162,prefix+'/roles',admin,{**partition,'command_id':uid(),'role_code':'ce03-inventory-'+action,'role_version':1,'capabilities':['commerce.inventory.'+action]})['id']
-                return expect('finite isolated inventory '+action+' grant',18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role_id,'scope_rule':scope,'source_id':'ce03-'+action,'valid_from':now(-2),'valid_to':now(600)},202)['id']
+                return expect('finite isolated inventory '+action+' grant',18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role_id,'scope_rule':scope,'source_id':'ce03-'+action,'valid_from':now(-2),'valid_to':now(3000)},202)['id']
             def inventory_ready(action):
                 # 新授权允许双水位保守DENY；仅对只读就绪探测重试，撤权和业务写入均不重试。
                 observations=[];stable=0
@@ -1310,6 +1378,42 @@ def rehearse(args, isolation=None):
             if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='campaign' AND store_id IS NULL AND resource_version>0")[1]!='13':raise RuntimeError('campaign exact content identity audit count mismatch')
             if sql("SELECT GROUP_CONCAT(CONCAT(resource_version,':',n) ORDER BY resource_version) FROM (SELECT resource_version,count(*) n FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='campaign' GROUP BY resource_version) t")[1]!='1:3,7:6,8:4':raise RuntimeError('campaign content audit versions confused with lock versions')
             record('campaign exact thirteen identity audits preserve immutable content versions and no duplicate commands')
+            if args.browser:
+                # 已完成原13条审计断言后撤销旧read/budget，避免既有Grant混入独立UI角色。
+                for code in ('campaign.read','budget.read'):
+                    expect('retire original campaign reader before UI '+code,18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':campaign_grants[code],'expected_version':1})
+                projection()
+                ui=json.loads((run/'catalog-ui.json').read_text());ui.update({'from':now(-120),'to':now(1800),'member':offer_member})
+                h.private(run/'campaigns-ui.json',json.dumps(ui))
+                def campaign_browser(phase):
+                    subprocess.run(['node',str(root/'deploy/governance-ce05-campaigns.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=180)
+                    record('real campaign browser '+phase)
+                campaign_ui_roles=(('create-only',('campaign.create',)),('submit-only',('campaign.submit',)),('preview-only',('campaign.preview',)),('reviewer',('campaign.approve','campaign.reject')),('publisher',('campaign.publish','campaign.pause')),('read-only',('campaign.read',)),('budget-only',('budget.read',)))
+                for phase,codes in campaign_ui_roles:
+                    role=expect('explicit campaign UI role '+phase,18162,prefix+'/roles',admin,{**partition,'command_id':uid(),'role_code':'ce05-cam-ui-'+phase,'role_version':1,'capabilities':['commerce.'+code for code in codes]})['id']
+                    grant=expect('finite campaign UI role grant '+phase,18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role,'scope_rule':{'version':1,'resource_type':CAMPAIGN_RESOURCE_TYPE,'clauses':[{'kind':'TENANT_ALL','values':[],'include_root':False}]},'source_id':'ce05-cam-ui-'+phase,'valid_from':now(-2),'valid_to':now(1800)},202)['id']
+                    projection()
+                    for code in codes:execution_ready(code,phase='campaign-ui-'+phase,resource_type=CAMPAIGN_RESOURCE_TYPE)
+                    for action in ('create','preview','submit','approve','reject','publish','pause'):
+                        expect('independent campaign UI hint '+phase+'/'+action,18661,'/v1/operations/campaigns/'+action+'-access',user,status=200 if 'campaign.'+action in codes else 403)
+                    for code,path in (('campaign.read',campaign_base),('budget.read',campaign_budget_path)):
+                        expect('independent campaign UI collection '+phase+'/'+code,18661,path,user,status=200 if code in codes else 403)
+                    before=sql("SELECT (SELECT count(*) FROM trade_quote WHERE tenant_id="+q(source)+"),(SELECT count(*) FROM marketing_budget_hold WHERE tenant_id="+q(source)+"),(SELECT count(*) FROM inventory_hold WHERE tenant_id="+q(source)+"),(SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+")")[1]
+                    campaign_browser(phase)
+                    if phase=='preview-only' and before!=sql("SELECT (SELECT count(*) FROM trade_quote WHERE tenant_id="+q(source)+"),(SELECT count(*) FROM marketing_budget_hold WHERE tenant_id="+q(source)+"),(SELECT count(*) FROM inventory_hold WHERE tenant_id="+q(source)+"),(SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+")")[1]:raise RuntimeError('campaign UI preview wrote participation')
+                    expect('revoke campaign UI role '+phase,18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':grant,'expected_version':1});projection()
+                    for code in codes:
+                        path=campaign_budget_path if code=='budget.read' else campaign_base if code=='campaign.read' else '/v1/operations/campaigns/'+code.split('.')[-1]+'-access'
+                        expect('revoked campaign UI role cannot read or hint '+phase+'/'+code,18661,path,user,status=403)
+                campaign_browser('revoked')
+                # UI新增恰8命令审计，原13仍单独保持；读/预览/原键回放都不增加身份效果。
+                if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='campaign'")[1]!='21':raise RuntimeError('campaign UI exact total audit count mismatch')
+                if sql("SELECT GROUP_CONCAT(CONCAT(resource_id,':',capability,':',n) ORDER BY resource_id,capability) FROM (SELECT resource_id,capability,count(*) n FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='campaign' AND resource_id IN ('ce05-campaign:ui-a','ce05-campaign:ui-b') GROUP BY resource_id,capability) t")[1]!='ce05-campaign:ui-a:commerce.campaign.approve:1,ce05-campaign:ui-a:commerce.campaign.create:1,ce05-campaign:ui-a:commerce.campaign.pause:1,ce05-campaign:ui-a:commerce.campaign.publish:1,ce05-campaign:ui-a:commerce.campaign.submit:1,ce05-campaign:ui-b:commerce.campaign.create:1,ce05-campaign:ui-b:commerce.campaign.reject:1,ce05-campaign:ui-b:commerce.campaign.submit:1':raise RuntimeError('campaign UI duplicate command audits')
+                if sql("SELECT GROUP_CONCAT(CONCAT(campaign_id,':',version,':',status,':',lock_version) ORDER BY campaign_id) FROM marketing_campaign WHERE tenant_id="+q(source)+" AND campaign_id IN ('ce05-campaign:ui-a','ce05-campaign:ui-b')")[1]!='ce05-campaign:ui-a:1:PAUSED:4,ce05-campaign:ui-b:1:REJECTED:2':raise RuntimeError('campaign UI actual content status mismatch')
+                if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='campaign' AND resource_id IN ('ce05-campaign:ui-a','ce05-campaign:ui-b') AND resource_version=1 AND store_id IS NULL")[1]!='8':raise RuntimeError('campaign UI actual version audit mismatch')
+                if sql("SELECT count(*) FROM marketing_budget WHERE tenant_id="+q(source)+" AND campaign_id IN ('ce05-campaign:ui-a','ce05-campaign:ui-b') AND cap=20.00 AND held=0 AND spent=0")[1]!='2':raise RuntimeError('campaign UI draft or preview altered budget')
+                record('campaign UI exact eight effects original thirteen separate and readonly preview no holds')
+
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -1391,9 +1495,10 @@ def rehearse(args, isolation=None):
         if args.campaigns:
             expect('campaign directory central outage fails closed',18661,campaign_base,user,status=503)
             expect('campaign budget central outage fails closed',18661,campaign_budget_path,user,status=503)
+            if args.browser:campaign_browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'audiences_checked':args.audiences,'campaigns_checked':args.campaigns,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'audiences_checked':args.audiences,'campaigns_checked':args.campaigns,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest(),'browser_mode':'PACKAGED_JAR' if args.packaged_browser else 'VITE' if args.browser else 'NONE'}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -1403,6 +1508,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
+    parser.add_argument('--packaged-browser',action='store_true',help='build isolated SSO frontend and run actual JAR at browser origin; requires --browser')
     parser.add_argument('--campaigns',action='store_true',help='nine independent campaign/budget permissions and immutable content-version audit; includes audience regression')
     parser.add_argument('--audiences',action='store_true',help='finite audience snapshot read/create and immutable import audit; includes rule regression')
     parser.add_argument('--rules',action='store_true',help='finite rule create/read/publish and trusted fixed-version regression')
@@ -1420,6 +1526,7 @@ def main():
     parser.add_argument('--isolated-identity',action='store_true')
     parser.add_argument('--identity-subnet',help='explicit unused RFC1918 /24 when Docker default pools are exhausted')
     args=parser.parse_args()
+    if args.packaged_browser and not args.browser:parser.error('--packaged-browser requires --browser')
     if args.identity_subnet and not args.isolated_identity:parser.error('--identity-subnet requires --isolated-identity')
     if args.campaigns:args.audiences=True
     if args.audiences:args.rules=True

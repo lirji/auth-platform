@@ -17,6 +17,7 @@ on:
       - 'deploy/governance-p4-*'
       - 'deploy/governance-p5-*'
       - 'deploy/governance-p6-*'
+      - 'deploy/governance-ce05-*'
       - 'deploy/governance-p7-*'
       - 'deploy/verify-commerce-contract.py'
       - 'deploy/tests/test_commerce_contract.py'
@@ -47,6 +48,7 @@ on:
       - 'deploy/governance-p4-*'
       - 'deploy/governance-p5-*'
       - 'deploy/governance-p6-*'
+      - 'deploy/governance-ce05-*'
       - 'deploy/governance-p7-*'
       - 'deploy/verify-commerce-contract.py'
       - 'deploy/tests/test_commerce_contract.py'
@@ -175,7 +177,7 @@ jobs:
           version: 9.15.9
       - name: Check portal browser harness syntax
         run: |
-          for script in deploy/governance-p5-*.mjs deploy/governance-p6-catalog.mjs; do node --check "$script"; done
+          for script in deploy/governance-p5-*.mjs deploy/governance-p6-catalog.mjs deploy/governance-ce05-campaigns.mjs; do node --check "$script"; done
           node --test auth-console/tests/governance-context.test.mjs
       - name: Build governance console
         run: pnpm --dir auth-console install --frozen-lockfile && pnpm --dir auth-console build

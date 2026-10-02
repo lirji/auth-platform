@@ -1,3 +1,9 @@
+> **CAM2当前状态（2026-10-01）**：CE05-CAM2本地DONE：七独立资格提示、活动目录/结构化创建/版本动作/实际预览与独立预算页完成。13真实MySQL专项、完整491项（486PASS/5既有skip）、45工具/9契约、3当前fixture及类型构建/格式通过；最终真实编译JAR演练01b3a0f89ea4（session63199/子网123）exit0，870检查点PASS。真实SQL恰21总活动身份审计/8新增单次效果、内容版本1且无store伪归属，UI-a PAUSED/锁4、UI-b REJECTED/锁2，预算各20.00/0/0；预览不产生报价或预占。28张当前真实1440/390/320关联截图已实际查看，Esc关闭与焦点恢复通过。7992eb6f基线包与17模块/663class/112资源/46前端文件一致；SSO编译包ab064ca1的276后端条目/88依赖与基线相同，源码13+5摘要未变。Git/精确CI待交付；其余CE05—08及Auth菜单资源目标继续，122能力/34角色未批量发布。四轮真实失败与修复前证据、5既有skip/Javaformatter限制保留；原8602/OA和共享数据未切换。
+
+## 修复前历史记录
+
+> **2026-10-01 CAM2修复前历史状态**：VERIFYING。七独立hint/固定SSO活动与预算页已实施；四项Java源摘要未变，490完整测试（485PASS/5skip）及12MySQL专项复用；当前反馈修正的3fixture/构建/格式、45工具PASS。真实第三轮813检查点及活动七角色/八效果/21总审计通过，但末尾库存fixture600秒过期导致整轮FAIL，已保留失败并将有限测试授权调到3000秒。最终83583faeb3c8/session16358编译JAR演练仍live，17模块/663class/112target资源/46前端文件字节一致；待终态503、最终关联截图、正式Validation及GitCI。完整CE05—08/Auth菜单资源目标active。详见[活动当前验证](../../implementation/oa-auth/commerce-readiness/CE05_CAMPAIGNS.md)。下方CAM1等为历史记录，不覆盖此状态。
+
 > **2026-10-01 CAM1交付更新**：CAM1完整Git/CI DONE：auth356d8b909485c774ac1d80bf45e7bb9b3dc5ad0a精确CI36957876071、commerce604023206d18feb1c23bec91069e259333160a93精确CI36957875268均completed/SUCCESS。源码与本地验证版本一致，CAM2依赖门禁满足；其余CE05—08及接入菜单资源目标未完成。
 
 # 当前商城扩展续做

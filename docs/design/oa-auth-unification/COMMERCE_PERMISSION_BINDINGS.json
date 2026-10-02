@@ -4289,6 +4289,92 @@
       ],
       "mode": "EMPLOYEE_CENTRAL_PLANNED",
       "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CampaignActionsController",
+      "method": "GET",
+      "path": "/v1/operations/campaigns/create-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/CampaignActionsController.java",
+      "capabilities": [
+        "commerce.campaign.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED"
+    },
+    {
+      "controller": "CampaignActionsController",
+      "method": "GET",
+      "path": "/v1/operations/campaigns/preview-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/CampaignActionsController.java",
+      "capabilities": [
+        "commerce.campaign.preview"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED"
+    },
+    {
+      "controller": "CampaignActionsController",
+      "method": "GET",
+      "path": "/v1/operations/campaigns/submit-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/CampaignActionsController.java",
+      "capabilities": [
+        "commerce.campaign.submit"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED"
+    },
+    {
+      "controller": "CampaignActionsController",
+      "method": "GET",
+      "path": "/v1/operations/campaigns/approve-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/CampaignActionsController.java",
+      "capabilities": [
+        "commerce.campaign.approve"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED"
+    },
+    {
+      "controller": "CampaignActionsController",
+      "method": "GET",
+      "path": "/v1/operations/campaigns/reject-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/CampaignActionsController.java",
+      "capabilities": [
+        "commerce.campaign.reject"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED"
+    },
+    {
+      "controller": "CampaignActionsController",
+      "method": "GET",
+      "path": "/v1/operations/campaigns/publish-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/CampaignActionsController.java",
+      "capabilities": [
+        "commerce.campaign.publish"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED"
+    },
+    {
+      "controller": "CampaignActionsController",
+      "method": "GET",
+      "path": "/v1/operations/campaigns/pause-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/CampaignActionsController.java",
+      "capabilities": [
+        "commerce.campaign.pause"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/campaigns",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/campaign-budgets",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
     }
   ]
 }
