@@ -25,6 +25,8 @@ public final class ScopeDtos {
     public static final String MARKETING_RULE_RESOURCE_TYPE = "marketing_rule";
     /** 人群快照只提供完整租户集合许可，不把成员列表作为授权事实。 */
     public static final String MARKETING_AUDIENCE_RESOURCE_TYPE = "audience";
+    /** 动态人群绑定真实定义版本，运行快照及调度锁版本不作为授权事实。 */
+    public static final String MARKETING_SEGMENT_RESOURCE_TYPE = "segment";
     public static final String ENTITLEMENT_RESOURCE_TYPE = "entitlement";
     /** 范围响应大小有界，超出不能截断后放行。 */
     public static final int MAX_PLAN_BYTES = 262144;

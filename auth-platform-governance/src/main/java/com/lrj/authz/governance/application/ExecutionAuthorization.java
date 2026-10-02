@@ -32,12 +32,16 @@ public final class ExecutionAuthorization {
             "campaign.approve", "campaign.reject", "campaign.publish", "campaign.pause", "budget.read");
     private static final Set<String> CAMPAIGN_COLLECTION_ONLY = Set.of("campaign.read", "campaign.create", "budget.read");
     private static final Set<String> AUDIENCE_CAPABILITIES = Set.of("audience.read", "audience.create");
+    private static final Set<String> SEGMENT_CAPABILITIES = Set.of("segment.read", "segment.create", "segment.schedule", "segment.refresh", "segment.control", "segment.pump");
+    private static final Set<String> SEGMENT_COLLECTION_ONLY = Set.of("segment.create", "segment.pump");
     private static final Set<String> RULE_CAPABILITIES = Set.of("rule.read", "rule.create", "rule.publish");
     private static final Set<String> ENTITLEMENT_CAPABILITIES = Set.of("entitlement.read", "entitlement.resolve");
     // 字典定义、会员创建和租户级行为重建没有单个已有会员目标，只能使用集合许可。
     private static final Set<String> MEMBER_COLLECTION_ONLY = Set.of("member.create", "member_tag.define", "member_behavior.rebuild");
     private static final Set<String> CREATION = Set.of("merchant.create", "store.create");
     private static final long SYNC_MAX_SECONDS = 60;
+    // 手工刷新可扫描至既有最大TTL；只有refresh延长引用，其他入口仍是同步能力。
+    private static final long SEGMENT_REFRESH_MAX_SECONDS = 86400L + SYNC_MAX_SECONDS;
     private static final long MAX_SECONDS = 37 * 86400L + 60;
     private final ExecutionMapper mapper;
     private final ReliableAuthorization access;
@@ -59,7 +63,9 @@ public final class ExecutionAuthorization {
         Instant until;
         try { until=Instant.parse(input.expiresAt()); } catch(RuntimeException e) { throw error(INVALID_ARGUMENT); }
         Instant now=mapper.now();
-        if(until.getNano()%1000!=0||!until.isAfter(now)||until.isAfter(now.plusSeconds(inventory || scoped ? SYNC_MAX_SECONDS : MAX_SECONDS)))throw error(INVALID_ARGUMENT);
+        long maximumSeconds = (context.applicationId() + ".segment.refresh").equals(check.capability())
+                ? SEGMENT_REFRESH_MAX_SECONDS : inventory || scoped ? SYNC_MAX_SECONDS : MAX_SECONDS;
+        if(until.getNano()%1000!=0||!until.isAfter(now)||until.isAfter(now.plusSeconds(maximumSeconds)))throw error(INVALID_ARGUMENT);
         var result=access.evaluate(context,check.capability(),check.resourceType());
         var paths = permitted(context, check.capability(), result.alternatives());
         if(paths.isEmpty())throw error(ACCESS_DENIED);
@@ -98,10 +104,11 @@ public final class ExecutionAuthorization {
         boolean entitlementDefinition = ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE.equals(row.resourceType());
         boolean rule = ScopeDtos.MARKETING_RULE_RESOURCE_TYPE.equals(row.resourceType());
         boolean audience = ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE.equals(row.resourceType());
+        boolean segment = ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE.equals(row.resourceType());
         boolean campaign = ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE.equals(row.resourceType());
         boolean entitlement = ScopeDtos.ENTITLEMENT_RESOURCE_TYPE.equals(row.resourceType());
         if(facts == null || !context.tenantId().equals(facts.tenantId()) || !row.resourceType().equals(facts.resourceType())
-                || (!member && !policy && !offer && !couponDefinition && !entitlementDefinition && !entitlement && !rule && !audience && !campaign && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
+                || (!member && !policy && !offer && !couponDefinition && !entitlementDefinition && !entitlement && !rule && !audience && !segment && !campaign && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
         // 政策、券/权益定义和人群快照只提供版本目录/追加创建集合许可，不构造成员或单个版本事实。
         if(policy || couponDefinition || entitlementDefinition || audience) throw error(ACCESS_DENIED);
         if(member && (!MEMBER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
@@ -117,6 +124,9 @@ public final class ExecutionAuthorization {
         // 目录、创建和预算列表仅集合；六个已有活动动作绑定实际不可变内容版本。
         if(campaign && (CAMPAIGN_CAPABILITIES.stream().noneMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
                 || CAMPAIGN_COLLECTION_ONLY.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability())))) throw error(ACCESS_DENIED);
+        // 新定义和人工泵只有集合许可；运行控制由Owner提供父人群及固定定义版本。
+        if(segment && (SEGMENT_CAPABILITIES.stream().noneMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
+                || SEGMENT_COLLECTION_ONLY.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability())))) throw error(ACCESS_DENIED);
         var current=access.evaluate(context,row.capability(),row.resourceType());
         var original=read(row.pathsJson(),Paths.class);
         // 目录资格可能先移除再恢复同一个组Grant；绑定目录版本，防止旧后台任务借此复活。
@@ -159,6 +169,7 @@ public final class ExecutionAuthorization {
         if(RULE_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.MARKETING_RULE_RESOURCE_TYPE;
         if(CAMPAIGN_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE;
         if(AUDIENCE_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE;
+        if(SEGMENT_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE;
         if(ENTITLEMENT_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.ENTITLEMENT_RESOURCE_TYPE;
         return DIRECTORY.entrySet().stream().filter(e -> (context.applicationId() + "." + e.getKey()).equals(capability)).map(Map.Entry::getValue).findFirst().orElse(null);
     }
@@ -173,6 +184,7 @@ public final class ExecutionAuthorization {
                 && !ScopeDtos.MARKETING_RULE_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && CREATION.stream().noneMatch(s -> (context.applicationId() + "." + s).equals(capability))) return paths;
         return paths.stream().filter(a -> a.clauses().size() == 1 && a.clauses().getFirst().kind() == ScopeDtos.Kind.TENANT_ALL).toList();
     }

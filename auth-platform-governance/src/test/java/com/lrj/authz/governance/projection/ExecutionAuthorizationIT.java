@@ -228,6 +228,10 @@ class ExecutionAuthorizationIT {
         tenantScopedReferences(List.of("campaign.read", "campaign.create", "campaign.preview", "campaign.submit",
                 "campaign.approve", "campaign.reject", "campaign.publish", "campaign.pause", "budget.read"));
     }
+    /** 人群刷新持久引用不扩大原Grant；其他五能力仍同步且不能相互借用。 */
+    @Test void segmentReferencesBindDefinitionsAndBoundDurableRefresh() {
+        tenantScopedReferences(List.of("segment.read", "segment.create", "segment.schedule", "segment.refresh", "segment.control", "segment.pump"));
+    }
     private void tenantScopedReferences(List<String> suffixes) {
         var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
         var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
@@ -244,9 +248,11 @@ class ExecutionAuthorizationIT {
                 boolean ruleAsset=suffix.startsWith("rule.");
                 boolean audience=suffix.startsWith("audience.");
                 boolean campaign=suffix.startsWith("campaign.") || suffix.equals("budget.read");
-                boolean collectionOnly=(campaign && List.of("campaign.read","campaign.create","budget.read").contains(suffix)) || audience || suffix.equals("rule.create") || entitlementDefinition || couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
+                boolean segment=suffix.startsWith("segment.");
+                boolean collectionOnly=(segment && List.of("segment.create","segment.pump").contains(suffix)) || (campaign && List.of("campaign.read","campaign.create","budget.read").contains(suffix)) || audience || suffix.equals("rule.create") || entitlementDefinition || couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
                 String type;
-                if(campaign) type=ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE;
+                if(segment) type=ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE;
+                else if(campaign) type=ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE;
                 else if(audience) type=ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE;
                 else if(ruleAsset) type=ScopeDtos.MARKETING_RULE_RESOURCE_TYPE;
                 else if(entitlementDefinition) type=ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE;
@@ -289,7 +295,17 @@ class ExecutionAuthorizationIT {
                     for(String other:List.of("entitlement_definition.read","entitlement_definition.create","entitlement.read","entitlement.resolve"))
                         if(!suffix.equals(other))assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),new CentralAccessDtos.Check(tenant,1L,id(),app+"."+other,type)))).hasMessage("ACCESS_DENIED");
                 }
-                assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,type),Instant.now().plusSeconds(120).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString()))).hasMessage("INVALID_ARGUMENT");
+                boolean durableRefresh=segment && suffix.equals("segment.refresh");
+                long rejectedSeconds=durableRefresh?86520:120;
+                assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,type),Instant.now().plusSeconds(rejectedSeconds).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString()))).hasMessage("INVALID_ARGUMENT");
+                var durableSegment=durableRefresh?executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,type),Instant.now().plusSeconds(86400).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString())):null;
+                if(durableSegment!=null) {
+                    assertThat(Instant.parse(durableSegment.expiresAt())).isAfter(Instant.now().plusSeconds(86300));
+                    var lasting=executions.scope(caller,new ScopeCheck(durableSegment.executionId(),request));
+                    assertThat(lasting.decision()).isEqualTo("ALLOW");
+                    // 持久引用不会延长原300秒Grant，实时许可仍保留更短截止。
+                    assertThat(Instant.parse(lasting.validUntil())).isBefore(Instant.parse(durableSegment.expiresAt()));
+                }
                 if(audience) {
                     for(String wrongType:List.of(ScopeDtos.MARKETING_RULE_RESOURCE_TYPE,ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE))
                         assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,wrongType),until))).hasMessage("ACCESS_DENIED");
@@ -314,7 +330,19 @@ class ExecutionAuthorizationIT {
                     var serviceContext=new AccessContext(context.principalId(),context.membershipId(),context.membershipGeneration(),context.membershipVersion(),context.principalVersion(),tenant,app,"test","commerce-directory","SERVICE",id());
                     assertThatThrownBy(()->executions.issue(serviceContext,new Issue(request,until))).hasMessage("ACCESS_DENIED");
                 }
-                String actualId=campaign?"CAMPAIGN-1":audience?"AUDIENCE-1":ruleAsset?"RULE-1":entitlement?"GRANT-1":"MEMBER-1";
+                if(segment) {
+                    for(String wrongType:List.of(ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE,ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE,ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE))
+                        assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,wrongType),until))).hasMessage("ACCESS_DENIED");
+                    for(String other:List.of("segment.read","segment.create","segment.schedule","segment.refresh","segment.control","segment.pump"))
+                        if(!suffix.equals(other)) {
+                            var swap=new CentralAccessDtos.Check(tenant,1L,id(),app+"."+other,type);
+                            assertThatThrownBy(()->executions.issue(context,new Issue(swap,until))).hasMessage("ACCESS_DENIED");
+                            assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),swap))).hasMessage("ACCESS_DENIED");
+                        }
+                    var serviceContext=new AccessContext(context.principalId(),context.membershipId(),context.membershipGeneration(),context.membershipVersion(),context.principalVersion(),tenant,app,"test","commerce-directory","SERVICE",id());
+                    assertThatThrownBy(()->executions.issue(serviceContext,new Issue(request,until))).hasMessage("ACCESS_DENIED");
+                }
+                String actualId=segment?"SEGMENT-1":campaign?"CAMPAIGN-1":audience?"AUDIENCE-1":ruleAsset?"RULE-1":entitlement?"GRANT-1":"MEMBER-1";
                 var facts=new Facts(tenant,type,actualId,7,null,null,List.of(),null,null);
                 var resource=new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,facts));
                 if(collectionOnly)assertThatThrownBy(()->executions.check(caller,resource)).hasMessage("ACCESS_DENIED");
@@ -324,7 +352,10 @@ class ExecutionAuthorizationIT {
                     assertThat(decision.resourceId()).isEqualTo(actualId);
                     assertThat(decision.resourceVersion()).isEqualTo(7);
                 }
-                if(campaign) for(long wrongVersion:List.of(0L,-1L)) {
+                if(durableSegment!=null) try(var second=GovernanceRuntime.open(db,false)) {
+                    assertThat(second.executions(graph).check(caller,new Check(durableSegment.executionId(),new ScopeAccessDtos.ResourceCheck(request,facts))).decision()).isEqualTo("ALLOW");
+                }
+                if(campaign || segment) for(long wrongVersion:List.of(0L,-1L)) {
                     var badVersion=new Facts(tenant,type,actualId,wrongVersion,null,null,List.of(),null,null);
                     assertThat(ScopeResourceBindings.validFacts(badVersion)).isFalse();
                     assertThatThrownBy(()->executions.check(caller,new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,badVersion)))).hasMessage("INVALID_ARGUMENT");
@@ -336,9 +367,11 @@ class ExecutionAuthorizationIT {
                 when(caller.environment()).thenReturn("other");assertThatThrownBy(()->executions.scope(caller,query)).hasMessage("ACCESS_DENIED");when(caller.environment()).thenReturn("test");
                 runtime.access().revoke(login,partition,id(),grant.id(),1);project(runtime,graph,partition);
                 assertThat(executions.scope(caller,query).decision()).isEqualTo("DENY");
+                if(durableSegment!=null) assertThat(executions.scope(caller,new ScopeCheck(durableSegment.executionId(),request)).decision()).isEqualTo("DENY");
                 if(!collectionOnly)assertThat(executions.check(caller,resource).decision()).isEqualTo("DENY");
                 runtime.access().grantScoped(login,partition,id(),member.membershipId(),1,role.id(),all,id(),Instant.now(),Instant.now().plusSeconds(300));project(runtime,graph,partition);
                 assertThat(executions.scope(caller,query).alternatives()).isEmpty();
+                if(durableSegment!=null) assertThat(executions.scope(caller,new ScopeCheck(durableSegment.executionId(),request)).alternatives()).isEmpty();
                 jdbc.update("update auth_governance.execution_reference set expires_at=clock_timestamp()-interval '1 second' where id=?",ref.executionId());
                 assertThatThrownBy(()->executions.scope(caller,query)).hasMessage("ACCESS_DENIED");
             }

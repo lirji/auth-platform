@@ -25,6 +25,14 @@ class ScopeResourceBindingsTest {
         assertThat(ScopeResourceBindings.validFacts(facts("merchant", null))).isTrue();
         assertThat(ScopeResourceBindings.validFacts(facts("merchant", "S1"))).isFalse();
     }
+    /** 初始调度锁版本不能冒充人群规则版本，门店字段也不能制造人群归属。 */
+    @Test void segmentFactsRequirePositiveDefinitionVersion() {
+        for (long version : List.of(0L, -1L))
+            assertThat(ScopeResourceBindings.validFacts(new Facts("T1", ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE,
+                    "SEGMENT-1", version, null, null, List.of(), null, null))).isFalse();
+        assertThat(ScopeResourceBindings.validFacts(new Facts("T1", ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE,
+                "SEGMENT-1", 7, null, null, List.of(), null, null))).isTrue();
+    }
     @Test void originalStoreAndProductBindingsRemainExact() {
         for (String type : List.of("store", "product")) {
             assertThat(ScopeResourceBindings.allows(type, Kind.SPECIFIED_STORES)).isTrue();

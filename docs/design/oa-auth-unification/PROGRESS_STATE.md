@@ -1,3 +1,7 @@
+> **商城当前状态（2026-10-01）**：CE05-S0本地DONE：segment六独立HIGH/TENANT_ALL/HUMAN执行能力，create/pump仅集合，其他动作绑定实际正定义版本；仅refresh最长86460秒，其余五项60秒，原Grant/当前路径仍限制实际推进。253全仓单元、16当前真实PG/SpiceDB ExecutionAuthorizationIT、Boot4 SDK1全PASS，零fail/error/skip。最终forceCreation安装只重包不变源码，server320/admin349类、各42资源/3完整模块归档逐字节一致；5源摘要未变，hygiene无阻断、Javaformatter未配置。专用PG库auth_gov_p1_test_526622ff0ef6及数据保留；无Commerce产品/JSON/迁移/依赖变化。Git/精确CI待交付，S1Owner/任务来源和S2页面仍TODO；完整CE05—08/Auth菜单资源目标保持。 已完成CAM2：Auth7302f81/Commerce2903413精确CI36966260251/36966235609均SUCCESS，纯交付文档Auth88fbf26/Commerce d0d6296已正常推main。
+
+## CAM2已完成与早期检查点
+
 > **CAM2当前状态（2026-10-01）**：CE05-CAM2本地DONE：七独立资格提示、活动目录/结构化创建/版本动作/实际预览与独立预算页完成。13真实MySQL专项、完整491项（486PASS/5既有skip）、45工具/9契约、3当前fixture及类型构建/格式通过；最终真实编译JAR演练01b3a0f89ea4（session63199/子网123）exit0，870检查点PASS。真实SQL恰21总活动身份审计/8新增单次效果、内容版本1且无store伪归属，UI-a PAUSED/锁4、UI-b REJECTED/锁2，预算各20.00/0/0；预览不产生报价或预占。28张当前真实1440/390/320关联截图已实际查看，Esc关闭与焦点恢复通过。7992eb6f基线包与17模块/663class/112资源/46前端文件一致；SSO编译包ab064ca1的276后端条目/88依赖与基线相同，源码13+5摘要未变。CAM2已Git/CI完整交付：Auth7302f81e1ea25f3c12d7d74c200350537239b658/CI36966260251，Commerce2903413c75c1fddd70002ac6a7a4c98a09716f2e/CI36966235609，两个精确head均completed/SUCCESS；任务分支正常推送、ff合并及main推送，无强推。 下一CE05-S0；其余CE05—08及Auth菜单资源目标继续，122能力/34角色未批量发布。四轮真实失败与修复前证据、5既有skip/Javaformatter限制保留；原8602/OA和共享数据未切换。
 
 ## 修复前历史记录
