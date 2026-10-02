@@ -2,7 +2,7 @@
 
 ## 当前状态与完整目标
 
-CE05-S0已完成协议及Git/精确CI交付；CE05-S1后台本地DONE，implementation-validation COMPLETED/PASS，Git/精确CI待完成。最终真实跨进程已exit0，当前产品及演练源码摘要一致。CE05-S2页面尚未实施，实施依赖S1完整Git/精确CI。全部其余CE05—08、完整岗位权限及Auth实际发布菜单/资源选择仍待继续；122候选能力与34角色快照保持未批量发布。
+CE05-S0已完成协议及Git/精确CI交付；CE05-S1后台本地DONE，implementation-validation COMPLETED/PASS，产品Git/精确CI已DONE。最终真实跨进程已exit0，当前产品及演练源码摘要一致。CE05-S2页面尚未实施，实施依赖S1完整Git/精确CI。全部其余CE05—08、完整岗位权限及Auth实际发布菜单/资源选择仍待继续；122候选能力与34角色快照保持未批量发布。
 
 技术与稳定切片：[CONTRACTS_COMMERCE_SEGMENTS](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_SEGMENTS.md)。用户授权原目录串行实施，无子Agent/新工作树，无生产部署或数据清理。
 
@@ -31,7 +31,7 @@ CE05-S0已完成协议及Git/精确CI交付；CE05-S1后台本地DONE，implemen
 
 UTC复核session69664/PID88079、`rehearsal-5e74bdf65560`已exit1：全部784实际检查PASS，原手工task固定定义7/snapshot2，实际processed113/matched112；撤权保持原快照/100已提交公告；独立政策、STOPPED、Auth真实短引用到期、未知NULL来源、SQL事务回滚及21条准确版本身份审计通过；实际Auth进程停止后员工read/pump503，固定SYSTEM政策继续完成。最终写证据时碰到O_EXCL：预停服与最终结果误用了同一文件名，故整体仍失败，保留PRE_OUTAGE与历史，不手工转换PASS。
 
-修正为两份独立不可覆盖证据，新增保留预停服文件及未推进不能成功两项回归，47工具PASS。最终完整复核session37270/PID91807、`rehearsal-89f465b97213`、子网126已exit0，784检查点全PASS，129 segment标签。预停服与最终证据两文件均保留，最终phase=PASS、central_outage=REAL_AUTH_PROCESS_STOPPED、system_policy=COMPLETED_WITHOUT_EMPLOYEE_GRANT；实际SQL复核21身份审计元组一致。13产品与3演练源码/JAR摘要一致，正式Validation COMPLETED/PASS。Git交付与精确CI待完成，S2尚未实施。
+修正为两份独立不可覆盖证据，新增保留预停服文件及未推进不能成功两项回归，47工具PASS。最终完整复核session37270/PID91807、`rehearsal-89f465b97213`、子网126已exit0，784检查点全PASS，129 segment标签。预停服与最终证据两文件均保留，最终phase=PASS、central_outage=REAL_AUTH_PROCESS_STOPPED、system_policy=COMPLETED_WITHOUT_EMPLOYEE_GRANT；实际SQL复核21身份审计元组一致。13产品与3演练源码/JAR摘要一致，正式Validation COMPLETED/PASS。产品Git/精确CI已完成，S2尚未实施。
 
 实际到期测试是`AUTH_ISSUED_SHORT_REFERENCE_NEW_TASK`：Auth签发六秒HUMAN引用，新建专用任务及准确元数据，等待自然到期，再重启实际进程检查拒绝；没有替换既有任务来源，也没有等待正常HTTP刷新86460秒。正常HTTP实际签发/持久化长引用另有真实检查。
 
@@ -65,4 +65,8 @@ Commerce私密 `.local/central-audiences/segments-owner-*`保存全仓快照、�
 
 CE05-S1本地DONE，implementation-validation COMPLETED/PASS：六SEGMENT独立能力、实际正父定义、原命令身份审计、原手工来源与固定独立SYSTEM政策通过。最终真实89f465b97213/session37270已exit0，784检查点全PASS（129 segment标签）；SQL再次核对21条准确版本审计，手工定义7/快照2 COMPLETED、processed113/matched112，撤权后保留100已提交公告；policy和实际Auth停服outage任务固定定义7/快照1、113/112、公告完成。实际Auth员工read/pump503，独立政策无员工Grant继续完成。13产品源/最终JAR/3harness源摘要一致；完整504=499PASS/5既有skip与最终17专项、47工具/9契约、271入口/122能力/34角色未发布、CI YAML/新增2证据回归及两仓hygiene无阻断（formatter限制）。V65已应用不可改、原数据保留。前两失败658时区及784证据O_EXCL全部保留，未手工转换失败。正式Git/精确CI待完成，S2与全部其余CE05—08/Auth菜单资源目标保持active。
 
-当前正式TEST_RESULT为Auth私密 `segments-owner-test-result.json`；每条验收对应上方矩阵，Gate=PASS。源码审查由同一Agent串行执行；不把47工具/2证据桩当作真实Auth证明。CI已将本片helper语法及证据回归接入既有流水线，YAML解析及同命令2测试PASS；远程实际CI仍待Git后核验。
+当前正式TEST_RESULT为Auth私密 `segments-owner-test-result.json`；每条验收对应上方矩阵，Gate=PASS。源码审查由同一Agent串行执行；不把47工具/2证据桩当作真实Auth证明。CI已将本片helper语法及证据回归接入既有流水线，YAML解析及同命令2测试PASS；远程精确产品CI均已实际SUCCESS。
+
+## S1 Git与精确CI最终产品状态
+
+S1完整产品Git/CI DONE：Auth e7c54e45409510e2bdad619c737c59f5deadd805/CI36973121732、Commerce de93c5264cd82f44afb35fdd050190b7df924bf2/CI36973103953均completed/SUCCESS，head精确核对；两个产品已正常提交、任务分支推送、ff合并推main。最终37270/89f465b97213 exit0/784PASS及21真实正版本审计、13源码/JAR与3演练源码保持。本轮收尾仅交付状态元数据，不把纯文档提交当新产品CI。S2已满足产品依赖门禁，完整S2及其余CE05—08/Auth菜单资源目标active；V65不可改，原数据/失败/恢复证据保留，无新工作树/Agent。

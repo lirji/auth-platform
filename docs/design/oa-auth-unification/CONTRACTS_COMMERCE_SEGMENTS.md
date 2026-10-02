@@ -7,8 +7,8 @@
 | ID | 可观察结果 | Needs / Owner | 验收与状态 |
 |---|---|---|---|
 | CE05-S0 | 六独立能力的有限执行引用，类型/原路径/期限有界 | CAM2精确CI；Auth protocol/governance/SDK | 真实PG/图独立Grant、scope/object、跨类型/错版本/互换/期限/HUMAN/撤权重授/跨进程；DONE（含Git/CI） |
-| CE05-S1 | 中央SEGMENT用例、原命令审计、持久化任务来源与每批判权 | S0验证/Git/CI；Commerce runtime/marketing/app/persistence | 实际MySQL/HTTP、并发刷新返回原任务、原键、SQL故障回滚、分页/批预算、重启/撤权/期限/503及公告恢复；DONE（本地，Git/CI待完成） |
-| CE05-S2 | 固定SSO定义/运行记录、创建/调度/刷新/控制/推进完整反馈 | S1验证/Git/CI；Commerce frontend/app | 真实DTO、六独立权限、实际任务/快照/公告结果、unknown原键、401/403/503、1440/390/320关联弹层与键盘；TODO |
+| CE05-S1 | 中央SEGMENT用例、原命令审计、持久化任务来源与每批判权 | S0验证/Git/CI；Commerce runtime/marketing/app/persistence | 实际MySQL/HTTP、并发刷新返回原任务、原键、SQL故障回滚、分页/批预算、重启/撤权/期限/503及公告恢复；DONE（含产品Git/CI） |
+| CE05-S2 | 固定SSO定义/运行记录、创建/调度/刷新/控制/推进完整反馈 | S1验证/Git/CI已完成；Commerce frontend/app | 真实DTO、六独立权限、实际任务/快照/公告结果、unknown原键、401/403/503、1440/390/320关联弹层与键盘；READY |
 
 三片原目录串行，无子Agent/新工作树。CAM2及S0精确CI已SUCCESS；S1当前实现并完成真实跨进程Validation PASS（Git/CI待完成），S2仅影响分析/技术细化，产品实施依赖S1验证/Git/精确CI。历史验证检查点在下文保留，当前权威状态见[动态人群验证](../../implementation/oa-auth/commerce-readiness/CE05_SEGMENTS.md)。
 
@@ -102,3 +102,7 @@ pump原接口没有幂等命令键，不能宣称未知结果可按原键保证�
 所有关联表单/任务详情/确认沿居中Modal，标题与底部动作固定、正文内部滚动，桌面1440、手机390/320正文无横向溢出，宽表内部横滚。保持Esc/焦点恢复、同页/切Tab/退出保护；定义和运行游标/目标保持URL上下文，不把服务端来源/结果写入本地账本。
 
 S2验收：五提示各独立200/403/401/503、提示不写审计；真实MySQL定义/调度CAS/运行控制/SQL回滚/原键；最终编译JAR真实PKCE六类能力与独立组合、撤权/原源拒绝/401/真实Auth503，真实SQL核对实际版本/任务/快照/Outbox及无重复审计；1440/390/320目录、创建、调度、刷新回执、运行详情、控制、pump未知确认、409/unknown/关闭保护和键盘截图实际查看。既有中央页面回归、HTTP清单/候选122/角色34、构建/格式/字节栅栏及Git精确CI均必须通过。五GET提示加一SPA入口预计271→277，实施时扫描实际源码核实，不以设计计数冒充实现。
+
+## S1最终产品交付
+
+S1完整产品Git/CI DONE：Auth e7c54e45409510e2bdad619c737c59f5deadd805/CI36973121732、Commerce de93c5264cd82f44afb35fdd050190b7df924bf2/CI36973103953均completed/SUCCESS，head精确核对；两个产品已正常提交、任务分支推送、ff合并推main。最终37270/89f465b97213 exit0/784PASS及21真实正版本审计、13源码/JAR与3演练源码保持。本轮收尾仅交付状态元数据，不把纯文档提交当新产品CI。S2已满足产品依赖门禁，完整S2及其余CE05—08/Auth菜单资源目标active；V65不可改，原数据/失败/恢复证据保留，无新工作树/Agent。
