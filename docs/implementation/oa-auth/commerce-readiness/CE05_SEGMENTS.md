@@ -1,10 +1,10 @@
-> 2026-10-02 CE05-S2本地DONE，implementation-validation COMPLETED/PASS：最终真实编译0b2c9e9dd22a/独立runner54927已exit0（09:21:42Z），1128检查点全PASS；六真实岗位/撤权/实际Auth停服八阶段及终态SQL通过。SYSTEM取消100/97、MANUAL仍RUNNING0/0，恰新增五条定义版本7单次身份审计、总26；无提前快照、入组公告或伪门店归属。60张当前1440/390/320目录、表单、详情、回执、409/unknown/关闭保护、401/撤权/503截图已逐张实际查看，UI001居中及UI002窄屏提示缺陷均在本轮验证修复。最新SSO JAR0220ff15684d与原4923的279后端/88依赖内容相同、47前端与78源码/13产品/4harness一致。506完整测试（501PASS/5既有skip）、19实际MySQL、当前7fixture、277入口/122候选/34岗位未发布、9契约/38工具、构建/Prettier及两仓hygiene无阻断；Java formatter既有限制保留。S2产品Git/精确CI待交付，整个剩余CE05—08/Auth实际菜单资源目标仍active。演练自有进程及五端口已退出，原8602/OA/数据/卷/所有失败和旧证据保留；原目录串行，无新Agent或工作树。
+> 2026-10-02 CE05-S2完整DONE（产品Git/精确CI已通过）：Auth d35e6d57c1b2c494aa2811dc8577c0a5d3882760/CI36989740786、Commerce294627904a8fb712e998382b6d2f1cd71923fbce/CI36989725617均completed/SUCCESS，精确head已核对并正常任务分支push/ff main/main push。正式Validation COMPLETED/PASS；最终编译0b2c9e9dd22a真实exit0、1128检查点PASS，八真实岗位/撤权/Auth停服阶段，60张当前1440/390/320关联图逐张实看。终态SQL SYSTEM取消100/97、MANUAL0/0，恰新增5条版本7身份审计、总26，无提前快照/公告/伪门店；UI001/002本轮已验证修复，所有旧FAIL保留。最终SSO JAR0220ff15684d、279后端/88依赖内容、47前端文件及78完整/13选定源/4harness一致；506完整（501PASS/5既有skip）、19实际MySQL、当前7fixture、277入口/122候选/34岗位未发布、9契约/38工具与构建/Prettier/hygiene无阻断。Java formatter未配置为既有限制。下一定向发券D0/D1/D2及全部剩余CE05—08/Auth实际发布菜单资源；整体目标仍active。原目录串行，无新Agent/工作树；自有演练及fixture18666已正常退出，原8602/OA/数据/卷/旧证据保留，未生产部署。
 
 # CE05-S 动态人群权限验证
 
 ## 当前状态与完整目标
 
-CE05-S0已完成协议及Git/精确CI交付；CE05-S1后台本地DONE，implementation-validation COMPLETED/PASS，产品Git/精确CI已DONE。最终真实跨进程已exit0，当前产品及演练源码摘要一致。CE05-S2本地实现与正式Validation已DONE，产品Git/精确CI待交付；下文实施与失败记录为历史证据。全部其余CE05—08、完整岗位权限及Auth实际发布菜单/资源选择仍待继续；122候选能力与34角色快照保持未批量发布。
+CE05-S0已完成协议及Git/精确CI交付；CE05-S1后台本地DONE，implementation-validation COMPLETED/PASS，产品Git/精确CI已DONE。最终真实跨进程已exit0，当前产品及演练源码摘要一致。CE05-S2已完成实现、正式Validation及产品Git/精确CI；下文实施与失败记录为历史证据。全部其余CE05—08、完整岗位权限及Auth实际发布菜单/资源选择仍待继续；122候选能力与34角色快照保持未批量发布。
 
 技术与稳定切片：[CONTRACTS_COMMERCE_SEGMENTS](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_SEGMENTS.md)。用户授权原目录串行实施，无子Agent/新工作树，无生产部署或数据清理。
 
@@ -128,4 +128,4 @@ S1产品与精确CI已完整DONE，后续纯元数据Auth929e9ca/Commerce95ce70c
 
 私密证据在Auth `.local/governance/commerce-contracts/segments-ui-test-result.json`、`segments-ui-durable3-final-sql.json`、`segments-ui-durable3-visual-progress.json`、`segments-ui-findings-resolution.json`、`segments-ui-runtime-fence-durable3.json`。截图的视觉观察与实际E2E行为分别记录。前轮功能1128PASS但旧图UI002 FAIL、早期locator/pump假设/夹具到期失败、连接拒绝和中断/占用端口证据均保留，不改写成成功。
 
-正式Validation COMPLETED/PASS，S2本地DONE；产品Git/精确CI仍待完成，全部其余CE05—08与Auth实际发布菜单资源选择继续active。V65不可改，无新增依赖、迁移、生产部署或数据清理。
+正式Validation COMPLETED/PASS，S2完整DONE；Auth d35e6d5/CI36989740786、Commerce2946279/CI36989725617均精确SUCCESS，正常任务分支push/ff main/main push已完成，全部其余CE05—08与Auth实际发布菜单资源选择继续active。V65不可改，无新增依赖、迁移、生产部署或数据清理。

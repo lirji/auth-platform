@@ -8,9 +8,9 @@
 |---|---|---|---|
 | CE05-S0 | 六独立能力的有限执行引用，类型/原路径/期限有界 | CAM2精确CI；Auth protocol/governance/SDK | 真实PG/图独立Grant、scope/object、跨类型/错版本/互换/期限/HUMAN/撤权重授/跨进程；DONE（含Git/CI） |
 | CE05-S1 | 中央SEGMENT用例、原命令审计、持久化任务来源与每批判权 | S0验证/Git/CI；Commerce runtime/marketing/app/persistence | 实际MySQL/HTTP、并发刷新返回原任务、原键、SQL故障回滚、分页/批预算、重启/撤权/期限/503及公告恢复；DONE（含产品Git/CI） |
-| CE05-S2 | 固定SSO定义/运行记录、创建/调度/刷新/控制/推进完整反馈 | S1验证/Git/CI已完成；Commerce frontend/app | 真实DTO、六独立权限、实际任务/快照/公告结果、unknown原键、401/403/503、1440/390/320关联弹层与键盘；本地DONE（产品Git/CI待交付） |
+| CE05-S2 | 固定SSO定义/运行记录、创建/调度/刷新/控制/推进完整反馈 | S1验证/Git/CI已完成；Commerce frontend/app | 真实DTO、六独立权限、实际任务/快照/公告结果、unknown原键、401/403/503、1440/390/320关联弹层与键盘；DONE（含产品Git/精确CI） |
 
-三片原目录串行，无子Agent/新工作树。CAM2、S0与S1验证及精确产品CI已SUCCESS；S2依赖门禁已满足，页面和五独立提示已实现，最终编译JAR真实六岗位/撤权/Auth停服与60张当前关联截图已通过正式Validation，产品Git/精确CI待交付。历史验证检查点在下文保留，当前权威状态见[动态人群验证](../../implementation/oa-auth/commerce-readiness/CE05_SEGMENTS.md)。
+三片原目录串行，无子Agent/新工作树。CAM2、S0与S1验证及精确产品CI已SUCCESS；S2依赖门禁已满足，页面和五独立提示已实现，最终编译JAR真实六岗位/撤权/Auth停服与60张当前关联截图已通过正式Validation，产品Git/精确CI已完成。历史验证检查点在下文保留，当前权威状态见[动态人群验证](../../implementation/oa-auth/commerce-readiness/CE05_SEGMENTS.md)。
 
 ## Owner事实与既有业务行为
 
