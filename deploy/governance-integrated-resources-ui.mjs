@@ -1,0 +1,47 @@
+/** IR-01实际PKCE与HTTP写入：只使用运行器独有身份/库，不注入Token或模拟成功API。 */
+import fs from 'node:fs'
+import path from 'node:path'
+import assert from 'node:assert/strict'
+import { createRequire } from 'node:module'
+const { chromium, expect }=createRequire(import.meta.url)(process.env.IR_PLAYWRIGHT_MODULE)
+const run=process.env.IR_RUN,f=JSON.parse(fs.readFileSync(path.join(run,'browser.json'),'utf8'))
+const browser=await chromium.launch({headless:true}),checks=[],shots=[]
+const record=name=>{checks.push({check:name,result:'PASS'});fs.writeFileSync(path.join(run,'browser-progress.json'),JSON.stringify(checks,null,2),{mode:0o600})}
+const location=page=>new URL(page.url())
+const route=`/governance/access?tenant=${f.partition.tenant_id}&application=${f.partition.application_id}&environment=${f.partition.environment}`
+async function login(kind){
+ const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage();const pkce={authorize:false,exchange:false}
+ context.on('request',request=>{const u=new URL(request.url());if(u.origin!==f.authority)return;if(u.pathname==='/login/oauth/authorize'){assert.equal(u.searchParams.get('code_challenge_method'),'S256');assert.ok(u.searchParams.get('state'));pkce.authorize=true}if(u.pathname==='/api/login/oauth/access_token'){const body=new URLSearchParams(request.postData()??'');assert.ok(body.get('code_verifier'));assert.ok(!body.has('client_secret'));pkce.exchange=true}})
+ await page.goto(f.origin+route);await page.waitForURL(f.authority+'/**');await page.locator('#username').fill(f.users[kind].name);await page.locator('#password').fill(f.users[kind].password);await page.getByRole('button',{name:'Sign In',exact:true}).click();await page.waitForURL(f.origin+'/governance/**',{timeout:30000});await expect.poll(()=>pkce.authorize&&pkce.exchange).toBe(true);assert.ok(!location(page).searchParams.has('code'));record(kind+' distinct HUMAN browser password PKCE without injected token');return{context,page}
+}
+async function select(page,label,value){const combo=page.getByRole('combobox',{name:label,exact:true});await expect(combo).toBeEnabled();await combo.click();const option=page.locator('.ant-select-dropdown:visible .ant-select-item-option').filter({hasText:value}).first();await expect(option).toBeVisible();await option.click();await expect(option).toBeHidden()}
+async function shot(page,name){const file=path.join(run,name+'-'+process.env.IR_ATTEMPT+'.png');await page.screenshot({path:file,fullPage:true,animations:'disabled'});shots.push({name,file,width:(await page.viewportSize()).width});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+1),false,'page overflow');}
+async function token(page){return page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)).access_token,`oidc.user:${f.authority}:${f.client}`)}
+const contexts=[]
+try{
+ const owner=await login('owner');contexts.push(owner.context);const page=owner.page
+ await expect(page.getByText('当前已发布目录 · v2',{exact:true})).toBeVisible();await shot(page,'owner-directory-1440')
+ const bearer=await token(page);const before=await page.request.get(f.admin+'/api/governance/v1/access/state',{headers:{Authorization:'Bearer '+bearer},params:f.partition});const beforeState=await before.json();assert.equal(beforeState.roles.length,2);assert.equal(beforeState.grants.length,0)
+ await page.getByRole('button',{name:'创建角色版本',exact:true}).click();let modal=page.getByRole('dialog')
+ await modal.getByLabel('角色编码',{exact:true}).fill('ir_ui_reader');await select(page,'角色资源类型','commerce_member')
+ await modal.getByRole('combobox',{name:'菜单浏览上下文',exact:true}).click();await page.getByText('member',{exact:true}).last().click();await expect(modal.getByText('菜单仅用于查找。已明确选择 0 项能力；搜索与菜单切换保留选择。',{exact:true})).toBeVisible()
+ await modal.getByRole('checkbox',{name:'commerce.member.read',exact:true}).check();await modal.getByLabel('搜索当前能力',{exact:true}).fill('does-not-exist');await expect(modal.getByText('菜单仅用于查找。已明确选择 1 项能力；搜索与菜单切换保留选择。',{exact:true})).toBeVisible();await modal.getByLabel('搜索当前能力',{exact:true}).fill('')
+ const after=await (await page.request.get(f.admin+'/api/governance/v1/access/state',{headers:{Authorization:'Bearer '+bearer},params:f.partition})).json();assert.deepEqual(after,beforeState)
+ await shot(page,'role-selector-1440');for(const width of [390,320]){await page.setViewportSize({width,height:900});await shot(page,'role-selector-'+width)}await page.setViewportSize({width:1440,height:1000})
+ record('actual published menu parent browsing and search preserve explicit selection with zero SQL commands')
+ const payloads=[];let dropped=false
+ await page.route('**/api/governance/v1/access/roles',async request=>{payloads.push(request.request().postData());if(!dropped){dropped=true;const actual=await request.fetch();assert.equal(actual.status(),200);await request.abort()}else await request.continue()})
+ await modal.getByRole('button',{name:'创建固定版本',exact:true}).click();await expect(modal.getByText('提交结果尚未确认。字段已冻结，请原样重试。',{exact:true})).toBeVisible();await expect(modal.getByRole('combobox',{name:'角色资源类型',exact:true})).toBeDisabled();await shot(page,'role-unknown-1440')
+ // 命令已真实提交但响应丢失；随后菜单发布变化不能重写冻结的原命令。
+ const changed={schema_version:'1',application:'commerce',manifest_version:3,capabilities:f.catalog.capabilities.map(({code,resource_type,risk_level})=>({code,resource_type,risk_level})),menus:f.catalog.menus.map(({code,parent,route,any_of})=>({code,parent,route,any_of}))}
+ const published=await page.request.post(f.admin+'/api/governance/v1/catalog/publish',{headers:{Authorization:'Bearer '+bearer,'X-Command-Id':crypto.randomUUID()},data:changed});assert.equal(published.status(),200)
+ await modal.getByRole('button',{name:'重试原命令',exact:true}).click();await expect(modal.getByText('已创建 ir_ui_reader · 版本 1',{exact:true})).toBeVisible();assert.equal(payloads.length,2);assert.equal(payloads[0],payloads[1]);assert.deepEqual(JSON.parse(payloads[0]).capabilities,['commerce.member.read']);assert.ok(!('resource_type' in JSON.parse(payloads[0])))
+ await modal.getByRole('button',{name:'Close',exact:true}).click();record('real committed lost response replay keeps identical command capability payload through Owner version update')
+ await page.getByRole('button',{name:'授予成员',exact:true}).click();modal=page.getByRole('dialog')
+ await select(page,'受益成员',f.users.ordinary.member);await select(page,'固定角色版本','ir_ui_reader');await select(page,'资源类型','commerce_member');await expect(page.getByRole('combobox',{name:'数据范围',exact:true})).toBeEnabled();await page.getByRole('combobox',{name:'数据范围',exact:true}).click();const options=page.locator('.ant-select-dropdown:visible .ant-select-item-option');await expect(options).toHaveCount(1);await options.filter({hasText:'当前企业全部资源'}).click();await modal.getByLabel('授权来源说明',{exact:true}).fill('ir-ui-grant');await shot(page,'grant-tenant-only-1440');for(const width of [390,320]){await page.setViewportSize({width,height:900});await shot(page,'grant-tenant-only-'+width)}await page.setViewportSize({width:1440,height:1000});await modal.getByRole('button',{name:'提交授予',exact:true}).click();await expect(modal.getByText('授权已受理，等待实际投影生效',{exact:true})).toBeVisible();await modal.getByRole('button',{name:'Close',exact:true}).click();record('GrantEditor exact tenant-only supported option and real scoped Grant accepted pending')
+ await page.goto(f.origin+route.replace('/access?','/policies?'));await page.getByRole('button',{name:'创建申请策略',exact:true}).click();modal=page.getByRole('dialog');await select(page,'策略固定角色版本','ir_ui_reader');await select(page,'资源类型','commerce_member');await select(page,'数据范围','当前企业全部资源');await select(page,'审批成员',f.users.owner.member);await shot(page,'policy-tenant-only-1440');for(const width of [390,320]){await page.setViewportSize({width,height:900});await shot(page,'policy-tenant-only-'+width)}await page.setViewportSize({width:1440,height:1000});await modal.getByRole('button',{name:'登记固定策略',exact:true}).click();await expect(modal).toBeHidden();record('PolicyEditor shared scope options and actual fixed approval policy persisted')
+ const narrow=await login('narrow');contexts.push(narrow.context);await expect(narrow.page.getByText('当前已发布目录 · v3',{exact:true})).toBeVisible();await narrow.page.getByRole('button',{name:'创建角色版本',exact:true}).click();await select(narrow.page,'角色资源类型','commerce_member');await expect(narrow.page.getByRole('checkbox',{name:'commerce.member.create',exact:true})).toBeDisabled();await shot(narrow.page,'narrow-selector-1440');record('narrow manager sees complete actual metadata with ceiling-external capabilities disabled')
+ const ordinary=await login('ordinary');contexts.push(ordinary.context);await expect(ordinary.page.getByText('无权访问当前范围，请检查成员关系或管理委派。',{exact:true})).toBeVisible();await expect(ordinary.page.getByRole('button',{name:'创建角色版本',exact:true})).toHaveCount(0);await shot(ordinary.page,'ordinary-denied-1440');record('ordinary HUMAN cannot obtain manager metadata or role creation UI')
+ fs.writeFileSync(path.join(run,'browser-result.json'),JSON.stringify({status:'PASS',checks,shots},null,2),{mode:0o600})
+}catch(error){for(let n=0;n<contexts.length;n++){for(const page of contexts[n].pages())if(!page.isClosed())await page.screenshot({path:path.join(run,`failure-${n}-${process.env.IR_ATTEMPT}.png`),fullPage:true})}throw error}
+finally{for(const context of contexts)await context.close();await browser.close()}

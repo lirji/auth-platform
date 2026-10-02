@@ -75,3 +75,11 @@
   .g-modal-title-actions .ant-btn { height: 32px; font-size: 12px; }
   .g-navigation-modal .ant-modal-body { padding: 0; }
 }
+
+/* 实际目录选择沿用治理作业面，长稳定编码在窄屏也保持完整可读。 */
+.g-catalog-summary { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.g-catalog-selector { min-width: 0; }
+.g-catalog-capabilities { max-height: 320px; overflow: auto; margin-top: 12px; border-top: 1px solid var(--g-line, #e1e5ec); }
+.g-catalog-capability { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-bottom: 1px solid var(--g-line, #e1e5ec); }
+.g-catalog-capability .ant-checkbox-wrapper { align-items: start; overflow-wrap: anywhere; min-width: 0; }
+.g-catalog-capability .ant-tag { white-space: normal; overflow-wrap: anywhere; }

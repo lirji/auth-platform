@@ -9,6 +9,7 @@ import com.lrj.authz.governance.web.GovernanceWeb;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
 /** 门户管理读接口与原写接口使用同一当前委派，不接受浏览器操作者字段。 */
 @RestController
@@ -20,6 +21,14 @@ public class GovernanceManagementViewController {
     private final com.lrj.authz.governance.application.AccessRequests requests;
     /** 只复用既有治理Runtime，没有独立BFF存储。 */
     public GovernanceManagementViewController(GovernanceRuntime runtime) { management = runtime.portalManagement(); requests=runtime.requests(); }
+    /** 完整已发布元数据受当前管理委派保护，浏览器不能缓存为长期授予资格。 */
+    @GetMapping("/published-catalog")
+    public ResponseEntity<JsonNode> publishedCatalog(@AuthenticationPrincipal VerifiedLogin login,
+            @RequestParam("tenant_id") String tenant, @RequestParam("application_id") String app,
+            @RequestParam("environment") String env) {
+        return ResponseEntity.ok().header("Cache-Control", "no-store")
+                .body(GovernanceWeb.body(management.publishedCatalog(login, new Partition(tenant, app, env))));
+    }
     /** 表单选项是当前上限的只读提示，最终提交仍重新判权。 */
     @GetMapping("/management")
     public JsonNode management(@AuthenticationPrincipal VerifiedLogin login, @RequestParam("tenant_id") String tenant,

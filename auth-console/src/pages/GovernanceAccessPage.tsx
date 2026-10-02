@@ -3,13 +3,16 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Alert, Button, Card, Descriptions, Form, Input, InputNumber, Modal, Select, Space, Table, Tabs, Tag, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { accessState, createRole, grantScoped, management, members, roleImpact, type Grant, type Management, type Role } from '../api/governance'
+import { accessState, createRole, grantScoped, management, members, roleImpact, publishedCatalog, type PublishedCatalog, type Grant, type Role } from '../api/governance'
 import { useGovernanceContext } from './GovernancePage'
 import { Failure } from '../governance/feedback'
 import { useCommand } from '../governance/useCommand'
 import { ProjectionState } from '../governance/codes'
 import { CatalogEditor } from '../governance/CatalogEditor'
 import { ScopeFields, scopeRule, type ScopeInput } from '../governance/ScopeFields'
+import { PublishedCatalogBrowser, PublishedCatalogSelector } from '../governance/PublishedCatalogSelector'
+import { capabilitySelectionError, roleScopeEligibility } from '../governance/publishedCatalog'
+import { useCatalogSelection } from '../governance/useCatalogSelection'
 
 const projectionLabels: Record<string, string> = { READY: '已同步', UPDATING: '同步中', BLOCKED: '同步失败，等待恢复', LEGACY: '旧版投影' }
 const grantLabels: Record<string, string> = { PENDING: '待生效', ACTIVE: '图已确认', REVOKED: '已撤销' }
@@ -31,18 +34,21 @@ export default function GovernanceAccessPage() {
   const [copy, setCopy] = useState<Role>()
   const [selected, setSelected] = useState<Role>()
   const authority = useQuery({ queryKey: [...queryKey, 'management'], queryFn: () => management(partition), retry: false, staleTime: 0, gcTime: 0 })
+  const catalog = useQuery({ queryKey: [...queryKey, 'published-catalog'], queryFn: ({ signal }) => publishedCatalog(partition, signal), retry: false, staleTime: 0, gcTime: 0 })
   const result = useQuery({ queryKey: [...queryKey, 'access', cursors], queryFn: () => accessState(partition, cursors.role, cursors.grant), retry: false, staleTime: 0, gcTime: 0 })
   const impact = useQuery({ queryKey: [...queryKey, 'impact', selected?.id], queryFn: () => roleImpact(partition, selected!.id), enabled: !!selected, retry: false, gcTime: 0 })
   const refresh = () => { void qc.invalidateQueries({ queryKey }) }
-  if (authority.error || result.error) return <Failure error={authority.error ?? result.error} retry={refresh} />
+  if ((authority.error || result.error) && !roleOpen && !grantOpen) return <Failure error={authority.error ?? result.error} retry={refresh} />
   return <>
+    {(authority.error || result.error) && <Failure error={authority.error ?? result.error} retry={refresh} />}
     <Card title="角色与成员授权" loading={result.isPending || authority.isPending} extra={<Button onClick={refresh}>刷新状态</Button>}>
       {authority.data && <Alert type={authority.data.policy_state === ProjectionState.READY && authority.data.directory_state === ProjectionState.READY ? 'info' : 'warning'} showIcon
         message={`权限投影：${projectionLabels[authority.data.policy_state] ?? '未知'} · 成员同步：${projectionLabels[authority.data.directory_state] ?? '未知'}`}
         description="受理不等于生效。角色新版本不会自动迁移旧授权；扩权必须重新授予或审批。" style={{ marginBottom: 20 }} />}
+      {catalog.error ? <Failure error={catalog.error} retry={() => void catalog.refetch()} /> : catalog.data && <PublishedCatalogBrowser catalog={catalog.data} />}
       <Space wrap style={{ marginBottom: 20 }}>
-        <Button type="primary" onClick={() => { setCopy(undefined); setRoleOpen(true) }}>创建角色版本</Button>
-        <Button onClick={() => setGrantOpen(true)}>授予成员</Button>
+        <Button type="primary" disabled={!catalog.data || catalog.isFetching || !!catalog.error} onClick={() => { setCopy(undefined); setRoleOpen(true) }}>创建角色版本</Button>
+        <Button disabled={!catalog.data || catalog.isFetching || !!catalog.error} onClick={() => setGrantOpen(true)}>授予成员</Button>
         {authority.data?.catalog_owner && <Button onClick={() => setCatalogOpen(true)}>应用清单</Button>}
       </Space>
       <Tabs activeKey={params.get('access_tab') === 'grants' ? 'grants' : 'roles'} onChange={key => { const next = new URLSearchParams(params); next.set('access_tab', key); setParams(next, { replace: true }) }} items={[
@@ -51,7 +57,7 @@ export default function GovernanceAccessPage() {
       <Table<Role> rowKey="id" locale={{ emptyText: <GovernanceEmpty title="暂无角色版本" description="创建固定角色版本后，再按范围授予成员。" /> }} dataSource={result.data?.roles} pagination={false} scroll={{ x: 700 }} columns={[
         { title: '角色', dataIndex: 'role_code', width: 220 }, { title: '版本', dataIndex: 'version', width: 75 },
         { title: '能力', dataIndex: 'capabilities', render: (caps: string[]) => <CapabilityList values={caps} compact /> },
-        { title: '操作', width: 230, render: (_, row) => <Space><Button type="link" onClick={() => setSelected(row)}>查看差异</Button><Button type="link" onClick={() => { setCopy(row); setRoleOpen(true) }}>复制新版本</Button></Space> },
+        { title: '操作', width: 230, render: (_, row) => <Space><Button type="link" onClick={() => setSelected(row)}>查看差异</Button><Button type="link" disabled={!catalog.data || catalog.isFetching || !!catalog.error} onClick={() => { setCopy(row); setRoleOpen(true) }}>复制新版本</Button></Space> },
       ]} />
       <Space style={{ marginTop: 12 }}>{cursors.role && <Button onClick={() => setCursors({ ...cursors, role: undefined })}>角色首页</Button>}{result.data?.next_role_cursor && <Button onClick={() => setCursors({ ...cursors, role: result.data!.next_role_cursor! })}>下一页角色</Button>}</Space>
         </> },
@@ -77,18 +83,22 @@ export default function GovernanceAccessPage() {
       </Card>}
     </GovernanceModal>
     {catalogOpen && <CatalogEditor application={partition.application_id} close={() => setCatalogOpen(false)} saved={refresh} />}
-    {roleOpen && authority.data && <RoleEditor authority={authority.data} copy={copy} close={() => setRoleOpen(false)} saved={refresh} />}
-    {grantOpen && authority.data && <GrantEditor authority={authority.data} roles={result.data?.roles ?? []} close={() => setGrantOpen(false)} saved={refresh} />}
+    {roleOpen && catalog.data && <RoleEditor catalog={catalog.data} copy={copy} close={() => setRoleOpen(false)} saved={refresh} />}
+    {grantOpen && catalog.data && <GrantEditor catalog={catalog.data} roles={result.data?.roles ?? []} close={() => setGrantOpen(false)} saved={refresh} />}
   </>
 }
 
-function RoleEditor({ authority, copy, close, saved }: { authority: Management; copy?: Role; close: () => void; saved: () => void }) {
+function RoleEditor({ catalog, copy, close, saved }: { catalog: PublishedCatalog; copy?: Role; close: () => void; saved: () => void }) {
   const { partition } = useGovernanceContext()
   const [form] = Form.useForm()
   const command = useCommand(createRole)
   const [dirty, setDirty] = useState(false)
+  const selection = useCatalogSelection(catalog, partition, command.busy || command.unknown)
+  const resource = Form.useWatch('resource_type', form)
+  const initialTypes = new Set(copy?.capabilities.map(code => catalog.capabilities.find(cap => cap.code === code)?.resource_type).filter(Boolean))
   const finish = async (values: { role_code: string; role_version: number; capabilities: string[] }) => {
-    const response = await command.send(id => ({ ...partition, command_id: id, ...values }))
+    if (!command.unknown && !await selection.verify()) return
+    const response = await command.send(id => ({ ...partition, command_id: id, role_code: values.role_code, role_version: values.role_version, capabilities: values.capabilities }))
     if (response) saved()
   }
   const cancel = () => {
@@ -96,16 +106,20 @@ function RoleEditor({ authority, copy, close, saved }: { authority: Management; 
     if (dirty && !command.result) Modal.confirm({ title: '放弃尚未提交的角色编辑？', okText: '放弃编辑', cancelText: '继续编辑', onOk: close })
     else close()
   }
-  return <GovernanceModal title={copy ? '创建角色新版本' : '创建角色版本'} open onCancel={cancel} width={640} maskClosable={false} footer={!command.result && (<Button type="primary" loading={command.busy} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原命令' : '创建固定版本'}</Button>)}
+  return <GovernanceModal title={copy ? '创建角色新版本' : '创建角色版本'} open onCancel={cancel} width={640} maskClosable={false} footer={!command.result && (<Button type="primary" loading={command.busy || selection.checking} disabled={!command.unknown && selection.changed} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原命令' : '创建固定版本'}</Button>)}
     closeDisabled={command.busy || command.unknown}>
+    {selection.notice}
     {!!command.error && <Failure error={command.error} />}
     {command.unknown && <Alert type="warning" message="提交结果尚未确认。字段已冻结，请原样重试。" />}
     {command.result ? <Alert type="success" showIcon message={`已创建 ${command.result.role_code} · 版本 ${command.result.version}`} description="创建角色不自动授予权限，也不修改既有授权。" /> : <>
-      <Form form={form} layout="vertical" onValuesChange={() => setDirty(true)} onFinish={finish} disabled={command.busy || command.unknown}
-        initialValues={{ role_code: copy?.role_code, role_version: copy ? copy.version + 1 : 1, capabilities: copy?.capabilities ?? [] }}>
-        <Form.Item name="role_code" label="角色编码" rules={[{ required: true, message: '请输入稳定角色编码' }, { pattern: /^[a-z][a-z0-9_.:-]{0,99}$/, message: '使用小写字母开头的稳定编码' }]}><Input disabled={!!copy} /></Form.Item>
+      <Form form={form} layout="vertical" onValuesChange={() => setDirty(true)} onFinish={finish} disabled={command.busy || command.unknown || selection.checking}
+        initialValues={{ resource_type: initialTypes.size === 1 ? [...initialTypes][0] : undefined, role_code: copy?.role_code, role_version: copy ? copy.version + 1 : 1, capabilities: copy?.capabilities ?? [] }}>
+        <Form.Item name="role_code" label="角色编码" rules={[{ required: true, message: '请输入稳定角色编码' }, { pattern: /^[a-z][a-z0-9._-]{0,99}$/, message: '使用小写字母开头的稳定编码' }]}><Input disabled={!!copy} /></Form.Item>
         <Form.Item name="role_version" label="新版本号" rules={[{ required: true }]}><InputNumber min={1} precision={0} style={{ width: '100%' }} /></Form.Item>
-        <Form.Item name="capabilities" label="允许的能力" rules={[{ required: true, message: '至少选择一项当前可授予能力' }]}><Select aria-label="允许的能力" mode="multiple" options={authority.capabilities.map(c => ({ value: c.code, label: `${c.code}${c.disabled ? '（已停用）' : ''}`, disabled: c.disabled }))} /></Form.Item>
+        <Form.Item name="resource_type" label="角色资源类型" rules={[{ required: true, message: '先选择真实资源类型' }]}><Select aria-label="角色资源类型" showSearch options={selection.catalog.resource_types.map(type => ({ value: type.code, label: type.code }))} /></Form.Item>
+        <Form.Item name="capabilities" label="明确选择能力" rules={[{ validator: (_, values: string[] = []) => { const error = capabilitySelectionError(selection.catalog, resource, values); return error ? Promise.reject(new Error(error)) : Promise.resolve() } }]}>
+          <PublishedCatalogSelector catalog={selection.catalog} resource={resource} disabled={command.busy || command.unknown || selection.checking} />
+        </Form.Item>
       </Form>
 
     </>}
@@ -113,7 +127,7 @@ function RoleEditor({ authority, copy, close, saved }: { authority: Management; 
 }
 
 interface GrantInput extends ScopeInput { member_id: string; role_id: string; duration_minutes: number; source_id: string }
-function GrantEditor({ authority, roles, close, saved }: { authority: Management; roles: Role[]; close: () => void; saved: () => void }) {
+function GrantEditor({ catalog, roles, close, saved }: { catalog: PublishedCatalog; roles: Role[]; close: () => void; saved: () => void }) {
   const { partition, queryKey } = useGovernanceContext()
   const [form] = Form.useForm<GrantInput>()
   const [after, setAfter] = useState<string>()
@@ -122,13 +136,15 @@ function GrantEditor({ authority, roles, close, saved }: { authority: Management
   const command = useCommand(grantScoped)
   const roleId = Form.useWatch('role_id', form)
   const role = roles.find(r => r.id === roleId)
-  const resources = [...new Set(authority.capabilities.filter(c => role?.capabilities.includes(c.code)).map(c => c.resource_type))]
+  const selection = useCatalogSelection(catalog, partition, command.busy || command.unknown)
+  const eligibility = roleScopeEligibility(role, selection.catalog)
   const cancel = () => {
     if (command.busy || command.unknown) return
     if (dirty && !command.result) Modal.confirm({ title: '放弃尚未提交的成员授予？', okText: '放弃编辑', cancelText: '继续编辑', onOk: close })
     else close()
   }
   const finish = async (values: GrantInput) => {
+    if (!command.unknown && !await selection.verify()) return
     const response = await command.send(id => {
       const target = candidates.data!.items.find(m => m.membership_id === values.member_id)!
       const from = new Date()
@@ -137,18 +153,20 @@ function GrantEditor({ authority, roles, close, saved }: { authority: Management
     })
     if (response) saved()
   }
-  return <GovernanceModal title="授予成员权限" footer={!command.result && (<Button type="primary" loading={command.busy} disabled={!command.unknown && (candidates.isPending || !!candidates.error)} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原命令' : '提交授予'}</Button>)} open onCancel={cancel} width={720} maskClosable={false} closeDisabled={command.busy || command.unknown}>
-    {candidates.error ? <Failure error={candidates.error} retry={() => void candidates.refetch()} /> : <>
+  return <GovernanceModal title="授予成员权限" footer={!command.result && (<Button type="primary" loading={command.busy || selection.checking} disabled={!command.unknown && (selection.changed || !!eligibility.reason || candidates.isPending || !!candidates.error)} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原命令' : '提交授予'}</Button>)} open onCancel={cancel} width={720} maskClosable={false} closeDisabled={command.busy || command.unknown}>
+    {selection.notice}
+    {candidates.error && !command.unknown && !command.busy ? <Failure error={candidates.error} retry={() => void candidates.refetch()} /> : <>
       {!!command.error && <Failure error={command.error} />}
       {command.unknown && <Alert type="warning" message="结果尚未确认。重试会使用相同成员、范围、时间和命令。" />}
       {command.result ? <Alert type="info" showIcon message="授权已受理，等待实际投影生效" description={`授权标识：${command.result.id}。请关闭并刷新执行状态。`} /> : <>
-        <Form form={form} layout="vertical" initialValues={{ duration_minutes: Math.min(30, Math.floor(authority.max_duration_seconds / 60)), scope_kind: 'SPECIFIED_STORES' }}
-          onValuesChange={() => setDirty(true)} onFinish={finish} disabled={command.busy || command.unknown || candidates.isPending}>
-          <Form.Item name="member_id" label="受益成员" rules={[{ required: true, message: '请选择当前有效成员' }]}><Select aria-label="受益成员" showSearch optionFilterProp="label" options={candidates.data?.items.filter(m => m.membership_id !== authority.membership_id).map(m => ({ value: m.membership_id, label: `${m.member_kind} · ${m.membership_id} · 第${m.generation}代` }))} /></Form.Item>
+        <Form form={form} layout="vertical" initialValues={{ duration_minutes: Math.min(30, Math.floor(selection.catalog.max_duration_seconds / 60)) }}
+          onValuesChange={() => setDirty(true)} onFinish={finish} disabled={command.busy || command.unknown || candidates.isPending || selection.checking}>
+          <Form.Item name="member_id" label="受益成员" rules={[{ required: true, message: '请选择当前有效成员' }]}><Select aria-label="受益成员" showSearch optionFilterProp="label" options={candidates.data?.items.filter(m => m.membership_id !== selection.catalog.membership_id).map(m => ({ value: m.membership_id, label: `${m.member_kind} · ${m.membership_id} · 第${m.generation}代` }))} /></Form.Item>
           {candidates.data?.next_cursor && <Button onClick={() => { form.setFieldValue('member_id', undefined); setAfter(candidates.data!.next_cursor!) }}>下一页成员</Button>}
-          <Form.Item name="role_id" label="固定角色版本" rules={[{ required: true, message: '请选择角色版本' }]}><Select aria-label="固定角色版本" options={roles.map(r => ({ value: r.id, label: `${r.role_code} · v${r.version}`, disabled: r.capabilities.some(c => !authority.capabilities.some(a => a.code === c && !a.disabled)) }))} onChange={() => form.setFieldValue('resource_type', undefined)} /></Form.Item>
-          <ScopeFields resources={resources} />
-          <Form.Item name="duration_minutes" label="有效分钟数（从提交时开始）" rules={[{ required: true }]}><InputNumber min={1} max={Math.floor(authority.max_duration_seconds / 60)} precision={0} style={{ width: '100%' }} /></Form.Item>
+          <Form.Item name="role_id" label="固定角色版本" rules={[{ required: true, message: '请选择角色版本' }]}><Select aria-label="固定角色版本" options={roles.map(r => ({ value: r.id, label: `${r.role_code} · v${r.version}${roleScopeEligibility(r, selection.catalog).reason ? `（${roleScopeEligibility(r, selection.catalog).reason}）` : ''}`, disabled: !!roleScopeEligibility(r, selection.catalog).reason }))} onChange={() => form.setFieldsValue({ resource_type: undefined, scope_kind: undefined, scope_values: undefined })} /></Form.Item>
+          {role && eligibility.reason && <Alert type="warning" message={eligibility.reason} style={{ marginBottom: 12 }} />}
+          <ScopeFields resourceTypes={eligibility.resourceTypes} />
+          <Form.Item name="duration_minutes" label="有效分钟数（从提交时开始）" rules={[{ required: true }]}><InputNumber min={1} max={Math.floor(selection.catalog.max_duration_seconds / 60)} precision={0} style={{ width: '100%' }} /></Form.Item>
           <Form.Item name="source_id" label="授权来源说明" rules={[{ required: true, message: '填写便于追溯的来源说明' }, { max: 100 }]}><Input placeholder="例如：门店协作接入批次" /></Form.Item>
         </Form>
 

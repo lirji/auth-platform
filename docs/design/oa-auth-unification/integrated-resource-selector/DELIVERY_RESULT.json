@@ -1,0 +1,60 @@
+{
+  "slice": "IR-01",
+  "status": "LOCAL_VALIDATION_PASS",
+  "branch": "feat/integrated-resource-selector",
+  "implementation_commit": "a09915f28d5beb4c3bf10294da92119e101cee29",
+  "base": "4a9057a",
+  "validation": "TEST_RESULT.md=PASS; IMPLEMENTATION_EVIDENCE.json fingerprints match current source",
+  "delivery": "original IR implementation14870ed integrated/pushed; remote CI failed before test setup compatibility fix; CI registration and test-only followups local validated, root sequential integration/exact new CI pending",
+  "main_merged": true,
+  "pushed": true,
+  "unrelated_paths": [],
+  "retained_ignored": [
+    ".local private evidence/config/owned Maven repo; databases/IdP fixtures required for independent replay",
+    "auth-console/node_modules symlink reused read-only",
+    "isolated target/dist current artifacts"
+  ],
+  "cleanup": "no cleanup executed; retain worktree until root integrates and private evidence/fixtures are preserved",
+  "remote_ci_original": {
+    "revision": "14870ed",
+    "run_id": 37023342834,
+    "state": "COMPLETED_FAILURE",
+    "final_pass_not_claimed": true,
+    "completed_at": "2026-10-02T14:57:08Z",
+    "failure": "PublishedCatalogPostgresIT.open read missing GOVERNANCE_TEST_CONFIG in existing DB-env-only governance-it job",
+    "private_log": ".local/integrated-resource-selector/ci-pg-config-followup/remote-ci-37023342834-failed.log"
+  },
+  "ci_registration_followup": {
+    "status": "LOCAL_VALIDATION_PASS",
+    "branch": "feat/integrated-resource-selector",
+    "base": "14870ed",
+    "scope": [
+      ".github/workflows/authz-ci.yml",
+      "TEST_RESULT.md",
+      "PROGRESS_STATE.md",
+      "DELIVERY_RESULT.json"
+    ],
+    "validation": "Node14PASS;12registeredNode syntax exit0;Pythonpycompile exit0;exactYAML structural diffPASS;20original sourceSHAs unchanged;git diff--checkPASS",
+    "workflow_sha256": "5e424b318df85fa89a68e957b9fac764b70131bb606ea794ff25f22165b69f38",
+    "commit_reference": "logical followup commit containing this record; exact SHA in task branch Git log/root handoff",
+    "main_merged": false,
+    "pushed": false,
+    "next_owner": "root sequential integration and exact new remote CI"
+  },
+  "ci_test_config_followup": {
+    "status": "LOCAL_VALIDATION_PASS",
+    "base": "03054fb63f88cc02757d8c838f92a759335b6c87",
+    "scope": [
+      "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/PublishedCatalogPostgresIT.java",
+      "TEST_RESULT.md",
+      "PROGRESS_STATE.md",
+      "IMPLEMENTATION_EVIDENCE.json",
+      "DELIVERY_RESULT.json"
+    ],
+    "validation": "CI-style108PG/9suites PASS; explicit0600CONFIG7PASS/1suite; exact current-log Running selectors/failsafe-summary counts; historical XML excluded; 19 other IR fingerprints unchanged; git diff--checkPASS",
+    "current_test_sha256": "d1ada14a51647d47fa7ed2356f943a31cfd26666c1305b0a75d5905fe17db816",
+    "main_merged": false,
+    "pushed": false,
+    "next_owner": "root exact new CI and normal sequential integration"
+  }
+}
