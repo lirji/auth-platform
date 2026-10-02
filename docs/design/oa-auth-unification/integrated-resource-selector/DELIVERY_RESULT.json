@@ -5,14 +5,37 @@
   "implementation_commit": "a09915f28d5beb4c3bf10294da92119e101cee29",
   "base": "4a9057a",
   "validation": "TEST_RESULT.md=PASS; IMPLEMENTATION_EVIDENCE.json fingerprints match current source",
-  "delivery": "local complete commit created; main merge/push delegated to root",
-  "main_merged": false,
-  "pushed": false,
+  "delivery": "original implementation14870ed normally pushed/main merged by root; bounded CI registration followup validated local only",
+  "main_merged": true,
+  "pushed": true,
   "unrelated_paths": [],
   "retained_ignored": [
     ".local private evidence/config/owned Maven repo; databases/IdP fixtures required for independent replay",
     "auth-console/node_modules symlink reused read-only",
     "isolated target/dist current artifacts"
   ],
-  "cleanup": "no cleanup executed; retain worktree until root integrates and private evidence/fixtures are preserved"
+  "cleanup": "no cleanup executed; retain worktree until root integrates and private evidence/fixtures are preserved",
+  "remote_ci_original": {
+    "revision": "14870ed",
+    "run_id": 37023342834,
+    "state": "RUNNING_REPORTED_BY_ROOT_BEFORE_FOLLOWUP",
+    "final_pass_not_claimed": true
+  },
+  "ci_registration_followup": {
+    "status": "LOCAL_VALIDATION_PASS",
+    "branch": "feat/integrated-resource-selector",
+    "base": "14870ed",
+    "scope": [
+      ".github/workflows/authz-ci.yml",
+      "TEST_RESULT.md",
+      "PROGRESS_STATE.md",
+      "DELIVERY_RESULT.json"
+    ],
+    "validation": "Node14PASS;12registeredNode syntax exit0;Pythonpycompile exit0;exactYAML structural diffPASS;20original sourceSHAs unchanged;git diff--checkPASS",
+    "workflow_sha256": "5e424b318df85fa89a68e957b9fac764b70131bb606ea794ff25f22165b69f38",
+    "commit_reference": "logical followup commit containing this record; exact SHA in task branch Git log/root handoff",
+    "main_merged": false,
+    "pushed": false,
+    "next_owner": "root sequential integration and exact new remote CI"
+  }
 }

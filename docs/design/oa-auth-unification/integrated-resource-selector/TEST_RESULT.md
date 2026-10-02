@@ -22,3 +22,11 @@
 失败历史保留：最初prepared运行缺配置、错误自动登录按钮/AntD定位/文案，均是验收工具错误；runtime-6ef9a4a6b76e和runtime-9e01ffe31278保留失败，不算PASS。当前runtime-42a69299d5c0完整浏览器通过后，SQL期望错误使用了HTTP snake_case；修正为实际固定ScopeValues持久化camelCase，使用`--resume-verify`，校验既有成功browser结果与jar/frontend来源hash后重新读取实际SQL并完成撤权；没有重放成功UI写命令或覆盖旧失败证据。
 
 边界：本片UI创建Grant只证明受理PENDING，未宣称该fixture已图投影READY；有效授权停用证明来自上述可靠图IT。正式Commerce已有67caps/0menus和21导航映射的Owner真实发布属于完整目标后续集成，不能把本片3菜单测试发布冒充完成。没有性能预算/压测、生产部署、main合并或推送声明。
+
+## 同任务 CI 注册补齐（2026-10-02）
+
+PASS：仅既有authz-ci.yml与本片验证/进度/交付文档修改。push(main)与pull_request增加deploy/governance-integrated-resources-*路径；既有Python语法步骤新增IR UI harness，既有Node语法循环新增IR两个mjs；Node测试明确运行context6+published-catalog8。现有governance-it persistence/*IT.java已包含新增7PG用例，未改数据库/profile或增加基础设施。
+
+实际精确命令：`node --test auth-console/tests/governance-context.test.mjs auth-console/tests/governance-published-catalog.test.mjs` →14 PASS/0fail/0skip；完整CI Node syntax循环12脚本全部exit0；`python3 -m py_compile deploy/governance-integrated-resources-ui.py` →exit0。PyYAML6.0.3 BaseLoader结构比较证明只改变两个事件paths与两个原step中的指定run语句，jobs/permissions/services/concurrency/PG不变；原20产品/测试/harness SHA与IMPLEMENTATION_EVIDENCE全部相同。工作流SHA256：5e424b318df85fa89a68e957b9fac764b70131bb606ea794ff25f22165b69f38。git diff --check通过。
+
+原实施14870ed已由主Agent正常推送并合并main，原精确CI37023342834开始运行；此处仅记录主Agent报告的在途状态，不声称终态通过。本次CI补齐本地提交后交主Agent顺序集成并运行其精确新CI，不自行push/merge；未运行Maven/build/DB或修改原D2。
