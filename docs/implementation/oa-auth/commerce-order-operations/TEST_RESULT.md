@@ -48,3 +48,13 @@
 ## 交付与保留边界
 
 依赖Auth J0/ad/5e7对应本树f24b1a9，Commerce共享Provider4ca6acc、J1 e900616、Dashboard d65e7e5对应41a7e4f；本地逻辑提交由root统一集成，9共享路由需语义保留D2与Journey五页，D2窄屏Tag换行样式也须保留。所有正式改动只本任务两树，未生产部署/未main merge或push。实际最终应用、proxy、SPI端口20661/62/63/65/66全关闭；私密数据与独占基础组件为审计保留，不清共享数据或丢弃旧FAIL证据。
+
+## Root 当前组合与004有界补修（2026-10-02，原终态不可变）
+
+CE产品已正常集成Root Authdef7d4c、Commerce2bfe820。Root组合全实库546项（541PASS/5既有条件skip）、74套件0fail/error，源码355b0fe补修前基线2bfe820；TSC/Vite及8D2界面契约回归PASS，3张320px组合CSS图实际复核。
+
+独立审查004发现并修复活动/券成功create在门店后冻结时的旧回执语义回退。产品补修4b7c20a仅两个Service与专项测试；当前scope/identity原栅栏仍每次执行，completedReceipt仅选择原方向，最终原hash/命令锁决定；原回执消失回滚，真实首次写保留ACTIVE快照与事务内CAS。业务资源失败只补读一次，不吞权限或系统错误。新Owner35真实MySQL/HTTP（15+13+7）PASS，SDK为受控fixture，不冒称新的真Auth运行；旧149/945/135原终态不改。Owner首夹具失败及隔离库guard正确拒绝保留。
+
+Root355b0fe补修后受影响58项/5套件（51+7两轮）全部PASS、0skip/fail/error，5XML和2logs不可变归档。当前forceCreation归档JAR770564f5，17内部模块617文件+app204=821；当前dist61资产/91源码、protocol104/SDK12全部字节匹配，独立再核对PASS。保留旧target静态产物，61仅当前dist资产计数。Auth共享四权威源与已经实证的128真实PG/图测试完全相同，不重复改变的产品证明。
+
+Root当前集成门禁PASS并允许专有test分区的全122资源/42菜单节点/34模板出版终验；实际HTTP/PG/PKCE/UI和新精确mainCI仍由主流程收尾，不能以目录注册替代真实Owner语义。准确证据索引为Root私密parallel-existing71-ce08-root-current-integration-gate.json及各原不可变报告。

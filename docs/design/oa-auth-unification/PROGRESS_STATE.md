@@ -1,6 +1,50 @@
+## 当前恢复检查点（2026-10-02，CE06组合通过，实际目录发布中）
+
+### 任务目标
+
+连续完成 CE00—CE08 商城权限、Auth实际业务菜单资源与岗位模板；取消抽屉、统一居中弹层。用户已授权全部并行执行、必要测试及正常main合并推送。保留历史数据和失败证据，不作生产部署。
+
+### 已完成
+
+- 弹层优化、IR01、D2、Journey已完成main发布及精确远程CI；最近Auth853e063/CI37033427164、Commerce4bc22e6/CI37033478131均SUCCESS。
+- CE06/07/08 Owner已提交Authb0e6d8c、Commerce12234d7；独立终审PASS：945源前后/当前HEAD一致、30不可变证据SHA、149真实HTTP、135当前截图、544实库测试（539PASS/5既有条件skip）、33能力/9菜单、12lane分类与原Source/资金责任保留。
+- 根已语义合并Authdef7d4c、Commerce2bfe820；精确37SPA GET保留全部35运营+1协作+1OIDC callback，D2/Journey/CE组件与样式并存。
+- 当前组合TSC/Vite与8D2界面回归通过，3张当前320px图实际复核PASS。新全库Maven已exit0：546=541PASS+5既有条件skip，74套件/0失败错误，source2bfe820；日志/exit/74不可变XML及SHA已归档 `.local/central-audiences/parallel-merged-ce-full-*`，作为004修补前组合基线，不能冒充补修后验证。
+
+- 根355b0fe已合入004：新增受影响58/5套件（51+7两轮、0fail/error/skip）PASS；先前546组合全库/74套件基线保留。原-am指定无匹配依赖失败已保留，改先私密install再app精确测试，未改POM guard。
+- 当前完整JAR770564f5：17内部模块/821编译文件，当前dist61资产/91源全字节MATCH，protocol104/SDK12整nested包与RootAuth/私密M2完全一致，独立再审PASS；旧target历史static另计，不把61称为所有旧静态文件。
+- 新current integration gate `parallel-existing71-ce08-root-current-integration-gate.json` SHA05d215619a15b44459e03f6e1a5330f0543905c694fdd9aee86314f8f74db5f1 PASS。IR已GO原独有21662/21665全122/42/34真实HTTP/PG/PKCE/UI；不得提前称已出版。
+
+### 已修改文件
+
+- CE06/07订单、支付、履约、售后、退款、OpsPage、事件/runtime/dashboard Owner/SQL/前端，V71/V72，专项实库测试和正式契约；准确范围见合并提交2bfe820/def7d4c。
+- 当前CODEX_PROGRESS与两仓正式PROGRESS_STATE。
+
+### 未完成
+
+- CE06组合本地必要门禁全部PASS；待正常main合并推送及精确CI。
+- 全122资源/42菜单节点/34角色模板实际HTTP、PG审计、PKCE/UI和最终集成；34模板覆盖99能力，另外23仅手工审查，不自动授予。
+
+### 当前问题
+
+- 旧71四源变更已通过新root current gate，原预检零写入拒绝证据保留；旧receipt不可覆盖，用当前34源/新门禁侧写重绑定。
+- CE-FROZEN-RECEIPT-004已CLOSED：4b7c20a修复仅两Service+测试，当前权限栅栏、原键与原正文不变；7新边界/两种并发窗口/合法FK故障注入实库PASS。Owner新35全部PASS；旧149/945/135及首次夹具/schemaGuard失败均不可变保留。
+- 原D4视觉HOLD、D5未复现503、CE旧归档错配/错DTO等失败保留。原8602/OA/5273、历史库/卷/工作树保留。
+
+### 下一步建议
+
+1. 正常限定提交进度与正式测试补充，归档CE Owner纯doc a60fc8d；合并推送两仓main，核对精确新CI，不在其running时再推main取消。
+2. IR只在原publication树/21662/21665执行v7全122/42/34终验；旧71、旧CE33与新004/RootGate共同绑定当前Source。128 Auth实库未变不重跑。
+3. Journey/CE Owner独立只读核对新gate与pub实际证据；Root新helper23回归/CI注册等须保持D2与IR checks，并最终正常集成pub与精确CI。
+4. 全菜单/模板实际SQL/PKCE/UI及最终GitCI闭合后才宣称整体完成，保留数据/旧失败/五worktree，不生产部署或擅自清理。
+
+### 恢复 Prompt
+
+请读取本检查点和三个现有Agent消息，继续未完成部分；不新建工作树、不重跑已结束原演练、不重置数据、不要求重复继续。完整目标仍在执行。
+
 > 2026-10-02 CE05-D2 VERIFYING：第二轮实际终态失败保留；浏览器origin、精确静态GET与可见控制选项已修正。当前522全仓（517PASS/5既有skip）、23真实MySQL/HTTP、51工具及新增控制选项1fixture PASS；第三轮durable3/a7b7626101f3/10052-10053/subnet136实际live。最终四岗位/SQL/真实视觉/Validation/GitCI仍待本轮证明，完整CE05—08/Auth资源目标active。
 
-## 当前恢复检查点（2026-10-02，后文为历史归档）
+## 历史归档：上一组合恢复检查点（2026-10-02）
 
 ### 任务目标
 
