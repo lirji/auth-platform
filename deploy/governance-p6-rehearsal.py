@@ -23,6 +23,8 @@ CAMPAIGN_CAPABILITIES = ('campaign.read','campaign.create','campaign.preview','c
 ENTITLEMENT_CAPABILITIES = {'entitlement_definition.read':ENTITLEMENT_DEFINITION_RESOURCE_TYPE,'entitlement_definition.create':ENTITLEMENT_DEFINITION_RESOURCE_TYPE,'entitlement.read':ENTITLEMENT_RESOURCE_TYPE,'entitlement.resolve':ENTITLEMENT_RESOURCE_TYPE}
 COUPON_DEFINITION_CAPABILITIES = ('coupon_definition.read','coupon_definition.create')
 OFFER_CAPABILITIES = ('point_offer.read','point_offer.define','point_offer.status.update')
+# 此隔离客户凭据被末尾三个停服兼容检查复用，不能在完整浏览器矩阵结束前自然到期。
+OFFER_CUSTOMER_FIXTURE_SECONDS = 3000
 POINTS_CAPABILITIES = {'points.policy.read':MEMBER_POLICY_RESOURCE_TYPE,'points.policy.publish':MEMBER_POLICY_RESOURCE_TYPE,'points.read':MEMBER_RESOURCE_TYPE,'points.adjust':MEMBER_RESOURCE_TYPE,'points.expire':MEMBER_RESOURCE_TYPE}
 CYCLE_CAPABILITIES = {'member_cycle.policy.read':MEMBER_POLICY_RESOURCE_TYPE,'member_cycle.policy.publish':MEMBER_POLICY_RESOURCE_TYPE,'member_cycle.read':MEMBER_RESOURCE_TYPE,'member_cycle.evaluate':MEMBER_RESOURCE_TYPE,'cycle_benefit.read':MEMBER_POLICY_RESOURCE_TYPE,'cycle_benefit.define':MEMBER_POLICY_RESOURCE_TYPE,'cycle_benefit.grant':MEMBER_RESOURCE_TYPE}
 BEHAVIOR_CAPABILITIES = ('member_behavior.read','member_behavior.update','member_behavior.rebuild')
@@ -990,7 +992,7 @@ def rehearse(args, isolation=None):
             expect('offer read survives write revocation',18661,offer_base+'?storeId='+store,user)
             offer_browser('revoked')
             customer_token='p6-offer-'+secrets.token_hex(20)
-            insert('platform_credential',{'token_hash':hashlib.sha256(customer_token.encode()).hexdigest(),'tenant_id':source,'actor_id':offer_customer,'role':'MEMBER','expires_at':now(600).replace('T',' ').replace('Z','')})
+            insert('platform_credential',{'token_hash':hashlib.sha256(customer_token.encode()).hexdigest(),'tenant_id':source,'actor_id':offer_customer,'role':'MEMBER','expires_at':now(OFFER_CUSTOMER_FIXTURE_SECONDS).replace('T',' ').replace('Z','')})
             offer_customer_headers=[('Authorization','Bearer '+customer_token)];redeem_headers=offer_customer_headers+[('Idempotency-Key',uid())]
             if expect('offer customer sees active catalogue only',18661,'/v1/point-offers?storeId='+store,offer_customer_headers)!=[offer_b]:raise RuntimeError('customer catalogue leaked paused offer')
             receipt=expect('customer redeems after employee write revoke',18661,'/v1/point-offers/ce04-offer-b/redeem',redeem_headers,{})
@@ -1432,6 +1434,10 @@ def rehearse(args, isolation=None):
                 'user':user,'admin':admin,'dual':dual,'prefix':prefix,'run':run,'h':h,'runtime':runtime,'start_commerce':start_commerce,
                 'app':app,'member':members['external'],'local_admin':local_admin,'user_authorization':'Bearer '+user_token}
             app=segment_checks.rehearse(segment_context)
+            if args.browser:
+                segment_context['commerce']=commerce
+                segment_ui_checks=module('ce05_segment_ui',root/'deploy/governance-ce05-segments-ui.py')
+                segment_ui_checks.rehearse(segment_context)
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
         current=expect('read committed task effect',18661,'/v1/operations/skus?storeId='+store,user)[0]
@@ -1516,6 +1522,7 @@ def rehearse(args, isolation=None):
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
         if args.segments:segment_checks.outage(segment_context)
+        if args.segments and args.browser:segment_ui_checks.outage(segment_context)
         result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'audiences_checked':args.audiences,'campaigns_checked':args.campaigns,'segments_checked':args.segments,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest(),'browser_mode':'PACKAGED_JAR' if args.packaged_browser else 'VITE' if args.browser else 'NONE'}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:

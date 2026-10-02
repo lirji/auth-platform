@@ -8,9 +8,9 @@
 |---|---|---|---|
 | CE05-S0 | 六独立能力的有限执行引用，类型/原路径/期限有界 | CAM2精确CI；Auth protocol/governance/SDK | 真实PG/图独立Grant、scope/object、跨类型/错版本/互换/期限/HUMAN/撤权重授/跨进程；DONE（含Git/CI） |
 | CE05-S1 | 中央SEGMENT用例、原命令审计、持久化任务来源与每批判权 | S0验证/Git/CI；Commerce runtime/marketing/app/persistence | 实际MySQL/HTTP、并发刷新返回原任务、原键、SQL故障回滚、分页/批预算、重启/撤权/期限/503及公告恢复；DONE（含产品Git/CI） |
-| CE05-S2 | 固定SSO定义/运行记录、创建/调度/刷新/控制/推进完整反馈 | S1验证/Git/CI已完成；Commerce frontend/app | 真实DTO、六独立权限、实际任务/快照/公告结果、unknown原键、401/403/503、1440/390/320关联弹层与键盘；READY |
+| CE05-S2 | 固定SSO定义/运行记录、创建/调度/刷新/控制/推进完整反馈 | S1验证/Git/CI已完成；Commerce frontend/app | 真实DTO、六独立权限、实际任务/快照/公告结果、unknown原键、401/403/503、1440/390/320关联弹层与键盘；本地DONE（产品Git/CI待交付） |
 
-三片原目录串行，无子Agent/新工作树。CAM2及S0精确CI已SUCCESS；S1当前实现并完成真实跨进程Validation PASS（Git/CI待完成），S2仅影响分析/技术细化，产品实施依赖S1验证/Git/精确CI。历史验证检查点在下文保留，当前权威状态见[动态人群验证](../../implementation/oa-auth/commerce-readiness/CE05_SEGMENTS.md)。
+三片原目录串行，无子Agent/新工作树。CAM2、S0与S1验证及精确产品CI已SUCCESS；S2依赖门禁已满足，页面和五独立提示已实现，最终编译JAR真实六岗位/撤权/Auth停服与60张当前关联截图已通过正式Validation，产品Git/精确CI待交付。历史验证检查点在下文保留，当前权威状态见[动态人群验证](../../implementation/oa-auth/commerce-readiness/CE05_SEGMENTS.md)。
 
 ## Owner事实与既有业务行为
 
@@ -86,7 +86,7 @@ S0 Git/CI已完整DONE：ad5ce112d34758b691c0b379aa2c879f24563c38正常提交、
 本地Owner当前验证通过：完整504项499PASS/5既有skip，最终13专项及4既有Segment回归PASS；编译归档与13源码摘要一致。实际MySQL早期审计登记/夹具失败已修正且证据保留。真实P6首轮658后因管理连接+08写UTC DATETIME夹具而失败，仅本片演练SQL会话改UTC，保持首批100断言；UTC复核69664/5e74bdf65560全部784实际检查通过，整体因最终O_EXCL证据文件冲突exit1；已分开预停服/最终文件并新增2回归，47工具PASS；最终37270/89f465b97213已exit0、784全PASS，SQL21准确版本审计/原来源与实际Auth停服已核；正式Validation PASS，S1本地DONE，Git/精确CI待完成；S2及完整目标保持。
 
 
-## S2页面与提示技术细化（设计，尚未实施）
+## S2页面与提示技术细化（已批准；实施中，尚未完成验收）
 
 沿既有Craft主题、中央SSO、RequestContext、RuleEditor/RuleSummary和AntD居中Modal，不引入设计系统/新业务动作。固定 `/operations/segments?tenant_id=<UUID>`加入现有营销导航与CentralPageController，匿名仅提供固定GET壳，业务继续鉴权；不得任意路径forward。
 

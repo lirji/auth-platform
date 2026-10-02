@@ -1,4 +1,4 @@
-> CAM2实施后源码核对：271条（原262＋七独立提示＋两个固定静态入口）；122能力/34角色，未发布清单。
+> S2实施中源码核对：277条（CAM2的271＋五独立提示＋一个固定静态入口）；122能力/34角色，未发布清单。
 
 # 商城HTTP入口实测源码清单
 
@@ -281,3 +281,9 @@
 | CampaignActionsController | GET | `/v1/operations/campaigns/pause-access` | EMPLOYEE_CENTRAL_PLANNED | `commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/CampaignActionsController.java` |
 | CentralPageController | GET | `/operations/campaigns` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java` |
 | CentralPageController | GET | `/operations/campaign-budgets` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java` |
+| SegmentActionsController | GET | `/v1/operations/segments/create-access` | CENTRAL_SEGMENT / explicit allowlist | `commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentActionsController.java:20` |
+| SegmentActionsController | GET | `/v1/operations/segments/schedule-access` | CENTRAL_SEGMENT / explicit allowlist | `commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentActionsController.java:26` |
+| SegmentActionsController | GET | `/v1/operations/segments/refresh-access` | CENTRAL_SEGMENT / explicit allowlist | `commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentActionsController.java:32` |
+| SegmentActionsController | GET | `/v1/operations/segments/control-access` | CENTRAL_SEGMENT / explicit allowlist | `commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentActionsController.java:38` |
+| SegmentActionsController | GET | `/v1/operations/segments/pump-access` | CENTRAL_SEGMENT / explicit allowlist | `commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentActionsController.java:44` |
+| CentralPageController | GET | `/operations/segments` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java:10` |

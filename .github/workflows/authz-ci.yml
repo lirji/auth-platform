@@ -112,7 +112,7 @@ jobs:
           python3 -m unittest discover -s deploy/tests -p 'test_commerce_contract.py' -v
           python3 -m unittest discover -s deploy/tests -p 'test_governance_p6*.py' -v
           python3 -m unittest discover -s deploy/tests -p 'test_governance_segments*.py' -v
-          python3 -m py_compile deploy/governance-p6-migration.py deploy/governance-p6-rehearsal.py deploy/governance-ce05-segments.py
+          python3 -m py_compile deploy/governance-p6-migration.py deploy/governance-p6-rehearsal.py deploy/governance-ce05-segments.py deploy/governance-ce05-segments-ui.py
           python3 -m py_compile deploy/governance-p4-e2e.py deploy/governance-p4-runtime.py deploy/governance-approval-start-smoke.py deploy/governance-p5-commerce.py deploy/governance-p5-login.py deploy/governance-p5-packaged.py
           bash -n deploy/risk-platform-provision.sh deploy/risk-authz-fixture.sh \
             deploy/recon-platform-provision.sh deploy/benefit-platform-provision.sh
@@ -180,7 +180,7 @@ jobs:
           version: 9.15.9
       - name: Check portal browser harness syntax
         run: |
-          for script in deploy/governance-p5-*.mjs deploy/governance-p6-catalog.mjs deploy/governance-ce05-campaigns.mjs; do node --check "$script"; done
+          for script in deploy/governance-p5-*.mjs deploy/governance-p6-catalog.mjs deploy/governance-ce05-campaigns.mjs deploy/governance-ce05-segments.mjs; do node --check "$script"; done
           node --test auth-console/tests/governance-context.test.mjs
       - name: Build governance console
         run: pnpm --dir auth-console install --frozen-lockfile && pnpm --dir auth-console build

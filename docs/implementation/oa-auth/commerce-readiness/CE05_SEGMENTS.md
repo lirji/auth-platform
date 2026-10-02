@@ -1,8 +1,10 @@
+> 2026-10-02 CE05-S2本地DONE，implementation-validation COMPLETED/PASS：最终真实编译0b2c9e9dd22a/独立runner54927已exit0（09:21:42Z），1128检查点全PASS；六真实岗位/撤权/实际Auth停服八阶段及终态SQL通过。SYSTEM取消100/97、MANUAL仍RUNNING0/0，恰新增五条定义版本7单次身份审计、总26；无提前快照、入组公告或伪门店归属。60张当前1440/390/320目录、表单、详情、回执、409/unknown/关闭保护、401/撤权/503截图已逐张实际查看，UI001居中及UI002窄屏提示缺陷均在本轮验证修复。最新SSO JAR0220ff15684d与原4923的279后端/88依赖内容相同、47前端与78源码/13产品/4harness一致。506完整测试（501PASS/5既有skip）、19实际MySQL、当前7fixture、277入口/122候选/34岗位未发布、9契约/38工具、构建/Prettier及两仓hygiene无阻断；Java formatter既有限制保留。S2产品Git/精确CI待交付，整个剩余CE05—08/Auth实际菜单资源目标仍active。演练自有进程及五端口已退出，原8602/OA/数据/卷/所有失败和旧证据保留；原目录串行，无新Agent或工作树。
+
 # CE05-S 动态人群权限验证
 
 ## 当前状态与完整目标
 
-CE05-S0已完成协议及Git/精确CI交付；CE05-S1后台本地DONE，implementation-validation COMPLETED/PASS，产品Git/精确CI已DONE。最终真实跨进程已exit0，当前产品及演练源码摘要一致。CE05-S2页面尚未实施，实施依赖S1完整Git/精确CI。全部其余CE05—08、完整岗位权限及Auth实际发布菜单/资源选择仍待继续；122候选能力与34角色快照保持未批量发布。
+CE05-S0已完成协议及Git/精确CI交付；CE05-S1后台本地DONE，implementation-validation COMPLETED/PASS，产品Git/精确CI已DONE。最终真实跨进程已exit0，当前产品及演练源码摘要一致。CE05-S2本地实现与正式Validation已DONE，产品Git/精确CI待交付；下文实施与失败记录为历史证据。全部其余CE05—08、完整岗位权限及Auth实际发布菜单/资源选择仍待继续；122候选能力与34角色快照保持未批量发布。
 
 技术与稳定切片：[CONTRACTS_COMMERCE_SEGMENTS](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_SEGMENTS.md)。用户授权原目录串行实施，无子Agent/新工作树，无生产部署或数据清理。
 
@@ -70,3 +72,60 @@ CE05-S1本地DONE，implementation-validation COMPLETED/PASS：六SEGMENT独立�
 ## S1 Git与精确CI最终产品状态
 
 S1完整产品Git/CI DONE：Auth e7c54e45409510e2bdad619c737c59f5deadd805/CI36973121732、Commerce de93c5264cd82f44afb35fdd050190b7df924bf2/CI36973103953均completed/SUCCESS，head精确核对；两个产品已正常提交、任务分支推送、ff合并推main。最终37270/89f465b97213 exit0/784PASS及21真实正版本审计、13源码/JAR与3演练源码保持。本轮收尾仅交付状态元数据，不把纯文档提交当新产品CI。S2已满足产品依赖门禁，完整S2及其余CE05—08/Auth菜单资源目标active；V65不可改，原数据/失败/恢复证据保留，无新工作树/Agent。
+
+
+## S2 IMPLEMENTATION_EVIDENCE（历史实施检查点）
+
+S1产品与精确CI已完整DONE，后续纯元数据Auth929e9ca/Commerce95ce70c已推main；Commerce精确元数据CI36973796587 SUCCESS（head95ce70c）。原目录Auth feat/commerce-segment-ui-contract / Commerce feat/central-segment-pages，串行无新Agent/工作树。
+
+已实现五字面独立资格GET及固定SPA、严格白名单/有界游标/结构与原目标回执验证、动态人群目录与运行详情、memberOnly规则创建、调度/刷新/控制/单次推进。三个版本独立显示；有键命令unknown冻结原输入/目标/键，pump无键需显式确认，401卸载敏感界面，403非空态，503不回退旧身份。标题/底部固定、正文滚动、长编号窄屏换行。
+
+当前本地证据：19实际MySQL专项（15中央+4既有）；完整70 XML/506=501PASS+5既有skip，0fail/error；7动态人群+3既有活动契约夹具浏览器PASS，等价类型常量后7PASS；长实际长度编号的窄屏读取检查正在复核。277真实源码入口/122候选能力/34岗位、未发布状态及9契约回归PASS；38治理工具与2既有segment证据回归PASS。两仓hygiene无阻断，既有formatter限制保留；前端Prettier已通过。
+
+真实六岗位PKCE/SYSTEM与原HUMAN来源拒绝/实际停Auth503/精确SQL/最终JAR及当前截图验证脚本已准备，尚未执行完成，S2不能标DONE或Git发布。全目标含其余CE05—08和Auth实际菜单资源选择仍active；V65/既有数据/失败日志/原8602及共享组件保留。
+
+本轮失败记录：最初reactor指定测试选择在无匹配模块被failIfNoTests拒绝，未进入业务；改为已安装同源依赖的commerce-app专项后19PASS。最初浏览器选择器重复和异步断言时序修正后10PASS。SDK构建重包protocol使Auth旧嵌套归档字节检查拒绝，未创建新资源；不变Auth源码已forceCreation重新打包。早期hygiene有限rule/phase常量已修正，前证据保留。
+
+
+## S2源码复核（修正前历史检查点，同一Agent顺序审查）
+
+- 安全/范围：五提示为字面GET和现有独立能力，OPERATOR/执行引用/同租户范围前后核验；无命令或审计写入。固定匿名GET壳不扩展任意forward；真实19 MySQL/HTTP检查通过。
+- 命令/结果：四种有键命令首次载荷深拷贝、固定键/路径，未知后即使新资格拒绝也不换意图；pump独立显式确认，不发送伪幂等键。成功解析检查有限DTO和原目标，任务/定义/锁/快照版本区分。夹具原键/403/409/401/503与损坏回执检查通过，真实Auth/SQL待当前演练终态。
+- 界面/恢复：Tab保留表单与unknown意图、退出/脏关闭确认，401卸载页面内容；游标/定义/运行目标为非授权URL状态。居中Modal标题/底部与正文滚动，长编号补充换行；桌面/390/320代表截图已实际查看，真实编译截图仍待演练。
+- 构建/回归：现有依赖、主题和RuleEditor复用，无迁移/SDK升级；506全仓、19专项、7+3既有界面路径和277入口契约通过。最终基线17模块/830 class-resource字节比较；SSO包47前端文件，backend比较通过。
+
+本次是同一Agent四维顺序审查，未冒充独立或多模型Review；没有确认的产品缺陷。有限rule/phase常量及长编号换行修订已复核，历史失败保留。必需真实验证未完成前不标S2 DONE。
+
+
+## S2首轮真实验证失败与恢复
+
+最终编译首轮150cafa7ac0c/session22840已exit1，1027检查点PASS，create/schedule/refresh三个真实岗位完成。确认框按钮位于正文，测试错误查找.ant-modal-footer，定位已修正。首轮pump真实200返回0，实际SQL系统与手工任务均RUNNING/processed0，总25身份审计；补充明确确认后的新有界调用，仍要求SQL系统100/手工0，不降低断言。只修测试，不改产品/原数据/已应用V65；失败证据完整保留。S2仍VERIFYING，下一新隔离演练及真实截图/SQL/最终制品验收，完整目标保持active。
+
+
+## S2第二次真实演练已终态失败
+
+85180/81eacc02b592已实际exit1，1027检查点PASS，create/schedule/refresh真实岗位完成，扩展的320截图已产生。pump第一次与第二次真实200都为0：日志分别证明访问S1保留的未知来源与到期来源，不能假定第二次恰扫描新系统任务。SQL系统/手工均RUNNING0，审计25；不是业务写入错误，保留原队列与全部失败/数据证据。脚本改为明确确认未知后，有限次逐次点击并等待实际200回执，仍须最终SQL系统100/手工0。产品源码/已应用迁移/原任务未改；原始4923 JAR与两本轮包279后端/88依赖内部内容相等，13产品源及完整前端源/47制品一致。创建和调度各1440/390/320共6图已实际查看，但本轮失败，不能冒充最终验收。下一新隔离真实演练；不再把85180当live。
+
+完整CE05—08/Auth实际菜单资源目标active。下一定向发券真实Owner缺口仅读证据coupon-delivery-owner-impact.json已准备，尚未实施；S2仍VERIFYING未Git，不降低最终断言或清理数据。
+
+
+## S2最终本地Validation（2026-10-02）
+
+唯一当前验证为 `rehearsal-0b2c9e9dd22a`：独立runner真实exit0，1128检查点PASS，八浏览器阶段绑定当前MJS SHA；真实PKCE创建、六类单能力岗位、撤权和实际Auth停服均完成。验证由同一Agent单独顺序执行，不宣称独立多模型评审。
+
+| 验收 | 实际证据与结果 |
+|---|---|
+| 五独立提示/固定壳/边界 | 19实际MySQL专项、真实六岗位200/403/401/503及提示无审计，PASS |
+| 有键操作/冲突与未知 | 真实响应丢弃后原key/body/path重放；schedule真实CAS409调整，PASS |
+| pump未知 | 无伪幂等键或自动重发；明确确认新有界调用，实际回执0/0/1，PASS |
+| 原来源/实际结果 | SYSTEM取消100/97；撤权MANUAL保持0/0；定义7/快照1独立，PASS |
+| 终态SQL | 恰5新增版本7身份审计、总26、无伪store、无UI快照或入组Outbox，PASS |
+| 界面与交互 | 60张当前1440/390/320截图逐张打开；目录/表单/详情/回执/确认/409/unknown/401/撤权/503及Esc焦点，PASS |
+| 视觉整改 | UI001四确认居中；UI002窄屏未知文字正常宽度且按钮移至段落下方，当前真实图及几何/不重发断言PASS |
+| 既有回归/构建 | 506=501PASS/5既有opt-in跳过、19MySQL、当前7fixture及早期3活动；构建/Prettier/force package，PASS |
+| 契约/制品 | 277真实入口、122候选/34角色未发布，9契约/38工具；13选定及78完整前端源码、47dist、279后端/88依赖内容与原验证包一致，PASS |
+| Hygiene | 两仓无阻断；Java canonical formatter未配置，前端Prettier实际通过；timeout180已命名常量的扫描advisory经源码复核，保留原报告 |
+
+私密证据在Auth `.local/governance/commerce-contracts/segments-ui-test-result.json`、`segments-ui-durable3-final-sql.json`、`segments-ui-durable3-visual-progress.json`、`segments-ui-findings-resolution.json`、`segments-ui-runtime-fence-durable3.json`。截图的视觉观察与实际E2E行为分别记录。前轮功能1128PASS但旧图UI002 FAIL、早期locator/pump假设/夹具到期失败、连接拒绝和中断/占用端口证据均保留，不改写成成功。
+
+正式Validation COMPLETED/PASS，S2本地DONE；产品Git/精确CI仍待完成，全部其余CE05—08与Auth实际发布菜单资源选择继续active。V65不可改，无新增依赖、迁移、生产部署或数据清理。

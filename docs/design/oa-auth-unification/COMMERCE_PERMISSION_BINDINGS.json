@@ -4375,6 +4375,69 @@
       "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
       "capabilities": [],
       "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "SegmentActionsController",
+      "method": "GET",
+      "path": "/v1/operations/segments/create-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentActionsController.java",
+      "capabilities": [
+        "commerce.segment.create"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "SegmentActionsController",
+      "method": "GET",
+      "path": "/v1/operations/segments/schedule-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentActionsController.java",
+      "capabilities": [
+        "commerce.segment.schedule"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "SegmentActionsController",
+      "method": "GET",
+      "path": "/v1/operations/segments/refresh-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentActionsController.java",
+      "capabilities": [
+        "commerce.segment.refresh"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "SegmentActionsController",
+      "method": "GET",
+      "path": "/v1/operations/segments/control-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentActionsController.java",
+      "capabilities": [
+        "commerce.segment.control"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "SegmentActionsController",
+      "method": "GET",
+      "path": "/v1/operations/segments/pump-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/segment/SegmentActionsController.java",
+      "capabilities": [
+        "commerce.segment.pump"
+      ],
+      "mode": "EXISTING_SCOPED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/segments",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
     }
   ]
 }

@@ -299,6 +299,7 @@ def rehearse(c):
     h.private(run / 'segments-owner-pre-outage-result.json', json.dumps({'phase': 'PRE_OUTAGE_PASS', 'audit_count': len(audits), 'exact_audits': actual_audits,
                'manual_source_hash': original_source_hash, 'periodic_source_hash': policy_hash, 'expiry_fixture': 'AUTH_ISSUED_SHORT_REFERENCE_NEW_TASK',
                'expiry_source_hash': expiry_hash, 'outage_run': outage['runId'], 'expired_run': expiry['runId'], 'unknown_run': unknown['runId']}, ensure_ascii=False))
+    c['segment_grants'] = grants
     return app
 
 
