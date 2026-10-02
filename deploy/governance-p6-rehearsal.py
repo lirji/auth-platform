@@ -16,6 +16,8 @@ RULE_RESOURCE_TYPE = 'marketing_rule'
 RULE_CAPABILITIES = ('rule.read','rule.create','rule.publish')
 AUDIENCE_RESOURCE_TYPE = 'audience'
 AUDIENCE_CAPABILITIES = ('audience.read','audience.create')
+COUPON_DELIVERY_RESOURCE_TYPE = 'coupon_delivery'
+COUPON_DELIVERY_CAPABILITIES = ('coupon_delivery.create','coupon_delivery.read','coupon_delivery.control','coupon_delivery.pump')
 SEGMENT_RESOURCE_TYPE = 'segment'
 SEGMENT_CAPABILITIES = ('segment.read','segment.create','segment.schedule','segment.refresh','segment.control','segment.pump')
 CAMPAIGN_RESOURCE_TYPE = 'campaign'
@@ -241,6 +243,8 @@ def rehearse(args, isolation=None):
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':AUDIENCE_RESOURCE_TYPE,'risk_level':'HIGH'} for code in AUDIENCE_CAPABILITIES]
         if args.campaigns:
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':CAMPAIGN_RESOURCE_TYPE,'risk_level':'HIGH'} for code in CAMPAIGN_CAPABILITIES]
+        if args.coupon_deliveries:
+            manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':COUPON_DELIVERY_RESOURCE_TYPE,'risk_level':'HIGH'} for code in COUPON_DELIVERY_CAPABILITIES]
         if args.segments:
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':SEGMENT_RESOURCE_TYPE,'risk_level':'HIGH'} for code in SEGMENT_CAPABILITIES]
         h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli','publish',run/'catalog.properties',run/'manifest.json')
@@ -259,6 +263,7 @@ def rehearse(args, isolation=None):
         if args.rules:access['access.capabilities'] += ''.join(',commerce.'+code for code in RULE_CAPABILITIES)
         if args.audiences:access['access.capabilities'] += ''.join(',commerce.'+code for code in AUDIENCE_CAPABILITIES)
         if args.campaigns:access['access.capabilities'] += ''.join(',commerce.'+code for code in CAMPAIGN_CAPABILITIES)
+        if args.coupon_deliveries:access['access.capabilities'] += ''.join(',commerce.'+code for code in COUPON_DELIVERY_CAPABILITIES)
         if args.segments:access['access.capabilities'] += ''.join(',commerce.'+code for code in SEGMENT_CAPABILITIES)
         h.private(run/'access.properties',db+h.props(access));cli('AccessBootstrapCli',run/'access.properties')
         def authority(kind):
@@ -275,6 +280,7 @@ def rehearse(args, isolation=None):
         if args.rules:server['scope.owner.commerce'] += ','+RULE_RESOURCE_TYPE
         if args.audiences:server['scope.owner.commerce'] += ','+AUDIENCE_RESOURCE_TYPE
         if args.campaigns:server['scope.owner.commerce'] += ','+CAMPAIGN_RESOURCE_TYPE
+        if args.coupon_deliveries:server['scope.owner.commerce'] += ','+COUPON_DELIVERY_RESOURCE_TYPE
         if args.segments:server['scope.owner.commerce'] += ','+SEGMENT_RESOURCE_TYPE
         server.update({'service.1.user.'+k:v for k,v in authority('business').items()});h.private(run/'server.properties',db+legacy+graph_settings+h.props(server))
         h.private(run/'consumer.properties',h.props({'central.url':'http://127.0.0.1:18161','central.credential':service,'central.application':'commerce','central.environment':env}))
@@ -1438,6 +1444,10 @@ def rehearse(args, isolation=None):
                 segment_context['commerce']=commerce
                 segment_ui_checks=module('ce05_segment_ui',root/'deploy/governance-ce05-segments-ui.py')
                 segment_ui_checks.rehearse(segment_context)
+        if args.coupon_deliveries:
+            delivery_checks=module('ce05_coupon_delivery_owner',root/'deploy/governance-ce05-coupon-deliveries.py')
+            delivery_context={**segment_context,'app':app,'store':store}
+            app=delivery_checks.rehearse(delivery_context)
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
         current=expect('read committed task effect',18661,'/v1/operations/skus?storeId='+store,user)[0]
@@ -1521,9 +1531,10 @@ def rehearse(args, isolation=None):
             if args.browser:campaign_browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
+        if args.coupon_deliveries:delivery_checks.outage(delivery_context)
         if args.segments:segment_checks.outage(segment_context)
         if args.segments and args.browser:segment_ui_checks.outage(segment_context)
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'audiences_checked':args.audiences,'campaigns_checked':args.campaigns,'segments_checked':args.segments,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest(),'browser_mode':'PACKAGED_JAR' if args.packaged_browser else 'VITE' if args.browser else 'NONE'}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'audiences_checked':args.audiences,'campaigns_checked':args.campaigns,'segments_checked':args.segments,'coupon_deliveries_checked':args.coupon_deliveries,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest(),'browser_mode':'PACKAGED_JAR' if args.packaged_browser else 'VITE' if args.browser else 'NONE'}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -1534,6 +1545,7 @@ def main():
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
     parser.add_argument('--packaged-browser',action='store_true',help='build isolated SSO frontend and run actual JAR at browser origin; requires --browser')
+    parser.add_argument('--coupon-deliveries',action='store_true',help='four independent coupon batch capabilities and immutable dual execution sources; includes segment regression')
     parser.add_argument('--segments',action='store_true',help='six independent segment capabilities, durable original execution and approved periodic policy; includes campaign regression')
     parser.add_argument('--campaigns',action='store_true',help='nine independent campaign/budget permissions and immutable content-version audit; includes audience regression')
     parser.add_argument('--audiences',action='store_true',help='finite audience snapshot read/create and immutable import audit; includes rule regression')
@@ -1554,6 +1566,7 @@ def main():
     args=parser.parse_args()
     if args.packaged_browser and not args.browser:parser.error('--packaged-browser requires --browser')
     if args.identity_subnet and not args.isolated_identity:parser.error('--identity-subnet requires --isolated-identity')
+    if args.coupon_deliveries:args.segments=True
     if args.segments:args.campaigns=True
     if args.campaigns:args.audiences=True
     if args.audiences:args.rules=True

@@ -7,7 +7,7 @@
 | ID | 可观察结果 | Needs / Owner | 验收与状态 |
 |---|---|---|---|
 | CE05-D0 | 四项独立有限执行能力、真实正内容事实与明确引用上限 | S2正式Validation/Git/精确CI已DONE；Auth protocol/governance/SDK | 真实PG/SpiceDB独立Grant、scope/object、错类型/版本/能力/租户、HUMAN、期限、撤权重授；完整DONE：产品a766cd0，精确Auth CI36991997907 SUCCESS |
-| CE05-D1 | 中央发券Owner、同事务身份审计、独立原发放/撤回来源 | D0验证/Git/精确CI；Commerce runtime/marketing/app/persistence | 实际MySQL/HTTP、命令原键、CAS、收件人/券/频控/检查点回滚、重启/撤权/到期/503与已提交效果保留；READY（D0精确CI已通过） |
+| CE05-D1 | 中央发券Owner、同事务身份审计、独立原发放/撤回来源 | D0验证/Git/精确CI；Commerce runtime/marketing/app/persistence | 实际MySQL/HTTP、命令原键、CAS、收件人/券/频控/检查点回滚、重启/撤权/到期/503与已提交效果保留；本地DONE（21专项/520全仓/真实878演练及正式Validation PASS；Git/精确CI待完成） |
 | CE05-D2 | 固定SSO批次/收件人目录、创建/控制/推进独立反馈 | D1验证/Git/精确CI；Commerce frontend/app | 真实DTO、无额外read依赖、unknown原键/pump显式新调用、401/403/503、1440/390/320关联弹层/键盘及实际SQL；TODO |
 
 三片原目录串行，无子Agent/新工作树。S2产品Auth d35e6d5/CI36989740786及Commerce2946279/CI36989725617均精确SUCCESS；S2纯状态元数据Auth b3000ad/Commerce33e4d23已正常推main，产品源未变。完整剩余CE05—08与Auth实际发布菜单/资源选择继续active，122候选/34角色设计不是已经批量发布。
