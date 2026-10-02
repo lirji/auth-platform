@@ -37,6 +37,14 @@ public final class ExecutionAuthorization {
     private static final Set<String> AUDIENCE_CAPABILITIES = Set.of("audience.read", "audience.create");
     private static final Set<String> SEGMENT_CAPABILITIES = Set.of("segment.read", "segment.create", "segment.schedule", "segment.refresh", "segment.control", "segment.pump");
     private static final Set<String> SEGMENT_COLLECTION_ONLY = Set.of("segment.create", "segment.pump");
+    private static final Set<String> JOURNEY_CAPABILITIES = Set.of("journey.create", "journey.validate", "journey.preview", "journey.read",
+            "journey.submit", "journey.approve", "journey.reject", "journey.publish", "journey.pause", "journey.pump");
+    private static final Set<String> JOURNEY_COLLECTION_ONLY = Set.of("journey.create", "journey.validate", "journey.read", "journey.pump");
+    private static final Set<String> JOURNEY_INSTANCE_CAPABILITIES = Set.of("journey_instance.create", "journey_instance.read", "journey_instance.control");
+    private static final Set<String> JOURNEY_SCAN_CAPABILITIES = Set.of("journey_scan.read", "journey_scan.retry");
+    private static final Set<String> REPORT_CAPABILITIES = Set.of("marketing_effect.read", "marketing_effect.rebuild", "marketing_execution.read");
+    // 原手工入组的最长执行30天加签发余量；控制/推进不产生新的长期任务权利。
+    private static final long JOURNEY_EXECUTION_MAX_SECONDS = 30 * 86400L + 60;
     private static final Set<String> RULE_CAPABILITIES = Set.of("rule.read", "rule.create", "rule.publish");
     private static final Set<String> ENTITLEMENT_CAPABILITIES = Set.of("entitlement.read", "entitlement.resolve");
     // 字典定义、会员创建和租户级行为重建没有单个已有会员目标，只能使用集合许可。
@@ -72,6 +80,7 @@ public final class ExecutionAuthorization {
         if ((context.applicationId() + ".segment.refresh").equals(check.capability())) maximumSeconds = SEGMENT_REFRESH_MAX_SECONDS;
         else if (COUPON_DELIVERY_DURABLE_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(check.capability())))
             maximumSeconds = COUPON_DELIVERY_EXECUTION_MAX_SECONDS;
+        else if ((context.applicationId() + ".journey_instance.create").equals(check.capability())) maximumSeconds = JOURNEY_EXECUTION_MAX_SECONDS;
         else maximumSeconds = inventory || scoped ? SYNC_MAX_SECONDS : MAX_SECONDS;
         if(until.getNano()%1000!=0||!until.isAfter(now)||until.isAfter(now.plusSeconds(maximumSeconds)))throw error(INVALID_ARGUMENT);
         var result=access.evaluate(context,check.capability(),check.resourceType());
@@ -116,10 +125,14 @@ public final class ExecutionAuthorization {
         boolean segment = ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE.equals(row.resourceType());
         boolean campaign = ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE.equals(row.resourceType());
         boolean entitlement = ScopeDtos.ENTITLEMENT_RESOURCE_TYPE.equals(row.resourceType());
+        boolean journey = ScopeDtos.JOURNEY_RESOURCE_TYPE.equals(row.resourceType());
+        boolean journeyInstance = ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE.equals(row.resourceType());
+        boolean journeyScan = ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE.equals(row.resourceType());
+        boolean report = ScopeDtos.MARKETING_REPORT_RESOURCE_TYPE.equals(row.resourceType());
         if(facts == null || !context.tenantId().equals(facts.tenantId()) || !row.resourceType().equals(facts.resourceType())
-                || (!member && !policy && !offer && !couponDefinition && !couponDelivery && !entitlementDefinition && !entitlement && !rule && !audience && !segment && !campaign && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
+                || (!member && !policy && !offer && !couponDefinition && !couponDelivery && !entitlementDefinition && !entitlement && !rule && !audience && !segment && !campaign && !journey && !journeyInstance && !journeyScan && !report && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
         // 政策、券/权益定义和人群快照只提供版本目录/追加创建集合许可，不构造成员或单个版本事实。
-        if(policy || couponDefinition || entitlementDefinition || audience) throw error(ACCESS_DENIED);
+        if(policy || couponDefinition || entitlementDefinition || audience || report) throw error(ACCESS_DENIED);
         if(member && (!MEMBER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
                 || MEMBER_COLLECTION_ONLY.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability())))) throw error(ACCESS_DENIED);
         // 兑换规则定义还没有已有对象，只能使用集合许可；停启必须绑定真实商品事实。
@@ -139,6 +152,12 @@ public final class ExecutionAuthorization {
         // 创建/人工推进只有集合许可，读回执和控制使用Owner不可变批次内容事实。
         if(couponDelivery && (COUPON_DELIVERY_CAPABILITIES.stream().noneMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
                 || COUPON_DELIVERY_COLLECTION_ONLY.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability())))) throw error(ACCESS_DENIED);
+        // 集合能力不能伪造已有对象；实例/扫描对象仅绑定Owner给出的真实固定父内容版本。
+        if (journey && (JOURNEY_CAPABILITIES.stream().noneMatch(v -> (context.applicationId()+"."+v).equals(row.capability()))
+                || JOURNEY_COLLECTION_ONLY.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(row.capability())))) throw error(ACCESS_DENIED);
+        if (journeyInstance && (JOURNEY_INSTANCE_CAPABILITIES.stream().noneMatch(v -> (context.applicationId()+"."+v).equals(row.capability()))
+                || (context.applicationId()+".journey_instance.create").equals(row.capability()))) throw error(ACCESS_DENIED);
+        if (journeyScan && !(context.applicationId()+".journey_scan.retry").equals(row.capability())) throw error(ACCESS_DENIED);
         var current=access.evaluate(context,row.capability(),row.resourceType());
         var original=read(row.pathsJson(),Paths.class);
         // 目录资格可能先移除再恢复同一个组Grant；绑定目录版本，防止旧后台任务借此复活。
@@ -173,6 +192,10 @@ public final class ExecutionAuthorization {
     }
     /** 精确能力与类型绑定；名称相似或未知后缀不能取得执行权。 */
     private static String scopedType(AccessContext context, String capability) {
+        if(JOURNEY_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.JOURNEY_RESOURCE_TYPE;
+        if(JOURNEY_INSTANCE_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE;
+        if(JOURNEY_SCAN_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE;
+        if(REPORT_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.MARKETING_REPORT_RESOURCE_TYPE;
         if(MEMBER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE;
         if(MEMBER_POLICY_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE;
         if(POINT_OFFER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(capability))) return ScopeDtos.POINT_OFFER_RESOURCE_TYPE;
@@ -188,7 +211,11 @@ public final class ExecutionAuthorization {
     }
     /** 创建资源不能拼接若干指定资源路径当成对未来对象的全租户授权。 */
     private static List<Alternative> permitted(AccessContext context, String capability, List<Alternative> paths) {
-        if(!ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE.equals(scopedType(context, capability))
+        if(!ScopeDtos.JOURNEY_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.MARKETING_REPORT_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.POINT_OFFER_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE.equals(scopedType(context, capability))
