@@ -20,15 +20,29 @@ async function login(kind){
 }
 async function choose(page,label,value){
  const combo=page.getByRole('combobox',{name:label,exact:true});await expect(combo).toBeEnabled();await combo.click()
- await page.locator('.ant-select-dropdown:visible .ant-select-item-option').filter({hasText:value}).first().click()
+ // 真实34角色属于100行首页；先归首屏，再核对虚拟overscan项确实位于裁切视口。
+ const popup=page.locator('.ant-select-dropdown:visible:not(.ant-slide-up-leave)'),holder=popup.locator('.rc-virtual-list-holder')
+ await expect(popup).toHaveCount(1);await expect(popup).toBeVisible();await expect(holder).toHaveCount(1)
+ // 同资源固定角色时资源类型只有一个真实选项，无需对零高度虚拟holder滚动。
+ const sole=popup.locator('.ant-select-item-option');if(await sole.count()===1){await expect(sole).toContainText(value);await sole.click();return}
+ await holder.hover();await page.mouse.wheel(0,-10000);await page.waitForTimeout(150)
+ for(let batch=0;batch<30;batch++){
+  const option=popup.locator('.ant-select-item-option').filter({hasText:value}).first(),clip=await holder.boundingBox()
+  const box=await option.count()?await option.boundingBox():null
+  if(box&&clip&&box.y>=clip.y-1&&box.y+box.height<=clip.y+clip.height+1&&box.y>=0&&box.y+box.height<=page.viewportSize().height){await option.click();return}
+  await holder.hover();await page.mouse.wheel(0,(box&&clip&&box.y<clip.y?-1:1)*Math.max(80,await holder.evaluate(node=>node.clientHeight/2)));await page.waitForTimeout(150)
+ }
+ throw new Error('actual finite dropdown option not found: '+label+' / '+value)
 }
 async function screenshot(page,name){
- const file=path.join(run,name+'-'+attempt+'.png');await page.screenshot({path:file,fullPage:true,animations:'disabled'});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'page overflow');shots.push({name,file,width:page.viewportSize().width})
+ // 菜单关闭动画必须实际完成，避免手机截图残留桌面portal导致PNG虚假加宽。
+ await expect(page.locator('.ant-select-dropdown:visible')).toHaveCount(0)
+ const file=path.join(run,name+'-'+attempt+'.png');await page.screenshot({path:file,fullPage:true,animations:'disabled'});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'page overflow');assert.equal(fs.readFileSync(file).readUInt32BE(16),page.viewportSize().width,'actual screenshot width');shots.push({name,file,width:page.viewportSize().width})
 }
 async function closeEditor(page){await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();const discard=page.getByRole('button',{name:'放弃编辑',exact:true});await expect(discard).toBeVisible();await discard.click();await expect(page.getByRole('dialog')).toHaveCount(0)}
 async function rangeOptions(page,resource){
  await choose(page,'资源类型',resource);await page.getByRole('combobox',{name:'数据范围',exact:true}).click()
- const options=page.locator('.ant-select-dropdown:visible .ant-select-item-option');await expect(options).toHaveCount(1);await expect(options).toHaveText(['当前企业全部资源']);await options.first().click()
+ const options=page.locator('.ant-select-dropdown:visible:not(.ant-slide-up-leave) .ant-select-item-option');await expect(options).toHaveCount(1);await expect(options).toHaveText(['当前企业全部资源']);await options.first().click()
 }
 try{
  const page=await login('owner');await expect(page.getByText('当前已发布目录 · v2',{exact:true})).toBeVisible()
@@ -61,7 +75,10 @@ try{
  }
  record('both shared ScopeFields consumers show actual new finite tenant-only resources;outside-template dashboard remains unassigned')
  const final=await(await page.request.get(f.admin+'/api/governance/v1/access/state',{headers,params})).json();assert.deepEqual(final,state)
- const ordinary=await login('ordinary');await expect(ordinary.getByText('无权访问当前范围，请检查成员关系或管理委派。',{exact:true})).toBeVisible();await expect(ordinary.getByRole('button',{name:'创建角色版本',exact:true})).toHaveCount(0)
+ const ordinary=await login('ordinary');await expect(ordinary.getByText('当前应用不可用',{exact:true})).toBeVisible();await expect(ordinary.getByRole('button',{name:'创建角色版本',exact:true})).toHaveCount(0)
+ // 普通成员首先被真实应用关联目录拦截；另直接验同分区治理端口403，不能虚称另一提示路径。
+ const ordinaryToken=await ordinary.evaluate(key=>JSON.parse(sessionStorage.getItem(key)).access_token,`oidc.user:${f.authority}:${f.client}`)
+ assert.equal((await ordinary.request.get(f.admin+'/api/governance/v1/access/published-catalog',{headers:{Authorization:'Bearer '+ordinaryToken},params})).status(),403)
  record('ordinary HUMAN cannot read manager catalog;UI browsing writes no role/Grant/Policy')
  fs.writeFileSync(path.join(run,'browser-result-'+attempt+'.json'),JSON.stringify({status:'PASS',checks,shots},null,2),{mode:0o600})
 }catch(error){for(let i=0;i<contexts.length;i++)for(const page of contexts[i].pages())if(!page.isClosed())await page.screenshot({path:path.join(run,`failure-${i}-${attempt}.png`),fullPage:true});throw error}
