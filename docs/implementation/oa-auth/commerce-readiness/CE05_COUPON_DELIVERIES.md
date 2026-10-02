@@ -1,6 +1,6 @@
 # CE05-D 定向发券实际验收
 
-当前D0本地DONE，正式implementation-validation COMPLETED/PASS；产品Git/精确CI待交付。D1中央Owner/持久来源与D2实际SSO页面未实现，完整其余CE05—08与Auth实际发布菜单资源选择仍active。
+当前D0完整DONE，正式implementation-validation COMPLETED/PASS；产品a766cd083dae95a4637f8bb42c1dde87988f6397已正常任务分支push/ff main/main push，精确[Auth CI36991997907](https://github.com/lirji/auth-platform/actions/runs/36991997907) completed/SUCCESS。D1中央Owner/持久来源与D2实际SSO页面未实现，完整其余CE05—08与Auth实际发布菜单资源选择仍active。
 
 权威[技术契约](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_COUPON_DELIVERIES.md)细化四项已批准能力，不新增业务动作或基础设施。S2依赖已完整DONE：Auth d35e6d5/CI36989740786、Commerce2946279/CI36989725617均精确SUCCESS；S2状态元数据Auth b3000ad/Commerce33e4d23已正常推main，后者精确CI36990563014也SUCCESS。
 
@@ -28,4 +28,6 @@
 
 Auth私密 `.local/governance/commerce-contracts/` 保存 `coupon-delivery-core-unit-result.json`、`coupon-delivery-core-it-result.json`、`coupon-delivery-core-source-sha256.json`、`coupon-delivery-core-runtime-fence.json`、`coupon-delivery-core-implementation-evidence.json`、`coupon-delivery-core-test-result.json`、构建/SDK/hygiene日志及测试库配置。归档核对首轮误用不存在的graph模块名的拒绝记录单独保留，按实际JAR中的core依赖更正后全字节通过；未将首轮拒绝改写为成功。
 
-下一步D0显式范围正常Git交付与精确CI，通过后才将D1标READY；D1须区分ISSUE和首次REVOKE原来源、保留重复REVOKE方向、实际CAS与不可变内容事实，并证明每位收件人事务/撤权/到期/Auth503。D2需独立真实岗位和当前截图。原8602/OA、所有旧迁移/数据/卷与S2失败证据保留，无生产部署或清理。
+D0 Git/精确CI已通过，D1 READY；D1须区分ISSUE和首次REVOKE原来源、保留重复REVOKE方向、实际CAS与不可变内容事实，并证明每位收件人事务/撤权/到期/Auth503。D2需独立真实岗位和当前截图。原8602/OA、所有旧迁移/数据/卷与S2失败证据保留，无生产部署或清理。
+
+D1实施前已按实际Servlet顺序细化：POST创建/控制取得有限上限引用，Owner独立限制原Create.deadline；来源保存准确中央expiresAt，GET资格提示仍60秒且不登记长来源。只是落实既有有限窗口，D0产品协议/测试源码保持不变。

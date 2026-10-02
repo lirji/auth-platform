@@ -6,8 +6,8 @@
 
 | ID | 可观察结果 | Needs / Owner | 验收与状态 |
 |---|---|---|---|
-| CE05-D0 | 四项独立有限执行能力、真实正内容事实与明确引用上限 | S2正式Validation/Git/精确CI已DONE；Auth protocol/governance/SDK | 真实PG/SpiceDB独立Grant、scope/object、错类型/版本/能力/租户、HUMAN、期限、撤权重授；本地DONE（产品Git/精确CI待交付） |
-| CE05-D1 | 中央发券Owner、同事务身份审计、独立原发放/撤回来源 | D0验证/Git/精确CI；Commerce runtime/marketing/app/persistence | 实际MySQL/HTTP、命令原键、CAS、收件人/券/频控/检查点回滚、重启/撤权/到期/503与已提交效果保留；TODO |
+| CE05-D0 | 四项独立有限执行能力、真实正内容事实与明确引用上限 | S2正式Validation/Git/精确CI已DONE；Auth protocol/governance/SDK | 真实PG/SpiceDB独立Grant、scope/object、错类型/版本/能力/租户、HUMAN、期限、撤权重授；完整DONE：产品a766cd0，精确Auth CI36991997907 SUCCESS |
+| CE05-D1 | 中央发券Owner、同事务身份审计、独立原发放/撤回来源 | D0验证/Git/精确CI；Commerce runtime/marketing/app/persistence | 实际MySQL/HTTP、命令原键、CAS、收件人/券/频控/检查点回滚、重启/撤权/到期/503与已提交效果保留；READY（D0精确CI已通过） |
 | CE05-D2 | 固定SSO批次/收件人目录、创建/控制/推进独立反馈 | D1验证/Git/精确CI；Commerce frontend/app | 真实DTO、无额外read依赖、unknown原键/pump显式新调用、401/403/503、1440/390/320关联弹层/键盘及实际SQL；TODO |
 
 三片原目录串行，无子Agent/新工作树。S2产品Auth d35e6d5/CI36989740786及Commerce2946279/CI36989725617均精确SUCCESS；S2纯状态元数据Auth b3000ad/Commerce33e4d23已正常推main，产品源未变。完整剩余CE05—08与Auth实际发布菜单/资源选择继续active，122候选/34角色设计不是已经批量发布。
@@ -41,7 +41,7 @@
 
 create与control的执行引用最长604860秒（七天加60秒请求余量）；read/pump仍最多60秒。此上限只限定授权引用，不延长Grant、当前判权结果或业务券有效期。每次实际检查取签发原路径与当前Grant交集，保持身份/成员代际、调用应用/环境/服务和路由；到期或撤权后重授不复活原引用。
 
-- ISSUE使用原Create.deadline加60秒申请，且不超过协议上限，完整来源在提交时固定。原deadline仍单独限制发放，不延后实际发券截止。
+- Servlet认证在业务正文读取之前完成。只有准确POST创建/控制路径申请最长604860秒有限引用；Owner在Create提交时校验原deadline未来且至多七天，ISSUE仍在此业务deadline停止，绝不延长实际发券截止。来源保存中央返回的准确expiresAt，不能把业务deadline改写成中央签发期限；有效执行受引用期限、业务deadline与每次当前判权共同限制。只读GET资格提示仍为60秒，不持久化长任务来源；read/pump及其他能力保持各自已有规则。
 - 首次明确REVOKE是新的补偿意图，采用这次control的独立有限来源，最长七天加60秒；与原ISSUE来源分开保存。它可在原发放截止之后发起，不重新允许ISSUE，也不将旧发放来源伪造为当前操作者。
 - 七天是单次撤回执行授权的有限窗口，**不是补偿业务完成期限**。引用到期停止未提交补偿，保留真实撤回/保留回执和检查点，显式报告未完成的授权失败；不得伪造REVOCATION_DONE、清除待处理记录或自动续权。
 - 若当前mode已为REVOKE，之后的RETRY或重复REVOKE仍复核首次REVOKE来源，不保存新的control/pump来源覆盖它。新授予或同人重新登录不能复活旧引用；新的补偿任务/对账意图属于显式业务处理，不能在本片偷加自动续期动作。
@@ -50,7 +50,7 @@ D0须在真实PG/SpiceDB独立证明create/control允许持久引用且超上限
 
 ## D1来源、事务与兼容边界
 
-持久来源只保存受限Actor/执行引用/分区、主体及成员代际、原路由与准确期限，无Token、密码或已缓存ALLOW。ISSUE与首次REVOKE分别不可变，当前mode决定核验哪项原来源；开始、每位收件人、恢复及提交前重新判权。新的pump/control资格不能替代已有方向的原来源。
+持久来源按执行引用与能力复用既有无Token元数据模式，另存各批次ISSUE/首次REVOKE不可变方向记录，只保存受限Actor/执行引用/分区、主体及成员代际、原路由与准确期限，无Token、密码或已缓存ALLOW。ISSUE与首次REVOKE分别不可变，当前mode决定核验哪项原来源；开始、每位收件人、恢复及提交前重新判权。新的pump/control资格不能替代已有方向的原来源。
 
 首次REVOKE不依赖已经到期或撤销的ISSUE授权继续有效：它是当前已授权的独立补偿意图，只允许原合法状态转换及撤回效果；仍保留原发放来源供审计，不能将旧源恢复为可发放。对CENTRAL下旧UNKNOWN/LEGACY发放来源不得猜测许可；历史任务的发放恢复须CE08显式对账，不通过接管或人工pump自动洗成中央任务。
 
