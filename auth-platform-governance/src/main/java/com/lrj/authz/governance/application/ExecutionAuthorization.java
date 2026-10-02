@@ -138,13 +138,14 @@ public final class ExecutionAuthorization {
         boolean journey = ScopeDtos.JOURNEY_RESOURCE_TYPE.equals(row.resourceType());
         boolean journeyInstance = ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE.equals(row.resourceType());
         boolean journeyScan = ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE.equals(row.resourceType());
+        boolean dashboard = ScopeDtos.COMMERCE_TENANT_RESOURCE_TYPE.equals(facts.resourceType());
         boolean report = ScopeDtos.MARKETING_REPORT_RESOURCE_TYPE.equals(row.resourceType());
         boolean opsPage = ScopeDtos.OPS_PAGE_RESOURCE_TYPE.equals(row.resourceType());
         boolean runtime = ScopeDtos.COMMERCE_RUNTIME_RESOURCE_TYPE.equals(row.resourceType());
         if(facts == null || !context.tenantId().equals(facts.tenantId()) || !row.resourceType().equals(facts.resourceType())
-                || (!member && !policy && !offer && !couponDefinition && !couponDelivery && !entitlementDefinition && !entitlement && !rule && !audience && !segment && !campaign && !journey && !journeyInstance && !journeyScan && !report && !opsPage && !runtime && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
+                || (!member && !policy && !offer && !couponDefinition && !couponDelivery && !entitlementDefinition && !entitlement && !rule && !audience && !segment && !campaign && !journey && !journeyInstance && !journeyScan && !report && !dashboard && !opsPage && !runtime && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
         // 政策、券/权益定义和人群快照只提供版本目录/追加创建集合许可，不构造成员或单个版本事实。
-        if(policy || couponDefinition || entitlementDefinition || audience || report) throw error(ACCESS_DENIED);
+        if(policy || couponDefinition || entitlementDefinition || audience || report || dashboard) throw error(ACCESS_DENIED);
         if(member && (!MEMBER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
                 || MEMBER_COLLECTION_ONLY.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability())))) throw error(ACCESS_DENIED);
         // 兑换规则定义还没有已有对象，只能使用集合许可；停启必须绑定真实商品事实。
@@ -208,6 +209,7 @@ public final class ExecutionAuthorization {
     }
     /** 精确能力与类型绑定；名称相似或未知后缀不能取得执行权。 */
     private static String scopedType(AccessContext context, String capability) {
+        if((context.applicationId()+".dashboard.read").equals(capability))return ScopeDtos.COMMERCE_TENANT_RESOURCE_TYPE;
         if(STORE_OPERATION_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.STORE_RESOURCE_TYPE;
         if(OPS_PAGE_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.OPS_PAGE_RESOURCE_TYPE;
         if(RUNTIME_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.COMMERCE_RUNTIME_RESOURCE_TYPE;
@@ -230,7 +232,8 @@ public final class ExecutionAuthorization {
     }
     /** 创建资源不能拼接若干指定资源路径当成对未来对象的全租户授权。 */
     private static List<Alternative> permitted(AccessContext context, String capability, List<Alternative> paths) {
-        if(!ScopeDtos.OPS_PAGE_RESOURCE_TYPE.equals(scopedType(context, capability))
+        if(!ScopeDtos.COMMERCE_TENANT_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.OPS_PAGE_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.COMMERCE_RUNTIME_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.JOURNEY_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE.equals(scopedType(context, capability))

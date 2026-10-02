@@ -1,0 +1,5 @@
+# Dashboard共享能力边界
+
+用户全量实施授权及已批准Expansion第52行：commerce.dashboard.read资源commerce_tenant，仅TENANT_ALL集合、HUMAN短引用最长60秒，不支持伪对象Facts，不持久Source。不隐含源目录能力；实际Dashboard Owner必须按每类源独立相关读取能力判权和SQL过滤，由CE07/08实施。本注册不宣称聚合页面已完成。
+
+验证：本任务私有Mavenrepo完整reactor install通过；独占真实PG16/SpiceDB ExecutionAuthorizationIT20方法通过，dashboard.read纳入完整租户/拒部分scope/类型置换/短期限/集合Facts拒绝/原Grant撤权重授/身份代际及到期闭集验收。不可变证据.local/journeys/dashboard-evidence-v1包含当前XML与构建/真实验证日志。
