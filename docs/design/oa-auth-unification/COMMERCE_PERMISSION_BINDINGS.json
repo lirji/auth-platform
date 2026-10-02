@@ -2641,7 +2641,7 @@
       "capabilities": [
         "commerce.segment.create"
       ],
-      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "mode": "EXISTING_SCOPED",
       "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
     },
     {
@@ -2652,7 +2652,7 @@
       "capabilities": [
         "commerce.segment.read"
       ],
-      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "mode": "EXISTING_SCOPED",
       "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
     },
     {
@@ -2663,8 +2663,8 @@
       "capabilities": [
         "commerce.segment.schedule"
       ],
-      "mode": "EMPLOYEE_CENTRAL_PLANNED",
-      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+      "mode": "EXISTING_SCOPED",
+      "owner_fact_policy": "ACTUAL_SEGMENT_POSITIVE_DEFINITION_VERSION"
     },
     {
       "controller": "SegmentController",
@@ -2674,8 +2674,8 @@
       "capabilities": [
         "commerce.segment.refresh"
       ],
-      "mode": "EMPLOYEE_CENTRAL_PLANNED",
-      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+      "mode": "EXISTING_SCOPED",
+      "owner_fact_policy": "ACTUAL_SEGMENT_POSITIVE_DEFINITION_VERSION"
     },
     {
       "controller": "SegmentController",
@@ -2685,8 +2685,8 @@
       "capabilities": [
         "commerce.segment.read"
       ],
-      "mode": "EMPLOYEE_CENTRAL_PLANNED",
-      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+      "mode": "EXISTING_SCOPED",
+      "owner_fact_policy": "ACTUAL_SEGMENT_POSITIVE_DEFINITION_VERSION"
     },
     {
       "controller": "SegmentController",
@@ -2696,7 +2696,7 @@
       "capabilities": [
         "commerce.segment.pump"
       ],
-      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "mode": "EXISTING_SCOPED",
       "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
     },
     {
@@ -2707,7 +2707,7 @@
       "capabilities": [
         "commerce.segment.control"
       ],
-      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "mode": "EXISTING_SCOPED",
       "action_selector": "path.action",
       "actions": {
         "cancel": "commerce.segment.control",
@@ -2715,7 +2715,7 @@
         "retry-announcement": "commerce.segment.control"
       },
       "unknown_action": "DENY",
-      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+      "owner_fact_policy": "ACTUAL_SEGMENT_POSITIVE_DEFINITION_VERSION"
     },
     {
       "controller": "MemberBehaviorController",

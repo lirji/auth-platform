@@ -1,3 +1,7 @@
+> **当前S1状态（2026-10-01）**：CE05-S1本地DONE，implementation-validation COMPLETED/PASS：六SEGMENT独立能力、实际正父定义、原命令身份审计、原手工来源与固定独立SYSTEM政策通过。最终真实89f465b97213/session37270已exit0，784检查点全PASS（129 segment标签）；SQL再次核对21条准确版本审计，手工定义7/快照2 COMPLETED、processed113/matched112，撤权后保留100已提交公告；policy和实际Auth停服outage任务固定定义7/快照1、113/112、公告完成。实际Auth员工read/pump503，独立政策无员工Grant继续完成。13产品源/最终JAR/3harness源摘要一致；完整504=499PASS/5既有skip与最终17专项、47工具/9契约、271入口/122能力/34角色未发布、CI YAML/新增2证据回归及两仓hygiene无阻断（formatter限制）。V65已应用不可改、原数据保留。前两失败658时区及784证据O_EXCL全部保留，未手工转换失败。正式Git/精确CI待完成，S2与全部其余CE05—08/Auth菜单资源目标保持active。
+
+## 已交付阶段与历史证据
+
 > **商城当前状态（2026-10-01）**：CE05-S0本地DONE：segment六独立HIGH/TENANT_ALL/HUMAN执行能力，create/pump仅集合，其他动作绑定实际正定义版本；仅refresh最长86460秒，其余五项60秒，原Grant/当前路径仍限制实际推进。253全仓单元、16当前真实PG/SpiceDB ExecutionAuthorizationIT、Boot4 SDK1全PASS，零fail/error/skip。最终forceCreation安装只重包不变源码，server320/admin349类、各42资源/3完整模块归档逐字节一致；5源摘要未变，hygiene无阻断、Javaformatter未配置。专用PG库auth_gov_p1_test_526622ff0ef6及数据保留；无Commerce产品/JSON/迁移/依赖变化。S0 Git/CI已完整DONE：ad5ce112d34758b691c0b379aa2c879f24563c38正常提交、任务分支推送、ff合并推main；精确Auth CI36967401511 completed/SUCCESS。S1已READY，S2和全部其余CE05—08/Auth菜单资源仍未完成。 S1Owner/任务来源和S2页面仍TODO；完整CE05—08/Auth菜单资源目标保持。 已完成CAM2：Auth7302f81/Commerce2903413精确CI36966260251/36966235609均SUCCESS，纯交付文档Auth88fbf26/Commerce d0d6296已正常推main。
 
 ## CAM2已完成与早期检查点

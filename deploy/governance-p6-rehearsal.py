@@ -16,6 +16,8 @@ RULE_RESOURCE_TYPE = 'marketing_rule'
 RULE_CAPABILITIES = ('rule.read','rule.create','rule.publish')
 AUDIENCE_RESOURCE_TYPE = 'audience'
 AUDIENCE_CAPABILITIES = ('audience.read','audience.create')
+SEGMENT_RESOURCE_TYPE = 'segment'
+SEGMENT_CAPABILITIES = ('segment.read','segment.create','segment.schedule','segment.refresh','segment.control','segment.pump')
 CAMPAIGN_RESOURCE_TYPE = 'campaign'
 CAMPAIGN_CAPABILITIES = ('campaign.read','campaign.create','campaign.preview','campaign.submit','campaign.approve','campaign.reject','campaign.publish','campaign.pause','budget.read')
 ENTITLEMENT_CAPABILITIES = {'entitlement_definition.read':ENTITLEMENT_DEFINITION_RESOURCE_TYPE,'entitlement_definition.create':ENTITLEMENT_DEFINITION_RESOURCE_TYPE,'entitlement.read':ENTITLEMENT_RESOURCE_TYPE,'entitlement.resolve':ENTITLEMENT_RESOURCE_TYPE}
@@ -237,6 +239,8 @@ def rehearse(args, isolation=None):
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':AUDIENCE_RESOURCE_TYPE,'risk_level':'HIGH'} for code in AUDIENCE_CAPABILITIES]
         if args.campaigns:
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':CAMPAIGN_RESOURCE_TYPE,'risk_level':'HIGH'} for code in CAMPAIGN_CAPABILITIES]
+        if args.segments:
+            manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':SEGMENT_RESOURCE_TYPE,'risk_level':'HIGH'} for code in SEGMENT_CAPABILITIES]
         h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli','publish',run/'catalog.properties',run/'manifest.json')
         access={'access.tenant':tenant,'access.application':'commerce','access.environment':env,'access.manager':members['internal'],'access.generation':1,'access.capabilities':'commerce.catalog.operate','access.max-duration-seconds':3600,'access.operator':'p6-fixture','access.command':uid()}
         if args.inventory:access['access.capabilities'] += ',commerce.inventory.read,commerce.inventory.receive'
@@ -253,6 +257,7 @@ def rehearse(args, isolation=None):
         if args.rules:access['access.capabilities'] += ''.join(',commerce.'+code for code in RULE_CAPABILITIES)
         if args.audiences:access['access.capabilities'] += ''.join(',commerce.'+code for code in AUDIENCE_CAPABILITIES)
         if args.campaigns:access['access.capabilities'] += ''.join(',commerce.'+code for code in CAMPAIGN_CAPABILITIES)
+        if args.segments:access['access.capabilities'] += ''.join(',commerce.'+code for code in SEGMENT_CAPABILITIES)
         h.private(run/'access.properties',db+h.props(access));cli('AccessBootstrapCli',run/'access.properties')
         def authority(kind):
             c=fixture['clients'][kind];return {'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
@@ -268,6 +273,7 @@ def rehearse(args, isolation=None):
         if args.rules:server['scope.owner.commerce'] += ','+RULE_RESOURCE_TYPE
         if args.audiences:server['scope.owner.commerce'] += ','+AUDIENCE_RESOURCE_TYPE
         if args.campaigns:server['scope.owner.commerce'] += ','+CAMPAIGN_RESOURCE_TYPE
+        if args.segments:server['scope.owner.commerce'] += ','+SEGMENT_RESOURCE_TYPE
         server.update({'service.1.user.'+k:v for k,v in authority('business').items()});h.private(run/'server.properties',db+legacy+graph_settings+h.props(server))
         h.private(run/'consumer.properties',h.props({'central.url':'http://127.0.0.1:18161','central.credential':service,'central.application':'commerce','central.environment':env}))
         admin_token=up.token(h.ISSUER,fixture,'management','internal');user_token=up.token(h.ISSUER,fixture,'business','external')
@@ -1415,6 +1421,17 @@ def rehearse(args, isolation=None):
                 record('campaign UI exact eight effects original thirteen separate and readonly preview no holds')
 
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
+        if args.segments:
+            segment_checks=module('ce05_segment_owner',root/'deploy/governance-ce05-segments.py')
+            # 会员created_at是UTC DATETIME；隔离夹具连接不能继承共享MySQL的SYSTEM(+08)时区。
+            # 仅本片SQL会话设为UTC，不修改共享实例或此前演练的会话语义。
+            def segment_sql(statement):return sql("SET time_zone='+00:00';\n"+statement)
+            def segment_insert(table,row):return segment_sql('INSERT INTO '+table+'('+','.join(row)+') VALUES('+','.join(q(v) for v in row.values())+');')[0]
+            segment_context={'expect':expect,'request':request,'sql':segment_sql,'q':q,'insert':segment_insert,'record':record,'uid':uid,'now':now,
+                'projection':projection,'execution_ready':execution_ready,'source':source,'tenant':tenant,'partition':partition,
+                'user':user,'admin':admin,'dual':dual,'prefix':prefix,'run':run,'h':h,'runtime':runtime,'start_commerce':start_commerce,
+                'app':app,'member':members['external'],'local_admin':local_admin,'user_authorization':'Bearer '+user_token}
+            app=segment_checks.rehearse(segment_context)
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
         current=expect('read committed task effect',18661,'/v1/operations/skus?storeId='+store,user)[0]
@@ -1498,7 +1515,8 @@ def rehearse(args, isolation=None):
             if args.browser:campaign_browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'audiences_checked':args.audiences,'campaigns_checked':args.campaigns,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest(),'browser_mode':'PACKAGED_JAR' if args.packaged_browser else 'VITE' if args.browser else 'NONE'}
+        if args.segments:segment_checks.outage(segment_context)
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'audiences_checked':args.audiences,'campaigns_checked':args.campaigns,'segments_checked':args.segments,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest(),'browser_mode':'PACKAGED_JAR' if args.packaged_browser else 'VITE' if args.browser else 'NONE'}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -1509,6 +1527,7 @@ def main():
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
     parser.add_argument('--packaged-browser',action='store_true',help='build isolated SSO frontend and run actual JAR at browser origin; requires --browser')
+    parser.add_argument('--segments',action='store_true',help='six independent segment capabilities, durable original execution and approved periodic policy; includes campaign regression')
     parser.add_argument('--campaigns',action='store_true',help='nine independent campaign/budget permissions and immutable content-version audit; includes audience regression')
     parser.add_argument('--audiences',action='store_true',help='finite audience snapshot read/create and immutable import audit; includes rule regression')
     parser.add_argument('--rules',action='store_true',help='finite rule create/read/publish and trusted fixed-version regression')
@@ -1528,6 +1547,7 @@ def main():
     args=parser.parse_args()
     if args.packaged_browser and not args.browser:parser.error('--packaged-browser requires --browser')
     if args.identity_subnet and not args.isolated_identity:parser.error('--identity-subnet requires --isolated-identity')
+    if args.segments:args.campaigns=True
     if args.campaigns:args.audiences=True
     if args.audiences:args.rules=True
     if args.rules:args.entitlements=True
