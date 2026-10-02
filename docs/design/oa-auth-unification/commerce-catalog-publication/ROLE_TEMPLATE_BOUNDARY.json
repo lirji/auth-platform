@@ -1,0 +1,334 @@
+{
+  "schema_version": 1,
+  "status": "CANDIDATE_TEMPLATE_BOUNDARY_NOT_AUTOMATIC_AUTHORIZATION",
+  "source": "docs/design/oa-auth-unification/COMMERCE_PERMISSION_BINDINGS.json",
+  "source_sha256": "db20a0015e6c82a009b349b391432e05c7121cce58e17ac2c930298f8f9d6564",
+  "role_snapshots": 34,
+  "distinct_jobs": 17,
+  "union_capabilities": 99,
+  "not_in_templates_count": 23,
+  "explanation": "34快照是17岗位按resource_type拆分的固定模板；JSON没有给这23项分配岗位。缺席本身不能证明它们故意属于SYSTEM或业务无需实现。",
+  "manual_workflow": [
+    "Owner核对实际cap已发布且grantable以及具体岗位职责",
+    "治理创建角色版本：选择真实resource_type，逐项明确选择该资源下所需能力，稳定code/version，不勾父菜单自动授予",
+    "单独审查实际成员/代际/范围/期限，再按原Grant或Policy契约显式操作；本出版片不自动执行"
+  ],
+  "outside_templates": [
+    {
+      "code": "commerce.catalog.operate",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.coupon_delivery.pump",
+      "resource_type": "coupon_delivery",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.dashboard.read",
+      "resource_type": "commerce_tenant",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.event.pump",
+      "resource_type": "commerce_runtime",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.growth.recalculate",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.journey.pump",
+      "resource_type": "journey",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.marketing_effect.rebuild",
+      "resource_type": "marketing_report",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.member_behavior.rebuild",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.member_cycle.evaluate",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.member_tag.define",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.merchant.create",
+      "resource_type": "merchant",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.merchant.read",
+      "resource_type": "merchant",
+      "risk_level": "NORMAL",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_RESOURCES"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.ops_page.execute",
+      "resource_type": "ops_page",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.order.expire",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.order.expiry.retry",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.points.expire",
+      "resource_type": "commerce_member",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.product.export",
+      "resource_type": "product",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.product.read",
+      "resource_type": "product",
+      "risk_level": "NORMAL",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.product.update",
+      "resource_type": "product",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.segment.pump",
+      "resource_type": "segment",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.store.create",
+      "resource_type": "store",
+      "risk_level": "HIGH",
+      "allowed_scope_kinds": [
+        "TENANT_ALL"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.store.directory.read",
+      "resource_type": "store",
+      "risk_level": "NORMAL",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    },
+    {
+      "code": "commerce.store.read",
+      "resource_type": "store",
+      "risk_level": "NORMAL",
+      "allowed_scope_kinds": [
+        "TENANT_ALL",
+        "SPECIFIED_STORES",
+        "SPECIFIED_RESOURCES"
+      ],
+      "template_fact": "ABSENT_FROM_EXACT_99_UNION",
+      "reason": "当前设计候选没有该cap的岗位分配；不推断为业务完成或无需授权。",
+      "operation": "EXPLICIT_OWNER_MANUAL_ROLE_REVIEW_ONLY",
+      "automatic_role_create": false,
+      "automatic_grant": false
+    }
+  ]
+}
