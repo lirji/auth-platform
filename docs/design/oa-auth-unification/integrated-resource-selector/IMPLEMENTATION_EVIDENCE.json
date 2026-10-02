@@ -64,10 +64,29 @@
     "changed_test": "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/PublishedCatalogPostgresIT.java",
     "prior_sha256": "d7d7bbe0f560b2d7b91868155297aa132a7b91bb4d99f7324767f53b2c1355ff",
     "current_sha256": "d1ada14a51647d47fa7ed2356f943a31cfd26666c1305b0a75d5905fe17db816",
-    "ci_style": "GOVERNANCE_TEST_CONFIG absent, existing three DB env variables; 109PG PASS/0skip",
+    "ci_style": "GOVERNANCE_TEST_CONFIG absent, existing three DB env variables; 108PG PASS/0skip",
     "explicit_config": "0600 local CONFIG with DB env absent; exact7PASS/0skip",
     "isolated_pg_database": "auth_gov_p1_test_94e2d99f5525",
     "private_evidence": ".local/integrated-resource-selector/ci-pg-config-followup",
-    "remote_failure_preserved": 37023342834
+    "remote_failure_preserved": 37023342834,
+    "verified_report_selection": {
+      "evidence": ".local/integrated-resource-selector/ci-pg-config-followup/verified-run-reports.json",
+      "ci_style": {
+        "suites": 9,
+        "tests": 108,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "explicit_config": {
+        "suites": 1,
+        "tests": 7,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "historical_excluded": "ReliableAuthorizationIT1 in CI-style report snapshot; nine other retained XML in explicit-config snapshot, none counted as this run",
+      "basis": "this run log Running classes plus failsafe-summary.xml completed counts"
+    }
   }
 }

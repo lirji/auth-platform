@@ -51,7 +51,7 @@
       "IMPLEMENTATION_EVIDENCE.json",
       "DELIVERY_RESULT.json"
     ],
-    "validation": "CI-style109PG PASS; explicit0600CONFIG7PASS; 19 other IR fingerprints unchanged; git diff--checkPASS",
+    "validation": "CI-style108PG/9suites PASS; explicit0600CONFIG7PASS/1suite; exact current-log Running selectors/failsafe-summary counts; historical XML excluded; 19 other IR fingerprints unchanged; git diff--checkPASS",
     "current_test_sha256": "d1ada14a51647d47fa7ed2356f943a31cfd26666c1305b0a75d5905fe17db816",
     "main_merged": false,
     "pushed": false,

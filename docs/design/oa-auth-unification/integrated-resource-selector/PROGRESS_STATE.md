@@ -14,4 +14,6 @@
 
 同任务有界CI注册补齐 DONE/LOCAL_VALIDATION_PASS：新harness触发/语法及Node14已加入既有authz-ci；精确Node14、12Node语法、Python编译、YAML结构差异与20原产品SHA全部PASS，见TEST_RESULT末节。本次逻辑提交仅workflow+三份本片文档；不push/merge，主Agent负责精确新CI与最终集成。
 
-同任务CI测试配置修复 DONE/LOCAL_VALIDATION_PASS：原远程37023342834因新PG open只读取CONFIG，而第一governance-it仅提供三个既有DB env失败；保留失败日志，未把失败改成PASS。新测试沿用Directory/Portal双入口且保留原loopback独立测试库URL安全约束。CONFIG显式unset完整真实PG109/0fail/0error/0skip（含新7与既有51路径），0600CONFIG且三个DB env unset精确新7/0fail/0error/0skip。仅测试setup和本片证据/验证/进度/交付文档修改；19其他原IR源码SHA不变。两个本地followup交主Agent，不自行push/merge，远程CI终态仍须精确核对。
+同任务CI测试配置修复 DONE/LOCAL_VALIDATION_PASS：原远程37023342834因新PG open只读取CONFIG，而第一governance-it仅提供三个既有DB env失败；保留失败日志，未把失败改成PASS。新测试沿用Directory/Portal双入口且保留原loopback独立测试库URL安全约束。CONFIG显式unset完整真实PG108/0fail/0error/0skip（含新7与既有51路径），0600CONFIG且三个DB env unset精确新7/0fail/0error/0skip。仅测试setup和本片证据/验证/进度/交付文档修改；19其他原IR源码SHA不变。两个本地followup交主Agent，不自行push/merge，远程CI终态仍须精确核对。
+
+本轮计数独立修正：CI-style按实际日志9个persistence Running与failsafe-summary.completed核对为108，先前109误含历史ReliableAuthorizationIT1已撤回；显式CONFIG仅本轮新7，保留目录中的其他旧XML不计入。精确选取与排除SHA已私密记录，无产品/测试改动或重新运行。
