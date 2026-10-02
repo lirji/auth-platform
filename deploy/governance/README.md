@@ -4,7 +4,7 @@
 
 ## 依赖与数据边界
 
-- Docker Desktop；Java 21；项目 Maven Wrapper。
+- Docker Desktop（BuildKit + Compose v2）；首次初始化 CLI 另需 Java 21 与项目 Maven Wrapper。日常镜像构建只需 Docker，后端使用镜像内 Java 21 和仓库 Wrapper。
 - 既有 dev_infra PostgreSQL 16：`dev-infra-postgres16-1`，宿主端口 45432。新建固定库/角色 `auth_governance`，与历史测试库分离，默认不删除。
 - 既有兼容治理验证的 Casdoor 4.11：localhost:18090。8000 的旧 Casdoor 保留给原环境。
 - 既有 P3 治理 SpiceDB：localhost:18544；使用全新 tenant UUID 分区，不覆盖已有图数据。读池 min/max=1/4，写池 min/max=1/2，避免默认 30 个常驻连接耗尽共享 PostgreSQL。`governance-graph-isolation.py` 新建本地阶段图时同样采用此上限；已有实例需保留镜像、环境、端口、数据源再重建，不能只重启期待配置改变。
@@ -20,7 +20,7 @@
 在项目根目录构建后端，然后指定已有私密身份目录及固定输出目录：
 
 ```bash
-./mvnw -q -pl auth-platform-admin -am package -DskipTests
+./mvnw -q -pl auth-platform-admin -am package -DskipTests -Dmaven.jar.forceCreation=true
 python3 deploy/governance/provision-local.py \
   --identity-directory "$PWD/.local/governance" \
   --output-directory "$PWD/.local/docker-governance"
@@ -29,6 +29,16 @@ bash deploy/governance/run.sh up
 ```
 
 `run.sh up` 先等待管理后端就绪，再通过真实授权码 + PKCE 登录调用幂等的 enable-strict 接口，最后启动投影进程，避免新分区尚未启用时反复失败。
+
+更新到当前仓库源码时执行：
+
+```bash
+bash deploy/governance/run.sh config  # 静默校验，不输出私密配置
+bash deploy/governance/run.sh update  # 构建当前源码，成功后更新三个治理容器
+bash deploy/governance/run.sh status
+```
+
+`build` 可以在私密 env 尚未生成时独立执行，不启动服务。admin 镜像从仓库根 reactor 多阶段构建，自动包含当前 protocol/core/governance 依赖；不会复制宿主 `target/` 的历史 JAR。`up` 使用已构建镜像，`restart` 也只重建容器，不重新编译；要更新代码使用 `update`。入口端口从 `deploy/platform-ports.env` 加载；目前初始化客户端与激活流程按固定本地 5273 回调配置，修改该端口还需同步客户端/初始化流程，不能只改 env。私密挂载目录缺失会直接报错，不会自动创建空目录。
 
 初始化入口只创建不存在的固定数据库/角色和专用 OIDC 客户端；重复执行复用固定命令 ID、主体、组织和私密状态，不清空数据、不重置用户密码、不扩大委派。迁移由 `GovernanceCli bootstrap` 显式执行；运行中的 HTTP/投影进程只验证迁移。输出 `ACCESS.md` 提供入口、已有账号和示例成员，文件权限 0600，目录 0700。
 
@@ -48,4 +58,6 @@ GOVERNANCE_ENV_FILE=/absolute/path/runtime.env bash deploy/governance/run.sh sto
 
 UI `/healthz` 验证 nginx；admin `/actuator/health` 验证进程，真实登录和管理接口是端到端验证；projector 只有允许列表中 POLICY/DIRECTORY 都 READY 才更新健康时间戳。每批 CLI 自带 30 秒预算，异常由 Docker 重启，每轮间隔 10 秒，不扫描未知组织。授权显示“待生效”期间不能当作授权成功。
 
-镜像使用已有 Node 22、nginx 1.27、Java 21 基线并固定 digest；pnpm 9.15.9 与仓库 CI 一致。admin 镜像上下文仅包含可执行 JAR；前端排除本机 node_modules、dist 和私密 env。数据库密码、图密钥和 OAuth secret 只通过只读 0600 配置挂载。
+镜像使用已有 Node 22、nginx 1.27、Java 21 基线并固定 digest；pnpm 9.15.9 与仓库 CI 一致。admin 构建上下文通过根 `.dockerignore` 只允许 reactor 源码、POM 与 Wrapper，最终镜像只含可执行 JAR 和 JRE；前端排除本机 node_modules、dist 和私密 env。数据库密码、图密钥和 OAuth secret 只通过只读 0600 配置挂载。HTML 使用 `no-cache` 重校验，带摘要的 assets 保留长期缓存。
+
+直接构建 admin 必须以仓库根目录为上下文：`docker build -f auth-platform-admin/Dockerfile -t auth-platform/governance-admin:local .`。`GOVERNANCE_ADMIN_IMAGE` 同时作用于 admin/projector，`GOVERNANCE_CONSOLE_IMAGE` 指定控制台标签；两者默认保持原 `:local`。验证时可指定独立标签，不影响现有镜像和容器。原模块内 `.dockerignore` 属于历史单模块 JAR 构建，根上下文使用根 `.dockerignore`。

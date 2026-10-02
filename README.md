@@ -95,22 +95,27 @@ OA、Auth 与业务项目的统一权限改造见 [整体改造计划](docs/desi
 > Compose 默认启动基础设施和 Docker 版公开门户；原工作区后端与 auth-console 可由 `./dev.sh` 启动。
 >
 > 跨项目治理授权页面使用新增 `governance` profile：控制台、治理管理后端及授权投影任务均在 Docker 运行，入口 `http://localhost:5273/governance`。首次私密配置、固定本地库、启动/重启命令和电商接管边界见 [本地治理 Docker 说明](deploy/governance/README.md)。
+>
+> 更新到当前源码执行 `bash deploy/governance/run.sh update`；该命令先构建后端 reactor 与控制台，再更新治理容器。`restart` 仅复用已构建镜像。部署同步验证与依赖边界见 [Docker 部署同步报告](docs/deployment/containerization-report.md)。
 
 ```bash
-cd deploy
+# 新环境：复制 deploy/.env.example 为 deploy/.env，替换 CHANGE_ME；
+# 已有 PostgreSQL 卷需沿用原凭据，修改 env 不会轮换数据库内密码。
 # 起 SpiceDB 链路(postgres -> migrate -> serve)+ Casdoor + project-portal(:5274)
-docker compose --env-file platform-ports.env up -d --build
+./deploy/platform-compose.sh auth up -d --build authz-postgres spicedb-migrate spicedb casdoor project-portal
 # 只构建并启动公开门户
-docker compose --env-file platform-ports.env up -d --build project-portal
+./deploy/platform-compose.sh auth up -d --build project-portal
 # 只起 SpiceDB
-docker compose up -d spicedb
-# 停并清理(防 docker-proxy 残留占端口)
-docker compose down --remove-orphans
+./deploy/platform-compose.sh auth up -d spicedb
+# 只停止默认服务；governance 的三个服务由 run.sh stop 单独管理
+./deploy/platform-compose.sh auth stop project-portal casdoor spicedb authz-postgres
 ```
 
 - 公开能力门户: http://localhost:5274
 - Casdoor: http://localhost:8000 (默认 admin/123,OIDC 发现 `/.well-known/openid-configuration`)
 - SpiceDB HTTP: http://localhost:8543 (Bearer `authz_dev_key`);gRPC localhost:50051
+
+SpiceDB migrate/serve 固定相同 v1.56.2 镜像摘要；默认 Casdoor 固定原基建的镜像摘要，治理依赖的外部 v4.11.0 保持独立。`.env` 可用 `SPICEDB_IMAGE` / `CASDOOR_IMAGE` 指定经过兼容验证的镜像；`PG_USER` / `PG_PASSWORD` 同时用于 PostgreSQL 和 Casdoor 连接，Casdoor 的浏览器 origin 跟随 `CASDOOR_PORT`。这些是本地运行文件；更新文件或构建镜像不会自动升级现有身份数据。
 
 ## 授权模型(SpiceDB `.zed`)
 

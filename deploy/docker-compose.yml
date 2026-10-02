@@ -1,7 +1,7 @@
 # 内部统一权限平台 — 基建 (Phase 0) + 公开能力门户
 # Casdoor(身份/SSO) + SpiceDB(ReBAC 授权) + Postgres(SpiceDB & Casdoor datastore) + project-portal
 # 端口全部变量化，避开现有项目占用(8080-8092 / 9000-9008 / 5432 / 6379 等)。
-# 起前建议: docker compose -p auth-platform down --remove-orphans
+# 启停时显式指定服务；同项目的治理 profile 可能正在使用共享网络。
 name: auth-platform
 
 services:
@@ -26,7 +26,7 @@ services:
 
   # 一次性: SpiceDB postgres datastore 迁移(serve 前必须跑)
   spicedb-migrate:
-    image: authzed/spicedb:latest
+    image: ${SPICEDB_IMAGE:-authzed/spicedb:v1.56.2@sha256:aa96009a0477f8a759149823407d47ad16d1a74390bae3102b3b0b7143502764}
     container_name: authz-spicedb-migrate
     command: datastore migrate head
     environment:
@@ -38,7 +38,7 @@ services:
     restart: on-failure
 
   spicedb:
-    image: authzed/spicedb:latest
+    image: ${SPICEDB_IMAGE:-authzed/spicedb:v1.56.2@sha256:aa96009a0477f8a759149823407d47ad16d1a74390bae3102b3b0b7143502764}
     container_name: authz-spicedb
     command: serve
     environment:
@@ -55,12 +55,19 @@ services:
         condition: service_completed_successfully
 
   casdoor:
-    image: casbin/casdoor:latest
+    # 保持原身份服务的已验证摘要；治理 profile 的 v4.11.0 仍是外部依赖。
+    image: ${CASDOOR_IMAGE:-casbin/casdoor@sha256:1b479655bf51b1c630f2a3ea93ec1ef58388e1d5861173377269266ea321537e}
     container_name: authz-casdoor
+    environment:
+      # 与 PostgreSQL 的 env 同源，避免修改 PG_USER/PG_PASSWORD 后仍使用 app.conf 旧值。
+      driverName: postgres
+      dataSourceName: "user=${PG_USER:-authz} password=${PG_PASSWORD:-authz_dev_pw} host=authz-postgres port=5432 sslmode=disable dbname=spicedb"
+      origin: "http://localhost:${CASDOOR_PORT:-8000}"
+      originFrontend: "http://localhost:${CASDOOR_PORT:-8000}"
     ports:
       - "${CASDOOR_PORT:-8000}:8000"
     volumes:
-      - ./casdoor/app.conf:/conf/app.conf
+      - ./casdoor/app.conf:/conf/app.conf:ro
     depends_on:
       authz-postgres:
         condition: service_healthy
@@ -70,7 +77,7 @@ services:
     build:
       context: ../project-portal
       dockerfile: Dockerfile
-    image: auth-platform/project-portal:local
+    image: ${AUTH_PORTAL_IMAGE:-auth-platform/project-portal:local}
     container_name: auth-project-portal
     ports:
       - "127.0.0.1:${AUTH_PORTAL_UI_PORT:-5274}:80"
@@ -81,7 +88,7 @@ services:
   # 三个进程共享回环网络，保持已有 issuer 的严格 localhost 校验；只公开 UI。
   auth-console:
     profiles: [governance]
-    image: auth-platform/governance-console:local
+    image: ${GOVERNANCE_CONSOLE_IMAGE:-auth-platform/governance-console:local}
     build:
       context: ../auth-console
       args:
@@ -101,10 +108,10 @@ services:
 
   governance-admin:
     profiles: [governance]
-    image: auth-platform/governance-admin:local
-    build:
-      context: ../auth-platform-admin
-      dockerfile: Dockerfile
+    image: ${GOVERNANCE_ADMIN_IMAGE:-auth-platform/governance-admin:local}
+    build: &governance-admin-build
+      context: ..
+      dockerfile: auth-platform-admin/Dockerfile
     container_name: auth-governance-admin
     restart: unless-stopped
     network_mode: service:auth-console
@@ -112,7 +119,12 @@ services:
       auth-console:
         condition: service_healthy
     volumes:
-      - ${GOVERNANCE_RUNTIME_DIR:-../.local/docker-governance/runtime}:/run/governance:ro
+      - type: bind
+        source: ${GOVERNANCE_RUNTIME_DIR:-../.local/docker-governance/runtime}
+        target: /run/governance
+        read_only: true
+        bind:
+          create_host_path: false
     command:
       - java
       - -Xmx384m
@@ -135,7 +147,9 @@ services:
 
   governance-projector:
     profiles: [governance]
-    image: auth-platform/governance-admin:local
+    image: ${GOVERNANCE_ADMIN_IMAGE:-auth-platform/governance-admin:local}
+    # 直接 compose build/up --build 时也能从源码获得同一版本的投影 CLI。
+    build: *governance-admin-build
     container_name: auth-governance-projector
     restart: unless-stopped
     network_mode: service:auth-console
@@ -143,7 +157,12 @@ services:
       governance-admin:
         condition: service_healthy
     volumes:
-      - ${GOVERNANCE_RUNTIME_DIR:-../.local/docker-governance/runtime}:/run/governance:ro
+      - type: bind
+        source: ${GOVERNANCE_RUNTIME_DIR:-../.local/docker-governance/runtime}
+        target: /run/governance
+        read_only: true
+        bind:
+          create_host_path: false
       - ./governance/projector.sh:/app/projector.sh:ro
     command: [bash, /app/projector.sh]
     healthcheck:

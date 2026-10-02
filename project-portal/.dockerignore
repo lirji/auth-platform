@@ -3,3 +3,5 @@ dist
 .git
 *.log
 coverage
+.env*
+.local

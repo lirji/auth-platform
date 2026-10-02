@@ -1,0 +1,11 @@
+# 后端镜像只接收 reactor 源码和 Maven Wrapper；不接收本机 JAR、缓存或机密。
+**
+!pom.xml
+!mvnw
+!.mvn/
+!.mvn/wrapper/
+!.mvn/wrapper/maven-wrapper.properties
+!auth-platform-*/
+!auth-platform-*/pom.xml
+!auth-platform-*/src/
+!auth-platform-*/src/**

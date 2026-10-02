@@ -11,6 +11,14 @@ on:
       - 'deploy/sync-platform-catalog.mjs'
       - 'deploy/verify-compose-port.mjs'
       - 'deploy/docker-compose.yml'
+      - 'deploy/.env.example'
+      - 'deploy/postgres-init/**'
+      - 'deploy/governance/**'
+      - 'auth-platform-admin/Dockerfile'
+      - 'auth-console/Dockerfile'
+      - 'auth-console/.dockerignore'
+      - 'auth-console/nginx.conf'
+      - '.dockerignore'
       - '.github/workflows/portal-ci.yml'
   push:
     branches: [main]
@@ -23,6 +31,14 @@ on:
       - 'deploy/sync-platform-catalog.mjs'
       - 'deploy/verify-compose-port.mjs'
       - 'deploy/docker-compose.yml'
+      - 'deploy/.env.example'
+      - 'deploy/postgres-init/**'
+      - 'deploy/governance/**'
+      - 'auth-platform-admin/Dockerfile'
+      - 'auth-console/Dockerfile'
+      - 'auth-console/.dockerignore'
+      - 'auth-console/nginx.conf'
+      - '.dockerignore'
       - '.github/workflows/portal-ci.yml'
   workflow_dispatch:
 
@@ -57,3 +73,12 @@ jobs:
       - name: Build production image
         working-directory: .
         run: docker build -t project-portal:ci ./project-portal
+      - name: Check deployment configuration
+        working-directory: .
+        run: |
+          bash -n deploy/governance/run.sh
+          docker compose --env-file deploy/.env.example --env-file deploy/platform-ports.env -f deploy/docker-compose.yml config --quiet
+          docker compose --env-file deploy/.env.example --env-file deploy/platform-ports.env -f deploy/docker-compose.yml --profile governance config --quiet
+      - name: Build governance images from source without private configuration
+        working-directory: .
+        run: bash deploy/governance/run.sh build
