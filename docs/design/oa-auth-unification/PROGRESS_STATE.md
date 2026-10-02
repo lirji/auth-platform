@@ -24,14 +24,14 @@
 
 ### 未完成与当前问题
 
-- D6 /rehearsal-b78d510dbe81 于15:59:37.836Z实际exit0，1316检查全部PASS；同18冻结源码。JAR84eef866的17模块/791编译文件/677类/48assets/81源独立PASS；原ISSUE/首次REVOKE/原Grant、5精确身份审计、21实际钱包REVOKED、观测线程JOINED_AND_STOPPED及真实Auth停服PASS。39当前截图已逐张实际查看PASS，320状态Tag修正已真实闭环。正式Validation COMPLETED/PASS，本片限定Git/精确CI尚待；旧D4视觉HOLD与D5未复现503失败保留。
+- D6 /rehearsal-b78d510dbe81 于15:59:37.836Z实际exit0，1316检查全部PASS；同18冻结源码。JAR84eef866的17模块/791编译文件/677类/48assets/81源独立PASS；原ISSUE/首次REVOKE/原Grant、5精确身份审计、21实际钱包REVOKED、观测线程JOINED_AND_STOPPED及真实Auth停服PASS。39当前截图已逐张实际查看PASS，320状态Tag修正已真实闭环。正式Validation COMPLETED/PASS，本片已限定提交与正常main push：Autha7ce5ef/集成31aac82、Commerce976da15；精确CI37032178047/37032179122已completed/SUCCESS，D2完整DONE；旧D4视觉HOLD与D5未复现503失败保留。
 - CE06/07/08最后制品冻结、全部Owner/UI/资金承诺/12lane继续；3真实Auth late-child聚合出口撤权均403已验证，独立审查仍待最终backend全源/归档闭环。注册或桩测试不能称整体DONE。
 - IR Owner复用integrated-resource-selector树新feat/commerce-catalog-publication，准备全实际Owner菜单/资源/按resource分组角色发布，需真实终验依赖制品。122候选、34snapshots=17jobs/99union，23未入模板不自动授；21是旧观察导航，新页面按最终源重数，不能强凑固定数字。新resource依赖Journey共享Auth尚未root main，出版必须等待真实依赖。
 - 原8602/OA/5273、历史库/卷/进程与失败记录保留。原18666 Vite89685已确认自己Commerce路径且复用，勿重复bind/杀未知服务。
 
 ### 下一步建议
 
-1. D6本地终验已PASS；核对正式终态/视觉/source fence后限定两仓D2提交、正常main集成/push及精确CI，不重复已通过未变后端。
+1. D2两个精确main CI已SUCCESS；原目录复用统一权限集成分支，Journey/Auth无冲突，Commerce四共享路由/导航/进度冲突已语义合并，保留D2及五旅程页面，当前TSC/Vite、Auth254单元/44套件、8D2界面回归及Commerce530组合实库（5既有skip/0fail/error）PASS；SDK source ref已由旧D0a766更新为当前实测共享69bde864，正常远程分支已可达。不要在先前main CI running时推新的main取消它。
 2. 必需终验PASS后Formal Validation/进度，限定D2两仓task commit/正常main集成/push，保留IR已有CI新增检查并核对精确新CI。其他Owner源不混提交，不造额外integration树。
 3. 接收三Owner准确最终提交/依赖/源SHA/当前log筛选不可变XML/真实终态，按依赖完整集成；Auth新main前个CI running时不取消。IR formal148d061可独立逻辑记录。
 4. 完成真实业务菜单Owner发布、完整角色权限/12lane及总集成验证/GitCI闭环后才能宣称完整目标完成，不停止于D2或IR。
