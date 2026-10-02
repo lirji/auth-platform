@@ -16,6 +16,8 @@ RULE_RESOURCE_TYPE = 'marketing_rule'
 RULE_CAPABILITIES = ('rule.read','rule.create','rule.publish')
 AUDIENCE_RESOURCE_TYPE = 'audience'
 AUDIENCE_CAPABILITIES = ('audience.read','audience.create')
+CAMPAIGN_RESOURCE_TYPE = 'campaign'
+CAMPAIGN_CAPABILITIES = ('campaign.read','campaign.create','campaign.preview','campaign.submit','campaign.approve','campaign.reject','campaign.publish','campaign.pause','budget.read')
 ENTITLEMENT_CAPABILITIES = {'entitlement_definition.read':ENTITLEMENT_DEFINITION_RESOURCE_TYPE,'entitlement_definition.create':ENTITLEMENT_DEFINITION_RESOURCE_TYPE,'entitlement.read':ENTITLEMENT_RESOURCE_TYPE,'entitlement.resolve':ENTITLEMENT_RESOURCE_TYPE}
 COUPON_DEFINITION_CAPABILITIES = ('coupon_definition.read','coupon_definition.create')
 OFFER_CAPABILITIES = ('point_offer.read','point_offer.define','point_offer.status.update')
@@ -189,6 +191,8 @@ def rehearse(args, isolation=None):
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':RULE_RESOURCE_TYPE,'risk_level':'NORMAL' if code.endswith('.read') else 'HIGH'} for code in RULE_CAPABILITIES]
         if args.audiences:
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':AUDIENCE_RESOURCE_TYPE,'risk_level':'HIGH'} for code in AUDIENCE_CAPABILITIES]
+        if args.campaigns:
+            manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':CAMPAIGN_RESOURCE_TYPE,'risk_level':'HIGH'} for code in CAMPAIGN_CAPABILITIES]
         h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli','publish',run/'catalog.properties',run/'manifest.json')
         access={'access.tenant':tenant,'access.application':'commerce','access.environment':env,'access.manager':members['internal'],'access.generation':1,'access.capabilities':'commerce.catalog.operate','access.max-duration-seconds':3600,'access.operator':'p6-fixture','access.command':uid()}
         if args.inventory:access['access.capabilities'] += ',commerce.inventory.read,commerce.inventory.receive'
@@ -204,6 +208,7 @@ def rehearse(args, isolation=None):
         if args.entitlements:access['access.capabilities'] += ''.join(',commerce.'+code for code in ENTITLEMENT_CAPABILITIES)
         if args.rules:access['access.capabilities'] += ''.join(',commerce.'+code for code in RULE_CAPABILITIES)
         if args.audiences:access['access.capabilities'] += ''.join(',commerce.'+code for code in AUDIENCE_CAPABILITIES)
+        if args.campaigns:access['access.capabilities'] += ''.join(',commerce.'+code for code in CAMPAIGN_CAPABILITIES)
         h.private(run/'access.properties',db+h.props(access));cli('AccessBootstrapCli',run/'access.properties')
         def authority(kind):
             c=fixture['clients'][kind];return {'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
@@ -218,6 +223,7 @@ def rehearse(args, isolation=None):
         if args.entitlements:server['scope.owner.commerce'] += ','+ENTITLEMENT_DEFINITION_RESOURCE_TYPE+','+ENTITLEMENT_RESOURCE_TYPE
         if args.rules:server['scope.owner.commerce'] += ','+RULE_RESOURCE_TYPE
         if args.audiences:server['scope.owner.commerce'] += ','+AUDIENCE_RESOURCE_TYPE
+        if args.campaigns:server['scope.owner.commerce'] += ','+CAMPAIGN_RESOURCE_TYPE
         server.update({'service.1.user.'+k:v for k,v in authority('business').items()});h.private(run/'server.properties',db+legacy+graph_settings+h.props(server))
         h.private(run/'consumer.properties',h.props({'central.url':'http://127.0.0.1:18161','central.credential':service,'central.application':'commerce','central.environment':env}))
         admin_token=up.token(h.ISSUER,fixture,'management','internal');user_token=up.token(h.ISSUER,fixture,'business','external')
@@ -1201,6 +1207,109 @@ def rehearse(args, isolation=None):
             sql("UPDATE employee_authority_route SET state='CENTRAL',version=version+1 WHERE tenant_id="+q(source)+" AND family='AUDIENCE'")
             expect('resumed audience retains revoked create denial',18661,audience_base,audience_headers,audience_input,403)
             record('audience exact header member and identity rows survive revoke and stop without importing members')
+        if args.campaigns:
+            # 活动族只接管本轮隔离库，已有规则/人群版本仍由可信内部引用使用。
+            insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'CAMPAIGN','state':'SHADOW'})
+            sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='CAMPAIGN' AND state='SHADOW' AND version=1")
+            campaign_base='/v1/admin/campaigns';campaign_budget_path='/v1/admin/campaign-budgets'
+            for path in (campaign_base,campaign_budget_path):
+                expect('other abilities do not imply campaign access '+path,18661,path,user,status=403)
+                expect('old ADMIN cannot bypass campaign '+path,18661,path,local_admin,status=403)
+            def campaign_grant(code):
+                role=expect('explicit independent campaign role '+code,18162,prefix+'/roles',admin,{**partition,'command_id':uid(),'role_code':'ce05-cam-'+code.replace('.','-'),'role_version':1,'capabilities':['commerce.'+code]})['id']
+                grant=expect('finite campaign grant '+code,18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role,'scope_rule':{'version':1,'resource_type':CAMPAIGN_RESOURCE_TYPE,'clauses':[{'kind':'TENANT_ALL','values':[],'include_root':False}]},'source_id':'ce05-cam-'+code,'valid_from':now(-2),'valid_to':now(1200)},202)['id']
+                projection();execution_ready(code,phase='campaign-fixture',resource_type=CAMPAIGN_RESOURCE_TYPE);return grant
+            campaign_grants={'campaign.create':campaign_grant('campaign.create')}
+            campaign_input={'campaignId':'ce05-campaign:a','version':7,'storeId':store,'name':'Real central campaign','validFrom':now(-60),'validTo':now(3600),'minimumSpend':'1.00','discountAmount':'1.00','rule':rule_input['rule'],'policy':{'rule':{'id':'ce05-rule:a','version':1},'terms':{'percentageBps':0,'platformFundingBps':2500,'budget':'20.00'}}}
+            campaign_headers=user+[('Idempotency-Key',uid())]
+            created=expect('campaign create without any read',18661,campaign_base,campaign_headers,campaign_input)
+            if created['content']['version']!=7 or created['lockVersion']!=0 or created['merchantId']!=merchant:raise RuntimeError('campaign actual content/owner mismatch')
+            if expect('campaign create original key',18661,campaign_base,campaign_headers,campaign_input)!=created:raise RuntimeError('campaign create duplicate')
+            expect('campaign duplicate content version conflict',18661,campaign_base,user+[('Idempotency-Key',uid())],campaign_input,409)
+            expect('campaign create does not imply read',18661,campaign_base,user,status=403)
+            expect('campaign create does not imply budget',18661,campaign_budget_path,user,status=403)
+            expect('campaign immutable second content version',18661,campaign_base,user+[('Idempotency-Key',uid())],{**campaign_input,'version':8})
+            expect('campaign rejection fixture',18661,campaign_base,user+[('Idempotency-Key',uid())],{**campaign_input,'campaignId':'ce05-campaign:z','version':1})
+            def campaign_path(name,version,action):return campaign_base+'/'+urllib.parse.quote(name,safe='')+'/'+str(version)+'/'+action
+            preview_path=campaign_path('ce05-campaign:a',7,'preview');preview_input={'memberId':offer_member,'items':[{'skuId':'p6-sku','quantity':1}],'includePublishedCompetition':True}
+            expect('campaign create does not imply preview',18661,preview_path,user,preview_input,403)
+            campaign_grants['campaign.preview']=campaign_grant('campaign.preview')
+            before=sql("SELECT (SELECT count(*) FROM trade_quote WHERE tenant_id="+q(source)+"),(SELECT count(*) FROM marketing_budget_hold WHERE tenant_id="+q(source)+"),(SELECT count(*) FROM inventory_hold WHERE tenant_id="+q(source)+"),(SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+")")[1]
+            preview=expect('actual member SKU fixed rule preview without read',18661,preview_path,user,preview_input)
+            if preview['discount']!='1.00' or preview['selected']!={'campaignId':'ce05-campaign:a','version':7}:raise RuntimeError('campaign actual preview mismatch')
+            if expect('readonly campaign preview stable',18661,preview_path,user,preview_input)!=preview:raise RuntimeError('campaign preview changed')
+            after=sql("SELECT (SELECT count(*) FROM trade_quote WHERE tenant_id="+q(source)+"),(SELECT count(*) FROM marketing_budget_hold WHERE tenant_id="+q(source)+"),(SELECT count(*) FROM inventory_hold WHERE tenant_id="+q(source)+"),(SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+")")[1]
+            if before!=after:raise RuntimeError('campaign preview wrote participation')
+            record('campaign preview has no quote reservation budget or identity audit writes')
+            submit_path=campaign_path('ce05-campaign:a',7,'submit');submit_headers=user+[('Idempotency-Key',uid())]
+            expect('preview does not imply campaign submission',18661,submit_path,submit_headers,{'expectedVersion':0},403)
+            campaign_grants['campaign.submit']=campaign_grant('campaign.submit')
+            submitted=expect('independent campaign submission',18661,submit_path,submit_headers,{'expectedVersion':0})
+            if submitted['status']!='IN_REVIEW' or submitted['lockVersion']!=1:raise RuntimeError('campaign submission status mismatch')
+            if expect('submission original receipt after changed state',18661,submit_path,submit_headers,{'expectedVersion':0})!=submitted:raise RuntimeError('campaign submit original key mismatch')
+            for name,version in (('ce05-campaign:a',8),('ce05-campaign:z',1)):expect('submit actual campaign '+name+'/'+str(version),18661,campaign_path(name,version,'submit'),user+[('Idempotency-Key',uid())],{'expectedVersion':0})
+            approve_path=campaign_path('ce05-campaign:a',7,'approve')
+            expect('submit does not imply approval',18661,approve_path,user+[('Idempotency-Key',uid())],{'expectedVersion':1},403)
+            campaign_grants['campaign.approve']=campaign_grant('campaign.approve')
+            for version in (7,8):expect('independent actual version approval '+str(version),18661,campaign_path('ce05-campaign:a',version,'approve'),user+[('Idempotency-Key',uid())],{'expectedVersion':1})
+            reject_path=campaign_path('ce05-campaign:z',1,'reject')
+            expect('approval does not imply rejection',18661,reject_path,user+[('Idempotency-Key',uid())],{'expectedVersion':1},403)
+            campaign_grants['campaign.reject']=campaign_grant('campaign.reject')
+            rejected=expect('independent actual version rejection',18661,reject_path,user+[('Idempotency-Key',uid())],{'expectedVersion':1})
+            if rejected['status']!='REJECTED':raise RuntimeError('campaign rejection mismatch')
+            publish_path=campaign_path('ce05-campaign:a',7,'publish');publish_headers=user+[('Idempotency-Key',uid())]
+            expect('approval does not imply publication',18661,publish_path,publish_headers,{'expectedVersion':2},403)
+            campaign_grants['campaign.publish']=campaign_grant('campaign.publish')
+            published=expect('independent campaign publication',18661,publish_path,publish_headers,{'expectedVersion':2})
+            if published['status']!='PUBLISHED' or published['content']['version']!=7 or published['lockVersion']!=3:raise RuntimeError('campaign publication version mismatch')
+            if expect('campaign publish original receipt',18661,publish_path,publish_headers,{'expectedVersion':2})!=published:raise RuntimeError('campaign publish duplicate')
+            expect('rejected campaign cannot publish',18661,campaign_path('ce05-campaign:z',1,'publish'),user+[('Idempotency-Key',uid())],{'expectedVersion':2},409)
+            expect('missing campaign actual version rejected',18661,campaign_path('ce05-campaign:a',9,'publish'),user+[('Idempotency-Key',uid())],{'expectedVersion':0},404)
+            pause_path=campaign_path('ce05-campaign:a',7,'pause');pause_headers=user+[('Idempotency-Key',uid())]
+            expect('publish does not imply pause',18661,pause_path,pause_headers,{'expectedVersion':3},403)
+            campaign_grants['campaign.pause']=campaign_grant('campaign.pause')
+            paused=expect('independent campaign pause',18661,pause_path,pause_headers,{'expectedVersion':3})
+            if paused['status']!='PAUSED' or paused['lockVersion']!=4:raise RuntimeError('campaign pause mismatch')
+            if expect('campaign pause original receipt',18661,pause_path,pause_headers,{'expectedVersion':3})!=paused:raise RuntimeError('campaign pause duplicated')
+            expect('re-publish actual paused content version',18661,publish_path,user+[('Idempotency-Key',uid())],{'expectedVersion':4})
+            latest=expect('switch sole published campaign version',18661,campaign_path('ce05-campaign:a',8,'publish'),user+[('Idempotency-Key',uid())],{'expectedVersion':2})
+            if expect('old successful publish receipt survives lock changes',18661,publish_path,publish_headers,{'expectedVersion':2})!=published:raise RuntimeError('campaign lock version blocked old receipt')
+            if sql("SELECT GROUP_CONCAT(CONCAT(version,':',status,':',lock_version) ORDER BY version) FROM marketing_campaign WHERE tenant_id="+q(source)+" AND campaign_id='ce05-campaign:a'")[1]!='7:PAUSED:6,8:PUBLISHED:3':raise RuntimeError('campaign single published state mismatch')
+            campaign_grants['budget.read']=campaign_grant('budget.read')
+            budgets=expect('budget read independent of campaign read',18661,campaign_budget_path,user)
+            if sorted((b['campaignId'],b['version']) for b in budgets if b['campaignId'].startswith('ce05-campaign:'))!=[('ce05-campaign:a',7),('ce05-campaign:a',8),('ce05-campaign:z',1)]:raise RuntimeError('campaign budgets omitted old version')
+            expect('budget read does not imply campaign directory',18661,campaign_base,user,status=403)
+            campaign_grants['campaign.read']=campaign_grant('campaign.read')
+            if expect('latest campaign stable cursor',18661,campaign_base+'?after=ce05-&limit=1',user)!=[latest]:raise RuntimeError('campaign latest cursor mismatch')
+            if expect('campaign next cursor',18661,campaign_base+'?after=ce05-campaign%3Aa&limit=1',user)!=[rejected]:raise RuntimeError('campaign second cursor mismatch')
+            if expect('campaign terminal cursor',18661,campaign_base+'?after=ce05-campaign%3Az&limit=1',user):raise RuntimeError('campaign terminal cursor mismatch')
+            expect('foreign campaign tenant rejected',18661,campaign_base,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            expect('invalid campaign credential rejected',18661,campaign_base,[('Authorization','Bearer invalid'),('X-Tenant-Id',tenant)],status=401)
+            for code,grant in campaign_grants.items():
+                if code in ('campaign.read','budget.read'):continue
+                expect('revoke independent campaign action '+code,18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':grant,'expected_version':1})
+            projection()
+            for path,headers,body in ((campaign_base,campaign_headers,campaign_input),(submit_path,submit_headers,{'expectedVersion':0}),(publish_path,publish_headers,{'expectedVersion':2}),(pause_path,pause_headers,{'expectedVersion':3}),(preview_path,user,preview_input)):
+                expect('revoked campaign action cannot replay '+path,18661,path,headers,body,403)
+            expect('campaign read survives all write revocations',18661,campaign_base,user)
+            expect('budget read survives all write revocations',18661,campaign_budget_path,user)
+            # 客户真实报价与下单仍使用已发布版本；员工STOPPED不撤销已承诺预算。
+            quote=expect('customer quote after employee revocation',18661,'/v1/quotes',offer_customer_headers+[('Idempotency-Key',uid())],{'storeId':store,'items':[{'skuId':'p6-sku','quantity':1}]})
+            if quote['campaign']!={'campaignId':'ce05-campaign:a','version':8}:raise RuntimeError('customer quote lost published fixed version')
+            order=expect('customer reserves actual version budget',18661,'/v1/orders',offer_customer_headers+[('Idempotency-Key',uid())],{'quoteId':quote['quoteId'],'address':{'recipient':'隔离验收','phone':'13800000000','detail':'隔离验收地址123'}})
+            sql("UPDATE employee_authority_route SET state='STOPPED',version=version+1 WHERE tenant_id="+q(source)+" AND family='CAMPAIGN'")
+            for path in (campaign_base,campaign_budget_path):
+                expect('stopped campaign family blocks read '+path,18661,path,user,status=403)
+                expect('stopped campaign family blocks old ADMIN '+path,18661,path,local_admin,status=403)
+            expect('system cancellation releases budget after employee STOPPED',18661,'/v1/orders/'+order['orderId']+'/cancel',offer_customer_headers+[('Idempotency-Key',uid())],{})
+            if sql("SELECT CONCAT(status,':',version) FROM marketing_budget_hold WHERE tenant_id="+q(source)+" AND order_id="+q(order['orderId']))[1]!='RELEASED:8':raise RuntimeError('employee stop blocked historical budget release')
+            if sql("SELECT CONCAT(held,':',spent) FROM marketing_budget WHERE tenant_id="+q(source)+" AND campaign_id='ce05-campaign:a' AND version=8")[1]!='0.00:0.00':raise RuntimeError('cancel did not release exact campaign budget')
+            sql("UPDATE employee_authority_route SET state='CENTRAL',version=version+1 WHERE tenant_id="+q(source)+" AND family='CAMPAIGN'")
+            expect('resumed campaign read uses current grants',18661,campaign_base,user)
+            expect('resumed revoked create still denied',18661,campaign_base,campaign_headers,campaign_input,403)
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='campaign' AND store_id IS NULL AND resource_version>0")[1]!='13':raise RuntimeError('campaign exact content identity audit count mismatch')
+            if sql("SELECT GROUP_CONCAT(CONCAT(resource_version,':',n) ORDER BY resource_version) FROM (SELECT resource_version,count(*) n FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='campaign' GROUP BY resource_version) t")[1]!='1:3,7:6,8:4':raise RuntimeError('campaign content audit versions confused with lock versions')
+            record('campaign exact thirteen identity audits preserve immutable content versions and no duplicate commands')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -1279,9 +1388,12 @@ def rehearse(args, isolation=None):
             expect('audience directory central outage fails closed',18661,audience_base,user,status=503)
             if args.browser:expect('audience create hint central outage fails closed',18661,'/v1/operations/audiences/create-access',user,status=503)
             audience_browser('outage')
+        if args.campaigns:
+            expect('campaign directory central outage fails closed',18661,campaign_base,user,status=503)
+            expect('campaign budget central outage fails closed',18661,campaign_budget_path,user,status=503)
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'audiences_checked':args.audiences,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'audiences_checked':args.audiences,'campaigns_checked':args.campaigns,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -1291,6 +1403,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
+    parser.add_argument('--campaigns',action='store_true',help='nine independent campaign/budget permissions and immutable content-version audit; includes audience regression')
     parser.add_argument('--audiences',action='store_true',help='finite audience snapshot read/create and immutable import audit; includes rule regression')
     parser.add_argument('--rules',action='store_true',help='finite rule create/read/publish and trusted fixed-version regression')
     parser.add_argument('--entitlements',action='store_true',help='finite entitlement definition and actual grant management; includes coupon regression')
@@ -1308,6 +1421,7 @@ def main():
     parser.add_argument('--identity-subnet',help='explicit unused RFC1918 /24 when Docker default pools are exhausted')
     args=parser.parse_args()
     if args.identity_subnet and not args.isolated_identity:parser.error('--identity-subnet requires --isolated-identity')
+    if args.campaigns:args.audiences=True
     if args.audiences:args.rules=True
     if args.rules:args.entitlements=True
     if args.entitlements:args.coupon_definitions=True

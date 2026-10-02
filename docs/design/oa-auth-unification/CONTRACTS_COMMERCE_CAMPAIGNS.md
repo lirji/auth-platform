@@ -5,7 +5,7 @@
 | ID | 结果 | Needs / Owner | 范围与验收 | 状态 |
 |---|---|---|---|---|
 | CE05-CAM0 | auth稳定campaign常量与9个有限执行能力 | 已交付CE05-A0/A1；auth protocol/governance | HUMAN/60秒，类型/能力精确；3集合许可、6实际版本动作；拒绝交换/未知/伪门店/部分范围/非正内容版本；原路径、代际、撤权重授与期限；真实PG/图、SDK及旧能力回归 | DONE（含Git/CI） |
-| CE05-CAM1 | commerce独立CAMPAIGN族与实际Owner/同事务审计 | CAM0验证及Git交付；commerce runtime/marketing/app | 9能力独立、原回执前范围/期限/路由；实际版本/状态锁区分、预算列表、实际预览无预占；创建/状态变更与身份审计同事务、SQL故障回滚、跨租户/原键/撤权/STOPPED/503、旧订单预算履约兼容；真实MySQL及跨进程 | TODO |
+| CE05-CAM1 | commerce独立CAMPAIGN族与实际Owner/同事务审计 | CAM0验证及Git交付；commerce runtime/marketing/app | 9能力独立、原回执前范围/期限/路由；实际版本/状态锁区分、预算列表、实际预览无预占；创建/状态变更与身份审计同事务、SQL故障回滚、跨租户/原键/撤权/STOPPED/503、旧订单预算履约兼容；真实MySQL及跨进程 | DONE（本地） |
 | CE05-CAM2 | 固定SSO活动/预算入口及完整动作反馈 | CAM1验证交付；frontend/app | 沿现有Craft/AntD，真实目录与独立预算、创建/预览/审批/发布/暂停权限；结构化字段及实际预览，不编造选项；每个未知命令原键/体恢复、当前内容版本与锁版本展示；1440/390关联表单/预览/反馈/确认实际查看、真实PKCE/401/403/503/SQL | TODO |
 
 三个切片串行；不新建工作树或子Agent，不改变模块/数据权威或基础设施。CAM2提示入口与最终界面配方在CAM1真实契约可用后按既有前端设计细化，不能在CAM0编造JSON或开发UI。
@@ -38,7 +38,7 @@ V49—V63已应用不可改；CAM1只追加新迁移，序号实施前再核对�
 - commerce：CampaignService真实Owner和命令、CampaignFundingService员工列表、EmployeeAccess/EmployeeAuthority族与中央Filter；CampaignMapper/BudgetMapper数据由marketing-runtime维护。
 - 事实依据：CampaignApi/Draft/View/Preview、CampaignService/create/list/preview/review/change/validatePublication，CampaignMapper.xml锁和唯一发布，CampaignFundingService的MANDATORY订单事务；既有两个Controller路径。以上为现有行为核对，不把设计当已实现。
 
-当前CAM0本地验证DONE、Git已交付b311e4c、CI36955364612 SUCCESS已核验，CAM1/CAM2未实现；A2两仓精确CI已SUCCESS。整个CE05—08及auth菜单资源展示目标保持，生产目标/Owner/映射与实际部署授权沿原HOLD。
+当前CAM0本地验证DONE、Git已交付b311e4c、CI36955364612 SUCCESS已核验，CAM1本地验证DONE，Git/CI待交付，CAM2未实现；A2两仓精确CI已SUCCESS。整个CE05—08及auth菜单资源展示目标保持，生产目标/Owner/映射与实际部署授权沿原HOLD。
 
 
 ## CAM0 最终本地验证（2026-10-01）
@@ -50,3 +50,21 @@ SDK Boot4兼容1方法PASS；最后强制打包安装（-DskipTests，复用已�
 hygiene为IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS：无阻断；既有Java formatter与静态分析未配置。无新迁移/依赖/JSON字段，可见UI N/A。独立implementation-validation COMPLETED/PASS，CAM0 DONE（本地）；CAM1/CAM2尚未实施，不能将协议通过当商城业务/页面通过。
 
 私密证据在 `.local/governance/commerce-contracts/campaigns-core-{install,integration,boot4,final-install}.log`、`campaigns-core-{source-sha256,runtime-fence,hygiene,test-result}.json`。整个目标仍active，下一步正常Git/精确CI后CAM1。
+
+
+## CAM1 实施检查点（历史）
+
+2026-10-01：CAM0精确CI36955364612 SUCCESS后，commerce原目录feat/central-campaign-operations按本契约实施。新增9有限CAMPAIGN能力，6已有动作绑定实际正content.version；目录/预算独立返回前复核，预览真实目标及结果返回前再次判权；原状态机/expectedVersion/不可变资产及客户预算履约保持。V64新增可空resource_version兼容旧审计，campaign审计必须实际正内容版本且无store_id；没有自动切换真实租户。SDK固定完整b311e4c5b3a89a41bf7cb939229b2a5400b6a2b9。V49—V64现已在专用测试库应用，不得修改已执行迁移。
+
+11真实MySQL专项PASS（含81独立HTTP边界、内容版本与锁版本、实际SQL审计失败回滚、原键、读取上下文、锁等待后期限、固定引用新鲜度与订单预算确认/释放）；完整69 XML共489测试，484PASS/5既有skip/0FAIL/ERROR。最终forceCreation with-ui包17嵌套模块/661类/510资源/45前端文件与当前编译制品字节一致；10源码/测试/SDK引用摘要保存。auth --campaigns串行真实演练47a2d78d80c5/子网118进行中，尚未终态，不把上述局部证据当CAM1 DONE。28P6工具/9契约及两仓hygiene无阻断；既有Java formatter/静态分析限制保留。
+
+第一次跨进程命令在任何隔离资源创建前被protocol归档字节栅栏拒绝，原因是SDK安装更新了模块归档；只强制重打包auth运行归档，4验证版源码不变，拒绝记录保留。当前真实演练仍需验证中央身份/Grant/审批/撤权/STOPPED/503与精确SQL，Git/CI未交付。
+
+
+## CAM1 最终本地验证
+
+CE05-CAM1本地DONE：9独立活动/预算能力、6实际正内容版本动作、独立目录/预算与真实预览已接入；V64版本审计与活动/预算/状态/原回执同事务。11真实MySQL专项（含81权限HTTP边界/实际SQL故障/锁等待期限）、完整489项484PASS/5既有skip、9契约/28工具及两仓hygiene无阻断。最终10源码/SDK摘要与17嵌套模块/661类/510资源/45前端文件/复制JAR一致。真实47a2d78d80c5/子网118已exit0，645检查点PASS（79活动标签），SQL再次核验13身份审计/实际内容版本1:3、7:6、8:4，v7 PAUSED/lock6、v8 PUBLISHED/lock3，客户订单在STOPPED后正常释放v8预算。自有进程/PG已停止，数据证据保留。Git/CI待交付；CAM2和其余CE05—08/auth接入资源展示未完成，原8602/OA及生产2HOLD保持。
+
+implementation-validation COMPLETED/PASS，必需后端验收全部通过；源码/测试/SDK引用10摘要未变。演练复制JAR为889b6fd5c6aec4c89171963636ba21f36b7a6b2c3c9efa1119c178e5b8b41512，实际运行档案与最终构建一致。旧所有者接口/订单预算确认和释放仍按可信事务执行，员工撤权不取消历史承诺；CAM2可见界面尚未实施，本片UI N/A。保留首轮制品字节拒绝及专项启动方式错误，未把失败命令算作PASS；真正通过的是11MySQL/489全仓及645实际跨进程。限制：Java formatter/静态分析未配置、5既有skip、未生产部署。
+
+私密结果campaigns-owner-test-result.json、sql-evidence.json、runtime-fence.json、auth-runtime-fence.json、10源码/演练源码摘要与两仓hygiene；所有数据/测试容器卷/私密身份证据保留。原V49—V64已在专用测试库应用不可改。
