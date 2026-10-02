@@ -5,11 +5,16 @@ import com.lrj.authz.governance.domain.AccessModels.Partition;
 import com.lrj.authz.governance.persistence.*;
 import com.lrj.authz.protocol.PortalDtos.*;
 import com.lrj.authz.protocol.RequestDtos.Page;
-import java.util.List;
+import java.util.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lrj.authz.governance.domain.PortalCatalogModels.*;
+import com.lrj.authz.protocol.ScopeResourceBindings;
+import com.lrj.authz.protocol.ScopeDtos.Kind;
 
 /** 管理表单与版本影响的有界读模型；复用原委派校验，不能自造管理权。 */
 public final class PortalManagement {
     private static final int PAGE_SIZE = 100;
+    private static final ObjectMapper STATE_JSON = new ObjectMapper();
     private final AccessManagement access;
     private final IdentityGovernance identity;
     private final AccessMapper grants;
@@ -19,6 +24,63 @@ public final class PortalManagement {
     /** 只读取本服务权威关系数据，普通读接口不调用外部工作流。 */
     public PortalManagement(AccessManagement access, IdentityGovernance identity, AccessMapper grants, CatalogMapper catalog, PortalMapper mapper) {
         this.access = access; this.identity = identity; this.grants = grants; this.catalog = catalog; this.mapper = mapper;
+    }
+
+    /** 两次新SQL基准重验资格；完整菜单可读不意味着可授予其全部能力。 */
+    public PublishedCatalog publishedCatalog(VerifiedLogin login, Partition p) {
+        var initial = access.authority(login, p);
+        var before = mapper.publishedCatalogBasis(p, login.issuer(), login.subject());
+        requireBasis(before, initial);
+        var manifest = CatalogManifest.read(before.manifestJson());
+        if (!manifest.application().equals(p.applicationId()) || manifest.manifestVersion() != before.manifestVersion()
+                || !CatalogManifest.hash(manifest).equals(before.contentHash())) {
+            throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE);
+        }
+        var allowed = AccessValues.read(before.capabilitiesJson());
+        var states = states(before.capabilityStatesJson(), manifest.capabilities().stream().map(c -> c.code()).toList());
+        var capabilities = manifest.capabilities().stream().map(c -> {
+            var state = states.get(c.code());
+            boolean disabled = state != null && state.disabled();
+            return new PublishedCapability(c.code(), c.resourceType(), c.riskLevel().name(), disabled, allowed.contains(c.code()) && !disabled);
+        }).toList();
+        var resources = capabilities.stream().map(PublishedCapability::resourceType).distinct().sorted().map(type ->
+                new PublishedResourceType(type, ScopeResourceBindings.supports(type),
+                    Arrays.stream(Kind.values()).filter(kind -> ScopeResourceBindings.allows(type, kind)).sorted(Comparator.comparing(Enum::name)).toList())).toList();
+        var menus = manifest.menus().stream().map(m -> new PublishedMenu(m.code(), m.parent(), m.route(), m.anyOf())).toList();
+        // 不能把清单摘要当作选项版本：委派缩减、成员变化和紧急开关也必须使旧选择失效。
+        String viewHash = AccessValues.hash(p.tenantId(), p.applicationId(), p.environment(), before.principalId(),
+                before.principalVersion(), before.tenantVersion(), before.membershipId(), before.generation(), before.membershipVersion(),
+                AccessValues.json(allowed), before.maxDurationSeconds(), before.manifestVersion(), before.contentHash(), before.capabilityStatesJson());
+        var latest = access.authority(login, p);
+        var after = mapper.publishedCatalogBasis(p, login.issuer(), login.subject());
+        requireBasis(after, latest);
+        if (!before.equals(after)) throw new GovernanceException(GovernanceException.Code.VERSION_CONFLICT);
+        return new PublishedCatalog(p.tenantId(), p.applicationId(), p.environment(), before.membershipId(), before.generation(),
+                before.maxDurationSeconds(), before.manifestVersion(), before.contentHash(), viewHash, menus, capabilities, resources);
+    }
+
+    /** 单语句资格必须与原管理用例一致，晚到撤权不允许返回旧选项。 */
+    private static void requireBasis(PublishedCatalogBasis basis, com.lrj.authz.governance.domain.AccessModels.Delegation authority) {
+        if (basis == null) throw new GovernanceException(GovernanceException.Code.ACCESS_DENIED);
+        if (!basis.membershipId().equals(authority.membershipId()) || basis.generation() != authority.generation()
+                || basis.maxDurationSeconds() != authority.maxDurationSeconds()
+                || !AccessValues.read(basis.capabilitiesJson()).equals(AccessValues.read(authority.capabilitiesJson()))) {
+            throw new GovernanceException(GovernanceException.Code.VERSION_CONFLICT);
+        }
+    }
+
+    /** 紧急状态只接受当前清单内的有限typed行，损坏数据不能静默当作未停用。 */
+    private static Map<String,CapabilityState> states(String json, List<String> codes) {
+        try {
+            var values = STATE_JSON.readValue(json, CapabilityState[].class);
+            if (values.length > 200) throw new IllegalArgumentException();
+            Map<String,CapabilityState> result = new HashMap<>();
+            for (var state : values) {
+                if (state == null || state.version() < 1 || !codes.contains(state.capability())
+                        || result.put(state.capability(), state) != null) throw new IllegalArgumentException();
+            }
+            return Map.copyOf(result);
+        } catch (Exception failure) { throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE); }
     }
 
     /** 所有表单选项来自当前清单和委派交集，禁用能力保留明确状态但不可新授予。 */

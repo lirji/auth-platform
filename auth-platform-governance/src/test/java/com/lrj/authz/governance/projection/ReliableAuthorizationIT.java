@@ -244,6 +244,8 @@ class ReliableAuthorizationIT {
     }
     @Test void emergencyCapabilityDisableIsOwnerOnlyAuditedIdempotentAndFencesEveryPartition(){
         var f=fixture();grant(f);project(f);String cap=f.p.applicationId()+".read",command=id();
+        // 先证明真实双水位与图已允许，避免用未就绪的固有拒绝冒充紧急停用门禁。
+        assertThat(second.reliableAuthorization(graph).allowed(context(f),cap,store(f,"S001"))).isTrue();
         var owner=runtime.identity().contextForLogin(f.login.issuer(),f.login.subject(),f.p.tenantId(),null);
         var other=new Partition(f.p.tenantId(),f.p.applicationId(),"second");
         runtime.access().bootstrap(other,new Delegation(owner.membershipId(),owner.membershipGeneration(),AccessValues.json(List.of(cap)),3600),"test",id());

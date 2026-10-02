@@ -5,6 +5,24 @@ import java.util.List;
 /** 门户管理展示契约不包含秘密；读取范围仍由服务端当前委派决定。 */
 public final class PortalDtos {
     private PortalDtos() {}
+    /** 元数据只表示当前可选项，不替代写入重验或业务访问判权。 */
+    public record PublishedCatalog(String tenantId, String applicationId, String environment,
+            String membershipId, long generation, long maxDurationSeconds,
+            long manifestVersion, String contentHash, String viewHash,
+            List<PublishedMenu> menus, List<PublishedCapability> capabilities,
+            List<PublishedResourceType> resourceTypes) {
+        public PublishedCatalog { menus=List.copyOf(menus); capabilities=List.copyOf(capabilities); resourceTypes=List.copyOf(resourceTypes); }
+    }
+    /** 父菜单仅作为浏览上下文，anyOf不是批量授权或角色模板。 */
+    public record PublishedMenu(String code, String parent, String route, List<String> anyOf) {
+        public PublishedMenu { anyOf=List.copyOf(anyOf); }
+    }
+    /** 全清单可读，超委派或停用项明确不可新选；原管理接口形状保持。 */
+    public record PublishedCapability(String code, String resourceType, String riskLevel, boolean disabled, boolean grantable) {}
+    /** 资源名来自实际清单，允许范围只来自协议绑定，不伪造业务实例目录。 */
+    public record PublishedResourceType(String code, boolean scopeSupported, List<ScopeDtos.Kind> allowedScopeKinds) {
+        public PublishedResourceType { allowedScopeKinds=List.copyOf(allowedScopeKinds); }
+    }
     /** 可授予集合只作为表单选项，写入时必须重新检查。 */
     public record Capability(String code, String resourceType, String riskLevel, boolean disabled) {}
     /** 业务权限与目录管理权分开；目录Owner不能由请求参数指定。 */

@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { validatePublishedCatalog } from '../governance/publishedCatalog'
 
 export interface Partition { tenant_id: string; application_id: string; environment: string }
 export interface AccessMenu { code: string; parent: string | null; href: string | null }
@@ -34,6 +35,14 @@ export async function applications(tenant: string, after?: string, signal?: Abor
 export interface Capability { code: string; resource_type: string; risk_level: string; disabled: boolean }
 export interface Management { membership_id: string; generation: number; max_duration_seconds: number; capabilities: Capability[];
   catalog_owner: boolean; manifest_version: number; policy_state: string; directory_state: string; desired_epoch: number | null; applied_epoch: number | null }
+export interface PublishedCapability extends Capability { grantable: boolean }
+export interface PublishedMenu { code: string; parent: string | null; route: string | null; any_of: string[] }
+export interface PublishedResourceType { code: string; scope_supported: boolean; allowed_scope_kinds: string[] }
+export interface PublishedCatalog extends Partition { membership_id: string; generation: number; max_duration_seconds: number;
+  manifest_version: number; content_hash: string; view_hash: string; menus: PublishedMenu[]; capabilities: PublishedCapability[]; resource_types: PublishedResourceType[] }
+/** 当前实际清单与委派选项有限返回；写入仍独立回源判权。 */
+export const publishedCatalog = async (p: Partition, signal?: AbortSignal): Promise<PublishedCatalog> =>
+  validatePublishedCatalog((await apiClient.get<PublishedCatalog>('/api/governance/v1/access/published-catalog', { params: p, signal })).data, p)
 export interface Member { membership_id: string; generation: number; member_kind: string; valid_to: string | null }
 export interface RoleImpact { role_id: string; previous_role_id: string | null; added: string[]; removed: string[]; referencing_grant_count: number }
 export interface ScopeRule { version: number; resource_type: string; clauses: { kind: string; values: string[]; include_root: boolean }[] }
