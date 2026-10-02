@@ -15,3 +15,7 @@
 Root currentGate05d215/Commerce355b0fe已补齐原71四来源和CE33的004Patch；RootAuth testeddef7/current305只有两docs变化，492原plan Source refs逐项复核；旧prepared和HTTPintent保持原值。本片Auth实际JARff464713/整包protocol104/core10/governance217/admin67/202主源、static源与assets均前后MATCH。Root完整Commerce当前770564f5制品/821编译/104protocol+12SDK属于前置GO证明，未冒称为本片重新运行Commerce业务。
 
 仅ownPopen已finally停止，21662/21665实际bind可用，所有其他Owner/root运行未动。本片仅本地提交，由Root正常有序集成/push main及精确远程CI。合并workflow保留IR/D2/pub三套现有注册；私密凭据0600、证据/data、target/dist及唯一Mavenrepo留本树供独立核查，尚不可清理工作树，不force删除或改共享缓存。
+
+## Root 正常 main 交付补记（2026-10-02）
+
+731efc4 / 3706c8e 已经由 Root 正常集成44b0b98并交付 main3958f14；精确 Auth CI37044087418 completed/SUCCESS。Commerce8237200 / CI37045250996也已 completed/SUCCESS（553实库/41浏览器PASS，5/20既有条件skip）。该补记只记录交付事实，原 Owner tested Source、Source-only gate 和实际隔离出版结果保持原值。整体终态及工作树保留记录见上级 DELIVERY_RESULT.md 与私密当前 Git/CI 回执。未生产部署。
