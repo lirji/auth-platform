@@ -11,6 +11,14 @@ const STATUS_LABEL: Record<ProjectPresentationStatus, string> = {
   'coming-soon': '即将开放',
 }
 
+const STATUS_HINT: Record<ProjectPresentationStatus, string | null> = {
+  available: null,
+  checking: '正在检测目标项目是否可访问',
+  unavailable: '目标项目当前无法访问，将自动重新检测',
+  maintenance: '项目正在维护，恢复后可从门户进入',
+  'coming-soon': '项目正在建设，开放后可从门户进入',
+}
+
 const DRAG_TYPE = 'text/plain'
 
 export function ProjectCard({
@@ -35,6 +43,7 @@ export function ProjectCard({
   onMoveBy: (delta: number) => void
 }) {
   const presentationStatus = projectPresentationStatus(project, reachability)
+  const statusHint = STATUS_HINT[presentationStatus]
   const link = projectLinkAttributes(project, reachability)
   const action = link ? (
     <a
@@ -110,7 +119,7 @@ export function ProjectCard({
           >
             <span aria-hidden="true">⋮⋮</span>
           </button>
-          <span className="project-icon"><ProjectIcon name={project.icon} /></span>
+          <span className="project-icon" data-icon={project.icon}><ProjectIcon name={project.icon} /></span>
         </div>
         <span className={`status status--${presentationStatus}`} aria-live="polite">{STATUS_LABEL[presentationStatus]}</span>
       </div>
@@ -127,6 +136,21 @@ export function ProjectCard({
           {project.tags.map((tag) => <span key={tag}>{tag}</span>)}
         </div>
       )}
+      {/* 提示区保持挂载，避免定时健康检测打断已经展开的阅读。 */}
+      {(project.roleInChain || project.loginOrgHint || project.ownerTenantHint) && (
+        <details className="project-details">
+          <summary>登录与使用提示</summary>
+          <dl className="federation-hints">
+            {project.roleInChain && <div><dt>在链路中</dt><dd>{project.roleInChain}</dd></div>}
+            {project.loginOrgHint && <div><dt>登录组织</dt><dd>{project.loginOrgHint}</dd></div>}
+            {project.ownerTenantHint && <div><dt>货主租户</dt><dd>{project.ownerTenantHint}</dd></div>}
+          </dl>
+          <p className="auth-hint">{project.ownerTenantHint
+            ? '各项目使用各自的登录组织；涉及货主的数据操作须选择同一业务租户。'
+            : '使用目标项目配置的组织账号登录，门户不会代为选择组织。'}</p>
+          {statusHint && <p className="auth-hint">{statusHint}</p>}
+        </details>
+      )}
       <div className="project-card__footer">
         <div>
           <span className="target-label">访问地址</span>
@@ -134,28 +158,6 @@ export function ProjectCard({
         </div>
         {action}
       </div>
-      {(project.roleInChain || project.loginOrgHint || project.ownerTenantHint) && presentationStatus === 'available' && (
-        <dl className="federation-hints">
-          {project.roleInChain && <div><dt>在链路中</dt><dd>{project.roleInChain}</dd></div>}
-          {project.loginOrgHint && <div><dt>登录组织</dt><dd>{project.loginOrgHint}</dd></div>}
-          {project.ownerTenantHint && <div><dt>货主租户</dt><dd>{project.ownerTenantHint}</dd></div>}
-        </dl>
-      )}
-      <p className="auth-hint">
-        {presentationStatus === 'checking'
-          ? '正在检测目标项目是否可访问'
-          : presentationStatus === 'unavailable'
-            ? '目标项目当前无法访问，将自动重新检测'
-            : presentationStatus === 'coming-soon'
-              ? '项目正在建设，开放后可从门户进入'
-              : presentationStatus === 'maintenance'
-                ? '项目正在维护，恢复后可从门户进入'
-                : project.ownerTenantHint
-                  ? '登录组织各台不同；创建活动只能看见同一货主已投放的商品'
-                  : project.loginOrgHint
-                    ? '进入后在目标项目登录页选择组织'
-                    : '点击进入即可使用，无需登录'}
-      </p>
     </article>
   )
 }
