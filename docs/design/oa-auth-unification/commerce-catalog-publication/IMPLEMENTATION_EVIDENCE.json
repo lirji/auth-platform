@@ -16,10 +16,10 @@
   ],
   "source_sha256": {
     ".github/workflows/authz-ci.yml": "9876b215d7de2538517620fdbf03a6c4b19defa18115250ddb671e5c5fb8e8a8",
-    "deploy/governance-commerce-publication.py": "9164794a4e141f2d76ea4528f9eabddff6d2cf71ea621ca80491111a00ea4ac7",
-    "deploy/governance-commerce-publication-runtime.py": "42de29fe82ddb40eb564463dc8406f86256a0dd60bb65bc99f11cd8e9e2e5ba2",
+    "deploy/governance-commerce-publication.py": "080712046b338a74d3d6f8c37050e3eb2380916d55beae49b97e10cabc551b1a",
+    "deploy/governance-commerce-publication-runtime.py": "2618ca9c0cd1869d573b8aace915be5b0b752909a724d44b424e2fc98edbcd48",
     "deploy/governance-commerce-publication-ui.mjs": "4fe1f07bf289846ff39f27d9493314ea6f928902b49ec9f8d66e95c81335da13",
-    "deploy/tests/test_governance_commerce_publication.py": "51a7635d54686f3dcaf818cfef991c697bcf86b56ce2914f79f13a265ed5d3fe"
+    "deploy/tests/test_governance_commerce_publication.py": "3241ae74d5d1f948b0e8e5b9d80c486e064f1382b8ee248446e9222ac09c1a38"
   },
   "dependency_source_sha256": {
     "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/ScopeDtos.java": "74ecda9ec5d42f525492e1052ccd659c9409dc7da29ec1f1e1c0978437586b4d",
@@ -39,12 +39,44 @@
     "log_path": "/Users/liruijun/.local/share/git-worktrees/auth-platform/integrated-resource-selector/.local/commerce-catalog-publication/shared-auth-combination/maven.log",
     "log_sha256": "1159cdd625491285778437f67bfb18021be2e72629100f6ab80496f0df4ea706"
   },
-  "tool_unit_tests": 22,
+  "tool_unit_tests": 23,
   "node_existing_ir_tests": 14,
   "python_syntax": "PASS",
   "node_syntax": "PASS",
   "yaml_existing_ci_registration": "PASS",
   "owner_publication_actual_http_sql_ui": "PENDING",
   "merged_source_and_ci": "PENDING_ROOT_ORDERED_INTEGRATION",
-  "current_followup": "SQL catalog v2/hash/full manifest + one publish audit,exact34 role audits,andprepared DB/identity resume checks;runtime stillpending Owner terminal"
+  "current_followup": "Whole nested Auth protocol/core/governance/admin compiled classes/resources fence bound to verified128 build; historical receipt formats retained;89 validated/33 final Owner evidence pending",
+  "whole_auth_artifact_fence": {
+    "status": "PASS",
+    "evidence": ".local/commerce-catalog-publication/own-auth-artifact-fence-v1.json",
+    "sha256": "430dfe5ccef1062f3bfe59e40f9bbadbd37c2fede36d9fba9ce389c177379761",
+    "validated_auth_source_commit": "d5ec8f5d50cacf187f7b7764c6d2661396e3cf41",
+    "compiled_entries": {
+      "protocol": 104,
+      "core": 10,
+      "governance": 217,
+      "admin": 67
+    },
+    "tracked_main_sources": 202
+  },
+  "owner_ready": 89,
+  "owner_pending": 33,
+  "root_existing71_journey18_integration_gate": {
+    "sha256": "2ee7316c6f740217c8367b8dd61bacfb27dad30165500c66a543ed95d052b0a7",
+    "path": "/Users/liruijun/personal/LLM/auth-platform/.local/governance/commerce-contracts/parallel-existing71-root-integration-gate.json",
+    "result": "PASS_ROOT_INTEGRATION_GATE_FOR_EXISTING71_AND_JOURNEY18",
+    "ci": [
+      [
+        37033427164,
+        "853e063b29634190be45d727bed83d610780e3c6",
+        "success"
+      ],
+      [
+        37033478131,
+        "4bc22e639782fdb8d6bbb4dd4942aa4124be6fff",
+        "success"
+      ]
+    ]
+  }
 }

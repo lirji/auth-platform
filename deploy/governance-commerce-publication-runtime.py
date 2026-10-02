@@ -16,6 +16,7 @@ import urllib.parse
 import urllib.request
 import uuid
 import zipfile
+from io import BytesIO
 
 ROOT = Path(__file__).resolve().parents[1]
 ISSUER = 'http://localhost:18090'
@@ -49,7 +50,48 @@ def stable_json(path, value):
         publication.save_private(path, value)
 
 
+def current_auth_artifact_fence(jar):
+    """整包依赖/每个编译类与已验证当前源码绑定；SDK单包或时间戳不能代替完整protocol。"""
+    proof_path = ROOT / '.local/commerce-catalog-publication/shared-auth-combination/test-result.json'
+    proof = publication.load(proof_path, private=True)
+    publication.require(proof['status'] == 'PASS' and proof['integration_tests'] == 128, 'validated current Auth combination required')
+    publication.require(publication.sha(Path(proof['log_path'])) == proof['log_sha256'], 'validated build log changed')
+    modules = ('protocol', 'core', 'governance', 'admin')
+    product_paths = ['pom.xml'] + [part for module in modules for part in ('auth-platform-' + module + '/src/main', 'auth-platform-' + module + '/pom.xml')]
+    result = subprocess.run(['git', '-C', str(ROOT), 'diff', '--quiet', proof['head'], '--', *product_paths], check=False)
+    publication.require(result.returncode == 0, 'Auth product source changed since validated build')
+    sources = {}
+    for module in modules:
+        for path in (ROOT / ('auth-platform-' + module) / 'src/main').rglob('*'):
+            if path.is_file():
+                relative = str(path.relative_to(ROOT))
+                try:
+                    subprocess.check_output(['git', '-C', str(ROOT), 'ls-files', '--error-unmatch', '--', relative], stderr=subprocess.DEVNULL)
+                except subprocess.CalledProcessError as error:
+                    raise ValueError('untracked Auth product source after validated build') from error
+                sources[relative] = publication.sha(path)
+    compiled = {}
+    with zipfile.ZipFile(jar) as archive:
+        for module in modules:
+            directory = ROOT / ('auth-platform-' + module)
+            artifact = directory / 'target' / ('auth-platform-' + module + '-0.1.0-SNAPSHOT.jar')
+            if module == 'admin':
+                nested, prefix = archive, 'BOOT-INF/classes/'
+            else:
+                body = archive.read('BOOT-INF/lib/' + artifact.name)
+                publication.require(body == artifact.read_bytes(), 'stale whole nested Auth dependency ' + module)
+                nested, prefix = zipfile.ZipFile(BytesIO(body)), ''
+            files = {str(path.relative_to(directory / 'target/classes')): publication.sha(path) for path in (directory / 'target/classes').rglob('*') if path.is_file()}
+            actual = {name[len(prefix):]: hashlib.sha256(nested.read(name)).hexdigest() for name in nested.namelist() if name.startswith(prefix) and not name.endswith('/') and not name[len(prefix):].startswith('META-INF/')}
+            expected = {name: digest for name, digest in files.items() if not name.startswith('META-INF/')}
+            publication.require(actual == expected, 'compiled class/resource differs from whole package ' + module)
+            compiled[module] = {'count': len(expected), 'sha256': expected, 'whole_jar_sha256': publication.sha(artifact)}
+    return {'status': 'PASS', 'validated_auth_source_commit': proof['head'], 'build_log_sha256': proof['log_sha256'], 'jar_sha256': publication.sha(jar), 'source_sha256': sources, 'compiled_modules': compiled}
+
+
 def main():
+    # 本次Popen/构建/浏览日志同样私密，不能只保护显式token检查点。
+    os.umask(0o077)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mapping', type=Path, required=True)
     parser.add_argument('--readiness', type=Path, required=True)
@@ -119,11 +161,8 @@ def main():
         return result.stdout.strip()
 
     jar = ROOT / 'auth-platform-admin/target/auth-platform-admin-0.1.0-SNAPSHOT.jar'
-    with zipfile.ZipFile(jar) as archive:
-        for module in ('protocol', 'core', 'governance'):
-            artifact = ROOT / ('auth-platform-' + module) / 'target' / ('auth-platform-' + module + '-0.1.0-SNAPSHOT.jar')
-            publication.require(archive.read('BOOT-INF/lib/' + artifact.name) == artifact.read_bytes(), 'stale packaged Auth dependency')
-    record('current packaged Auth protocol/core/governance nested artifacts match worktree')
+    stable_json(run / 'auth-artifact-fence.json', current_auth_artifact_fence(jar))
+    record('whole nested protocol/core/governance and admin compiled classes/resources match validated current Auth source')
 
     def cli(name, *inputs):
         """沿用Governance/Catalog/AccessBootstrap入口，不直接SQL伪造catalog或Role。"""

@@ -65,6 +65,17 @@ def source_file(roots, reference):
     return path
 
 
+def terminal_pass(receipt):
+    """沿用项目既有真实回执形状：PASS对象或非空逐项PASS列表，不重写历史报告伪造统一格式。"""
+    if isinstance(receipt, list):
+        return bool(receipt) and all(isinstance(check, dict) and check.get("result") == "PASS" and check.get("check") for check in receipt)
+    if not isinstance(receipt, dict):
+        return False
+    if receipt.get("status") not in {None, "PASS", "COMPLETED"}:
+        return False
+    return receipt.get("status") == "PASS" or receipt.get("result") == "PASS"
+
+
 def verified_proof(proof, roots):
     """终验声明必须同时绑定提交、当前源码及实际PASS回执；迁移/enum自身不是交付证据。"""
     require(proof.get("status") == "OWNER_TERMINAL_VALIDATION_PASS", "Owner terminal validation required")
@@ -89,7 +100,7 @@ def verified_proof(proof, roots):
     for reference in proof["receipts"]:
         path = source_file(roots, reference)
         receipt = load(path)
-        require(receipt.get("status") == "PASS", "actual terminal PASS receipt required")
+        require(terminal_pass(receipt), "actual terminal PASS receipt required")
     return True
 
 

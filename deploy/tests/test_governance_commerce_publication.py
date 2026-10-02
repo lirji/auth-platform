@@ -106,6 +106,14 @@ class CommercePublicationTest(unittest.TestCase):
         self.readiness['proofs']['owner']['capabilities'].append('commerce.unknown')
         self.reject()
 
+    def test_real_historical_pass_shapes_are_preserved_without_relabel(self):
+        for receipt in [{'result': 'PASS'}, {'status': 'COMPLETED', 'result': 'PASS'}, [{'check': 'actual original typed port', 'result': 'PASS'}]]:
+            path=self.root/'receipt.json';path.write_text(json.dumps(receipt));self.receipt['sha256']=publisher.sha(path)
+            self.assertEqual(self.build()['status'], 'READY_FOR_ISOLATED_OWNER_PUBLICATION')
+        for receipt in [[], [{'check': 'failure', 'result': 'FAIL'}], {'status':'FAIL','result':'PASS'}]:
+            path=self.root/'receipt.json';path.write_text(json.dumps(receipt));self.receipt['sha256']=publisher.sha(path)
+            self.reject()
+
     def test_navigation_growth_cannot_be_silently_omitted(self):
         path = self.root / "frontend/src/iam/navigation.ts"
         path.write_text(path.read_text().replace(']]}', '],["/operations/new","新页"]]}'))
