@@ -37,6 +37,15 @@ public final class ExecutionAuthorization {
     private static final Set<String> AUDIENCE_CAPABILITIES = Set.of("audience.read", "audience.create");
     private static final Set<String> SEGMENT_CAPABILITIES = Set.of("segment.read", "segment.create", "segment.schedule", "segment.refresh", "segment.control", "segment.pump");
     private static final Set<String> SEGMENT_COLLECTION_ONLY = Set.of("segment.create", "segment.pump");
+    private static final Set<String> STORE_OPERATION_CAPABILITIES = Set.of("order.read", "order.expire", "order.expiry.retry", "payment.read", "payment.reconcile",
+            "fulfillment.read", "fulfillment.ship", "fulfillment.deliver", "aftersale.read", "aftersale.approve", "aftersale.reject", "aftersale.receive_return", "refund.read", "refund.reconcile");
+    private static final Set<String> OPS_PAGE_CAPABILITIES = Set.of("ops_page.read", "ops_page.create", "ops_page.preview", "ops_page.submit", "ops_page.approve",
+            "ops_page.reject", "ops_page.publish", "ops_page.pause", "ops_page.rollback", "ops_page.execute");
+    private static final Set<String> RUNTIME_CAPABILITIES = Set.of("event.read", "event.retry", "event.pump", "runtime.read", "runtime.recover",
+            "runtime.replay.preview", "runtime.replay.create", "runtime.replay.control");
+    private static final Set<String> RUNTIME_COLLECTION_ONLY = Set.of("event.pump", "runtime.replay.preview", "runtime.replay.create");
+    // 重放24小时只限原有限授权来源；它不是历史事件31天范围或业务完成承诺。
+    private static final long REPLAY_EXECUTION_MAX_SECONDS = 86400L + 60;
     private static final Set<String> JOURNEY_CAPABILITIES = Set.of("journey.create", "journey.validate", "journey.preview", "journey.read",
             "journey.submit", "journey.approve", "journey.reject", "journey.publish", "journey.pause", "journey.pump");
     private static final Set<String> JOURNEY_COLLECTION_ONLY = Set.of("journey.create", "journey.validate", "journey.read", "journey.pump");
@@ -81,6 +90,7 @@ public final class ExecutionAuthorization {
         else if (COUPON_DELIVERY_DURABLE_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(check.capability())))
             maximumSeconds = COUPON_DELIVERY_EXECUTION_MAX_SECONDS;
         else if ((context.applicationId() + ".journey_instance.create").equals(check.capability())) maximumSeconds = JOURNEY_EXECUTION_MAX_SECONDS;
+        else if ((context.applicationId() + ".runtime.replay.create").equals(check.capability())) maximumSeconds = REPLAY_EXECUTION_MAX_SECONDS;
         else maximumSeconds = inventory || scoped ? SYNC_MAX_SECONDS : MAX_SECONDS;
         if(until.getNano()%1000!=0||!until.isAfter(now)||until.isAfter(now.plusSeconds(maximumSeconds)))throw error(INVALID_ARGUMENT);
         var result=access.evaluate(context,check.capability(),check.resourceType());
@@ -129,8 +139,10 @@ public final class ExecutionAuthorization {
         boolean journeyInstance = ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE.equals(row.resourceType());
         boolean journeyScan = ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE.equals(row.resourceType());
         boolean report = ScopeDtos.MARKETING_REPORT_RESOURCE_TYPE.equals(row.resourceType());
+        boolean opsPage = ScopeDtos.OPS_PAGE_RESOURCE_TYPE.equals(row.resourceType());
+        boolean runtime = ScopeDtos.COMMERCE_RUNTIME_RESOURCE_TYPE.equals(row.resourceType());
         if(facts == null || !context.tenantId().equals(facts.tenantId()) || !row.resourceType().equals(facts.resourceType())
-                || (!member && !policy && !offer && !couponDefinition && !couponDelivery && !entitlementDefinition && !entitlement && !rule && !audience && !segment && !campaign && !journey && !journeyInstance && !journeyScan && !report && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
+                || (!member && !policy && !offer && !couponDefinition && !couponDelivery && !entitlementDefinition && !entitlement && !rule && !audience && !segment && !campaign && !journey && !journeyInstance && !journeyScan && !report && !opsPage && !runtime && !ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())) || !ScopeResourceBindings.validFacts(facts)) throw error(INVALID_ARGUMENT);
         // 政策、券/权益定义和人群快照只提供版本目录/追加创建集合许可，不构造成员或单个版本事实。
         if(policy || couponDefinition || entitlementDefinition || audience || report) throw error(ACCESS_DENIED);
         if(member && (!MEMBER_CAPABILITIES.stream().anyMatch(s -> (context.applicationId() + "." + s).equals(row.capability()))
@@ -158,6 +170,10 @@ public final class ExecutionAuthorization {
         if (journeyInstance && (JOURNEY_INSTANCE_CAPABILITIES.stream().noneMatch(v -> (context.applicationId()+"."+v).equals(row.capability()))
                 || (context.applicationId()+".journey_instance.create").equals(row.capability()))) throw error(ACCESS_DENIED);
         if (journeyScan && !(context.applicationId()+".journey_scan.retry").equals(row.capability())) throw error(ACCESS_DENIED);
+        if(opsPage && (OPS_PAGE_CAPABILITIES.stream().noneMatch(v -> (context.applicationId()+"."+v).equals(row.capability()))
+                || (context.applicationId()+".ops_page.create").equals(row.capability())))throw error(ACCESS_DENIED);
+        if(runtime && (RUNTIME_CAPABILITIES.stream().noneMatch(v -> (context.applicationId()+"."+v).equals(row.capability()))
+                || RUNTIME_COLLECTION_ONLY.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(row.capability()))))throw error(ACCESS_DENIED);
         var current=access.evaluate(context,row.capability(),row.resourceType());
         var original=read(row.pathsJson(),Paths.class);
         // 目录资格可能先移除再恢复同一个组Grant；绑定目录版本，防止旧后台任务借此复活。
@@ -192,6 +208,9 @@ public final class ExecutionAuthorization {
     }
     /** 精确能力与类型绑定；名称相似或未知后缀不能取得执行权。 */
     private static String scopedType(AccessContext context, String capability) {
+        if(STORE_OPERATION_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.STORE_RESOURCE_TYPE;
+        if(OPS_PAGE_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.OPS_PAGE_RESOURCE_TYPE;
+        if(RUNTIME_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.COMMERCE_RUNTIME_RESOURCE_TYPE;
         if(JOURNEY_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.JOURNEY_RESOURCE_TYPE;
         if(JOURNEY_INSTANCE_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE;
         if(JOURNEY_SCAN_CAPABILITIES.stream().anyMatch(v -> (context.applicationId()+"."+v).equals(capability))) return ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE;
@@ -211,7 +230,9 @@ public final class ExecutionAuthorization {
     }
     /** 创建资源不能拼接若干指定资源路径当成对未来对象的全租户授权。 */
     private static List<Alternative> permitted(AccessContext context, String capability, List<Alternative> paths) {
-        if(!ScopeDtos.JOURNEY_RESOURCE_TYPE.equals(scopedType(context, capability))
+        if(!ScopeDtos.OPS_PAGE_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.COMMERCE_RUNTIME_RESOURCE_TYPE.equals(scopedType(context, capability))
+                && !ScopeDtos.JOURNEY_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE.equals(scopedType(context, capability))
                 && !ScopeDtos.MARKETING_REPORT_RESOURCE_TYPE.equals(scopedType(context, capability))
