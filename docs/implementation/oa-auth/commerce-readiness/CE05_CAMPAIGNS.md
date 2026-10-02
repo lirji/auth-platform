@@ -1,6 +1,6 @@
 # CE05-CAM 活动与预算验证
 
-原已批准CE05权限切片的技术细化见[活动契约](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_CAMPAIGNS.md)。当前CAM0本地DONE，Git/CI待交付；CAM1业务和CAM2页面尚未实现，原CE05—08及auth菜单资源展示目标不缩小。
+原已批准CE05权限切片的技术细化见[活动契约](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_CAMPAIGNS.md)。当前CAM0本地DONE，Git已交付b311e4c、CI36955364612 SUCCESS已核验；CAM1业务和CAM2页面尚未实现，原CE05—08及auth菜单资源展示目标不缩小。
 
 | 验收 | 实际结果 | 证据 |
 |---|---|---|
@@ -14,4 +14,4 @@
 
 最后安装使用-DskipTests仅更新打包档案，并复用此前不变源码的252/15/Boot4证据，不声称重复测试已运行。专用PG已finally停止，既有共享SpiceDB/业务8602/OA保持。无新DDL/组件/依赖/JSON格式。具体私密证据均在auth `.local/governance/commerce-contracts/campaigns-core-*`；不提交账号或测试Token。
 
-implementation-validation COMPLETED/PASS；CAM0 DONE（本地）。Git/CI待交付，CAM1只有该门禁完成后开始实施；生产目标/映射/Owner/部署授权沿原HOLD。
+implementation-validation COMPLETED/PASS；CAM0 DONE（本地）。Git已交付b311e4c、CI36955364612 SUCCESS已核验，CAM1只有该门禁完成后开始实施；生产目标/映射/Owner/部署授权沿原HOLD。

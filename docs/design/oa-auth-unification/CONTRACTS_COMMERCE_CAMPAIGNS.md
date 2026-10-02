@@ -4,7 +4,7 @@
 
 | ID | 结果 | Needs / Owner | 范围与验收 | 状态 |
 |---|---|---|---|---|
-| CE05-CAM0 | auth稳定campaign常量与9个有限执行能力 | 已交付CE05-A0/A1；auth protocol/governance | HUMAN/60秒，类型/能力精确；3集合许可、6实际版本动作；拒绝交换/未知/伪门店/部分范围/非正内容版本；原路径、代际、撤权重授与期限；真实PG/图、SDK及旧能力回归 | DONE（本地） |
+| CE05-CAM0 | auth稳定campaign常量与9个有限执行能力 | 已交付CE05-A0/A1；auth protocol/governance | HUMAN/60秒，类型/能力精确；3集合许可、6实际版本动作；拒绝交换/未知/伪门店/部分范围/非正内容版本；原路径、代际、撤权重授与期限；真实PG/图、SDK及旧能力回归 | DONE（含Git/CI） |
 | CE05-CAM1 | commerce独立CAMPAIGN族与实际Owner/同事务审计 | CAM0验证及Git交付；commerce runtime/marketing/app | 9能力独立、原回执前范围/期限/路由；实际版本/状态锁区分、预算列表、实际预览无预占；创建/状态变更与身份审计同事务、SQL故障回滚、跨租户/原键/撤权/STOPPED/503、旧订单预算履约兼容；真实MySQL及跨进程 | TODO |
 | CE05-CAM2 | 固定SSO活动/预算入口及完整动作反馈 | CAM1验证交付；frontend/app | 沿现有Craft/AntD，真实目录与独立预算、创建/预览/审批/发布/暂停权限；结构化字段及实际预览，不编造选项；每个未知命令原键/体恢复、当前内容版本与锁版本展示；1440/390关联表单/预览/反馈/确认实际查看、真实PKCE/401/403/503/SQL | TODO |
 
@@ -38,7 +38,7 @@ V49—V63已应用不可改；CAM1只追加新迁移，序号实施前再核对�
 - commerce：CampaignService真实Owner和命令、CampaignFundingService员工列表、EmployeeAccess/EmployeeAuthority族与中央Filter；CampaignMapper/BudgetMapper数据由marketing-runtime维护。
 - 事实依据：CampaignApi/Draft/View/Preview、CampaignService/create/list/preview/review/change/validatePublication，CampaignMapper.xml锁和唯一发布，CampaignFundingService的MANDATORY订单事务；既有两个Controller路径。以上为现有行为核对，不把设计当已实现。
 
-当前CAM0本地验证DONE、Git/CI待交付，CAM1/CAM2未实现；A2精确CI仍在运行。整个CE05—08及auth菜单资源展示目标保持，生产目标/Owner/映射与实际部署授权沿原HOLD。
+当前CAM0本地验证DONE、Git已交付b311e4c、CI36955364612 SUCCESS已核验，CAM1/CAM2未实现；A2两仓精确CI已SUCCESS。整个CE05—08及auth菜单资源展示目标保持，生产目标/Owner/映射与实际部署授权沿原HOLD。
 
 
 ## CAM0 最终本地验证（2026-10-01）

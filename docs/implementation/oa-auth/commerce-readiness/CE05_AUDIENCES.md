@@ -1,6 +1,6 @@
 # CE05-A 人群权限验证与交付
 
-当前切片 CE05-A2，本地验证 DONE，Git/CI 待交付；A1 的 Git/CI 已交付。范围以 [人群契约](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_AUDIENCES.md) 为准，A2 的本地必需验证已通过；远程交付及其余 CE05—08 仍未完成。本记录不替代原执行计划。
+当前切片 CE05-A2，完整交付DONE；A1 的 Git/CI 已交付。范围以 [人群契约](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_AUDIENCES.md) 为准，A2 的本地必需验证已通过；其余 CE05—08 仍未完成。本记录不替代原执行计划。
 
 ## 当前验证（2026-10-01）
 
@@ -56,3 +56,8 @@ CE05-A2本地DONE：固定人群目录/创建两Tab与独立创建提示；8项�
 | 质量与边界 | PASS_WITH_LIMITATIONS：前端Prettier通过；两仓无阻断，Java formatter/静态分析未配置，auth脚本有既有风格180秒timeout advisory | 两仓最终hygiene JSON；非必需完整辅助技术/原生软键盘/beforeunload实操未验证 |
 
 本片状态转换：implementation-validation COMPLETED/PASS；必需验收全部PASS，A2 DONE（本地），远程Git/CI另行记录。原运行实例/授权数据不切换；证据、数据库、私密IdP和失败记录保留，不执行清理。全目标不缩为人群一片。
+
+
+## A2 最终Git/CI
+
+CE05-A2完整交付DONE：auth aa117462c5eed9242c86bb24dc1b81c4feb556df / commerce51c771b336adc348007b1fad122f7632b4f576d8均正常推任务分支及main，精确CI36954769355/36954777665 SUCCESS已核验。647实际检查点/11人群浏览器/11已查看截图与478回归证据保持；首轮594后401夹具失败记录保留。下一CE05-CAM0已在auth提交b311e4c并正常推main，精确CI36955364612 SUCCESS已核验；商城CAM1仅完成源影响分析，未改产品代码。
