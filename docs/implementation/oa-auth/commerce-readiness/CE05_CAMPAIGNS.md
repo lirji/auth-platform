@@ -1,3 +1,5 @@
+> **2026-10-01 CAM1交付更新**：CAM1完整Git/CI DONE：auth356d8b909485c774ac1d80bf45e7bb9b3dc5ad0a精确CI36957876071、commerce604023206d18feb1c23bec91069e259333160a93精确CI36957875268均completed/SUCCESS。源码与本地验证版本一致，CAM2依赖门禁满足；其余CE05—08及接入菜单资源目标未完成。
+
 # CE05-CAM 活动与预算验证
 
 原已批准CE05权限切片的技术细化见[活动契约](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_CAMPAIGNS.md)。当前CAM0本地DONE，Git已交付b311e4c、CI36955364612 SUCCESS已核验；CAM1本地验证DONE、Git/CI待交付，CAM2页面尚未实现，原CE05—08及auth菜单资源展示目标不缩小。

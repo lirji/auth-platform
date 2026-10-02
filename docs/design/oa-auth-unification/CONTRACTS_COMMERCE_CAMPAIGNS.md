@@ -5,7 +5,7 @@
 | ID | 结果 | Needs / Owner | 范围与验收 | 状态 |
 |---|---|---|---|---|
 | CE05-CAM0 | auth稳定campaign常量与9个有限执行能力 | 已交付CE05-A0/A1；auth protocol/governance | HUMAN/60秒，类型/能力精确；3集合许可、6实际版本动作；拒绝交换/未知/伪门店/部分范围/非正内容版本；原路径、代际、撤权重授与期限；真实PG/图、SDK及旧能力回归 | DONE（含Git/CI） |
-| CE05-CAM1 | commerce独立CAMPAIGN族与实际Owner/同事务审计 | CAM0验证及Git交付；commerce runtime/marketing/app | 9能力独立、原回执前范围/期限/路由；实际版本/状态锁区分、预算列表、实际预览无预占；创建/状态变更与身份审计同事务、SQL故障回滚、跨租户/原键/撤权/STOPPED/503、旧订单预算履约兼容；真实MySQL及跨进程 | DONE（本地） |
+| CE05-CAM1 | commerce独立CAMPAIGN族与实际Owner/同事务审计 | CAM0验证及Git交付；commerce runtime/marketing/app | 9能力独立、原回执前范围/期限/路由；实际版本/状态锁区分、预算列表、实际预览无预占；创建/状态变更与身份审计同事务、SQL故障回滚、跨租户/原键/撤权/STOPPED/503、旧订单预算履约兼容；真实MySQL及跨进程 | DONE（含Git/CI） |
 | CE05-CAM2 | 固定SSO活动/预算入口及完整动作反馈 | CAM1验证交付；frontend/app | 沿现有Craft/AntD，真实目录与独立预算、创建/预览/审批/发布/暂停权限；结构化字段及实际预览，不编造选项；每个未知命令原键/体恢复、当前内容版本与锁版本展示；1440/390关联表单/预览/反馈/确认实际查看、真实PKCE/401/403/503/SQL | TODO |
 
 三个切片串行；不新建工作树或子Agent，不改变模块/数据权威或基础设施。CAM2提示入口与最终界面配方在CAM1真实契约可用后按既有前端设计细化，不能在CAM0编造JSON或开发UI。
@@ -68,3 +68,48 @@ CE05-CAM1本地DONE：9独立活动/预算能力、6实际正内容版本动作�
 implementation-validation COMPLETED/PASS，必需后端验收全部通过；源码/测试/SDK引用10摘要未变。演练复制JAR为889b6fd5c6aec4c89171963636ba21f36b7a6b2c3c9efa1119c178e5b8b41512，实际运行档案与最终构建一致。旧所有者接口/订单预算确认和释放仍按可信事务执行，员工撤权不取消历史承诺；CAM2可见界面尚未实施，本片UI N/A。保留首轮制品字节拒绝及专项启动方式错误，未把失败命令算作PASS；真正通过的是11MySQL/489全仓及645实际跨进程。限制：Java formatter/静态分析未配置、5既有skip、未生产部署。
 
 私密结果campaigns-owner-test-result.json、sql-evidence.json、runtime-fence.json、auth-runtime-fence.json、10源码/演练源码摘要与两仓hygiene；所有数据/测试容器卷/私密身份证据保留。原V49—V64已在专用测试库应用不可改。
+
+
+## CAM2 页面与提示技术细化（门禁满足，实施中）
+
+CAM1本地必需验证已PASS、commerce604023206d18feb1c23bec91069e259333160a93/auth356d8b909485c774ac1d80bf45e7bb9b3dc5ad0a正常合并推main，精确CI36957875268/36957876071均SUCCESS，依赖门禁满足。以下细化绑定上述实际接口/DTO，CAM2正在实施，尚未验收。
+
+### 固定入口与信息结构
+
+- `/operations/campaigns?tenant_id=...`：沿现有Craft中央壳，活动目录、创建草稿、版本操作三Tab。目录只请求campaign.read，按实际campaignId稳定游标列最新不可变content.version；显示实际名称/门店/状态/内容版本/状态锁版本及有效期。不得把旧内容版本从最新列表猜出来。
+- `/operations/campaign-budgets?tenant_id=...`：独立budget.read，显示全部实际内容版本预算的budgetId、campaignId、version、cap、held、spent，按budgetId分页；不请求campaign.read，也没有预算调整动作。
+- 版本操作支持从真实目录行填充，也支持只有写/预览权限时手填实际campaignId、正content.version和非负expectedVersion。内容版本用于定位事实，expectedVersion明确标注为状态锁版本；修改目标不延用其他对象的未知命令。
+- 无读取资格时该目录显示明确权限反馈；动作/创建Tab按各自独立资格可用，不以是否能读取目录作为门槛。预算人员能够独立进入预算页。两固定导航只表示入口，服务端仍执行业务授权。
+
+### 七个独立资格提示
+
+沿现有AudienceActionsController的最小DTO，分别新增GET `/v1/operations/campaigns/{create|preview|submit|approve|reject|publish|pause}-access` **七个字面方法路径**，各自只返回`{allowed:true}`，不返回许可/Token/Grant/业务数据。每个入口只对应同名campaign能力，OPERATOR/executionId要求及scope/返回前requireSame与现有提示一致；403为明确无资格、401失效、503依赖故障。没有hint就不能猜测有权，真实业务提交/预览仍追加实际Owner判权与原业务校验。
+
+这些提示是集合资格，不证明某个对象状态适合操作，不返回跨动作聚合许可；不需要campaign.read、member.read、store目录read或其他写能力。CentralEmployeeConfiguration登记GET字面白名单，POST继续六实际动作有限映射。实施后HTTP_INVENTORY与bindings从真实源生成/核对：262→269，122能力/34角色及published:false保持。设计阶段不改清单计数或模拟已存在路由。
+
+### 真实DTO与编辑配方
+
+创建沿CampaignApi.Draft原字段：手填实际storeId（不依赖门店read）、campaignId/正版本/名称/本地时区有效期/精确金额字符串，复用纯RuleEditor生成可信技术节点；它的14字段/有限类型与操作符已存在源码，不编造会员等级/规则资产/人群/门店选项。可填固定已发布规则、固定人群的实际ID/正版本；Terms沿原百分比万分比、资方比例、正预算及互斥权益/券引用、精细价格策略，券滚动开关继续由服务端拒绝，不能由页面绕过。较长创建表单按基础信息、资格与固定引用、优惠与预算、权益/商品价格配置组织；结果展示真实Draft/View及状态，不把创建成功当作已审批/发布。
+
+预览沿原Preview：实际memberId、1—100项SKU与每项/合并数量1—10000、可选模拟时间和includePublishedCompetition。返回实际PreviewResult的金额、行明细、trace、sources、新鲜度/竞争notice和selected；不将预览显示为正式报价或预占成功，不存造价结果。模拟时间不回溯会员当前事实，服务端仍用真实会员/门店/已发布SKU与固定规则。
+
+状态操作只允许submit/approve/reject/publish/pause；请求体原`{expectedVersion}`，实际URL保留content.version。表单不增加OA逐笔审批、自审批禁止、预算阈值或强制原因字段；说明原状态冲突及预计版本由服务端裁决。成功展示返回的实际状态/lockVersion，409保留可修正输入并重新读取自己的目录资格；未知结果继续用原意图重试。
+
+### 命令、关闭与反馈
+
+每个创建/状态命令的key、body和目标URL冻结；unknown/busy禁改目标和载荷，不新key，跨Tab/取消退出仍保留原意图。独立hint在提交前重新核验，但不将hint复用为授权。401卸载全部敏感视图；403隐藏对应写操作，503不降级成旧ADMIN或ALLOW，并支持重新核验；unknown结果即便遇到后续403/503也不能悄悄换新意图。确定409可以编辑，确定成功只显示服务端实际回执；不能把网络/解析异常当未提交或自动重复新命令。
+
+编辑/预览/动作确认沿现有居中弹层规范，标题与底部操作固定、长正文内部滚动；主动作每组一个，手机390/320保留边距，表格内部横滚。关闭、切Tab、退出和同页导航遵循当前中央脏表单/unknown保护，取消退出后原键体不变。目录/预算刷新与稳定游标、详情目标保持清晰；按钮显示只作提示，不能替代后端权限和状态判断。
+
+### CAM2 必需验证
+
+七提示分别200/403/401/503且无身份审计写入，读/其他动作不隐含提示。真实MySQL保持CAM1的状态/版本/原键/审计语义，完整后端及前端构建/格式通过；9契约/28工具及269真实入口核对。新client必须限制方法、精确路径/参数和目标类型，不复用旧ADMIN request边界。
+
+基于最终制品的真实PKCE浏览器覆盖create-only、preview-only、reviewer、publisher、campaign-read-only、budget-only：结构化创建、实际预览及原state动作、409与丢已提交响应后原键体重试、切Tab/取消退出、跨租户/撤权/401卸载/真实中央停服503。实际SQL核验成功次数/内容版本和无重复审计，预览无报价/预占/发权益。1440/390实际查看目录/预算/创建/版本操作/预览trace与来源/成功/409/unknown/未保存确认/拒绝状态，320补布局；视觉与行为分别记录，不能以构建或截图代替交互。
+
+当前CAM2仍TODO；实现须等CAM1精确CI36957875268/36957876071完成，使用原目录任务分支，无新子Agent/工作树。所有剩余CE05—08及auth接入项目菜单资源展示目标保持。
+
+
+## CAM1最终交付
+
+CAM1完整Git/CI DONE：auth356d8b909485c774ac1d80bf45e7bb9b3dc5ad0a精确CI36957876071、commerce604023206d18feb1c23bec91069e259333160a93精确CI36957875268均completed/SUCCESS。源码与本地验证版本一致，CAM2依赖门禁满足；其余CE05—08及接入菜单资源目标未完成。
