@@ -43,6 +43,14 @@ class ScopeResourceBindingsTest {
         assertThat(ScopeResourceBindings.validFacts(facts("store", "S1"))).isFalse();
         assertThat(ScopeResourceBindings.validFacts(facts("product", "S1"))).isTrue();
     }
+    /** 批次进度锁初始为0，不能冒充实际不可变内容事实。 */
+    @Test void couponDeliveryFactsRequirePositiveContentVersion() {
+        for (long version : List.of(0L, -1L))
+            assertThat(ScopeResourceBindings.validFacts(new Facts("T1", ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE,
+                    "BATCH-1", version, null, null, List.of(), null, null))).isFalse();
+        assertThat(ScopeResourceBindings.validFacts(new Facts("T1", ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE,
+                "BATCH-1", 1, null, null, List.of(), null, null))).isTrue();
+    }
     @Test void unknownAndUnboundOwnerFieldsFailClosed() {
         assertThat(ScopeResourceBindings.allows("new_unregistered_type", Kind.TENANT_ALL)).isFalse();
         assertThat(ScopeResourceBindings.supports(null)).isFalse();

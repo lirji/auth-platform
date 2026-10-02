@@ -8,7 +8,7 @@ import com.lrj.authz.protocol.ScopeDtos.Kind;
 public final class ScopeResourceBindings {
     private static final Set<String> TENANT_ONLY = Set.of(
             ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE, ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE, "commerce_runtime", "commerce_tenant",
-            ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE, ScopeDtos.MARKETING_RULE_RESOURCE_TYPE, ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE, ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE, ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE, "coupon_delivery",
+            ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE, ScopeDtos.MARKETING_RULE_RESOURCE_TYPE, ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE, ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE, ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE, ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE,
             ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE, ScopeDtos.ENTITLEMENT_RESOURCE_TYPE, ScopeDtos.POINT_OFFER_RESOURCE_TYPE, "journey", "journey_instance",
             "journey_scan", "ops_page", "marketing_report");
 
@@ -32,8 +32,9 @@ public final class ScopeResourceBindings {
         if (facts == null || !supports(facts.resourceType()) || !resourceId(facts.resourceId())
                 || facts.resourceVersion() < 0 || facts.ownerPrincipalId() != null || facts.departmentId() != null
                 || facts.supplierId() != null || facts.departmentAncestors() == null || !facts.departmentAncestors().isEmpty()) return false;
-        // 活动内容和人群定义从正版本开始，不能用初始调度/状态锁版本0冒充事实版本。
+        // 活动、人群和发券批次内容从正版本开始，不能用初始进度/状态锁版本0冒充事实版本。
         if ((ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE.equals(facts.resourceType())
+                || ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE.equals(facts.resourceType())
                 || ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE.equals(facts.resourceType())) && facts.resourceVersion() == 0) return false;
         if (!storeBound(facts.resourceType())) return facts.storeId() == null;
         return resourceId(facts.storeId()) && (!ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())
