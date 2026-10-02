@@ -7,10 +7,10 @@ import com.lrj.authz.protocol.ScopeDtos.Kind;
 /** 有限资源字段绑定由协议固定；清单声明资源名不等于获准解释任意归属字段。 */
 public final class ScopeResourceBindings {
     private static final Set<String> TENANT_ONLY = Set.of(
-            ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE, ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE, "commerce_runtime", "commerce_tenant",
+            ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE, ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE, ScopeDtos.COMMERCE_RUNTIME_RESOURCE_TYPE, ScopeDtos.COMMERCE_TENANT_RESOURCE_TYPE,
             ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE, ScopeDtos.MARKETING_RULE_RESOURCE_TYPE, ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE, ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE, ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE, ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE,
-            ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE, ScopeDtos.ENTITLEMENT_RESOURCE_TYPE, ScopeDtos.POINT_OFFER_RESOURCE_TYPE, "journey", "journey_instance",
-            "journey_scan", "ops_page", "marketing_report");
+            ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE, ScopeDtos.ENTITLEMENT_RESOURCE_TYPE, ScopeDtos.POINT_OFFER_RESOURCE_TYPE, ScopeDtos.JOURNEY_RESOURCE_TYPE, ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE,
+            ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE, ScopeDtos.OPS_PAGE_RESOURCE_TYPE, ScopeDtos.MARKETING_REPORT_RESOURCE_TYPE);
 
     private ScopeResourceBindings() {}
 
@@ -35,7 +35,11 @@ public final class ScopeResourceBindings {
         // 活动、人群和发券批次内容从正版本开始，不能用初始进度/状态锁版本0冒充事实版本。
         if ((ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE.equals(facts.resourceType())
                 || ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE.equals(facts.resourceType())
-                || ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE.equals(facts.resourceType())) && facts.resourceVersion() == 0) return false;
+                || ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE.equals(facts.resourceType())
+                || ScopeDtos.JOURNEY_RESOURCE_TYPE.equals(facts.resourceType())
+                || ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE.equals(facts.resourceType())
+                || ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE.equals(facts.resourceType())
+                || ScopeDtos.OPS_PAGE_RESOURCE_TYPE.equals(facts.resourceType())) && facts.resourceVersion() == 0) return false;
         if (!storeBound(facts.resourceType())) return facts.storeId() == null;
         return resourceId(facts.storeId()) && (!ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())
                 || facts.resourceId().equals(facts.storeId()));

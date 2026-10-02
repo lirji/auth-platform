@@ -102,11 +102,19 @@ class ExecutionAuthorizationIT {
         }
     }
     @Test void inventoryReferencesAreShortLivedAndCannotSwapReadForReceive() {
+        storeReferences("inventory.read","inventory.receive");
+    }
+    /** 订单链路各能力独立且仅接受真实原门店路径，不能借新授扩展旧引用。 */
+    @Test void orderOperationsReferencesUseActualStoreAndIndependentCapabilities() {
+        for(String suffix:List.of("order.read","order.expire","order.expiry.retry","payment.read","payment.reconcile","fulfillment.read","fulfillment.ship","fulfillment.deliver","aftersale.read","aftersale.approve","aftersale.reject","aftersale.receive_return","refund.read","refund.reconcile"))
+            storeReferences(suffix,"inventory.receive");
+    }
+    private void storeReferences(String readSuffix,String otherSuffix) {
         var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
         var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
         var graph=new SpiceDbProjectionGraph(props.getProperty("graph.http"),props.getProperty("graph.key"),Duration.ofSeconds(3));
         try(var runtime=GovernanceRuntime.open(db,true)) {
-            String tenant=id(),code="inventory-"+id(),app="commerce-inventory-"+id(),read=app+".inventory.read",receive=app+".inventory.receive";
+            String tenant=id(),code="inventory-"+id(),app="commerce-inventory-"+id(),read=app+"."+readSuffix,receive=app+"."+otherSuffix;
             var owner=person(runtime,tenant,code);var member=person(runtime,tenant,code);
             var login=new VerifiedLogin(owner.issuer(),owner.subject());
             runtime.catalog().register(app,owner.principalId(),"https://inventory.example","test",id());
@@ -236,6 +244,18 @@ class ExecutionAuthorizationIT {
     @Test void couponDeliveryReferencesSeparateDurableDirectionsAndSynchronousCapabilities() {
         tenantScopedReferences(List.of("coupon_delivery.create", "coupon_delivery.read", "coupon_delivery.control", "coupon_delivery.pump"));
     }
+    /** 十五旅程能力与三报表能力独立；长入组来源不能借短控制或推进能力替换。 */
+    @Test void journeyAndReportReferencesKeepContentAndDurableSourceSeparate() {
+        tenantScopedReferences(List.of("journey.create", "journey.validate", "journey.preview", "journey.read",
+                "journey.submit", "journey.approve", "journey.reject", "journey.publish", "journey.pause", "journey.pump",
+                "journey_instance.create", "journey_instance.read", "journey_instance.control", "journey_scan.read", "journey_scan.retry",
+                "marketing_effect.read", "marketing_effect.rebuild", "marketing_execution.read"));
+    }
+    /** 页面内容版本与运行时来源分开，后台引用不借原Grant续期。 */
+    @Test void operationsAndRuntimeReferencesAreClosedAndFinite() {
+        tenantScopedReferences(List.of("ops_page.read","ops_page.create","ops_page.preview","ops_page.submit","ops_page.approve","ops_page.reject","ops_page.publish","ops_page.pause","ops_page.rollback","ops_page.execute",
+                "event.read","event.retry","event.pump","runtime.read","runtime.recover","runtime.replay.preview","runtime.replay.create","runtime.replay.control","dashboard.read"));
+    }
     private void tenantScopedReferences(List<String> suffixes) {
         var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
         var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
@@ -254,9 +274,24 @@ class ExecutionAuthorizationIT {
                 boolean campaign=suffix.startsWith("campaign.") || suffix.equals("budget.read");
                 boolean segment=suffix.startsWith("segment.");
                 boolean couponDelivery=suffix.startsWith("coupon_delivery.");
-                boolean collectionOnly=(couponDelivery && List.of("coupon_delivery.create","coupon_delivery.pump").contains(suffix)) || (segment && List.of("segment.create","segment.pump").contains(suffix)) || (campaign && List.of("campaign.read","campaign.create","budget.read").contains(suffix)) || audience || suffix.equals("rule.create") || entitlementDefinition || couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
+                boolean journey=suffix.startsWith("journey.");
+                boolean journeyInstance=suffix.startsWith("journey_instance.");
+                boolean journeyScan=suffix.startsWith("journey_scan.");
+                boolean dashboard=suffix.equals("dashboard.read");
+                boolean report=suffix.startsWith("marketing_effect.") || suffix.startsWith("marketing_execution.");
+                boolean opsPage=suffix.startsWith("ops_page.");
+                boolean runtimeFamily=suffix.startsWith("event.") || suffix.startsWith("runtime.");
+                boolean journeyFamily=journey || journeyInstance || journeyScan || report || dashboard || opsPage || runtimeFamily;
+                boolean collectionOnly=dashboard || suffix.equals("ops_page.create") || (runtimeFamily && List.of("event.pump","runtime.replay.preview","runtime.replay.create").contains(suffix)) || report || (journey && List.of("journey.create","journey.validate","journey.read","journey.pump").contains(suffix)) || suffix.equals("journey_instance.create") || suffix.equals("journey_scan.read") || (couponDelivery && List.of("coupon_delivery.create","coupon_delivery.pump").contains(suffix)) || (segment && List.of("segment.create","segment.pump").contains(suffix)) || (campaign && List.of("campaign.read","campaign.create","budget.read").contains(suffix)) || audience || suffix.equals("rule.create") || entitlementDefinition || couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
                 String type;
-                if(couponDelivery) type=ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE;
+                if(dashboard) type=ScopeDtos.COMMERCE_TENANT_RESOURCE_TYPE;
+                else if(opsPage) type=ScopeDtos.OPS_PAGE_RESOURCE_TYPE;
+                else if(runtimeFamily) type=ScopeDtos.COMMERCE_RUNTIME_RESOURCE_TYPE;
+                else if(journey) type=ScopeDtos.JOURNEY_RESOURCE_TYPE;
+                else if(journeyInstance) type=ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE;
+                else if(journeyScan) type=ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE;
+                else if(report) type=ScopeDtos.MARKETING_REPORT_RESOURCE_TYPE;
+                else if(couponDelivery) type=ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE;
                 else if(segment) type=ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE;
                 else if(campaign) type=ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE;
                 else if(audience) type=ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE;
@@ -303,10 +338,12 @@ class ExecutionAuthorizationIT {
                 }
                 boolean durableRefresh=segment && suffix.equals("segment.refresh");
                 boolean durableDelivery=couponDelivery && List.of("coupon_delivery.create","coupon_delivery.control").contains(suffix);
-                long rejectedSeconds=durableDelivery?604920:durableRefresh?86520:120;
+                boolean durableJourney=suffix.equals("journey_instance.create");
+                boolean durableReplay=suffix.equals("runtime.replay.create");
+                long rejectedSeconds=durableReplay?86520:durableJourney?2592120:durableDelivery?604920:durableRefresh?86520:120;
                 assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,type),Instant.now().plusSeconds(rejectedSeconds).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString()))).hasMessage("INVALID_ARGUMENT");
-                long acceptedSeconds=durableDelivery?604859:86400;
-                var durableTask=(durableRefresh || durableDelivery)?executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,type),Instant.now().plusSeconds(acceptedSeconds).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString())):null;
+                long acceptedSeconds=durableReplay?86459:durableJourney?2592059:durableDelivery?604859:86400;
+                var durableTask=(durableRefresh || durableDelivery || durableJourney || durableReplay)?executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,type),Instant.now().plusSeconds(acceptedSeconds).truncatedTo(java.time.temporal.ChronoUnit.MILLIS).toString())):null;
                 if(durableTask!=null) {
                     assertThat(Instant.parse(durableTask.expiresAt())).isAfter(Instant.now().plusSeconds(acceptedSeconds-100));
                     var lasting=executions.scope(caller,new ScopeCheck(durableTask.executionId(),request));
@@ -364,6 +401,12 @@ class ExecutionAuthorizationIT {
                     when(caller.applicationId()).thenReturn("other");assertThatThrownBy(()->executions.scope(caller,query)).hasMessage("ACCESS_DENIED");when(caller.applicationId()).thenReturn(app);
                     when(caller.callerServiceId()).thenReturn("other");assertThatThrownBy(()->executions.scope(caller,query)).hasMessage("ACCESS_DENIED");when(caller.callerServiceId()).thenReturn("commerce-directory");
                 }
+                if(journeyFamily) {
+                    var serviceContext=new AccessContext(context.principalId(),context.membershipId(),context.membershipGeneration(),context.membershipVersion(),context.principalVersion(),tenant,app,"test","commerce-directory","SERVICE",id());
+                    assertThatThrownBy(()->executions.issue(serviceContext,new Issue(request,until))).hasMessage("ACCESS_DENIED");
+                    for(String other:List.of("journey.create","journey.validate","journey.preview","journey.read","journey.submit","journey.approve","journey.reject","journey.publish","journey.pause","journey.pump","journey_instance.create","journey_instance.read","journey_instance.control","journey_scan.read","journey_scan.retry","marketing_effect.read","marketing_effect.rebuild","marketing_execution.read"))
+                        if(!suffix.equals(other)) assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),new CentralAccessDtos.Check(tenant,1L,id(),app+"."+other,type)))).hasMessage("ACCESS_DENIED");
+                }
                 String actualId=couponDelivery?"BATCH-1":segment?"SEGMENT-1":campaign?"CAMPAIGN-1":audience?"AUDIENCE-1":ruleAsset?"RULE-1":entitlement?"GRANT-1":"MEMBER-1";
                 var facts=new Facts(tenant,type,actualId,7,null,null,List.of(),null,null);
                 var resource=new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,facts));
@@ -378,7 +421,7 @@ class ExecutionAuthorizationIT {
                     assertThat(second.executions(graph).scope(caller,new ScopeCheck(durableTask.executionId(),request)).decision()).isEqualTo("ALLOW");
                     if(!collectionOnly) assertThat(second.executions(graph).check(caller,new Check(durableTask.executionId(),new ScopeAccessDtos.ResourceCheck(request,facts))).decision()).isEqualTo("ALLOW");
                 }
-                if(campaign || segment || couponDelivery) for(long wrongVersion:List.of(0L,-1L)) {
+                if(campaign || segment || couponDelivery || journey || journeyInstance || journeyScan || opsPage) for(long wrongVersion:List.of(0L,-1L)) {
                     var badVersion=new Facts(tenant,type,actualId,wrongVersion,null,null,List.of(),null,null);
                     assertThat(ScopeResourceBindings.validFacts(badVersion)).isFalse();
                     assertThatThrownBy(()->executions.check(caller,new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,badVersion)))).hasMessage("INVALID_ARGUMENT");

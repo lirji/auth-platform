@@ -30,6 +30,16 @@ public final class ScopeDtos {
     /** 动态人群绑定真实定义版本，运行快照及调度锁版本不作为授权事实。 */
     public static final String MARKETING_SEGMENT_RESOURCE_TYPE = "segment";
     public static final String ENTITLEMENT_RESOURCE_TYPE = "entitlement";
+    /** 旅程固定内容版本与运行进度CAS分离，实例和扫描保留各自资源身份。 */
+    public static final String JOURNEY_RESOURCE_TYPE = "journey";
+    public static final String JOURNEY_INSTANCE_RESOURCE_TYPE = "journey_instance";
+    public static final String JOURNEY_SCAN_RESOURCE_TYPE = "journey_scan";
+    /** 报表只提供完整租户集合，门店查询条件不是门店授权。 */
+    public static final String MARKETING_REPORT_RESOURCE_TYPE = "marketing_report";
+    /** 运营页面绑定实际不可变定义，运行时记录由Owner提供可信事件/任务事实。 */
+    public static final String OPS_PAGE_RESOURCE_TYPE = "ops_page";
+    public static final String COMMERCE_TENANT_RESOURCE_TYPE = "commerce_tenant";
+    public static final String COMMERCE_RUNTIME_RESOURCE_TYPE = "commerce_runtime";
     /** 范围响应大小有界，超出不能截断后放行。 */
     public static final int MAX_PLAN_BYTES = 262144;
 
