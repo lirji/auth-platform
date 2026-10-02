@@ -1,0 +1,18 @@
+{
+  "slice": "IR-01",
+  "status": "PASS",
+  "branch": "feat/integrated-resource-selector",
+  "implementation_commit": "a09915f28d5beb4c3bf10294da92119e101cee29",
+  "base": "4a9057a",
+  "validation": "TEST_RESULT.md=PASS; IMPLEMENTATION_EVIDENCE.json fingerprints match current source",
+  "delivery": "local complete commit created; main merge/push delegated to root",
+  "main_merged": false,
+  "pushed": false,
+  "unrelated_paths": [],
+  "retained_ignored": [
+    ".local private evidence/config/owned Maven repo; databases/IdP fixtures required for independent replay",
+    "auth-console/node_modules symlink reused read-only",
+    "isolated target/dist current artifacts"
+  ],
+  "cleanup": "no cleanup executed; retain worktree until root integrates and private evidence/fixtures are preserved"
+}
