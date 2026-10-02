@@ -42,3 +42,7 @@ PASS：仅既有authz-ci.yml与本片验证/进度/交付文档修改。push(mai
 修复结论 LOCAL_VALIDATION_PASS；03054的CI注册与本次test-only逻辑提交交主Agent顺序集成/运行新的精确远程CI。原远程CI失败仍记录为FAIL，不自行push/merge，不宣称新的远程通过。
 
 证据计数修正：最初直接汇总复制目录中的全部TEST XML，错误包含历史ReliableAuthorizationIT1，故此前109/10说法撤回。当前CI-style日志恰9个persistence Running类，逐类7/10/9/5/6/19/20/17/15合计108，failsafe-summary.completed=108，均0fail/error/skip。显式CONFIG日志仅PublishedCatalog Running且summary.completed=7，只绑定该新7 XML；复制目录中其余9个旧XML保留但不计本轮。日志/XML嵌入timestamp/SHA及精确纳入/排除清单见私密verified-run-reports.json；复制后的文件mtime不是执行证明。历史可靠图1仍只用于此前单独ALLOW→disableDENY→restoreALLOW证明，未在本次CI-style运行，不重跑未变化测试。
+
+## 精确远程CI终态
+
+2026-10-02独立`gh run view37026620293 --repo lirji/auth-platform --json headSha,status,conclusion,updatedAt,url`实际返回headSha=b1edecc61ceef29f82a280259d2679b0d662f378、status=completed、conclusion=success、updatedAt=15:30:06Z。[当前精确CI](https://github.com/lirji/auth-platform/actions/runs/37026620293)闭环同任务CI注册/配置兼容与证据计数修正；原14870 CI失败仍保留，不重跑已PASS IR产品。完整122候选/current navigation Owner出版为另一个独立切片，不能被本IR CI替代。

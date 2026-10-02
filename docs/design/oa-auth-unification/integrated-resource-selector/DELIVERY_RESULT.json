@@ -1,11 +1,11 @@
 {
   "slice": "IR-01",
-  "status": "LOCAL_VALIDATION_PASS",
+  "status": "PASS",
   "branch": "feat/integrated-resource-selector",
   "implementation_commit": "a09915f28d5beb4c3bf10294da92119e101cee29",
   "base": "4a9057a",
   "validation": "TEST_RESULT.md=PASS; IMPLEMENTATION_EVIDENCE.json fingerprints match current source",
-  "delivery": "original IR implementation14870ed integrated/pushed; remote CI failed before test setup compatibility fix; CI registration and test-only followups local validated, root sequential integration/exact new CI pending",
+  "delivery": "IR implementation and bounded CI registration/test config/report-count fixes normally integrated/pushed by root; exact b1edecc remote CI37026620293 completed SUCCESS independently read via gh",
   "main_merged": true,
   "pushed": true,
   "unrelated_paths": [],
@@ -37,8 +37,8 @@
     "validation": "Node14PASS;12registeredNode syntax exit0;Pythonpycompile exit0;exactYAML structural diffPASS;20original sourceSHAs unchanged;git diff--checkPASS",
     "workflow_sha256": "5e424b318df85fa89a68e957b9fac764b70131bb606ea794ff25f22165b69f38",
     "commit_reference": "logical followup commit containing this record; exact SHA in task branch Git log/root handoff",
-    "main_merged": false,
-    "pushed": false,
+    "main_merged": true,
+    "pushed": true,
     "next_owner": "root sequential integration and exact new remote CI"
   },
   "ci_test_config_followup": {
@@ -53,8 +53,15 @@
     ],
     "validation": "CI-style108PG/9suites PASS; explicit0600CONFIG7PASS/1suite; exact current-log Running selectors/failsafe-summary counts; historical XML excluded; 19 other IR fingerprints unchanged; git diff--checkPASS",
     "current_test_sha256": "d1ada14a51647d47fa7ed2356f943a31cfd26666c1305b0a75d5905fe17db816",
-    "main_merged": false,
-    "pushed": false,
-    "next_owner": "root exact new CI and normal sequential integration"
+    "main_merged": true,
+    "pushed": true,
+    "next_owner": "closed by exact b1edecc CI37026620293 SUCCESS"
+  },
+  "remote_ci_final": {
+    "conclusion": "success",
+    "headSha": "b1edecc61ceef29f82a280259d2679b0d662f378",
+    "status": "completed",
+    "updatedAt": "2026-10-02T15:30:06Z",
+    "url": "https://github.com/lirji/auth-platform/actions/runs/37026620293"
   }
 }
