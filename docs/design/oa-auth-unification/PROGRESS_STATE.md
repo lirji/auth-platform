@@ -8,12 +8,12 @@
 
 ### 已完成
 
-- IR01菜单资源选择器a09915f/14870ed已main；原CI37023342834实际FAIL保留。配置兼容6f750+CI注册03054+计数纠正b1edecc已正常main push，精确CI37026620293 HEADb1edecc已completed/SUCCESS。CI-style本轮9 persistence/108全PASS，显式0600CONFIG新7全PASS，历史Reliable1未混入108。188unit/51原PG/14frontend/13实际图及当前20源证据保留；正式终态记录148d061本地未main。
+- IR01菜单资源选择器a09915f/14870ed已main；原CI37023342834实际FAIL保留。配置兼容6f750+CI注册03054+计数纠正b1edecc已正常main push，精确CI37026620293 HEADb1edecc已completed/SUCCESS。CI-style本轮9 persistence/108全PASS，显式0600CONFIG新7全PASS，历史Reliable1未混入108。188unit/51原PG/14frontend/13实际图及当前20源证据保留；正式终态记录148d061已按完整逻辑单元集成45a3b85并main。
 - D4 durable4/ffe090f228f7实际exit0/1315PASS，真实来源/撤权/停服、5精确身份审计、原ISSUE/首次REVOKE/原Grant、21实际钱包效果及完整D1状态PASS；39图全部实际查看，320px Tag横向裁切视觉HOLD。
 - 修正仅限定Tag换行及现有fixture/MJS几何断言；当前专项fixture1、TSC/Vite、15工具actualexit0。旧未变后端522全仓（5既有skip）/23真实MySQL通过，不无故重复。
 - D5 /8bd97dfa5b27 于15:26:44.498Z实际exit1：1120检查点PASS后D1目录GET503，中央日志INVALID_ARGUMENT，D2浏览器尚未执行。其当前JAR03a9a8ec独立17模块/791文件/677类/48assets/81源PASS。失败全部保留，不冒充视觉或最终PASS。
 - D5保留同库诊断：正确原user/service 12次issue+scope全200/ALLOW；Java持久HTTP40次60s+40次59s全200，未复现INVALID_ARGUMENT。JDBC实测PG比host落后约0.33—2.39ms，但未证明原失败因果；不改provider/授权guard。第一次诊断错取IdP测试token的401独立保留，改用真实run/tokens后才成功。诊断只重新启停已核对自有PG/IdP，保留数据。
-- Journey J0/shared/dashboard/J1/J2全部本地终验PASS：22真实Source检查、35秒原引用自然到期、五页PKCE/401/403/503/未知2xx原意图、SQL一个定义/一个审计，52最终截图+1最终页底+7明确既有权限截图共60已Owner实际查看。Commerce5db321b产品/fc33d4f停服文档、Authbdec341终态文档本地；自有JVM已STOP_FINAL，Git集成/精确CI尚待。
+- Journey J0/shared/dashboard/J1/J2全部本地终验PASS：22真实Source检查、35秒原引用自然到期、五页PKCE/401/403/503/未知2xx原意图、SQL一个定义/一个审计，52最终截图+1最终页底+7明确既有权限截图共60已Owner实际查看。Commerce5db321b/fc33d4f、Authbdec341已统一正常集成main：Auth853e063/Commerce4bc22e6；精确CI37033427164/37033478131已completed/SUCCESS，Journey完整Git/CI DONE。独立root完整源/制品/60图SHA与STOP_FINAL核对PASS；root530组合实库/254unit/8fixture及新d0302a4a制品17模块804编译文件/50assets/80src、nestedprotocol104/SDK12全字节PASS。
 - CE06 O1真实MySQL8/8PASS；CE07 P1/R1/Dashboard8/8PASS、全19私密reactorinstall PASS。SDK契约桩不冒充真Auth，20532/20544/20690实际身份/Spice/HTTP/九页视觉继续。聚合末尾撤权屏障及原page/CAS/Source不续权已覆盖，12lane完整验收仍待。
 
 ### 已修改文件
@@ -25,13 +25,13 @@
 ### 未完成与当前问题
 
 - D6 /rehearsal-b78d510dbe81 于15:59:37.836Z实际exit0，1316检查全部PASS；同18冻结源码。JAR84eef866的17模块/791编译文件/677类/48assets/81源独立PASS；原ISSUE/首次REVOKE/原Grant、5精确身份审计、21实际钱包REVOKED、观测线程JOINED_AND_STOPPED及真实Auth停服PASS。39当前截图已逐张实际查看PASS，320状态Tag修正已真实闭环。正式Validation COMPLETED/PASS，本片已限定提交与正常main push：Autha7ce5ef/集成31aac82、Commerce976da15；精确CI37032178047/37032179122已completed/SUCCESS，D2完整DONE；旧D4视觉HOLD与D5未复现503失败保留。
-- CE06/07/08最后制品冻结、全部Owner/UI/资金承诺/12lane继续；3真实Auth late-child聚合出口撤权均403已验证，独立审查仍待最终backend全源/归档闭环。注册或桩测试不能称整体DONE。
-- IR Owner复用integrated-resource-selector树新feat/commerce-catalog-publication，准备全实际Owner菜单/资源/按resource分组角色发布，需真实终验依赖制品。122候选、34snapshots=17jobs/99union，23未入模板不自动授；21是旧观察导航，新页面按最终源重数，不能强凑固定数字。新resource依赖Journey共享Auth尚未root main，出版必须等待真实依赖。
+- CE06/07/08最后制品冻结、全部Owner/UI/资金承诺/12lane继续；3真实Auth late-child聚合出口撤权均403、SDK6秒原Grant与停服SYSTEM资金责任已真实验证。独立审查发现CE-UI-RECEIPT-002（错DTO回执可能清原意图），Owner仅收紧真实DTO/原目标并重冻/重验，未降低guard或断言。CE-FENCE-003已在新2b5bb1/93049512包闭合：945前后源码及完整protocol/SDK/嵌套归档逐字节MATCH；旧不符记录保留。CE-UI-RECEIPT-002本轮实际6个同键同正文请求，包括wrong DTO/target/tracking，均保持原UNKNOWN直至真实成功，27图/0错误；九页108当前图/0错误与独立窄屏复核PASS。仍待Owner最终12lane/完整视觉/正式提交及root总集成，不提前33READY。注册或桩测试不能称整体DONE。
+- IR Owner复用integrated-resource-selector树新feat/commerce-catalog-publication，准备全实际Owner菜单/资源/按resource分组角色发布，需真实终验依赖制品。122候选、34snapshots=17jobs/99union，23未入模板不自动授；21是旧观察导航，新页面按最终源重数，不能强凑固定数字。Journey共享Auth已正常main；71既有Owner与18Journey源/真实终态READY，33CE06/07待真实DTO整改终态后才可全122发布。
 - 原8602/OA/5273、历史库/卷/进程与失败记录保留。原18666 Vite89685已确认自己Commerce路径且复用，勿重复bind/杀未知服务。
 
 ### 下一步建议
 
-1. D2两个精确main CI已SUCCESS；原目录复用统一权限集成分支，Journey/Auth无冲突，Commerce四共享路由/导航/进度冲突已语义合并，保留D2及五旅程页面，当前TSC/Vite、Auth254单元/44套件、8D2界面回归及Commerce530组合实库（5既有skip/0fail/error）PASS；SDK source ref已由旧D0a766更新为当前实测共享69bde864，正常远程分支已可达。不要在先前main CI running时推新的main取消它。
+1. D2及Journey四个精确main CI均SUCCESS；原目录复用统一权限集成分支，Journey/Auth无冲突，Commerce四共享路由/导航/进度冲突已语义合并，保留D2及五旅程页面，当前TSC/Vite、Auth254单元/44套件、8D2界面回归及Commerce530组合实库（5既有skip/0fail/error）PASS；SDK source ref已由旧D0a766更新为当前实测共享69bde864，正常远程分支已可达。不要在先前main CI running时推新的main取消它。
 2. 必需终验PASS后Formal Validation/进度，限定D2两仓task commit/正常main集成/push，保留IR已有CI新增检查并核对精确新CI。其他Owner源不混提交，不造额外integration树。
 3. 接收三Owner准确最终提交/依赖/源SHA/当前log筛选不可变XML/真实终态，按依赖完整集成；Auth新main前个CI running时不取消。IR formal148d061可独立逻辑记录。
 4. 完成真实业务菜单Owner发布、完整角色权限/12lane及总集成验证/GitCI闭环后才能宣称完整目标完成，不停止于D2或IR。
