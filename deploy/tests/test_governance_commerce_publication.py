@@ -94,6 +94,18 @@ class CommercePublicationTest(unittest.TestCase):
         self.readiness["proofs"]["owner"]["commits"] = [{"repo": "unbound", "head": "a" * 40}]
         self.reject()
 
+    def test_ignored_untracked_source_cannot_masquerade_as_clean_commit(self):
+        def git(args, **kwargs):
+            if 'ls-files' in args:
+                raise publisher.subprocess.CalledProcessError(1, args)
+            return 'a' * 40 if 'rev-parse' in args else ''
+        with patch.object(publisher.subprocess, 'check_output', side_effect=git):
+            self.reject()
+
+    def test_owner_proof_unknown_capability_is_rejected(self):
+        self.readiness['proofs']['owner']['capabilities'].append('commerce.unknown')
+        self.reject()
+
     def test_navigation_growth_cannot_be_silently_omitted(self):
         path = self.root / "frontend/src/iam/navigation.ts"
         path.write_text(path.read_text().replace(']]}', '],["/operations/new","新页"]]}'))

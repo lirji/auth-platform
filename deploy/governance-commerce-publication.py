@@ -195,7 +195,7 @@ def request(config, method, path, payload=None, command=None):
             and not any((origin.username, origin.password, origin.path, origin.query, origin.fragment)), "owned loopback Auth origin required")
     require(config["partition"]["application_id"] == "commerce" and config["partition"]["environment"] == "test", "isolated commerce test partition required")
     uuid.UUID(config["partition"]["tenant_id"])
-    require(config.get("database", "").startswith("auth_gov_p1_test_"), "owned database declaration required")
+    require(re.fullmatch(r"auth_gov_p1_test_[a-f0-9]{12}", config.get("database", "")), "owned database declaration required")
     route = urllib.parse.urlsplit(path)
     require((method, route.path) in {("POST", "/api/governance/v1/catalog/publish"), ("POST", "/api/governance/v1/access/roles"), ("GET", "/api/governance/v1/access/published-catalog")}
             and not route.scheme and not route.netloc and not route.fragment, "publication HTTP endpoint outside closed set")

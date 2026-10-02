@@ -25,7 +25,7 @@ async function choose(page,label,value){
 async function screenshot(page,name){
  const file=path.join(run,name+'-'+attempt+'.png');await page.screenshot({path:file,fullPage:true,animations:'disabled'});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'page overflow');shots.push({name,file,width:page.viewportSize().width})
 }
-async function closeEditor(page){await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();const discard=page.getByRole('button',{name:'放弃编辑',exact:true});if(await discard.count())await discard.click();await expect(page.getByRole('dialog')).toHaveCount(0)}
+async function closeEditor(page){await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();const discard=page.getByRole('button',{name:'放弃编辑',exact:true});await expect(discard).toBeVisible();await discard.click();await expect(page.getByRole('dialog')).toHaveCount(0)}
 async function rangeOptions(page,resource){
  await choose(page,'资源类型',resource);await page.getByRole('combobox',{name:'数据范围',exact:true}).click()
  const options=page.locator('.ant-select-dropdown:visible .ant-select-item-option');await expect(options).toHaveCount(1);await expect(options).toHaveText(['当前企业全部资源']);await options.first().click()

@@ -182,12 +182,16 @@ def main():
         publication.save_private(run / ('execution-' + uuid.uuid4().hex + '.json'), execution)
         result = publication.apply(plan, execution, run / 'http-checkpoints')
         record('actual Owner HTTP publishes exact current menus and creates34 fixed same-resource snapshots without Grant')
+        catalog_state = json.loads(sql("SELECT json_build_object('version',a.manifest_version,'content_hash',m.content_hash,'manifest',m.manifest_json::json,'v2_publish_audits',(SELECT count(*) FROM auth_governance.catalog_audit WHERE application_id='commerce' AND operation='PUBLISH' AND manifest_version=2)) FROM auth_governance.application_catalog a JOIN auth_governance.application_manifest m ON m.application_id=a.application_id AND m.version=a.manifest_version WHERE a.application_id='commerce';"))
+        publication.require(catalog_state['version'] == 2 and catalog_state['manifest'] == plan['manifest'] and catalog_state['content_hash'] == result['catalog']['content_hash'] and catalog_state['v2_publish_audits'] == 1, 'SQL immutable catalog/audit differs from actual HTTP snapshot')
+        stable_json(run / 'sql-catalog.json', catalog_state)
         state = json.loads(sql("SELECT json_build_object('roles',(SELECT json_agg(row_to_json(r) ORDER BY r.id) FROM auth_governance.role_version r WHERE tenant_id='%s'),'grants',(SELECT count(*) FROM auth_governance.access_grant WHERE tenant_id='%s'),'policies',(SELECT count(*) FROM auth_governance.request_policy WHERE tenant_id='%s'));" % (tenant, tenant, tenant)))
         expected = {role['code']: role for role in plan['role_snapshots']}
         publication.require(len(state['roles']) == len(expected) == 34 and state['grants'] == state['policies'] == 0, 'exact role/zero Grant policy SQL assertion failed')
         for role in state['roles']:
             source = expected[role['role_code']]
-            publication.require(role['version'] == source['version'] and sorted(json.loads(role['capabilities_json'])) == sorted(source['capabilities']), 'SQL fixed role differs from approved template')
+            publication.require(role['version'] == source['version'] and role['application_id'] == 'commerce' and role['environment'] == 'test' and sorted(json.loads(role['capabilities_json'])) == sorted(source['capabilities']), 'SQL fixed role differs from approved template')
+        publication.require(sql("SELECT count(*) FROM auth_governance.audit_event WHERE tenant_id='%s' AND operation='CREATE_ROLE';" % tenant) == '34', 'fixed role audit count differs')
         stable_json(run / 'sql-before-ui.json', state)
         stable_json(run / 'browser.json', {'run': str(run), 'origin': 'http://127.0.0.1:' + str(UI), 'admin': execution['admin_origin'], 'authority': ISSUER, 'client': client['name'], 'users': users, 'partition': partition, 'roles': result['roles'], 'catalog': result['catalog']})
         env = dict(os.environ, VITE_CASDOOR_AUTHORITY=ISSUER, VITE_CASDOOR_CLIENT_ID=client['name'])

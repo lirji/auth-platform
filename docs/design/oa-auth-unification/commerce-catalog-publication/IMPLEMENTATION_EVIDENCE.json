@@ -16,10 +16,10 @@
   ],
   "source_sha256": {
     ".github/workflows/authz-ci.yml": "9876b215d7de2538517620fdbf03a6c4b19defa18115250ddb671e5c5fb8e8a8",
-    "deploy/governance-commerce-publication.py": "d648dc3ff466d2d65e5a7a8edc391421b4b29f45a0cd79ed1fde727b049edddb",
-    "deploy/governance-commerce-publication-runtime.py": "d169f7726443ba3924f0b4f958420adf7d5a4a901eee42b50447bb7ed302124a",
-    "deploy/governance-commerce-publication-ui.mjs": "22355bb156d36e4d6de0afec03d7f9e9c39c3c81e143f29e78e0576b1296d06d",
-    "deploy/tests/test_governance_commerce_publication.py": "f5ff22390c444cacee69635a84916bb12f695f8232a5eea0b445d87aa19d54e1"
+    "deploy/governance-commerce-publication.py": "9164794a4e141f2d76ea4528f9eabddff6d2cf71ea621ca80491111a00ea4ac7",
+    "deploy/governance-commerce-publication-runtime.py": "42de29fe82ddb40eb564463dc8406f86256a0dd60bb65bc99f11cd8e9e2e5ba2",
+    "deploy/governance-commerce-publication-ui.mjs": "4fe1f07bf289846ff39f27d9493314ea6f928902b49ec9f8d66e95c81335da13",
+    "deploy/tests/test_governance_commerce_publication.py": "51a7635d54686f3dcaf818cfef991c697bcf86b56ce2914f79f13a265ed5d3fe"
   },
   "dependency_source_sha256": {
     "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/ScopeDtos.java": "74ecda9ec5d42f525492e1052ccd659c9409dc7da29ec1f1e1c0978437586b4d",
@@ -39,11 +39,12 @@
     "log_path": "/Users/liruijun/.local/share/git-worktrees/auth-platform/integrated-resource-selector/.local/commerce-catalog-publication/shared-auth-combination/maven.log",
     "log_sha256": "1159cdd625491285778437f67bfb18021be2e72629100f6ab80496f0df4ea706"
   },
-  "tool_unit_tests": 20,
+  "tool_unit_tests": 22,
   "node_existing_ir_tests": 14,
   "python_syntax": "PASS",
   "node_syntax": "PASS",
   "yaml_existing_ci_registration": "PASS",
   "owner_publication_actual_http_sql_ui": "PENDING",
-  "merged_source_and_ci": "PENDING_ROOT_ORDERED_INTEGRATION"
+  "merged_source_and_ci": "PENDING_ROOT_ORDERED_INTEGRATION",
+  "current_followup": "SQL catalog v2/hash/full manifest + one publish audit,exact34 role audits,andprepared DB/identity resume checks;runtime stillpending Owner terminal"
 }

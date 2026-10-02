@@ -2,7 +2,7 @@
 
 状态：IMPLEMENTING / OWNER_FINAL_EVIDENCE_PENDING。IR-01 已单独完成并精确远程CI37026620293 SUCCESS；本片不复用该结论声称122能力全部交付。
 
-已完成：有界计划/HTTP工具、真实隔离运行器及只读PKCE/UI harness；20项纯Python失败场景测试通过，覆盖待证不出版、当前commit/source变化、未覆盖cap不能复用报告、真实导航遗漏、product与catalog区别、角色同资源、无自动Grant、凭据/目标隔离、旧Auth绑定先阻止出版、失响应同键恢复、坏角色2xx保留意图、晚期view_hash改变拦写。Python/Node语法、YAML登记、原IR Node14测试PASS。运行器尚未执行真实出版，不把语法通过当实际业务完成。
+已完成：有界计划/HTTP工具、真实隔离运行器及只读PKCE/UI harness；22项纯Python失败场景测试通过，覆盖待证不出版、当前commit/source变化、未覆盖cap不能复用报告、真实导航遗漏、product与catalog区别、角色同资源、无自动Grant、凭据/目标隔离、旧Auth绑定先阻止出版、失响应同键恢复、坏角色2xx保留意图、晚期view_hash改变拦写、ignored未跟踪源不能冒充提交、未知cap证明拒绝。Python/Node语法、YAML登记、原IR Node14测试PASS。运行器尚未执行真实出版，不把语法通过当实际业务完成。
 
 共享依赖组合验证PASS：本树 cb0f8df→06a9de5→d5ec8f5 为原三Owner提交的精确cherry counterparts。私有Maven、专有PG auth_gov_p1_test_f296792398f7，本轮128真实IT/10套=108 persistence/9+20 Execution/1，单位254；真实18544图仅全新UUID关系，无schema写/全局清理。精确本轮 Running classes与failsafe-summary筛选旧XML，证据 .local/commerce-catalog-publication/shared-auth-combination/test-result.json 与 maven.log。root亦独立复核通过。
 
