@@ -1,4 +1,4 @@
-## 当前恢复检查点（2026-10-02，CE06组合通过，实际目录发布中）
+## 当前恢复检查点（2026-10-02，全部本地验收通过，Git与CI交付中）
 
 ### 任务目标
 
@@ -13,7 +13,7 @@
 
 - 根355b0fe已合入004：新增受影响58/5套件（51+7两轮、0fail/error/skip）PASS；先前546组合全库/74套件基线保留。原-am指定无匹配依赖失败已保留，改先私密install再app精确测试，未改POM guard。
 - 当前完整JAR770564f5：17内部模块/821编译文件，当前dist61资产/91源全字节MATCH，protocol104/SDK12整nested包与RootAuth/私密M2完全一致，独立再审PASS；旧target历史static另计，不把61称为所有旧静态文件。
-- 新current integration gate `parallel-existing71-ce08-root-current-integration-gate.json` SHA05d215619a15b44459e03f6e1a5330f0543905c694fdd9aee86314f8f74db5f1 PASS。IR已GO原独有21662/21665全122/42/34真实HTTP/PG/PKCE/UI；不得提前称已出版。
+- 新current integration gate `parallel-existing71-ce08-root-current-integration-gate.json` SHA05d215619a15b44459e03f6e1a5330f0543905c694fdd9aee86314f8f74db5f1 PASS。IR已在原独有test分区完成真实全122能力/21资源类型/42菜单节点/34模板（17岗位）出版、SQL/PKCE/ordinary403及14最终实际视觉，helper731efc4/终态3706c8e。当前角色union99、23outside、0Grant/0Policy，exactv2 publishAudit1/roleAudit34；finally自有21662/65停服与端口核对PASS。Root已正常集成44b0b98并验证新23工具回归/py_compile/node语法，CI union保留D2+IR+publication检查。
 
 ### 已修改文件
 
@@ -23,7 +23,7 @@
 ### 未完成
 
 - CE06组合本地必要门禁全部PASS；待正常main合并推送及精确CI。
-- 全122资源/42菜单节点/34角色模板实际HTTP、PG审计、PKCE/UI和最终集成；34模板覆盖99能力，另外23仅手工审查，不自动授予。
+- 全122实际出版终验及最终代码集成已PASS，剩两仓正常main推送与精确CI；34模板覆盖99，另外23手工审查不自动授予。
 
 ### 当前问题
 
@@ -33,9 +33,9 @@
 
 ### 下一步建议
 
-1. 正常限定提交进度与正式测试补充，归档CE Owner纯doc a60fc8d；合并推送两仓main，核对精确新CI，不在其running时再推main取消。
-2. IR只在原publication树/21662/21665执行v7全122/42/34终验；旧71、旧CE33与新004/RootGate共同绑定当前Source。128 Auth实库未变不重跑。
-3. Journey/CE Owner独立只读核对新gate与pub实际证据；Root新helper23回归/CI注册等须保持D2与IR checks，并最终正常集成pub与精确CI。
+1. CE Owner纯doc a60fc8d已正常集成c539fb3且历史归档；新publisher已集成44b0b98。提交本次最终进度，然后正常快进两仓main/push，等待精确CI终态，不在running时推新main取消。
+2. IR final-publication-result-v1 SHA d73dfb9c3b78ad4459cf9cabc1770ce11044fd44a27fd4ba3277f912cbc7861e、immutable delivery index SHA93cd32a9ddce367de84be243f8818a657a044bff7de3f34c8e3296ed735f43ea完整PASS，原失败与d7df只functional非visual终态均保留。旧71/CE33/新004和RootGate共同绑定当前Source，128未变不重跑。
+3. Journey独立核对pub全492sources/202main、Auth完整artifact、最终14图及前后SQL；CE独立Root58/821/Sdk/权限路径与Git范围PASS。Root helper23/Node与CI union已PASS。最终精确CI回执+DELIVERY_RESULT持久化后再标完整DONE。
 4. 全菜单/模板实际SQL/PKCE/UI及最终GitCI闭合后才宣称整体完成，保留数据/旧失败/五worktree，不生产部署或擅自清理。
 
 ### 恢复 Prompt
