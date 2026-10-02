@@ -223,6 +223,11 @@ class ExecutionAuthorizationIT {
     @Test void audienceReferencesOnlyPermitIndependentVersionCollections() {
         tenantScopedReferences(List.of("audience.read", "audience.create"));
     }
+    /** 活动六动作绑定真实内容版本；目录/创建/预算只集合，审批和其他能力不可替代。 */
+    @Test void campaignReferencesSeparateVersionActionsFromCollectionsAndBudget() {
+        tenantScopedReferences(List.of("campaign.read", "campaign.create", "campaign.preview", "campaign.submit",
+                "campaign.approve", "campaign.reject", "campaign.publish", "campaign.pause", "budget.read"));
+    }
     private void tenantScopedReferences(List<String> suffixes) {
         var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
         var props=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_P3_GRAPH_CONFIG"));
@@ -238,9 +243,11 @@ class ExecutionAuthorizationIT {
                 boolean entitlement=suffix.startsWith("entitlement.");
                 boolean ruleAsset=suffix.startsWith("rule.");
                 boolean audience=suffix.startsWith("audience.");
-                boolean collectionOnly=audience || suffix.equals("rule.create") || entitlementDefinition || couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
+                boolean campaign=suffix.startsWith("campaign.") || suffix.equals("budget.read");
+                boolean collectionOnly=(campaign && List.of("campaign.read","campaign.create","budget.read").contains(suffix)) || audience || suffix.equals("rule.create") || entitlementDefinition || couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
                 String type;
-                if(audience) type=ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE;
+                if(campaign) type=ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE;
+                else if(audience) type=ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE;
                 else if(ruleAsset) type=ScopeDtos.MARKETING_RULE_RESOURCE_TYPE;
                 else if(entitlementDefinition) type=ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE;
                 else if(entitlement) type=ScopeDtos.ENTITLEMENT_RESOURCE_TYPE;
@@ -295,7 +302,19 @@ class ExecutionAuthorizationIT {
                     for(String other:List.of("rule.read","rule.create","rule.publish"))
                         if(!suffix.equals(other))assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),new CentralAccessDtos.Check(tenant,1L,id(),app+"."+other,type)))).hasMessage("ACCESS_DENIED");
                 }
-                String actualId=audience?"AUDIENCE-1":ruleAsset?"RULE-1":entitlement?"GRANT-1":"MEMBER-1";
+                if(campaign) {
+                    for(String wrongType:List.of(ScopeDtos.MARKETING_RULE_RESOURCE_TYPE,ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE,ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE))
+                        assertThatThrownBy(()->executions.issue(context,new Issue(new CentralAccessDtos.Check(tenant,1L,id(),cap,wrongType),until))).hasMessage("ACCESS_DENIED");
+                    for(String other:List.of("campaign.read","campaign.create","campaign.preview","campaign.submit","campaign.approve","campaign.reject","campaign.publish","campaign.pause","budget.read"))
+                        if(!suffix.equals(other)) {
+                            var swap=new CentralAccessDtos.Check(tenant,1L,id(),app+"."+other,type);
+                            assertThatThrownBy(()->executions.issue(context,new Issue(swap,until))).hasMessage("ACCESS_DENIED");
+                            assertThatThrownBy(()->executions.scope(caller,new ScopeCheck(ref.executionId(),swap))).hasMessage("ACCESS_DENIED");
+                        }
+                    var serviceContext=new AccessContext(context.principalId(),context.membershipId(),context.membershipGeneration(),context.membershipVersion(),context.principalVersion(),tenant,app,"test","commerce-directory","SERVICE",id());
+                    assertThatThrownBy(()->executions.issue(serviceContext,new Issue(request,until))).hasMessage("ACCESS_DENIED");
+                }
+                String actualId=campaign?"CAMPAIGN-1":audience?"AUDIENCE-1":ruleAsset?"RULE-1":entitlement?"GRANT-1":"MEMBER-1";
                 var facts=new Facts(tenant,type,actualId,7,null,null,List.of(),null,null);
                 var resource=new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,facts));
                 if(collectionOnly)assertThatThrownBy(()->executions.check(caller,resource)).hasMessage("ACCESS_DENIED");
@@ -304,6 +323,11 @@ class ExecutionAuthorizationIT {
                     assertThat(decision.decision()).isEqualTo("ALLOW");
                     assertThat(decision.resourceId()).isEqualTo(actualId);
                     assertThat(decision.resourceVersion()).isEqualTo(7);
+                }
+                if(campaign) for(long wrongVersion:List.of(0L,-1L)) {
+                    var badVersion=new Facts(tenant,type,actualId,wrongVersion,null,null,List.of(),null,null);
+                    assertThat(ScopeResourceBindings.validFacts(badVersion)).isFalse();
+                    assertThatThrownBy(()->executions.check(caller,new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,badVersion)))).hasMessage("INVALID_ARGUMENT");
                 }
                 for(var bad:List.of(new Facts(tenant,type,"MEMBER-1",7,null,null,List.of(),"S1",null),new Facts(tenant,"store","S1",7,null,null,List.of(),"S1",null),new Facts(id(),type,"MEMBER-1",7,null,null,List.of(),null,null)))
                     assertThatThrownBy(()->executions.check(caller,new Check(ref.executionId(),new ScopeAccessDtos.ResourceCheck(request,bad)))).hasMessage("INVALID_ARGUMENT");

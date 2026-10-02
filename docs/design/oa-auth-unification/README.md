@@ -17,6 +17,7 @@ P0—P4已交付；P5统一入口、内部商品经营及外部门店协作已�
 | [EXECUTION_DAG.json](EXECUTION_DAG.json) | 依赖关系、责任路径及候选任务；不是执行成功记录 |
 | [SOURCE_MANIFEST.json](SOURCE_MANIFEST.json) | 用户方案逐文件摘要、版本与来源 |
 | [CONTRACTS_COMMERCE_AUDIENCES.md](CONTRACTS_COMMERCE_AUDIENCES.md) | CE05人群快照：集合授权、原版本/成员事务与员工页验收 |
+| [CONTRACTS_COMMERCE_CAMPAIGNS.md](CONTRACTS_COMMERCE_CAMPAIGNS.md) | CE05活动/审批/预算：9独立能力、内容版本与状态锁、订单履约边界 |
 | [PROGRESS_STATE.md](PROGRESS_STATE.md) | 当前状态、授权边界、限制与下一步 |
 | [P0 基线](../../implementation/oa-auth/phase-0/baseline.md) | 三仓源码、版本、写入口和实际测试事实 |
 | [P1 首批计划](../../implementation/oa-auth/phase-0/phase-1-plan.md) | 首批变更顺序、契约冻结事项和明确验证命令 |

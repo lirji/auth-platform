@@ -20,6 +20,8 @@ public final class ScopeDtos {
     public static final String COUPON_DEFINITION_RESOURCE_TYPE = "coupon_definition";
     /** 权益定义与实际授予分开判权，均只使用真实租户范围。 */
     public static final String ENTITLEMENT_DEFINITION_RESOURCE_TYPE = "entitlement_definition";
+    /** 活动绑定不可变内容版本；审批与发布的并发锁版本不作为授权事实。 */
+    public static final String MARKETING_CAMPAIGN_RESOURCE_TYPE = "campaign";
     public static final String MARKETING_RULE_RESOURCE_TYPE = "marketing_rule";
     /** 人群快照只提供完整租户集合许可，不把成员列表作为授权事实。 */
     public static final String MARKETING_AUDIENCE_RESOURCE_TYPE = "audience";
