@@ -119,7 +119,9 @@ def prepare_browser_jar(commerce, run, environment, baseline):
         for file in files:
             if archive.read('BOOT-INF/classes/static/'+file.relative_to(dist).as_posix()) != file.read_bytes():
                 raise RuntimeError('packaged browser contains stale frontend: '+file.name)
-    fence.update(frontend_source_sha256=source,frontend_files=len(files),jar_sha256=hashlib.sha256(jar.read_bytes()).hexdigest(),mode='PACKAGED_JAR')
+    fence.update(frontend_source_sha256=source,frontend_files=len(files),jar_sha256=hashlib.sha256(jar.read_bytes()).hexdigest(),mode='PACKAGED_JAR',
+                 browser_origin='http://127.0.0.1:18665',browser_client=environment['VITE_IAM_CLIENT_ID'],
+                 frontend_assets_sha256={'/'+file.relative_to(dist).as_posix():hashlib.sha256(file.read_bytes()).hexdigest() for file in files})
     return jar,fence
 
 
@@ -208,7 +210,15 @@ def rehearse(args, isolation=None):
         raise RuntimeError('commerce startup timeout')
     try:
         members={};principals={}
-        for kind in ('internal','external'):
+        identity_kinds = ('internal','external')
+        if args.coupon_deliveries and args.browser:
+            delivery_ui_checks=module('ce05_coupon_delivery_ui',root/'deploy/governance-ce05-coupon-deliveries-ui.py')
+            idp_tool=module('p6_delivery_identity',root/'deploy/governance-casdoor-fixture.py')
+            fixture['users']['delivery_ui']=delivery_ui_checks.independent_identity(fixture,h.ISSUER,ops,suffix,idp_tool,uid)
+            h.private(run/'coupon-delivery-ui-owned-identity.json',json.dumps(fixture['users']['delivery_ui']))
+            identity_kinds += ('delivery_ui',)
+            record('coupon delivery UI distinct real non-admin identity created')
+        for kind in identity_kinds:
             principals[kind]=str(uuid.uuid5(uuid.NAMESPACE_URL,'p6:'+fixture['users'][kind]['id']));members[kind]=uid()
             values={'command.id':uid(),'operator.ref':'p6-isolated-fixture','tenant.id':tenant,'tenant.code':'p6-'+tenant,'principal.id':principals[kind],'issuer':h.ISSUER,'subject':fixture['users'][kind]['id'],'membership.id':members[kind],'valid.from':'2020-01-01T00:00:00Z','source.system':'p6-isolated-fixture','source.tenant.ref':source,'source.subject.ref':kind}
             file=run/(kind+'.properties');h.private(file,h.props(values));cli('GovernanceCli','bootstrap',dbfile,file)
@@ -378,7 +388,7 @@ def rehearse(args, isolation=None):
                 expect('packaged browser backend healthy',18665,'/actuator/health')
                 record('packaged browser backend unchanged and all compiled frontend bytes match')
                 # Vite会绕过后端静态安全链；在长矩阵前核验真实JAR的精确匿名壳与业务拒绝。
-                for path in ('/operations/audiences','/operations/campaigns','/operations/campaign-budgets'):
+                for path in ('/operations/audiences','/operations/campaigns','/operations/campaign-budgets','/operations/coupon-deliveries'):
                     connection=http.client.HTTPConnection('127.0.0.1',18665,timeout=15)
                     try:
                         connection.request('GET',path,headers={'Accept':'text/html'})
@@ -388,7 +398,9 @@ def rehearse(args, isolation=None):
                     finally:connection.close()
                     record('packaged browser anonymous static shell '+path)
                     expect('packaged browser static POST remains authenticated '+path,18665,path,body={},status=401)
-                for path in ('/v1/admin/audiences','/v1/admin/campaigns','/v1/admin/campaign-budgets','/v1/operations/campaigns/create-access','/operations/unregistered'):
+                for path in ('/v1/admin/audiences','/v1/admin/campaigns','/v1/admin/campaign-budgets','/v1/operations/campaigns/create-access','/operations/unregistered',
+                             '/operations/coupon-deliveries-other','/operations/coupon-deliveries/unknown','/v1/admin/coupon-deliveries',
+                             '/v1/operations/coupon-deliveries/create-access','/v1/operations/coupon-deliveries/control-access','/v1/operations/coupon-deliveries/pump-access'):
                     expect('packaged browser anonymous business or unknown entry denied '+path,18665,path,status=401)
             else:
                 pilot.start(['node','node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','18665','--strictPort'],commerce/'frontend','catalog-vite',18665,ui_environment)
@@ -1448,6 +1460,13 @@ def rehearse(args, isolation=None):
             delivery_checks=module('ce05_coupon_delivery_owner',root/'deploy/governance-ce05-coupon-deliveries.py')
             delivery_context={**segment_context,'app':app,'store':store}
             app=delivery_checks.rehearse(delivery_context)
+            if args.browser:
+                # 第三个真实HUMAN与管理者、D1原创建者分离，保留防自授与原任务Grant。
+                ui_token=up.token(h.ISSUER,fixture,'business','delivery_ui')
+                delivery_context.update(app=app,commerce=commerce,ui_token=ui_token,ui_member=members['delivery_ui'],
+                    ui_principal=principals['delivery_ui'],ui_identity=fixture['users']['delivery_ui'],
+                    ui_authority=h.ISSUER,ui_client=fixture['clients']['business']['name'],ui_interactive=isolation is not None)
+                app=delivery_ui_checks.rehearse(delivery_context)
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
         current=expect('read committed task effect',18661,'/v1/operations/skus?storeId='+store,user)[0]
@@ -1532,6 +1551,7 @@ def rehearse(args, isolation=None):
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
         if args.coupon_deliveries:delivery_checks.outage(delivery_context)
+        if args.coupon_deliveries and args.browser:delivery_ui_checks.outage(delivery_context)
         if args.segments:segment_checks.outage(segment_context)
         if args.segments and args.browser:segment_ui_checks.outage(segment_context)
         result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'audiences_checked':args.audiences,'campaigns_checked':args.campaigns,'segments_checked':args.segments,'coupon_deliveries_checked':args.coupon_deliveries,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest(),'browser_mode':'PACKAGED_JAR' if args.packaged_browser else 'VITE' if args.browser else 'NONE'}
@@ -1565,6 +1585,7 @@ def main():
     parser.add_argument('--identity-subnet',help='explicit unused RFC1918 /24 when Docker default pools are exhausted')
     args=parser.parse_args()
     if args.packaged_browser and not args.browser:parser.error('--packaged-browser requires --browser')
+    if args.coupon_deliveries and args.browser and not args.packaged_browser:parser.error('coupon delivery UI requires --packaged-browser')
     if args.identity_subnet and not args.isolated_identity:parser.error('--identity-subnet requires --isolated-identity')
     if args.coupon_deliveries:args.segments=True
     if args.segments:args.campaigns=True
