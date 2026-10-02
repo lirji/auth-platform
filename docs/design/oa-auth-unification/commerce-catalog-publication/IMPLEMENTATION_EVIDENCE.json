@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "TOOL_COMBINATION_VERIFIED_PUBLICATION_PENDING",
+  "status": "PASS_ISOLATED_OWNER_CATALOG_ROLE_PUBLICATION",
   "baseline_main": "b1edecc61ceef29f82a280259d2679b0d662f378",
   "ci_closure_commit": "148d061232f1c55f65affeae87a898bfeb934bb7",
   "prepared_tool_commit": "bd57d2b",
@@ -18,7 +18,7 @@
     ".github/workflows/authz-ci.yml": "9876b215d7de2538517620fdbf03a6c4b19defa18115250ddb671e5c5fb8e8a8",
     "deploy/governance-commerce-publication.py": "080712046b338a74d3d6f8c37050e3eb2380916d55beae49b97e10cabc551b1a",
     "deploy/governance-commerce-publication-runtime.py": "2618ca9c0cd1869d573b8aace915be5b0b752909a724d44b424e2fc98edbcd48",
-    "deploy/governance-commerce-publication-ui.mjs": "4fe1f07bf289846ff39f27d9493314ea6f928902b49ec9f8d66e95c81335da13",
+    "deploy/governance-commerce-publication-ui.mjs": "adb90295ca18764424f6b65089f12bed3f4ecbc92f272de75b77518bf026dbe2",
     "deploy/tests/test_governance_commerce_publication.py": "3241ae74d5d1f948b0e8e5b9d80c486e064f1382b8ee248446e9222ac09c1a38"
   },
   "dependency_source_sha256": {
@@ -44,9 +44,9 @@
   "python_syntax": "PASS",
   "node_syntax": "PASS",
   "yaml_existing_ci_registration": "PASS",
-  "owner_publication_actual_http_sql_ui": "PENDING",
+  "owner_publication_actual_http_sql_ui": "PASS",
   "merged_source_and_ci": "PENDING_ROOT_ORDERED_INTEGRATION",
-  "current_followup": "Owner122 final closures ready at v6 preflight;concurrent Root CE06 semantic merge changed four existing71 shared wholefiles;runtime strict fence rejected BEFORE fixture/HTTP writes;await new Root affected integration gate",
+  "current_followup": "CP01-04 isolated publication complete;Root ordered integration and exact remote CI remain separate",
   "whole_auth_artifact_fence": {
     "status": "PASS",
     "evidence": ".local/commerce-catalog-publication/own-auth-artifact-fence-v1.json",
@@ -60,8 +60,8 @@
     },
     "tracked_main_sources": 202
   },
-  "owner_ready": 89,
-  "owner_pending": 33,
+  "owner_ready": 122,
+  "owner_pending": 0,
   "root_existing71_journey18_integration_gate": {
     "sha256": "2ee7316c6f740217c8367b8dd61bacfb27dad30165500c66a543ed95d052b0a7",
     "path": "/Users/liruijun/personal/LLM/auth-platform/.local/governance/commerce-contracts/parallel-existing71-root-integration-gate.json",
@@ -258,8 +258,66 @@
     "result": "PASS_OWNER_CURRENT_COMMITTED_CLOSURE"
   },
   "latest_actual_runtime_attempt": {
+    "status": "PASS",
+    "run": "/Users/liruijun/.local/share/git-worktrees/auth-platform/integrated-resource-selector/.local/commerce-catalog-publication/runtime-b8d81bb347e3",
+    "attempt": "0647756daf1942e8b79c315301389028",
+    "result": {
+      "path": "/Users/liruijun/.local/share/git-worktrees/auth-platform/integrated-resource-selector/.local/commerce-catalog-publication/runtime-b8d81bb347e3/final-publication-result-v1.json",
+      "sha256": "d73dfb9c3b78ad4459cf9cabc1770ce11044fd44a27fd4ba3277f912cbc7861e"
+    },
+    "visual": {
+      "path": "/Users/liruijun/.local/share/git-worktrees/auth-platform/integrated-resource-selector/.local/commerce-catalog-publication/runtime-b8d81bb347e3/visual-review-final-v1.json",
+      "sha256": "07f70a62eb8e20e50a3a50d689bcfd8b99cb6a035a08ce8734d7a31d81e93ff2"
+    },
+    "index": {
+      "path": "/Users/liruijun/.local/share/git-worktrees/auth-platform/integrated-resource-selector/.local/commerce-catalog-publication/runtime-b8d81bb347e3/immutable-evidence-index-delivery-v2.json",
+      "sha256": "93cd32a9ddce367de84be243f8818a657a044bff7de3f34c8e3296ed735f43ea"
+    },
+    "process": {
+      "path": "/Users/liruijun/.local/share/git-worktrees/auth-platform/integrated-resource-selector/.local/commerce-catalog-publication/runtime-b8d81bb347e3/process-exit-and-stop-receipt-v1.json",
+      "sha256": "483843dc60cf7ed3f35e4ba8e9fff669aec04daa843dd57360395af7a43100b4"
+    }
+  },
+  "ui_harness_followup": {
+    "scope": "Native finite wheel<=30 half-screen scrolls;single true option no holder scroll;exclude leaving popups;wait all closed before PNG actual-width assertion",
+    "node_syntax": "PASS",
+    "actual_browser_run": "PASS",
+    "helper_commit": "731efc460325da545b6f6f5723c2c5213a427936"
+  },
+  "historical_stage_followup": "Owner122 final closures ready at v6 preflight;concurrent Root CE06 semantic merge changed four existing71 shared wholefiles;runtime strict fence rejected BEFORE fixture/HTTP writes;await new Root affected integration gate",
+  "historical_latest_actual_runtime_attempt": {
     "status": "REJECTED_BEFORE_ALL_FIXTURE_WRITES",
     "evidence": ".local/commerce-catalog-publication/preflight-root-merge-drift-v1.json",
     "sha256": "14e6e0f9fd2cc5d33cdbfca2ede1291a592ff97e7ddd05b9dd025c6e281b76c3"
+  },
+  "root_current_all122_gate": {
+    "path": "/Users/liruijun/personal/LLM/auth-platform/.local/governance/commerce-contracts/parallel-existing71-ce08-root-current-integration-gate.json",
+    "sha256": "05d215619a15b44459e03f6e1a5330f0543905c694fdd9aee86314f8f74db5f1"
+  },
+  "ce06_receipt_fix_supplement": {
+    "commerce_delivery_head": "a60fc8dea918bb7a9ad66aaec3599847b4c4dbc7",
+    "product_patch": "4b7c20a4b261357beee5554729310c1fb14a3036",
+    "menu_map_v2": {
+      "path": "/Users/liruijun/.local/share/git-worktrees/commerce-platform/central-order-operations-permissions/.local/order-operations/owner-menu-map-final-v2-with-receipt-fix.json",
+      "sha256": "2cd67aeeafc80a519c0f962b64504f09c0c8076103ebf60e6baaf46267228610"
+    },
+    "note": "Original33 terminal preserved;004 real35 and Rootfresh58/archive gate supplement changed Campaign/Coupon sources"
+  },
+  "isolated_actual_counts": {
+    "capabilities": 122,
+    "resource_types": 21,
+    "menus": 42,
+    "operations_navigation": 35,
+    "fixed_collaboration_entry": 1,
+    "browse_parents": 6,
+    "role_snapshots": 34,
+    "distinct_jobs": 17,
+    "template_capability_union": 99,
+    "outside_templates": 23,
+    "grants": 0,
+    "policies": 0,
+    "v2_publish_audits": 1,
+    "create_role_audits": 34,
+    "final_pngs": 14
   }
 }

@@ -1,5 +1,17 @@
 # Commerce Owner 出版进度
 
+状态：DONE_ISOLATED_PUBLICATION / ROOT_ORDERED_GIT_CI_PENDING。CP01-04实际完成，当前122能力/21资源/42菜单准确发布，34角色按同resource创建=17jobs/99union；其余23不自动授予，Grant0/Policy0。
+
+真实HTTP、精确SQL manifest/hash/audits、两HUMAN PKCE/ordinary403、最后固定角色可选、product.read单选、Grant/Policy共享ScopeFields新类型、14张1440/390/320最终图均PASS。最终run/源SHA/wholeAuthJAR/dist及不可变索引见IMPLEMENTATION_EVIDENCE.json、TEST_RESULT.md。仅own21662/21665 Popen已结束，隔离数据、源/制品、原命令意图及所有失败和成功历史保留，未经清理授权不移除本树。
+
+当前Root GO gate已补齐旧71四共享来源及CE33受004修补影响来源；仅原Authdef7→305两文档变化，原prepared/HTTPplan未覆盖或追加新角色键。纯验收helper及实际结果本地731efc4，后续纯交付文档独立提交；不自行合并或push main。Root最终合并需要保留IR/D2/publication三套既有workflow检查。
+
+# 保留的阶段进度历史
+
+下文IMPLEMENTING/PENDING/89+33/v6拒绝均为当时事实；当前状态以上述终态为准。
+
+# Commerce Owner 出版进度
+
 状态：IMPLEMENTING / OWNER_FINAL_EVIDENCE_PENDING。IR-01 已单独完成并精确远程CI37026620293 SUCCESS；本片不复用该结论声称122能力全部交付。
 
 已完成：有界计划/HTTP工具、真实隔离运行器及只读PKCE/UI harness；23项纯Python失败场景测试通过，覆盖待证不出版、当前commit/source变化、未覆盖cap不能复用报告、真实导航遗漏、product与catalog区别、角色同资源、无自动Grant、凭据/目标隔离、旧Auth绑定先阻止出版、失响应同键恢复、坏角色2xx保留意图、晚期view_hash改变拦写、ignored未跟踪源不能冒充提交、未知cap证明拒绝。Python/Node语法、YAML登记、原IR Node14测试PASS。运行器尚未执行真实出版，不把语法通过当实际业务完成。

@@ -1,5 +1,7 @@
 # 有界出版切片
 
+当前CP01-04均DONE_ISOLATED_PUBLICATION，真实终态详见TEST_RESULT及IMPLEMENTATION_EVIDENCE；Root正常Git集成/精确远程CI另行关闭。
+
 CP-01：工具与证据计划。读取122候选/34同资源模板、当前导航联集及实际 Owner 页面映射；逐cap绑定 current commit/source SHA/实际终态凭据。缺证明只生成待证计划。完成：纯失败场景测试、语法验证与文档；不等于真实出版完成。
 
 CP-02：关联 Auth 共享依赖组合验证。只在本树串入已授权的三个依赖，使用私有 Maven 仓，按实际运行日志/failsafe-summary 区分本轮报告与旧 target XML；验证新增 Scope/Execution 闭集及当前目录类型。
