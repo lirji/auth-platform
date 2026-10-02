@@ -3468,6 +3468,14 @@
       "controller": "PlatformRuntimeController",
       "method": "GET",
       "path": "/v1/platform/runtime",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/health/PlatformRuntimeController.java:27",
+      "capabilities": [],
+      "mode": "SEPARATE_PLATFORM_IDENTITY"
+    },
+    {
+      "controller": "PlatformRuntimeController",
+      "method": "GET",
+      "path": "/v1/platform/me",
       "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/health/PlatformRuntimeController.java:20",
       "capabilities": [],
       "mode": "SEPARATE_PLATFORM_IDENTITY"

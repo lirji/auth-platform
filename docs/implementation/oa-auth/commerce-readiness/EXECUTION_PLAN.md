@@ -1,6 +1,6 @@
 # 商城剩余接入执行记录
 
-CE05-A0本地DONE：稳定audience类型、read/create两独立有限集合能力；完整252单元、真实自有PG86a26d467cc2/SpiceDB共14项ExecutionAuthorizationIT、Boot4 1项及最终forceCreation install通过，两个运行Jar内嵌依赖和四源码摘要一致。hygiene无阻断，既有Java formatter/静态分析限制保留，无新迁移，自有PG已finally停止。A0 Git交付中，下一A1/A2与其他CE05—08未完成。R2已推送auth70b6228/commerce654d903，精确CI36706764297/36706768255均SUCCESS。A0代码已提交authd24748b，正常Git推送待本轮收尾；用户确认commerce refactor/b-console-experience另有任务执行，保持该分支及新文件，暂缓A1/A2直到工作区可用，原生产2HOLD不变。
+CE05-A0已交付：auth d24748b/4747ac49，精确CI36707598359 SUCCESS。旧商城原目录占用已解除，CE05-A1在原目录串行实施：AUDIENCE独立read/create、集合许可、快照头/成员/原命令/实际身份审计同事务，SDK固定4747ac49；7项MySQL专项全部PASS，最终完整回归477项（472 PASS/5既有skip）和7源码摘要均PASS，真实跨进程edc3a5f8c7d0（子网115）549PASS，152类/迁移及演练JAR摘要一致，本地DONE，GitCI待交付。V63已应用不可改。A2及其他CE05—08仍未完成，原生产2HOLD不变。
 
 CE05-R2本地DONE：固定SSO规则目录/创建/发布三Tab、两个独立hint与两个原意图分别恢复；完整469项464PASS/5既有skip、规则8专项全PASS，最终真实200dbeb9873c（子网10.254.114.0/24）609PASS，规则12条浏览器与全部既有员工页回归通过。42工具/259入口/122能力/34角色、build/Prettier/两仓hygiene及auth4/commerce10源码摘要一致；实际8条规则身份审计、UI创建/发布各1次，同键不重复，旧1=PUBLISHED/最新2=DRAFT。1440/390表单/目录、409/未知/成功/503已查看；稳定布局后的正文与PNG均390，表格内部横滚。无新迁移，V49—V62不可改；下一CE05-A人群快照，其余CE05—08和原生产2HOLD未完成。
 

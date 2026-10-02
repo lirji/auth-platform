@@ -1,6 +1,6 @@
 # 当前商城扩展续做
 
-CE05-A0本地DONE：稳定audience类型、read/create两独立有限集合能力；完整252单元、真实自有PG86a26d467cc2/SpiceDB共14项ExecutionAuthorizationIT、Boot4 1项及最终forceCreation install通过，两个运行Jar内嵌依赖和四源码摘要一致。hygiene无阻断，既有Java formatter/静态分析限制保留，无新迁移，自有PG已finally停止。A0 Git交付中，下一A1/A2与其他CE05—08未完成。R2已推送auth70b6228/commerce654d903，精确CI36706764297/36706768255均SUCCESS。A0代码已提交authd24748b，正常Git推送待本轮收尾；用户确认commerce refactor/b-console-experience另有任务执行，保持该分支及新文件，暂缓A1/A2直到工作区可用，原生产2HOLD不变。
+CE05-A0已交付：auth d24748b/4747ac49，精确CI36707598359 SUCCESS。旧商城原目录占用已解除，CE05-A1在原目录串行实施：AUDIENCE独立read/create、集合许可、快照头/成员/原命令/实际身份审计同事务，SDK固定4747ac49；7项MySQL专项全部PASS，最终完整回归477项（472 PASS/5既有skip）和7源码摘要均PASS，真实跨进程edc3a5f8c7d0（子网115）549PASS，152类/迁移及演练JAR摘要一致，本地DONE，GitCI待交付。V63已应用不可改。A2及其他CE05—08仍未完成，原生产2HOLD不变。
 
 ## 历史阶段摘要（当前状态以上方A0为准）
 

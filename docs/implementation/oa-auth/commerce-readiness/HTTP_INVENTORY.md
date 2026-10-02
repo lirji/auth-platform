@@ -1,6 +1,6 @@
 # 商城HTTP入口实测源码清单
 
-基线 commerce-platform 31dbdcd；当前任务仅增加静态 `/operations/catalog` 壳。逐个注解展开多路径，CE05-R2新增规则页和两个独立操作提示后共 259 条。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
+基线 commerce-platform 31dbdcd；逐个注解展开多路径，CE05-R2与已交付Craft平台自身身份入口后共 260 条。CE05-A1接管已有GET/POST人群接口，不新增HTTP路径。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
 
 | Controller | 方法 | 路径 | 当前入口身份 | 源码 |
 |---|---|---|---|---|
@@ -193,7 +193,8 @@
 | PaymentController | GET | `/v1/admin/events` | ADMIN | `commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:73` |
 | PaymentController | GET | `/v1/admin/events/health` | ADMIN | `commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:80` |
 | PaymentController | POST | `/v1/admin/events/{id}/retry` | ADMIN | `commerce-app/src/main/java/com/lrj/commerce/app/http/payment/PaymentController.java:86` |
-| PlatformRuntimeController | GET | `/v1/platform/runtime` | PLATFORM_OPERATOR | `commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/health/PlatformRuntimeController.java:20` |
+| PlatformRuntimeController | GET | `/v1/platform/me` | PLATFORM_OPERATOR | `commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/health/PlatformRuntimeController.java:20` |
+| PlatformRuntimeController | GET | `/v1/platform/runtime` | PLATFORM_OPERATOR | `commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/health/PlatformRuntimeController.java:27` |
 | RuntimeRecoveryController | GET | `/v1/admin/runtime/work-types` | ADMIN | `commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:27` |
 | RuntimeRecoveryController | GET | `/v1/admin/runtime/stopped` | ADMIN | `commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:33` |
 | RuntimeRecoveryController | POST | `/v1/admin/runtime/recoveries` | ADMIN | `commerce-app/src/main/java/com/lrj/commerce/app/http/runtime/recovery/RuntimeRecoveryController.java:41` |

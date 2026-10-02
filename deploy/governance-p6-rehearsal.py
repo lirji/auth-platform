@@ -14,6 +14,8 @@ ENTITLEMENT_DEFINITION_RESOURCE_TYPE = 'entitlement_definition'
 ENTITLEMENT_RESOURCE_TYPE = 'entitlement'
 RULE_RESOURCE_TYPE = 'marketing_rule'
 RULE_CAPABILITIES = ('rule.read','rule.create','rule.publish')
+AUDIENCE_RESOURCE_TYPE = 'audience'
+AUDIENCE_CAPABILITIES = ('audience.read','audience.create')
 ENTITLEMENT_CAPABILITIES = {'entitlement_definition.read':ENTITLEMENT_DEFINITION_RESOURCE_TYPE,'entitlement_definition.create':ENTITLEMENT_DEFINITION_RESOURCE_TYPE,'entitlement.read':ENTITLEMENT_RESOURCE_TYPE,'entitlement.resolve':ENTITLEMENT_RESOURCE_TYPE}
 COUPON_DEFINITION_CAPABILITIES = ('coupon_definition.read','coupon_definition.create')
 OFFER_CAPABILITIES = ('point_offer.read','point_offer.define','point_offer.status.update')
@@ -185,6 +187,8 @@ def rehearse(args, isolation=None):
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':kind,'risk_level':'HIGH'} for code,kind in ENTITLEMENT_CAPABILITIES.items()]
         if args.rules:
             manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':RULE_RESOURCE_TYPE,'risk_level':'NORMAL' if code.endswith('.read') else 'HIGH'} for code in RULE_CAPABILITIES]
+        if args.audiences:
+            manifest['capabilities'] += [{'code':'commerce.'+code,'resource_type':AUDIENCE_RESOURCE_TYPE,'risk_level':'HIGH'} for code in AUDIENCE_CAPABILITIES]
         h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli','publish',run/'catalog.properties',run/'manifest.json')
         access={'access.tenant':tenant,'access.application':'commerce','access.environment':env,'access.manager':members['internal'],'access.generation':1,'access.capabilities':'commerce.catalog.operate','access.max-duration-seconds':3600,'access.operator':'p6-fixture','access.command':uid()}
         if args.inventory:access['access.capabilities'] += ',commerce.inventory.read,commerce.inventory.receive'
@@ -199,6 +203,7 @@ def rehearse(args, isolation=None):
         if args.coupon_definitions:access['access.capabilities'] += ''.join(',commerce.'+code for code in COUPON_DEFINITION_CAPABILITIES)
         if args.entitlements:access['access.capabilities'] += ''.join(',commerce.'+code for code in ENTITLEMENT_CAPABILITIES)
         if args.rules:access['access.capabilities'] += ''.join(',commerce.'+code for code in RULE_CAPABILITIES)
+        if args.audiences:access['access.capabilities'] += ''.join(',commerce.'+code for code in AUDIENCE_CAPABILITIES)
         h.private(run/'access.properties',db+h.props(access));cli('AccessBootstrapCli',run/'access.properties')
         def authority(kind):
             c=fixture['clients'][kind];return {'issuer':h.ISSUER,'jwks.uri':h.ISSUER+'/.well-known/jwks','audience':c['name'],'client.id':c['name'],'client.secret':c['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret']}
@@ -212,6 +217,7 @@ def rehearse(args, isolation=None):
         if args.coupon_definitions:server['scope.owner.commerce'] += ','+COUPON_DEFINITION_RESOURCE_TYPE
         if args.entitlements:server['scope.owner.commerce'] += ','+ENTITLEMENT_DEFINITION_RESOURCE_TYPE+','+ENTITLEMENT_RESOURCE_TYPE
         if args.rules:server['scope.owner.commerce'] += ','+RULE_RESOURCE_TYPE
+        if args.audiences:server['scope.owner.commerce'] += ','+AUDIENCE_RESOURCE_TYPE
         server.update({'service.1.user.'+k:v for k,v in authority('business').items()});h.private(run/'server.properties',db+legacy+graph_settings+h.props(server))
         h.private(run/'consumer.properties',h.props({'central.url':'http://127.0.0.1:18161','central.credential':service,'central.application':'commerce','central.environment':env}))
         admin_token=up.token(h.ISSUER,fixture,'management','internal');user_token=up.token(h.ISSUER,fixture,'business','external')
@@ -1136,6 +1142,47 @@ def rehearse(args, isolation=None):
                     if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability="+q(cap)+" AND resource_id='ce05-rule:c'")[1]!='1':raise RuntimeError('rule UI original retry duplicated audit')
                 if sql("SELECT CONCAT(version,':',status) FROM marketing_rule_asset WHERE tenant_id="+q(source)+" AND rule_id='ce05-rule:c'")[1]!='1:PUBLISHED':raise RuntimeError('rule UI actual publish missing')
             record('rule definitions and distinct publish commands have exact audits without replay duplicates')
+        if args.audiences:
+            insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'AUDIENCE','state':'SHADOW'})
+            sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='AUDIENCE' AND state='SHADOW' AND version=1;")
+            audience_base='/v1/admin/audiences'
+            expect('other abilities do not imply audience read',18661,audience_base,user,status=403)
+            expect('legacy ADMIN cannot bypass audience management',18661,audience_base,local_admin,status=403)
+            def audience_grant(code):
+                role=expect('explicit audience role '+code,18162,prefix+'/roles',admin,{**partition,'command_id':uid(),'role_code':'ce05-a-'+code.replace('.','-'),'role_version':1,'capabilities':['commerce.'+code]})['id']
+                grant=expect('finite audience grant '+code,18162,prefix+'/scoped-grants',admin,{**partition,'command_id':uid(),'member_id':members['external'],'member_generation':1,'role_id':role,'scope_rule':{'version':1,'resource_type':AUDIENCE_RESOURCE_TYPE,'clauses':[{'kind':'TENANT_ALL','values':[],'include_root':False}]},'source_id':'ce05-a-'+code,'valid_from':now(-2),'valid_to':now(600)},202)['id']
+                projection();execution_ready(code,phase='audience-fixture',resource_type=AUDIENCE_RESOURCE_TYPE);return grant
+            audience_create_grant=audience_grant('audience.create')
+            audience_input={'audienceId':'ce05-audience:a','version':1,'name':'Central audience A','source':'isolated-import','watermark':now(-60),'validUntil':now(3600),'memberIds':['ce05-import-not-member','ce04-cycle-member']}
+            audience_headers=user+[('Idempotency-Key',uid())]
+            audience_a=expect('audience create without read',18661,audience_base,audience_headers,audience_input)
+            if audience_a['memberCount']!=2 or 'memberIds' in audience_a:raise RuntimeError('audience response is not actual summary')
+            if expect('audience original key retry',18661,audience_base,audience_headers,audience_input)!=audience_a:raise RuntimeError('audience import duplicated')
+            expect('audience create does not imply read',18661,audience_base,user,status=403)
+            audience_a2=expect('new immutable empty audience version',18661,audience_base,user+[('Idempotency-Key',uid())],{**audience_input,'version':2,'memberIds':[]})
+            audience_b=expect('expired snapshots retain original import semantics',18661,audience_base,user+[('Idempotency-Key',uid())],{**audience_input,'audienceId':'ce05-audience:b','watermark':now(-7200),'validUntil':now(-3600),'memberIds':['ce05-import-not-member']})
+            expect('duplicate immutable audience version conflict',18661,audience_base,user+[('Idempotency-Key',uid())],audience_input,409)
+            for label,changes in [('duplicate members',{'memberIds':['M1','M1']}),('member count limit',{'memberIds':['M'+str(i) for i in range(501)]}),('future watermark',{'watermark':now(600),'validUntil':now(1200)}),('freshness window',{'watermark':now(-60),'validUntil':now(86400)}),('dynamic prefix',{'audienceId':'dyn-reserved'})]:
+                expect('audience original '+label+' validation',18661,audience_base,user+[('Idempotency-Key',uid())],{**audience_input,'audienceId':'ce05-audience-invalid',**changes},400)
+            audience_grant('audience.read')
+            if expect('latest audience summary stable first cursor',18661,audience_base+'?after=ce05-&limit=1',user)!=[audience_a2]:raise RuntimeError('audience latest version mismatch')
+            if expect('audience summary next cursor',18661,audience_base+'?after=ce05-audience%3Aa&limit=1',user)!=[audience_b]:raise RuntimeError('audience cursor mismatch')
+            if expect('audience summary terminal cursor',18661,audience_base+'?after=ce05-audience%3Ab&limit=1',user):raise RuntimeError('audience terminal cursor mismatch')
+            expect('foreign audience tenant denied',18661,audience_base,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
+            expect('revoke independent audience creation',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':audience_create_grant,'expected_version':1})
+            projection();expect('revoked audience cannot replay original receipt',18661,audience_base,audience_headers,audience_input,403)
+            expect('audience read survives write revoke',18661,audience_base,user)
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='audience' AND store_id IS NULL")[1]!='3':raise RuntimeError('audience exact identity audit count mismatch')
+            if sql("SELECT GROUP_CONCAT(CONCAT(version,':',member_count) ORDER BY version) FROM marketing_audience_snapshot WHERE tenant_id="+q(source)+" AND audience_id='ce05-audience:a'")[1]!='1:2,2:0':raise RuntimeError('audience immutable header fields mismatch')
+            if sql("SELECT GROUP_CONCAT(member_id ORDER BY member_id) FROM marketing_audience_member WHERE tenant_id="+q(source)+" AND audience_id='ce05-audience:a' AND version=1")[1]!='ce04-cycle-member,ce05-import-not-member':raise RuntimeError('audience actual members mismatch')
+            if sql("SELECT count(*) FROM member_record WHERE tenant_id="+q(source)+" AND member_id='ce05-import-not-member'")[1]!='0':raise RuntimeError('audience import created customer member')
+            sql("UPDATE employee_authority_route SET state='STOPPED',version=version+1 WHERE tenant_id="+q(source)+" AND family='AUDIENCE'")
+            expect('stopped audience family blocks old ADMIN',18661,audience_base,local_admin,status=403)
+            expect('stopped audience family blocks old receipts',18661,audience_base,audience_headers,audience_input,403)
+            if sql("SELECT count(*) FROM marketing_audience_member WHERE tenant_id="+q(source)+" AND audience_id='ce05-audience:a' AND version=1")[1]!='2':raise RuntimeError('employee stop deleted imported snapshot')
+            sql("UPDATE employee_authority_route SET state='CENTRAL',version=version+1 WHERE tenant_id="+q(source)+" AND family='AUDIENCE'")
+            expect('resumed audience retains revoked create denial',18661,audience_base,audience_headers,audience_input,403)
+            record('audience exact header member and identity rows survive revoke and stop without importing members')
         def job(name,price,revision):return post(name,'catalog-jobs',{'jobId':uid(),'storeId':store,'name':name,'action':'PRICE','runAt':None,'deadline':now(600),'targets':[{'skuId':'p6-sku','expectedRevision':revision,'unitPrice':price}],'reason':'P6 durable proof'})
         queued=job('queued process recovery','12.00',sku['revision']);h.stop(app);app=start_commerce('commerce-resumed')
         expect('background reference survives process restart',18661,'/v1/operations/catalog-jobs/pump?storeId='+store,user,{})
@@ -1210,9 +1257,11 @@ def rehearse(args, isolation=None):
             expect('rule directory central outage fails closed',18661,rule_base,user,status=503)
             expect('rule field directory central outage fails closed',18661,fields_path,user,status=503)
             rule_browser('outage')
+        if args.audiences:
+            expect('audience directory central outage fails closed',18661,audience_base,user,status=503)
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
-        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
+        result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'audiences_checked':args.audiences,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
         h.private(run/'result.json',json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({'result':'PASS','checks':len(checks),'evidence':str(run/'result.json')}))
     finally:
         for p in processes+h.PROCESSES:h.stop(p)
@@ -1222,6 +1271,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--commerce-root',default='../commerce-platform')
     parser.add_argument('--browser',action='store_true')
+    parser.add_argument('--audiences',action='store_true',help='finite audience snapshot read/create and immutable import audit; includes rule regression')
     parser.add_argument('--rules',action='store_true',help='finite rule create/read/publish and trusted fixed-version regression')
     parser.add_argument('--entitlements',action='store_true',help='finite entitlement definition and actual grant management; includes coupon regression')
     parser.add_argument('--coupon-definitions',action='store_true',help='finite coupon definition creation/read and customer issuance; includes offer regression')
@@ -1238,6 +1288,7 @@ def main():
     parser.add_argument('--identity-subnet',help='explicit unused RFC1918 /24 when Docker default pools are exhausted')
     args=parser.parse_args()
     if args.identity_subnet and not args.isolated_identity:parser.error('--identity-subnet requires --isolated-identity')
+    if args.audiences:args.rules=True
     if args.rules:args.entitlements=True
     if args.entitlements:args.coupon_definitions=True
     if args.coupon_definitions:args.offers=True
