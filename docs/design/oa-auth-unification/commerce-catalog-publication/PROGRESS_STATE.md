@@ -17,3 +17,5 @@
 最新计划v5绑定原71 Owner不可变回执与Root独立集成Gate PASS（34源、530真实MySQL含5既有skip、254Auth单位、8fixture、完整protocol104/SDK12匹配；精确main CI37033427164/37033478131 SUCCESS）。现89能力已证明，CE06新增33保持待最终当前Source/JAR/故障场景/UI回执，manifest=null，无HTTP出版。历史v3的18/104是前一阶段事实，不覆盖或伪改。
 
 本片Auth完整制品栅栏实际PASS：嵌套protocol104、core10、governance217以及admin67编译类/资源全部逐字节匹配当前模块target，202tracked主源与128实际验证build来源一致；仅SDK或时间戳不足以证明当前制品。证据 `.local/commerce-catalog-publication/own-auth-artifact-fence-v1.json`；现23纯测试与Python/Node语法再次实际PASS，不重跑不变128。运行器日志默认私密0600，真实HTTP/UI仍PENDING。
+
+CE06最终终态已接收并核对：Auth b0e6d8c695bfb53a347162b729e0a60fb5720ea8、Commerce12234d70fe07f9cb726c50280740e6fbc965ed3a，两树clean；33能力32个tracked当前来源、9菜单精确any_of、30报告SHA全MATCH。当前945来源/完整嵌套SDK与protocol逐字节独立复核，149真实检查/3latechild/7租户门店与action-only/135Owner图报告保留；本片仅3幅代表性图独立打开。v6一度122READY、35routes/42nodes/34role，但Root并行CE06语义合并改变原71 CampaignService/CouponService/CentralScopeService/StoreService四文件；运行器真实preflight拒绝发生在任何fixture/HTTP写入前，runtime目录仍0。旧71不伪改，等新Root affected/full回归Gate后重新绑定当前源再执行实际出版。

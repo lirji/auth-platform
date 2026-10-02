@@ -46,7 +46,7 @@
   "yaml_existing_ci_registration": "PASS",
   "owner_publication_actual_http_sql_ui": "PENDING",
   "merged_source_and_ci": "PENDING_ROOT_ORDERED_INTEGRATION",
-  "current_followup": "Whole nested Auth protocol/core/governance/admin compiled classes/resources fence bound to verified128 build; historical receipt formats retained;89 validated/33 final Owner evidence pending",
+  "current_followup": "Owner122 final closures ready at v6 preflight;concurrent Root CE06 semantic merge changed four existing71 shared wholefiles;runtime strict fence rejected BEFORE fixture/HTTP writes;await new Root affected integration gate",
   "whole_auth_artifact_fence": {
     "status": "PASS",
     "evidence": ".local/commerce-catalog-publication/own-auth-artifact-fence-v1.json",
@@ -78,5 +78,188 @@
         "success"
       ]
     ]
+  },
+  "ce06_final_owner": {
+    "commerce_head": "12234d70fe07f9cb726c50280740e6fbc965ed3a",
+    "auth_head": "b0e6d8c695bfb53a347162b729e0a60fb5720ea8",
+    "own_capabilities": 33,
+    "source_refs": [
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/navigation.ts",
+        "sha256": "fe42a307dc2335dc63317e41043f86db5791d77851cb8858d6e6ad36ce40be93"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/CentralProducts.tsx",
+        "sha256": "3474a002e7a4eafec132caa7f27f2d6a0e0cbea04aafb8b43290d37f2ef524fc"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "commerce-app/src/main/java/com/lrj/commerce/app/configuration/security/SecurityConfiguration.java",
+        "sha256": "106bdecedf0c870870bea8c3a53046e8acfcc9a60d0534d48ec82de7436f70c3"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+        "sha256": "5847248b67f800de3c006272be6b4c6072b7059d2bd3e3e65e93a98c5ddc3d50"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/CentralRuntime.tsx",
+        "sha256": "0e2a272d698d4abda6c3d90f387e8a419d51d79a998b87617124ff9e702f0283"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/CentralEvents.tsx",
+        "sha256": "5c6a85c7212cb972baedff3caab0b9ee433ec21e924f265a9fdf77a0b6587880"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/CentralPayments.tsx",
+        "sha256": "73d497c8232f707997fd1f14c57398a01af16b089e2bf9ba63062fd2dae33c7c"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/CentralRefunds.tsx",
+        "sha256": "aad5d12c4620cf00a952f37b2bb4508511e350259c8b02526d084d2b3778fc7e"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/CentralOrders.tsx",
+        "sha256": "a2f22250d1beb8a68a74dcb170cbf34541f4411aee62cbf9496e04353c2081f3"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/CentralDashboard.tsx",
+        "sha256": "a07cf643c379ec00f869a84ad417fc8b7ea2389239f68d7192e4c8d98e0196fb"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/CentralAftersales.tsx",
+        "sha256": "a7d8840973cde51beb2c19a5edfd01eba5fb324cc10d8e3fd863956f3604464b"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/CentralOpsPages.tsx",
+        "sha256": "d3fced204780abec5d11011c9867eb8196453c19248a272828b3dc4ad1f00368"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/CentralFulfillments.tsx",
+        "sha256": "06f5adc62fecc4a28e87bf5311a0a36932231c3d6f97a90af4ba50b24fc049b2"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "platform-runtime/src/main/java/com/lrj/commerce/runtime/api/access/EmployeeAccess.java",
+        "sha256": "af6265753264adbe1d53a32470eefdfd9777bf396171128499461c688fd9e2a4"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "commerce-app/src/main/java/com/lrj/commerce/app/iam/CentralEmployeeConfiguration.java",
+        "sha256": "ce78f8365c343da56096e4557e1c9eb8239198ba97c600fc1759c0264bc4db37"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "commerce-app/src/main/java/com/lrj/commerce/app/iam/CentralEmployeeService.java",
+        "sha256": "c5bb3fc0244ee98935f6b43e8446fc3aaa5f4afa53fb43f83acfe27d0b422d8c"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/operationsClient.ts",
+        "sha256": "32f6ec83e69aae3cf7a084e80bc31bbc088697fd2e89bea2939b5829ec0a5a4b"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/operationsCommand.ts",
+        "sha256": "bf2aaa426806dc841199d3fb581921d003e78c283d765c0b329c22f922bb5bcb"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "frontend/src/iam/OperationsWorkspace.tsx",
+        "sha256": "c7ae20e9fad74ce7d4f8861db9ef4cfe0777ba32a407e1037aa2b1b67013f913"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/OperationsAccessController.java",
+        "sha256": "a1b1a481ab3f681c1c5d1f6c6eadf4c1d0b31a9b7027358b1203cbfbac5f73eb"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "marketing-automation/src/main/java/com/lrj/commerce/ops/application/OpsPageService.java",
+        "sha256": "a91f8afaa43352960a0223dc17f817402df3e2f4d50080e4e3298dac171515ca"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "order-runtime/src/main/java/com/lrj/commerce/ordering/order/application/OrderService.java",
+        "sha256": "8367296ed345fc53f5d632725e5f8403f20eb63a8e10446d8126a8afa744e520"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "fulfillment/src/main/java/com/lrj/commerce/fulfillment/application/FulfillmentService.java",
+        "sha256": "b44fffae4fc9a29b08408b885c8e6e896f6e5089ee9dcd2a66f8afc71a981009"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "platform-runtime/src/main/java/com/lrj/commerce/runtime/replay/EventReplay.java",
+        "sha256": "7075ecce58ae0e8880afc9ba5af36e164914207d8ac4fd24fd026f7e74f32be8"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "platform-runtime/src/main/java/com/lrj/commerce/runtime/event/EventDispatcher.java",
+        "sha256": "cceea7e6a013c2bbe7dc5c0aacb2e8174ad79378fa314f753d854eaaa5fdaa3f"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "payment/src/main/java/com/lrj/commerce/payment/charge/application/PaymentService.java",
+        "sha256": "24f92a4bd79dc7ab345371aae97a5b0bd642a97c7808046503439dedf30168ca"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "payment/src/main/java/com/lrj/commerce/payment/refund/application/RefundService.java",
+        "sha256": "ee231d651f2c807f9f82e655aa847acbe52c80b470a6be3c7dac4687f3e01207"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "aftersales/src/main/java/com/lrj/commerce/aftersales/application/AftersaleService.java",
+        "sha256": "ec4243e382a0f73bf9edbca0e8eb207f78e9a505bbcc53c3f4efc6930d099d50"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "platform-runtime/src/main/java/com/lrj/commerce/runtime/recovery/RuntimeRecovery.java",
+        "sha256": "fcc64034147b853ee9a753ee90ac312795cbd330f13b5177c528ec9588fac22a"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "platform-runtime/src/main/java/com/lrj/commerce/runtime/replay/ReplayAuthorization.java",
+        "sha256": "266630cdbd6a6f164a247a8b7646a3ffd86a2f314f31d6ba876694b30c2d17a9"
+      },
+      {
+        "repo": "commerce_ce06",
+        "path": "commerce-app/src/main/java/com/lrj/commerce/app/http/operations/DashboardController.java",
+        "sha256": "f2e42d7248a2e955bf16acf4091ad9bf26353e80cd74fd0258b2b5fbb631fd4c"
+      },
+      {
+        "repo": "auth_ce06",
+        "path": "docs/implementation/oa-auth/commerce-order-operations/CE08_CAPABILITY_ROLE_MAP.json",
+        "sha256": "6d5c7f77fd8403dfac4d3dac9cfc98d27cd2e7f64554c7f5be52d0419b3e820b"
+      }
+    ],
+    "terminal": {
+      "repo": "commerce_ce06",
+      "path": ".local/order-operations/real-runtime/rehearsal-2b5bb1c0f07a/terminal-owner-result.json",
+      "sha256": "c42e10ad7a6c46c3bdbfff5d77d2a3d05eb9b67fb48e5694fb578d42b7fae8d2"
+    },
+    "immutable_menus": {
+      "repo": "commerce_ce06",
+      "path": ".local/order-operations/owner-menu-map-final-v1.json",
+      "sha256": "3350bcc1d5cbfb35de6dd3343fc53e1f22c63c303c8c516aca4154db9a7e85b9"
+    },
+    "result": "PASS_OWNER_CURRENT_COMMITTED_CLOSURE"
+  },
+  "latest_actual_runtime_attempt": {
+    "status": "REJECTED_BEFORE_ALL_FIXTURE_WRITES",
+    "evidence": ".local/commerce-catalog-publication/preflight-root-merge-drift-v1.json",
+    "sha256": "14e6e0f9fd2cc5d33cdbfca2ede1291a592ff97e7ddd05b9dd025c6e281b76c3"
   }
 }
