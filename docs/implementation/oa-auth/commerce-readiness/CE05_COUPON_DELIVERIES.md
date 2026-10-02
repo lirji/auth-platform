@@ -1,6 +1,6 @@
 # CE05-D 定向发券实际验收
 
-当前D0完整DONE，正式implementation-validation COMPLETED/PASS；产品a766cd083dae95a4637f8bb42c1dde87988f6397已正常任务分支push/ff main/main push，精确[Auth CI36991997907](https://github.com/lirji/auth-platform/actions/runs/36991997907) completed/SUCCESS。D1中央Owner/持久来源本地DONE，正式Validation PASS，产品Git/精确CI待完成；D2实际SSO页面未实现，完整其余CE05—08与Auth实际发布菜单资源选择仍active。
+当前D0完整DONE，正式implementation-validation COMPLETED/PASS；产品a766cd083dae95a4637f8bb42c1dde87988f6397已正常任务分支push/ff main/main push，精确[Auth CI36991997907](https://github.com/lirji/auth-platform/actions/runs/36991997907) completed/SUCCESS。D1中央Owner/持久来源完整DONE，正式Validation、产品Git/精确CI全部PASS，D2 READY；D2实际SSO页面未实现，完整其余CE05—08与Auth实际发布菜单资源选择仍active。
 
 权威[技术契约](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_COUPON_DELIVERIES.md)细化四项已批准能力，不新增业务动作或基础设施。S2依赖已完整DONE：Auth d35e6d5/CI36989740786、Commerce2946279/CI36989725617均精确SUCCESS；S2状态元数据Auth b3000ad/Commerce33e4d23已正常推main，后者精确CI36990563014也SUCCESS。
 
@@ -52,4 +52,6 @@ D1实施前已按实际Servlet顺序细化：POST创建/控制取得有限上限
 
 源码审查与单独Validation同一Agent顺序执行，无多模型独立审查声明。首轮缺地址密钥/夹具/AOP设置/历史租户轮转及全仓单轮预算失败均保留；通过已持有锁下减少重复SQL解决额外开销，未删除失败、放宽断言或改变20/500ms预算。原8602/OA、所有旧数据/卷/测试库不切换；自有六端口已释放，无生产部署。
 
-正式私密`coupon-delivery-owner-implementation-evidence.json`、`coupon-delivery-owner-test-result.json`（COMPLETED/PASS）、`coupon-delivery-owner-real-result.json`记录15+4源码/JAR、实际SQL与终态；Commerce私密`coupon-delivery-owner-selected-current-result.json`、`coupon-delivery-owner-full-result.json`及报告目录保存21/520当前报告，所有旧FAIL独立保留。产品Git/精确CI待完成，D2及所有剩余CE05—08/Auth选择目标继续active。
+正式私密`coupon-delivery-owner-implementation-evidence.json`、`coupon-delivery-owner-test-result.json`（COMPLETED/PASS）、`coupon-delivery-owner-real-result.json`记录15+4源码/JAR、实际SQL与终态；Commerce私密`coupon-delivery-owner-selected-current-result.json`、`coupon-delivery-owner-full-result.json`及报告目录保存21/520当前报告，所有旧FAIL独立保留。产品Git及精确CI已通过；D2 READY，所有剩余CE05—08/Auth选择目标继续active。
+
+D1产品已正常任务分支推送、ff合并推main：Commerce `2a752355f84faa0ef23166f611462ca3acb8a234`，精确[Commerce CI36997466878](https://github.com/lirji/commerce-platform/actions/runs/36997466878) completed/SUCCESS，17步骤；Auth `2ad3bad43afb23671e83b717ac7e3d7714333bc9`，精确[Auth CI36997489481](https://github.com/lirji/auth-platform/actions/runs/36997489481) completed/SUCCESS，28步骤。源码仍与Validation摘要一致；`coupon-delivery-owner-delivery-final-result.json`记录正常Git/两精确main CI，D2已满足产品依赖门禁。本次状态收尾不替代产品验证或重新运行878/21/520。
