@@ -90,4 +90,4 @@ GUX Git/CI收尾：4954b54与同页导航修正aa23e3b均已正常合并推送ma
 
 ## MODAL-UX-01 权限控制台统一弹层（2026-10-01，独立于 CE/PORTAL-UX）
 
-用户确认执行：10个业务抽屉及2个移动导航改为居中弹层，已有邀请撤销表单同步采用统一外观。实现、TypeScript/Vite构建、6项上下文测试、代码卫生与真实Chrome桌面/390/320代表检查通过；缺记录页面、未做业务写入及工具限制见 [MODAL_EXPERIENCE](governance-experience/MODAL_EXPERIENCE.md)。本地5273静态制品及默认镜像已更新，保留旧制品/镜像，后端/数据未改动。Git发布及精确CI待收尾；原目录门户改动由独立工作树隔离保护。
+MODAL-UX-01 DONE：10个业务抽屉及2个移动导航改为居中弹层，已有邀请撤销表单同步采用统一外观。实现、TypeScript/Vite构建、6项上下文测试、代码卫生与真实Chrome桌面/390/320代表检查通过；缺记录页面、未做业务写入及工具限制见 [MODAL_EXPERIENCE](governance-experience/MODAL_EXPERIENCE.md)。本地5273静态制品及默认镜像已更新，保留旧制品/镜像，后端/数据未改动。产品0be6cec、整合f6c3f54已正常推送任务分支及main；精确[CI36949615700](https://github.com/lirji/auth-platform/actions/runs/36949615700) SUCCESS。原目录已干净快进对齐，门户改动由独立工作树隔离保护；最终收尾仅更新交付文档，已验证源码/锁文件未变。

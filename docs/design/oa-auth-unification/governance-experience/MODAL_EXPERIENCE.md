@@ -49,4 +49,8 @@
 
 ## 交付
 
-基线3e30c26；任务分支 `feat/console-modal-experience`，唯一工作树 `~/.local/share/git-worktrees/auth-platform/console-modal-experience`。原目录PORTAL-UX-01改动由该工作树隔离；无子Agent。待交付实现与设计/README同步在同一完整逻辑提交中，Git事实和精确CI最终结果记录在根 `CODEX_PROGRESS.md` 的MODAL-UX-01节。工作树、依赖、制品和恢复备份保留，未获清理授权。
+基线3e30c26；任务分支 `feat/console-modal-experience`，唯一工作树 `~/.local/share/git-worktrees/auth-platform/console-modal-experience`。原目录PORTAL-UX-01改动由该工作树隔离；无子Agent。产品与设计/README在完整逻辑提交0be6cec中，整合已发布门户main的提交f6c3f54678d11601a521e2a65060074af80faf9d已正常推送任务分支及main。
+
+精确[Auth Platform CI36949615700](https://github.com/lirji/auth-platform/actions/runs/36949615700) SUCCESS，headSha与f6c3f54一致，含既有后端集成/HTTP边界/故障恢复/SDK兼容及本次控制台构建。原项目目录main已干净快进对齐。最终收尾为纯交付文档，产品源码和锁文件13项摘要仍与最终本地验证一致，不以新文档提交冒充新的产品CI运行。
+
+最终Git事实记录在根 `CODEX_PROGRESS.md` 的MODAL-UX-01节，远程CI结果保留 `.local/console-modal-experience/ci-result.json`。本任务工作树、依赖、制品和恢复备份保留，无清理授权；其他既有工作树未触碰，无未提交或未跟踪的任务文件。
