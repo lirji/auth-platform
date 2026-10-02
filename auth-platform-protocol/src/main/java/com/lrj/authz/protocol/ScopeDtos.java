@@ -38,6 +38,7 @@ public final class ScopeDtos {
     public static final String MARKETING_REPORT_RESOURCE_TYPE = "marketing_report";
     /** 运营页面绑定实际不可变定义，运行时记录由Owner提供可信事件/任务事实。 */
     public static final String OPS_PAGE_RESOURCE_TYPE = "ops_page";
+    public static final String COMMERCE_TENANT_RESOURCE_TYPE = "commerce_tenant";
     public static final String COMMERCE_RUNTIME_RESOURCE_TYPE = "commerce_runtime";
     /** 范围响应大小有界，超出不能截断后放行。 */
     public static final int MAX_PLAN_BYTES = 262144;

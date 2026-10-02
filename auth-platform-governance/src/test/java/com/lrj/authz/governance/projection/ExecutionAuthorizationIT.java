@@ -254,7 +254,7 @@ class ExecutionAuthorizationIT {
     /** 页面内容版本与运行时来源分开，后台引用不借原Grant续期。 */
     @Test void operationsAndRuntimeReferencesAreClosedAndFinite() {
         tenantScopedReferences(List.of("ops_page.read","ops_page.create","ops_page.preview","ops_page.submit","ops_page.approve","ops_page.reject","ops_page.publish","ops_page.pause","ops_page.rollback","ops_page.execute",
-                "event.read","event.retry","event.pump","runtime.read","runtime.recover","runtime.replay.preview","runtime.replay.create","runtime.replay.control"));
+                "event.read","event.retry","event.pump","runtime.read","runtime.recover","runtime.replay.preview","runtime.replay.create","runtime.replay.control","dashboard.read"));
     }
     private void tenantScopedReferences(List<String> suffixes) {
         var db=GovernanceDatabase.from(GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG")));
@@ -277,13 +277,15 @@ class ExecutionAuthorizationIT {
                 boolean journey=suffix.startsWith("journey.");
                 boolean journeyInstance=suffix.startsWith("journey_instance.");
                 boolean journeyScan=suffix.startsWith("journey_scan.");
+                boolean dashboard=suffix.equals("dashboard.read");
                 boolean report=suffix.startsWith("marketing_effect.") || suffix.startsWith("marketing_execution.");
                 boolean opsPage=suffix.startsWith("ops_page.");
                 boolean runtimeFamily=suffix.startsWith("event.") || suffix.startsWith("runtime.");
-                boolean journeyFamily=journey || journeyInstance || journeyScan || report || opsPage || runtimeFamily;
-                boolean collectionOnly=suffix.equals("ops_page.create") || (runtimeFamily && List.of("event.pump","runtime.replay.preview","runtime.replay.create").contains(suffix)) || report || (journey && List.of("journey.create","journey.validate","journey.read","journey.pump").contains(suffix)) || suffix.equals("journey_instance.create") || suffix.equals("journey_scan.read") || (couponDelivery && List.of("coupon_delivery.create","coupon_delivery.pump").contains(suffix)) || (segment && List.of("segment.create","segment.pump").contains(suffix)) || (campaign && List.of("campaign.read","campaign.create","budget.read").contains(suffix)) || audience || suffix.equals("rule.create") || entitlementDefinition || couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
+                boolean journeyFamily=journey || journeyInstance || journeyScan || report || dashboard || opsPage || runtimeFamily;
+                boolean collectionOnly=dashboard || suffix.equals("ops_page.create") || (runtimeFamily && List.of("event.pump","runtime.replay.preview","runtime.replay.create").contains(suffix)) || report || (journey && List.of("journey.create","journey.validate","journey.read","journey.pump").contains(suffix)) || suffix.equals("journey_instance.create") || suffix.equals("journey_scan.read") || (couponDelivery && List.of("coupon_delivery.create","coupon_delivery.pump").contains(suffix)) || (segment && List.of("segment.create","segment.pump").contains(suffix)) || (campaign && List.of("campaign.read","campaign.create","budget.read").contains(suffix)) || audience || suffix.equals("rule.create") || entitlementDefinition || couponDefinition || policy || suffix.equals("point_offer.define") || suffix.equals("member.create") || suffix.equals("member_tag.define") || suffix.equals("member_behavior.rebuild");
                 String type;
-                if(opsPage) type=ScopeDtos.OPS_PAGE_RESOURCE_TYPE;
+                if(dashboard) type=ScopeDtos.COMMERCE_TENANT_RESOURCE_TYPE;
+                else if(opsPage) type=ScopeDtos.OPS_PAGE_RESOURCE_TYPE;
                 else if(runtimeFamily) type=ScopeDtos.COMMERCE_RUNTIME_RESOURCE_TYPE;
                 else if(journey) type=ScopeDtos.JOURNEY_RESOURCE_TYPE;
                 else if(journeyInstance) type=ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE;
