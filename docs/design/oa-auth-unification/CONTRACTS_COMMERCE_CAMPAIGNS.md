@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | CE05-CAM0 | auth稳定campaign常量与9个有限执行能力 | 已交付CE05-A0/A1；auth protocol/governance | HUMAN/60秒，类型/能力精确；3集合许可、6实际版本动作；拒绝交换/未知/伪门店/部分范围/非正内容版本；原路径、代际、撤权重授与期限；真实PG/图、SDK及旧能力回归 | DONE（含Git/CI） |
 | CE05-CAM1 | commerce独立CAMPAIGN族与实际Owner/同事务审计 | CAM0验证及Git交付；commerce runtime/marketing/app | 9能力独立、原回执前范围/期限/路由；实际版本/状态锁区分、预算列表、实际预览无预占；创建/状态变更与身份审计同事务、SQL故障回滚、跨租户/原键/撤权/STOPPED/503、旧订单预算履约兼容；真实MySQL及跨进程 | DONE（含Git/CI） |
-| CE05-CAM2 | 固定SSO活动/预算入口及完整动作反馈 | CAM1验证交付；frontend/app | 沿现有Craft/AntD，真实目录与独立预算、创建/预览/审批/发布/暂停权限；结构化字段及实际预览，不编造选项；每个未知命令原键/体恢复、当前内容版本与锁版本展示；1440/390关联表单/预览/反馈/确认实际查看、真实PKCE/401/403/503/SQL | DONE（本地；Git/CI待交付） |
+| CE05-CAM2 | 固定SSO活动/预算入口及完整动作反馈 | CAM1验证交付；frontend/app | 沿现有Craft/AntD，真实目录与独立预算、创建/预览/审批/发布/暂停权限；结构化字段及实际预览，不编造选项；每个未知命令原键/体恢复、当前内容版本与锁版本展示；1440/390关联表单/预览/反馈/确认实际查看、真实PKCE/401/403/503/SQL | DONE（含Git/CI） |
 
 三个切片串行；不新建工作树或子Agent，不改变模块/数据权威或基础设施。CAM2提示入口与最终界面配方在CAM1真实契约可用后按既有前端设计细化，不能在CAM0编造JSON或开发UI。
 
@@ -146,3 +146,8 @@ CE05-CAM2实施中，尚未完整验收：七个字面独立资格GET与两个�
 CE05-CAM2本地DONE：七独立资格提示、活动目录/结构化创建/版本动作/实际预览与独立预算页完成。13真实MySQL专项、完整491项（486PASS/5既有skip）、45工具/9契约、3当前fixture及类型构建/格式通过；最终真实编译JAR演练01b3a0f89ea4（session63199/子网123）exit0，870检查点PASS。真实SQL恰21总活动身份审计/8新增单次效果、内容版本1且无store伪归属，UI-a PAUSED/锁4、UI-b REJECTED/锁2，预算各20.00/0/0；预览不产生报价或预占。28张当前真实1440/390/320关联截图已实际查看，Esc关闭与焦点恢复通过。7992eb6f基线包与17模块/663class/112资源/46前端文件一致；SSO编译包ab064ca1的276后端条目/88依赖与基线相同，源码13+5摘要未变。Git/精确CI待交付；其余CE05—08及Auth菜单资源目标继续，122能力/34角色未批量发布。四轮真实失败与修复前证据、5既有skip/Javaformatter限制保留；原8602/OA和共享数据未切换。
 
 正式implementation-validation COMPLETED/PASS；验收映射见[活动验证](../../implementation/oa-auth/commerce-readiness/CE05_CAMPAIGNS.md)，私密TEST_RESULT、SQL、源码与截图证据存于.local/governance/commerce-contracts/campaigns-ui-{test-result,final-real-sql,final-visual,current-source-fence}.json。上文运行中状态是历史检查点。
+
+
+## CAM2 Git/CI交付
+
+CAM2已Git/CI完整交付：Auth7302f81e1ea25f3c12d7d74c200350537239b658/CI36966260251，Commerce2903413c75c1fddd70002ac6a7a4c98a09716f2e/CI36966235609，两个精确head均completed/SUCCESS；任务分支正常推送、ff合并及main推送，无强推。其余CE05—08及Auth菜单资源展示未完成。下一切片为动态人群协议、Owner及员工页。
