@@ -1,6 +1,6 @@
 # CE05-S 动态人群权限验证
 
-CE05-S0本地DONE：segment六独立HIGH/TENANT_ALL/HUMAN执行能力，create/pump仅集合，其他动作绑定实际正定义版本；仅refresh最长86460秒，其余五项60秒，原Grant/当前路径仍限制实际推进。253全仓单元、16当前真实PG/SpiceDB ExecutionAuthorizationIT、Boot4 SDK1全PASS，零fail/error/skip。最终forceCreation安装只重包不变源码，server320/admin349类、各42资源/3完整模块归档逐字节一致；5源摘要未变，hygiene无阻断、Javaformatter未配置。专用PG库auth_gov_p1_test_526622ff0ef6及数据保留；无Commerce产品/JSON/迁移/依赖变化。Git/精确CI待交付，S1Owner/任务来源和S2页面仍TODO；完整CE05—08/Auth菜单资源目标保持。
+CE05-S0本地DONE：segment六独立HIGH/TENANT_ALL/HUMAN执行能力，create/pump仅集合，其他动作绑定实际正定义版本；仅refresh最长86460秒，其余五项60秒，原Grant/当前路径仍限制实际推进。253全仓单元、16当前真实PG/SpiceDB ExecutionAuthorizationIT、Boot4 SDK1全PASS，零fail/error/skip。最终forceCreation安装只重包不变源码，server320/admin349类、各42资源/3完整模块归档逐字节一致；5源摘要未变，hygiene无阻断、Javaformatter未配置。专用PG库auth_gov_p1_test_526622ff0ef6及数据保留；无Commerce产品/JSON/迁移/依赖变化。S0 Git/CI已完整DONE：ad5ce112d34758b691c0b379aa2c879f24563c38正常提交、任务分支推送、ff合并推main；精确Auth CI36967401511 completed/SUCCESS。S1已READY，S2和全部其余CE05—08/Auth菜单资源仍未完成。 S1Owner/任务来源和S2页面仍TODO；完整CE05—08/Auth菜单资源目标保持。
 
 ## S0验收映射
 
@@ -19,3 +19,8 @@ CE05-S0本地DONE：segment六独立HIGH/TENANT_ALL/HUMAN执行能力，create/p
 私密证据：Auth .local/governance/commerce-contracts/segments-core-{source-sha256,implementation-evidence,test-result,runtime-fence,hygiene}.json及verify/install/boot4.log；专用数据库配置0600、不提交凭据。既有PG/权限图、8602/OA、所有旧测试库/数据保持。
 
 implementation-validation COMPLETED/PASS，S0 DONE（本地），Git/精确CI待交付。下一S1仅在S0 GitCI Gate满足后实施原命令/Owner事实与原后台执行来源；S2完整页面和其余CE05—08/Auth资源菜单未完成。契约：[稳定技术切片](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_SEGMENTS.md)。
+
+
+## S0最终交付
+
+S0 Git/CI已完整DONE：ad5ce112d34758b691c0b379aa2c879f24563c38正常提交、任务分支推送、ff合并推main；精确Auth CI36967401511 completed/SUCCESS。S1已READY，S2和全部其余CE05—08/Auth菜单资源仍未完成。

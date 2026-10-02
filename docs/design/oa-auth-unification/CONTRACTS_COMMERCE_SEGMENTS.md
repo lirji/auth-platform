@@ -6,8 +6,8 @@
 
 | ID | 可观察结果 | Needs / Owner | 验收与状态 |
 |---|---|---|---|
-| CE05-S0 | 六独立能力的有限执行引用，类型/原路径/期限有界 | CAM2精确CI；Auth protocol/governance/SDK | 真实PG/图独立Grant、scope/object、跨类型/错版本/互换/期限/HUMAN/撤权重授/跨进程；DONE（本地；Git/CI待交付） |
-| CE05-S1 | 中央SEGMENT用例、原命令审计、持久化任务来源与每批判权 | S0验证/Git/CI；Commerce runtime/marketing/app/persistence | 实际MySQL/HTTP、并发刷新返回原任务、原键、SQL故障回滚、分页/批预算、重启/撤权/期限/503及公告恢复；READY_AFTER_S0_CI |
+| CE05-S0 | 六独立能力的有限执行引用，类型/原路径/期限有界 | CAM2精确CI；Auth protocol/governance/SDK | 真实PG/图独立Grant、scope/object、跨类型/错版本/互换/期限/HUMAN/撤权重授/跨进程；DONE（含Git/CI） |
+| CE05-S1 | 中央SEGMENT用例、原命令审计、持久化任务来源与每批判权 | S0验证/Git/CI；Commerce runtime/marketing/app/persistence | 实际MySQL/HTTP、并发刷新返回原任务、原键、SQL故障回滚、分页/批预算、重启/撤权/期限/503及公告恢复；READY |
 | CE05-S2 | 固定SSO定义/运行记录、创建/调度/刷新/控制/推进完整反馈 | S1验证/Git/CI；Commerce frontend/app | 真实DTO、六独立权限、实际任务/快照/公告结果、unknown原键、401/403/503、1440/390/320关联弹层与键盘；TODO |
 
 三片原目录串行，无子Agent/新工作树。CAM2精确CI已SUCCESS（Auth36966260251/Commerce36966235609），S0本地验证DONE，Git/CI待交付，S1尚未实施，S1/S2不能借未发布协议编造执行成功。
@@ -65,3 +65,8 @@ S0纯协议UI验收N/A；须真实PG/SpiceDB、全仓单元/SDK Boot4及当前�
 CE05-S0本地DONE：segment六独立HIGH/TENANT_ALL/HUMAN执行能力，create/pump仅集合，其他动作绑定实际正定义版本；仅refresh最长86460秒，其余五项60秒，原Grant/当前路径仍限制实际推进。253全仓单元、16当前真实PG/SpiceDB ExecutionAuthorizationIT、Boot4 SDK1全PASS，零fail/error/skip。最终forceCreation安装只重包不变源码，server320/admin349类、各42资源/3完整模块归档逐字节一致；5源摘要未变，hygiene无阻断、Javaformatter未配置。专用PG库auth_gov_p1_test_526622ff0ef6及数据保留；无Commerce产品/JSON/迁移/依赖变化。Git/精确CI待交付，S1Owner/任务来源和S2页面仍TODO；完整CE05—08/Auth菜单资源目标保持。
 
 详细映射见[动态人群验证](../../implementation/oa-auth/commerce-readiness/CE05_SEGMENTS.md)。
+
+
+## S0最终交付
+
+S0 Git/CI已完整DONE：ad5ce112d34758b691c0b379aa2c879f24563c38正常提交、任务分支推送、ff合并推main；精确Auth CI36967401511 completed/SUCCESS。S1已READY，S2和全部其余CE05—08/Auth菜单资源仍未完成。

@@ -1,4 +1,4 @@
-> **商城当前状态（2026-10-01）**：CE05-S0本地DONE：segment六独立HIGH/TENANT_ALL/HUMAN执行能力，create/pump仅集合，其他动作绑定实际正定义版本；仅refresh最长86460秒，其余五项60秒，原Grant/当前路径仍限制实际推进。253全仓单元、16当前真实PG/SpiceDB ExecutionAuthorizationIT、Boot4 SDK1全PASS，零fail/error/skip。最终forceCreation安装只重包不变源码，server320/admin349类、各42资源/3完整模块归档逐字节一致；5源摘要未变，hygiene无阻断、Javaformatter未配置。专用PG库auth_gov_p1_test_526622ff0ef6及数据保留；无Commerce产品/JSON/迁移/依赖变化。Git/精确CI待交付，S1Owner/任务来源和S2页面仍TODO；完整CE05—08/Auth菜单资源目标保持。 已完成CAM2：Auth7302f81/Commerce2903413精确CI36966260251/36966235609均SUCCESS，纯交付文档Auth88fbf26/Commerce d0d6296已正常推main。
+> **商城当前状态（2026-10-01）**：CE05-S0本地DONE：segment六独立HIGH/TENANT_ALL/HUMAN执行能力，create/pump仅集合，其他动作绑定实际正定义版本；仅refresh最长86460秒，其余五项60秒，原Grant/当前路径仍限制实际推进。253全仓单元、16当前真实PG/SpiceDB ExecutionAuthorizationIT、Boot4 SDK1全PASS，零fail/error/skip。最终forceCreation安装只重包不变源码，server320/admin349类、各42资源/3完整模块归档逐字节一致；5源摘要未变，hygiene无阻断、Javaformatter未配置。专用PG库auth_gov_p1_test_526622ff0ef6及数据保留；无Commerce产品/JSON/迁移/依赖变化。S0 Git/CI已完整DONE：ad5ce112d34758b691c0b379aa2c879f24563c38正常提交、任务分支推送、ff合并推main；精确Auth CI36967401511 completed/SUCCESS。S1已READY，S2和全部其余CE05—08/Auth菜单资源仍未完成。 S1Owner/任务来源和S2页面仍TODO；完整CE05—08/Auth菜单资源目标保持。 已完成CAM2：Auth7302f81/Commerce2903413精确CI36966260251/36966235609均SUCCESS，纯交付文档Auth88fbf26/Commerce d0d6296已正常推main。
 
 ## CAM2已完成与早期检查点
 
@@ -107,3 +107,8 @@ GUX Git/CI收尾：4954b54与同页导航修正aa23e3b均已正常合并推送ma
 ## MODAL-UX-01 权限控制台统一弹层（2026-10-01，独立于 CE/PORTAL-UX）
 
 MODAL-UX-01 DONE：10个业务抽屉及2个移动导航改为居中弹层，已有邀请撤销表单同步采用统一外观。实现、TypeScript/Vite构建、6项上下文测试、代码卫生与真实Chrome桌面/390/320代表检查通过；缺记录页面、未做业务写入及工具限制见 [MODAL_EXPERIENCE](governance-experience/MODAL_EXPERIENCE.md)。本地5273静态制品及默认镜像已更新，保留旧制品/镜像，后端/数据未改动。产品0be6cec、整合f6c3f54已正常推送任务分支及main；精确[CI36949615700](https://github.com/lirji/auth-platform/actions/runs/36949615700) SUCCESS。原目录已干净快进对齐，门户改动由独立工作树隔离保护；最终收尾仅更新交付文档，已验证源码/锁文件未变。
+
+
+## S0最终交付
+
+S0 Git/CI已完整DONE：ad5ce112d34758b691c0b379aa2c879f24563c38正常提交、任务分支推送、ff合并推main；精确Auth CI36967401511 completed/SUCCESS。S1已READY，S2和全部其余CE05—08/Auth菜单资源仍未完成。
