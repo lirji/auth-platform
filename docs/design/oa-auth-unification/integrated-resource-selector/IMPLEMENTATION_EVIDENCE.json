@@ -40,7 +40,7 @@
     "auth-platform-governance/src/main/java/com/lrj/authz/governance/domain/PortalCatalogModels.java": "fdd284ee82c357b8d91f686b672e82f98cffd9eff77ff88b1e9b25bfa251846c",
     "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/PortalMapper.java": "d033d48d3ba696c41c4d8a8c567f8dfa67f646cf1a894c39752d04a27c9864b4",
     "auth-platform-governance/src/main/resources/mappers/governance/PortalMapper.xml": "fbefc9aae918e488d9a4cdbff2cea5fee4c18ceefd54c202bf80be191eedd9c7",
-    "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/PublishedCatalogPostgresIT.java": "d7d7bbe0f560b2d7b91868155297aa132a7b91bb4d99f7324767f53b2c1355ff",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/PublishedCatalogPostgresIT.java": "d1ada14a51647d47fa7ed2356f943a31cfd26666c1305b0a75d5905fe17db816",
     "auth-platform-governance/src/test/java/com/lrj/authz/governance/projection/ReliableAuthorizationIT.java": "d63f9f23c4491299f261964de8df690abca717db1ae1daf59b511ca400041234",
     "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/PortalDtos.java": "1af1a3d71b31ca6892d6607c4e3903e353ce6f09208f00fb123985c932abc1ed",
     "deploy/governance-integrated-resources-static.mjs": "9695926087a1dd33cf149409c877b2933618ece6cba782f0988439b2b8eb5401",
@@ -57,5 +57,17 @@
     "repository canonical formatter unavailable; hygiene advisory only",
     "real Commerce current catalog Owner menu publication remains root delivery scope",
     "UI Grant accepted PENDING; actual active authorization is proved separately in current reliable graph IT"
-  ]
+  ],
+  "ci_config_followup": {
+    "base": "03054fb63f88cc02757d8c838f92a759335b6c87",
+    "scope": "test setup only; no product/guard/interface changes",
+    "changed_test": "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/PublishedCatalogPostgresIT.java",
+    "prior_sha256": "d7d7bbe0f560b2d7b91868155297aa132a7b91bb4d99f7324767f53b2c1355ff",
+    "current_sha256": "d1ada14a51647d47fa7ed2356f943a31cfd26666c1305b0a75d5905fe17db816",
+    "ci_style": "GOVERNANCE_TEST_CONFIG absent, existing three DB env variables; 109PG PASS/0skip",
+    "explicit_config": "0600 local CONFIG with DB env absent; exact7PASS/0skip",
+    "isolated_pg_database": "auth_gov_p1_test_94e2d99f5525",
+    "private_evidence": ".local/integrated-resource-selector/ci-pg-config-followup",
+    "remote_failure_preserved": 37023342834
+  }
 }

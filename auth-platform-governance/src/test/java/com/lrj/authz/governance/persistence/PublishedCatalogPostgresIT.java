@@ -20,7 +20,15 @@ class PublishedCatalogPostgresIT {
     private GovernanceRuntime runtime;
     private JdbcTemplate jdbc;
     @BeforeAll void open() {
-        var config = GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG"));
+        // 本地显式私密文件与既有CI独立库环境变量采用相同入口，仍先校验隔离URL再迁移。
+        Properties config = new Properties();
+        String file = System.getenv("GOVERNANCE_TEST_CONFIG");
+        if (file != null) config = GovernanceConfigurationFile.read(file);
+        else {
+            config.setProperty("jdbc.url", Objects.requireNonNull(System.getenv("GOVERNANCE_TEST_DB_URL")));
+            config.setProperty("jdbc.username", Objects.requireNonNull(System.getenv("GOVERNANCE_TEST_DB_USER")));
+            config.setProperty("jdbc.password", Objects.requireNonNull(System.getenv("GOVERNANCE_TEST_DB_PASSWORD")));
+        }
         assertThat(config.getProperty("jdbc.url")).matches("jdbc:postgresql://(?:127\\.0\\.0\\.1|localhost):[0-9]+/auth_gov_p1_test_[a-z0-9_]+");
         var db = GovernanceDatabase.from(config); runtime = GovernanceRuntime.open(db,true);
         jdbc = new JdbcTemplate(new DriverManagerDataSource(db.jdbcUrl(),db.username(),db.password()));
