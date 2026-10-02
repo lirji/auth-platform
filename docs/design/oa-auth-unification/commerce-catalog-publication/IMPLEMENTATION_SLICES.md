@@ -6,4 +6,4 @@ CP-02：关联 Auth 共享依赖组合验证。只在本树串入已授权的三
 
 CP-03：独有夹具真实出版。只有 CP-01 全部122当前 Owner 终验匹配才准备独有DB、初始caps基线与Owner HUMAN/PKCE；原HTTP发布实际当前menu联集、创建34个固定同资源角色，不自动Grant。失败/未知使用原命令输入与检查点恢复；记录实际 SQL catalog/role/group/0Grant/0Policy 与有界读取结果。
 
-CP-04：真实治理 UI。实际登录、published-catalog网络响应、菜单/资源选择、角色两页34快照、最后页角色可选择、23未入模板说明；Grant/Policy两ScopeFields消费者按真实类型展示，取消表单不写授权。1440/390/320当前包视觉检查与源码/JAR/dist SHA绑定。所有实际路径通过后才同步 TEST_RESULT/PROGRESS/DELIVERY 并交 root 顺序集成。
+CP-04：真实治理 UI。实际登录、published-catalog网络响应、菜单/资源选择、实际100条分页边界下首页34快照、最后固定角色可选择、23未入模板说明；Grant/Policy两ScopeFields消费者按真实类型展示，取消表单不写授权。1440/390/320当前包视觉检查与源码/JAR/dist SHA绑定。所有实际路径通过后才同步 TEST_RESULT/PROGRESS/DELIVERY 并交 root 顺序集成。

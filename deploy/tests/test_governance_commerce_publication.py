@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import uuid
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -16,7 +17,7 @@ SPEC.loader.exec_module(publisher)
 class CommercePublicationTest(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
-        self.root = Path(self.temporary.name)
+        self.root = Path(self.temporary.name).resolve()
         self.roots = {"commerce": self.root}
         nav = self.root / "frontend/src/iam/navigation.ts"
         nav.parent.mkdir(parents=True)
@@ -145,6 +146,73 @@ class CommercePublicationTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 publisher.request(config, "POST", "/api/governance/v1/catalog/publish", {})
             connection.assert_not_called()
+
+    def execution_fixture(self):
+        publication = self.build()
+        current = {"manifest_version": 2, "view_hash": "current-v2", "menus": publication["manifest"]["menus"],
+                   "capabilities": [{**cap, "disabled": False, "grantable": True} for cap in publication["manifest"]["capabilities"]],
+                   "resource_types": [{"code": resource, "scope_supported": True} for resource in ("store", "product")]}
+        config = {"partition": {"tenant_id": str(uuid.uuid4()), "application_id": "commerce", "environment": "test"}}
+        directory = self.root / ".local/commerce-catalog-publication/run"
+        role = {"id": str(uuid.uuid4()), "role_code": "reader.product", "version": 1, "capabilities": ["commerce.product.read"]}
+        return publication, current, config, directory, role
+
+    def test_old_auth_resource_binding_is_rejected_before_publish(self):
+        publication, current, config, directory, _ = self.execution_fixture()
+        current["resource_types"][0]["scope_supported"] = False
+        with patch.object(publisher, "ROOT", self.root), patch.object(publisher, "request", return_value=current) as request:
+            with self.assertRaisesRegex(ValueError, "before publication"):
+                publisher.apply(publication, config, directory)
+            self.assertEqual([call.args[1] for call in request.call_args_list], ["GET"])
+
+    def test_lost_committed_publish_replays_identical_original_key(self):
+        publication, current, config, directory, role = self.execution_fixture()
+        published = []
+        def response(*args):
+            if args[1] == "GET":
+                return current
+            if args[2].endswith("catalog/publish"):
+                published.append((args[3], args[4]))
+                if len(published) == 1:
+                    raise OSError("lost response after server commit")
+                return {"manifest_version": 2}
+            return role
+        with patch.object(publisher, "ROOT", self.root), patch.object(publisher, "request", side_effect=response):
+            with self.assertRaises(OSError):
+                publisher.apply(publication, config, directory)
+            result = publisher.apply(publication, config, directory)
+        self.assertEqual(published[0], published[1])
+        self.assertEqual(result["manifest_receipt"], {"manifest_version": 2})
+        self.assertFalse(result["auto_grants"])
+
+    def test_bad_role_receipt_does_not_confirm_success_or_replace_intent(self):
+        publication, current, config, directory, _ = self.execution_fixture()
+        def response(*args):
+            return current if args[1] == "GET" else {}
+        with patch.object(publisher, "ROOT", self.root), patch.object(publisher, "request", side_effect=response):
+            with self.assertRaisesRegex(ValueError, "role receipt"):
+                publisher.apply(publication, config, directory)
+            original = (directory / "intent.json").read_bytes()
+            with self.assertRaises(ValueError):
+                publisher.apply(publication, config, directory)
+        self.assertEqual((directory / "intent.json").read_bytes(), original)
+        self.assertEqual(list(directory.glob("http-result-*.json")), [])
+
+    def test_late_authority_change_blocks_role_write(self):
+        publication, current, config, directory, _ = self.execution_fixture()
+        get_count = 0
+        writes = []
+        def response(*args):
+            nonlocal get_count
+            if args[1] == "GET":
+                get_count += 1
+                return {**current, "view_hash": "revoked"} if get_count == 3 else current
+            writes.append(args[2])
+            return {}
+        with patch.object(publisher, "ROOT", self.root), patch.object(publisher, "request", side_effect=response):
+            with self.assertRaisesRegex(ValueError, "authority changed"):
+                publisher.apply(publication, config, directory)
+        self.assertEqual(writes, ["/api/governance/v1/catalog/publish"])
 
 
 if __name__ == "__main__":

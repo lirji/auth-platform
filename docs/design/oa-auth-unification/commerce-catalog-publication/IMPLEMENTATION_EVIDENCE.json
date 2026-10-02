@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "status": "TOOL_COMBINATION_VERIFIED_PUBLICATION_PENDING",
+  "baseline_main": "b1edecc61ceef29f82a280259d2679b0d662f378",
+  "ci_closure_commit": "148d061232f1c55f65affeae87a898bfeb934bb7",
+  "prepared_tool_commit": "bd57d2b",
+  "auth_dependency_heads_original": [
+    "c834d389c2f17914e163133d276b420620d43945",
+    "ad092137d90726e27b19084f05be4bd5969c3b02",
+    "5e7abbf65d3e14f5527b3b9839397cb853091664"
+  ],
+  "auth_dependency_heads_cherry_counterparts": [
+    "cb0f8df",
+    "06a9de5",
+    "d5ec8f5d50cacf187f7b7764c6d2661396e3cf41"
+  ],
+  "source_sha256": {
+    ".github/workflows/authz-ci.yml": "9876b215d7de2538517620fdbf03a6c4b19defa18115250ddb671e5c5fb8e8a8",
+    "deploy/governance-commerce-publication.py": "d648dc3ff466d2d65e5a7a8edc391421b4b29f45a0cd79ed1fde727b049edddb",
+    "deploy/governance-commerce-publication-runtime.py": "d169f7726443ba3924f0b4f958420adf7d5a4a901eee42b50447bb7ed302124a",
+    "deploy/governance-commerce-publication-ui.mjs": "22355bb156d36e4d6de0afec03d7f9e9c39c3c81e143f29e78e0576b1296d06d",
+    "deploy/tests/test_governance_commerce_publication.py": "f5ff22390c444cacee69635a84916bb12f695f8232a5eea0b445d87aa19d54e1"
+  },
+  "dependency_source_sha256": {
+    "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/ScopeDtos.java": "74ecda9ec5d42f525492e1052ccd659c9409dc7da29ec1f1e1c0978437586b4d",
+    "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/ScopeResourceBindings.java": "cb9424da0f6f0fd04c0c4272426192c7e169d94f26315de080ff7682fccb24c7",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ScopeRules.java": "691efa1901c67b98f9d1164134424475af0beb9345aae5834cf0549b682d37f2",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java": "c70812d9bd9c8bb99f6f032d3d853166bd528bf8fe7387e5747fb9c64bfccae5",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/projection/ExecutionAuthorizationIT.java": "b65f8d1d56c10189f0869f64b42992aa9d38a3f743c4a3299df0c69e0e70b024"
+  },
+  "real_combination": {
+    "status": "PASS",
+    "integration_tests": 128,
+    "suites": 10,
+    "persistence": 108,
+    "execution": 20,
+    "unit": 254,
+    "evidence": ".local/commerce-catalog-publication/shared-auth-combination/test-result.json",
+    "log_path": "/Users/liruijun/.local/share/git-worktrees/auth-platform/integrated-resource-selector/.local/commerce-catalog-publication/shared-auth-combination/maven.log",
+    "log_sha256": "1159cdd625491285778437f67bfb18021be2e72629100f6ab80496f0df4ea706"
+  },
+  "tool_unit_tests": 20,
+  "node_existing_ir_tests": 14,
+  "python_syntax": "PASS",
+  "node_syntax": "PASS",
+  "yaml_existing_ci_registration": "PASS",
+  "owner_publication_actual_http_sql_ui": "PENDING",
+  "merged_source_and_ci": "PENDING_ROOT_ORDERED_INTEGRATION"
+}

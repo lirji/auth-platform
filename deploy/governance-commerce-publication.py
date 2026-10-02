@@ -79,6 +79,10 @@ def verified_proof(proof, roots):
         require(head == commit["head"], "Owner commit changed")
     for reference in proof["sources"]:
         path = source_file(roots, reference)
+        try:
+            subprocess.check_output(["git", "-C", str(roots[reference["repo"]]), "ls-files", "--error-unmatch", "--", reference["path"]], text=True, stderr=subprocess.DEVNULL)
+        except subprocess.CalledProcessError as error:
+            raise ValueError("Owner implementation source is not tracked") from error
         dirty = subprocess.check_output(["git", "-C", str(roots[reference["repo"]]), "status", "--porcelain", "--", reference["path"]], text=True)
         require(not dirty, "Owner source must be committed before publication")
         require(path.stat().st_size > 0, "empty implementation source")
@@ -140,6 +144,7 @@ def plan(contract, mapping, readiness, roots, manifest_version):
             coverage.append({**cap, "state": "AWAIT_OWNER_TERMINAL_PROOF"})
             continue
         require(proof_id in readiness.get("proofs", {}), "missing Owner proof definition")
+        require(set(readiness["proofs"][proof_id].get("capabilities", [])) <= set(indexed), "Owner proof declares unknown capability")
         require(cap["code"] in readiness["proofs"][proof_id].get("capabilities", []), "receipt does not cover this capability")
         if proof_id not in known_proofs:
             known_proofs[proof_id] = verified_proof(readiness["proofs"][proof_id], roots)
@@ -156,7 +161,7 @@ def plan(contract, mapping, readiness, roots, manifest_version):
             parent = "group." + routes[route]["group"]
         else:
             parent = None
-            require(values == ["commerce.product.read"], "collaboration uses actual product.read")
+            require("commerce.product.read" in values and all(indexed[value]["resource_type"] == "product" for value in values), "collaboration uses actual product capability closure")
         if route == "/operations/products":
             require("commerce.product.read" in values and "commerce.catalog.operate" not in values, "product.read cannot alias catalog.operate")
         menus.append({"code": "menu." + route[1:].replace("/", "."), "parent": parent, "route": route, "any_of": sorted(values)})
