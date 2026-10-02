@@ -1,6 +1,6 @@
 # CE05-A 人群权限验证与交付
 
-当前切片 CE05-A1，状态 DONE（本地），Git/CI 待交付。范围以 [人群契约](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_AUDIENCES.md) 为准，A2 页面及其余 CE05—08 仍未完成。本记录不替代原执行计划。
+当前切片 CE05-A2，本地验证 DONE，Git/CI 待交付；A1 的 Git/CI 已交付。范围以 [人群契约](../../../design/oa-auth-unification/CONTRACTS_COMMERCE_AUDIENCES.md) 为准，A2 的本地必需验证已通过；远程交付及其余 CE05—08 仍未完成。本记录不替代原执行计划。
 
 ## 当前验证（2026-10-01）
 
@@ -23,4 +23,36 @@ SDK 固定 auth 4747ac49；A0 精确 CI36707598359 SUCCESS。运行 JAR 与演�
 
 ## Git 与 CI
 
-A1 auth b5a6c64/commerce 1987062 已正常合并推送 main。Auth CI36952116177 的接入脚本步骤 FAIL：清单已补入既有独立平台 `/v1/platform/me`，总数 260，而测试基线仍为 259。原本地 9 契约测试日志也有该失败，汇总遗漏，不应记为当时全 PASS。已同步精确基线，漏接口、通配能力、混合范围及客户接口越权等拒绝断言保持；失败日志保留。修正后完整 9 契约/28 工具测试、py_compile 及 hygiene 全部通过，新增计数测试/清单/源脚本/入口摘要；只修改精确计数和记录，不改变已通过 477/549 的业务实现与输入。修正版本精确远程 CI 待核验。商城 CI36952128923 尚在运行；A2 已开始实现但未验收，整个目标未完成。
+A1 auth b5a6c64/commerce 1987062 已正常合并推送 main。Auth CI36952116177 的接入脚本步骤 FAIL：清单已补入既有独立平台 `/v1/platform/me`，总数 260，而测试基线仍为 259。原本地 9 契约测试日志也有该失败，汇总遗漏，不应记为当时全 PASS。已同步精确基线，漏接口、通配能力、混合范围及客户接口越权等拒绝断言保持；失败日志保留。修正后完整 9 契约/28 工具测试、py_compile 及 hygiene 全部通过，新增计数测试/清单/源脚本/入口摘要；只修改精确计数和记录，不改变已通过 477/549 的业务实现与输入。该段首次交付时尚待远程结果；最终 auth2445da5 CI36952452483 / commerce1987062 CI36952128923 已核验 SUCCESS。A2 尚在验证，整个目标未完成。
+
+
+### A1 最终交付与 A2 当前验证
+
+A1最终修正auth2445da5精确CI36952452483 SUCCESS，商城1987062精确CI36952128923 SUCCESS；均已包含于各自远程main。首次失败保留，不把原b5a6c64的FAIL改写为成功。A1完整交付DONE。
+
+A2在commerce feat/central-audience-entry/auth feat/commerce-audience-browser实施：固定人群入口、导航/lazy页面、独立创建hint及精确客户端、实际摘要/两Tab、有界成员/时间/重复纠错、409/未知原键体/退出保护/401卸载/403/503及重新核验。8项MySQL专项全PASS，完整478项473PASS/5既有skip，最终build/forceCreation package、262入口/9契约/28工具、两仓hygiene无阻断；155类/迁移及45前端资源、演练复制JAR摘要一致。完整回归后仅前端补防重复点击重新核验，已重新构建并强制打包，后端摘要不变。
+
+真实--audiences --browser首轮569aae3f8c33（子网116）已失败并停止，详见下方失败原因及修正。该时点最终a5fd3867e690（子网117）尚在运行，不能提前标DONE；最终结果及当前状态以下方验收为准。脚本阶段字符串改为有限Phase集合，语法与hygiene已复核；改动在实际人群浏览器调用前完成，不更改业务输入、预算或断言。原生产HOLD及其他CE05—08未完成。
+
+
+A2首轮569aae3f8c33在594PASS后停止：人群write-only/read结果JSON已PASS，401验证失败来自浏览器初始化每次导航覆盖刻意设置的无效凭据。改为保留已有session，401原断言不变；截图归零滚动并对弹层采用真实视口，补390确认弹层。仅脚本修正，商城8源码/478回归和最终JAR不变；9契约/28工具/语法/hygiene复核通过。已查看首轮1440/390表单/目录/未知/退出确认，字段、操作和表格内部横滚符合现有Craft；fixed头部/遮罩的整页捕获伪影须以修正后的截图再核对。该时点最终a5fd3867e690/子网117（session18603）尚在运行；现在已结束，以下方最终验收为准。
+
+
+## CE05-A2 最终独立验收
+
+CE05-A2本地DONE：固定人群目录/创建两Tab与独立创建提示；8项真实MySQL和完整478项（473PASS/5既有skip）、最终前端build/forceCreation package通过。最终真实a5fd3867e690（10.254.117.0/24）647检查点PASS，人群11条浏览器检查及全部既有员工页回归通过；恰5条实际身份审计，UI两个快照为1:2和1:0，原键不重复、导入不创建客户。1440/390表单/目录、409/未知/退出确认/成功/401/503共11张截图已实际查看，正文390且表格内部横滚。两仓源码摘要、17嵌套模块/661类/45资源及复制JAR一致；262入口/122能力/34角色、9契约/28工具及两仓hygiene无阻断。首轮594后401夹具覆盖凭据失败已修正并保留。自有进程已停止；无新迁移，V49—V63不可改、SDK固定4747ac49，原8602/OA不切换。Git/CI待交付；下一CE05-CAM活动/审批/预算细化，其余CE05—08及auth资源展示未完成，生产2HOLD不变。
+
+| 验收 | 方法 / 结果 | 当前证据 |
+|---|---|---|
+| 独立创建与目录、静态壳无授权 | PASS：8项真实 MySQL/HTTP；没有read仍可取得hint和创建；hint不返回引用；撤权/STOPPED/401/部分范围/代际变化/503拒绝 | commerce ui-mysql-selected.log / CentralAudienceMySqlTest |
+| 真正登录、输入与409 | PASS：实际专用IdP PKCE回固定路径，必填/重复/501/未来/24小时窗口；真实重复版本409，保留可修改输入 | audiences-write-only-result.json，6条 |
+| 未知提交恢复及空快照 | PASS：仅丢弃实际已成功响应，原键/体两次相同；切Tab和取消退出保留；实际SQL各一次，空成员数0 | 同浏览器结果 / 最终演练精确SQL断言 |
+| 目录、当前版本与游标 | PASS：A最新v2、UI两个实际摘要，terminal无下一页；后端真实首/次游标逐行核对；目录不返回memberIds | audiences-read-result.json，1条 / 最终result.json |
+| 撤权、租户切换与401 | PASS：读写独立，撤权创建隐藏；跨租户无旧摘要；实际logout后注入无效token，401卸载全部Tab | audiences-revoked-result.json，3条 |
+| 真实停机 | PASS：实际中央服务停止，目录/hint各503，页面隐藏写操作并提供重新核验 | audiences-outage-result.json，1条 |
+| 数据与身份审计 | PASS：恰5审计；原快照A为1:2、2:0；UI c/d为1:2、1:0且source为isolated-ui-import，c真实两成员；UI未创建member_record；停止不删快照 | a5fd3867e690/result.json，647项全PASS |
+| 完整回归及当前制品 | PASS：68份Surefire XML合计478/0失败/0错误/5既有skip；8源码/5接入文件SHA256；17模块、661类、45资源/复制JAR一致 | ui-full-test-result.json / ui-source-sha256.json / audiences-ui-source-sha256.json / audiences-ui-runtime-fence-final.json |
+| 可见展示 | PASS：Codex实际查看11张1440/390产品截图，表单字段/单主按钮、实际摘要/内部横滚、409/未知/成功/401/503反馈、退出确认尺寸/按钮/遮罩清楚；首轮fixed截图伪影已消除 | audiences-ui-visual-review.json及最终run下audiences-*.png |
+| 质量与边界 | PASS_WITH_LIMITATIONS：前端Prettier通过；两仓无阻断，Java formatter/静态分析未配置，auth脚本有既有风格180秒timeout advisory | 两仓最终hygiene JSON；非必需完整辅助技术/原生软键盘/beforeunload实操未验证 |
+
+本片状态转换：implementation-validation COMPLETED/PASS；必需验收全部PASS，A2 DONE（本地），远程Git/CI另行记录。原运行实例/授权数据不切换；证据、数据库、私密IdP和失败记录保留，不执行清理。全目标不缩为人群一片。

@@ -1,6 +1,6 @@
 # 商城HTTP入口实测源码清单
 
-基线 commerce-platform 31dbdcd；逐个注解展开多路径，CE05-R2与已交付Craft平台自身身份入口后共 260 条。CE05-A1接管已有GET/POST人群接口，不新增HTTP路径。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
+基线 commerce-platform 31dbdcd；逐个注解展开多路径，CE05-R2与已交付Craft平台自身身份入口后共 262 条。CE05-A1接管已有GET/POST人群接口；A2增加固定静态壳与独立创建提示。当前入口身份列为按命名空间分类的索引，精确例外以SecurityConfiguration及中央过滤链为准（如/v1/me另允许OPERATOR）。这是源码清单，不代表中央权限已接管；路径参数action还需业务枚举细分。
 
 | Controller | 方法 | 路径 | 当前入口身份 | 源码 |
 |---|---|---|---|---|
@@ -267,3 +267,5 @@
 | CentralPageController | GET | `/operations/rules` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java` |
 | RuleActionsController | GET | `/v1/operations/rules/create-access` | EMPLOYEE_CENTRAL_PLANNED | `commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/RuleActionsController.java` |
 | RuleActionsController | GET | `/v1/operations/rules/publish-access` | EMPLOYEE_CENTRAL_PLANNED | `commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/RuleActionsController.java` |
+| CentralPageController | GET | `/operations/audiences` | STATIC_NO_AUTHORITY | `commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java:10` |
+| AudienceActionsController | GET | `/v1/operations/audiences/create-access` | CENTRAL_EMPLOYEE | `commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/AudienceActionsController.java:19` |

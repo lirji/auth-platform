@@ -4270,6 +4270,25 @@
       ],
       "mode": "EMPLOYEE_CENTRAL_PLANNED",
       "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
+    },
+    {
+      "controller": "CentralPageController",
+      "method": "GET",
+      "path": "/operations/audiences",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/store/CentralPageController.java",
+      "capabilities": [],
+      "mode": "STATIC_NO_AUTHORITY"
+    },
+    {
+      "controller": "AudienceActionsController",
+      "method": "GET",
+      "path": "/v1/operations/audiences/create-access",
+      "source": "commerce-app/src/main/java/com/lrj/commerce/app/http/marketing/asset/AudienceActionsController.java",
+      "capabilities": [
+        "commerce.audience.create"
+      ],
+      "mode": "EMPLOYEE_CENTRAL_PLANNED",
+      "owner_fact_policy": "TENANT_FROM_VERIFIED_BINDING"
     }
   ]
 }

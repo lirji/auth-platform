@@ -1142,7 +1142,13 @@ def rehearse(args, isolation=None):
                     if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability="+q(cap)+" AND resource_id='ce05-rule:c'")[1]!='1':raise RuntimeError('rule UI original retry duplicated audit')
                 if sql("SELECT CONCAT(version,':',status) FROM marketing_rule_asset WHERE tenant_id="+q(source)+" AND rule_id='ce05-rule:c'")[1]!='1:PUBLISHED':raise RuntimeError('rule UI actual publish missing')
             record('rule definitions and distinct publish commands have exact audits without replay duplicates')
+        def audience_browser(phase):
+            if not args.browser:return
+            subprocess.run(['node',str(root/'deploy/governance-ce05-audiences.mjs')],env=dict(os.environ,P6_RUN=str(run),P6_PHASE=phase,P6_PLAYWRIGHT_MODULE=str(commerce/'frontend/node_modules/@playwright/test')),check=True,timeout=180)
+            record('real audience browser '+phase)
         if args.audiences:
+            if args.browser:
+                ui=json.loads((run/'catalog-ui.json').read_text());ui.update({'from':now(-120),'to':now(3600),'future':now(7200),'wide':now(172800)});h.private(run/'audiences-ui.json',json.dumps(ui))
             insert('employee_authority_route',{'tenant_id':source,'auth_tenant_id':tenant,'family':'AUDIENCE','state':'SHADOW'})
             sql("UPDATE employee_authority_route SET state='CENTRAL',ever_central=TRUE,version=version+1 WHERE tenant_id="+q(source)+" AND family='AUDIENCE' AND state='SHADOW' AND version=1;")
             audience_base='/v1/admin/audiences'
@@ -1159,23 +1165,35 @@ def rehearse(args, isolation=None):
             if audience_a['memberCount']!=2 or 'memberIds' in audience_a:raise RuntimeError('audience response is not actual summary')
             if expect('audience original key retry',18661,audience_base,audience_headers,audience_input)!=audience_a:raise RuntimeError('audience import duplicated')
             expect('audience create does not imply read',18661,audience_base,user,status=403)
+            if args.browser:expect('audience independent create hint',18661,'/v1/operations/audiences/create-access',user)
             audience_a2=expect('new immutable empty audience version',18661,audience_base,user+[('Idempotency-Key',uid())],{**audience_input,'version':2,'memberIds':[]})
             audience_b=expect('expired snapshots retain original import semantics',18661,audience_base,user+[('Idempotency-Key',uid())],{**audience_input,'audienceId':'ce05-audience:b','watermark':now(-7200),'validUntil':now(-3600),'memberIds':['ce05-import-not-member']})
             expect('duplicate immutable audience version conflict',18661,audience_base,user+[('Idempotency-Key',uid())],audience_input,409)
             for label,changes in [('duplicate members',{'memberIds':['M1','M1']}),('member count limit',{'memberIds':['M'+str(i) for i in range(501)]}),('future watermark',{'watermark':now(600),'validUntil':now(1200)}),('freshness window',{'watermark':now(-60),'validUntil':now(86400)}),('dynamic prefix',{'audienceId':'dyn-reserved'})]:
                 expect('audience original '+label+' validation',18661,audience_base,user+[('Idempotency-Key',uid())],{**audience_input,'audienceId':'ce05-audience-invalid',**changes},400)
+            audience_browser('write-only')
             audience_grant('audience.read')
             if expect('latest audience summary stable first cursor',18661,audience_base+'?after=ce05-&limit=1',user)!=[audience_a2]:raise RuntimeError('audience latest version mismatch')
             if expect('audience summary next cursor',18661,audience_base+'?after=ce05-audience%3Aa&limit=1',user)!=[audience_b]:raise RuntimeError('audience cursor mismatch')
-            if expect('audience summary terminal cursor',18661,audience_base+'?after=ce05-audience%3Ab&limit=1',user):raise RuntimeError('audience terminal cursor mismatch')
+            if expect('audience summary terminal cursor',18661,audience_base+'?after=ce05-audience%3A'+('d' if args.browser else 'b')+'&limit=1',user):raise RuntimeError('audience terminal cursor mismatch')
+            audience_browser('read')
             expect('foreign audience tenant denied',18661,audience_base,[('Authorization','Bearer '+user_token),('X-Tenant-Id',uid())],status=403)
             expect('revoke independent audience creation',18162,prefix+'/revoke',admin,{**partition,'command_id':uid(),'grant_id':audience_create_grant,'expected_version':1})
             projection();expect('revoked audience cannot replay original receipt',18661,audience_base,audience_headers,audience_input,403)
             expect('audience read survives write revoke',18661,audience_base,user)
-            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='audience' AND store_id IS NULL")[1]!='3':raise RuntimeError('audience exact identity audit count mismatch')
+            if args.browser:expect('revoked audience create hint denied',18661,'/v1/operations/audiences/create-access',user,status=403)
+            audience_browser('revoked')
+            if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND resource_type='audience' AND store_id IS NULL")[1]!=str(5 if args.browser else 3):raise RuntimeError('audience exact identity audit count mismatch')
             if sql("SELECT GROUP_CONCAT(CONCAT(version,':',member_count) ORDER BY version) FROM marketing_audience_snapshot WHERE tenant_id="+q(source)+" AND audience_id='ce05-audience:a'")[1]!='1:2,2:0':raise RuntimeError('audience immutable header fields mismatch')
             if sql("SELECT GROUP_CONCAT(member_id ORDER BY member_id) FROM marketing_audience_member WHERE tenant_id="+q(source)+" AND audience_id='ce05-audience:a' AND version=1")[1]!='ce04-cycle-member,ce05-import-not-member':raise RuntimeError('audience actual members mismatch')
             if sql("SELECT count(*) FROM member_record WHERE tenant_id="+q(source)+" AND member_id='ce05-import-not-member'")[1]!='0':raise RuntimeError('audience import created customer member')
+            if args.browser:
+                for audience_id,count in [('ce05-audience:c',2),('ce05-audience:d',0)]:
+                    if sql("SELECT count(*) FROM employee_command_identity WHERE tenant_id="+q(source)+" AND capability='commerce.audience.create' AND resource_id="+q(audience_id))[1]!='1':raise RuntimeError('audience UI original retry duplicated audit')
+                    if sql("SELECT CONCAT(version,':',member_count,':',source) FROM marketing_audience_snapshot WHERE tenant_id="+q(source)+" AND audience_id="+q(audience_id))[1]!='1:'+str(count)+':isolated-ui-import':raise RuntimeError('audience UI actual header mismatch')
+                    if sql("SELECT count(*) FROM marketing_audience_member WHERE tenant_id="+q(source)+" AND audience_id="+q(audience_id))[1]!=str(count):raise RuntimeError('audience UI actual member count mismatch')
+                if sql("SELECT GROUP_CONCAT(member_id ORDER BY member_id) FROM marketing_audience_member WHERE tenant_id="+q(source)+" AND audience_id='ce05-audience:c'")[1]!='ce05-ui-member,ce05-ui-not-member':raise RuntimeError('audience UI actual member identifiers mismatch')
+                if sql("SELECT count(*) FROM member_record WHERE tenant_id="+q(source)+" AND member_id IN ('ce05-ui-member','ce05-ui-not-member')")[1]!='0':raise RuntimeError('audience UI import created customer members')
             sql("UPDATE employee_authority_route SET state='STOPPED',version=version+1 WHERE tenant_id="+q(source)+" AND family='AUDIENCE'")
             expect('stopped audience family blocks old ADMIN',18661,audience_base,local_admin,status=403)
             expect('stopped audience family blocks old receipts',18661,audience_base,audience_headers,audience_input,403)
@@ -1259,6 +1277,8 @@ def rehearse(args, isolation=None):
             rule_browser('outage')
         if args.audiences:
             expect('audience directory central outage fails closed',18661,audience_base,user,status=503)
+            if args.browser:expect('audience create hint central outage fails closed',18661,'/v1/operations/audiences/create-access',user,status=503)
+            audience_browser('outage')
         if sql('SELECT active FROM store_operator_grant WHERE tenant_id='+q(source)+" AND grant_id='p6-proof-grant'")[1]!='1':raise RuntimeError('legacy fixture unexpectedly changed')
         if sql('SELECT unit_price FROM catalog_sku WHERE tenant_id='+q(source)+" AND sku_id='p6-sku'")[1] not in ('12.00','12.0000'):raise RuntimeError('revoked task modified product')
         result={'result':'PASS','scope':'isolated local rehearsal only','source_tenant':source,'source_sha256':selected['source_sha256'],'database':database,'auth_config':str(dbfile),'run':str(run),'checks':checks,'real_source_records':len(items)-1,'synthetic_positive_records':1,'shadow':shadow,'runtime_switched':False,'production_ready':False,'inventory_checked':args.inventory,'directory_checked':args.directory,'member_checked':args.member,'growth_checked':args.growth,'tags_checked':args.tags,'behavior_checked':args.behavior,'cycles_checked':args.cycles,'points_checked':args.points,'offers_checked':args.offers,'coupon_definitions_checked':args.coupon_definitions,'entitlements_checked':args.entitlements,'rules_checked':args.rules,'audiences_checked':args.audiences,'identity_mode':'DEDICATED_IDP_AND_PG' if isolation else 'EXISTING_IDP_SHARED_PG','commerce_jar_sha256':hashlib.sha256(local_jar.read_bytes()).hexdigest()}
