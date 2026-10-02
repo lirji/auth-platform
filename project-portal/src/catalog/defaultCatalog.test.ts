@@ -99,7 +99,7 @@ describe('项目目录入口契约', () => {
 
     const iam = local.projects.find(({ id }) => id === 'auth-platform')
     assert.equal(iam?.status, 'available')
-    assert.equal(iam?.launchUrl, `http://localhost:${ports.AUTH_CONSOLE_UI_PORT}/login?returnTo=%2F`)
+    assert.equal(iam?.launchUrl, `http://localhost:${ports.AUTH_CONSOLE_UI_PORT}/governance`)
     assert.equal(iam?.healthUrl, `http://localhost:${ports.AUTH_CONSOLE_UI_PORT}/healthz`)
 
     const recon = local.projects.find(({ id }) => id === 'reconciliation')
@@ -137,7 +137,7 @@ describe('项目目录入口契约', () => {
     const production = catalogs[1].catalog
     const iam = production.projects.find(({ id }) => id === 'auth-platform')
     assert.equal(iam?.status, 'available')
-    assert.equal(iam?.launchUrl, 'https://auth.example.com/login?returnTo=%2F')
+    assert.equal(iam?.launchUrl, 'https://auth.example.com/governance')
     assert.equal(iam?.healthUrl, 'https://auth.example.com/healthz')
 
     const recon = production.projects.find(({ id }) => id === 'reconciliation')

@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "allowHttpLocalhost": true,
-  "updatedAt": "2026-09-15T01:10:00Z",
+  "updatedAt": "2026-10-02T00:47:19Z",
   "projects": [
     {
       "id": "auth-platform",
-      "name": "统一权限平台",
-      "summary": "Casdoor SSO、SpiceDB ReBAC 判权、授权授予与组/部门同步",
+      "name": "权限控制台",
+      "summary": "统一管理应用成员、权限策略、访问申请与邀请，并追踪授权审计",
       "category": "身份与授权",
-      "capabilities": ["统一登录", "ReBAC 判权", "授予管理", "组/部门同步"],
+      "capabilities": ["成员与授权", "权限策略", "申请与邀请", "授权审计"],
       "tags": ["IAM", "Casdoor", "SpiceDB"],
       "icon": "iam",
       "status": "available",
-      "loginOrgHint": "OIDC 组织 built-in；需组 authz-admin",
-      "launchUrl": "http://localhost:5273/login?returnTo=%2F",
+      "loginOrgHint": "使用所属组织账号登录",
+      "launchUrl": "http://localhost:5273/governance",
       "healthUrl": "http://localhost:5273/healthz",
       "openMode": "new-tab",
       "order": 5
