@@ -86,3 +86,8 @@ CE05-R2本地DONE：固定SSO规则目录/创建/发布三Tab、两个独立hint
 - Git交付按持续授权执行，精确结果见 [DELIVERY_RESULT](governance-experience/DELIVERY_RESULT.md)。CE与commerce其他任务边界不变。
 
 GUX Git/CI收尾：4954b54与同页导航修正aa23e3b均已正常合并推送main；精确CI36723258438/36724101530均SUCCESS。最终源码/制品摘要及修正重验见TEST_RESULT；后续仅纯交付文档。运行浏览器已退出调试模拟并停留新版工作台。
+
+
+## MODAL-UX-01 权限控制台统一弹层（2026-10-01，独立于 CE/PORTAL-UX）
+
+用户确认执行：10个业务抽屉及2个移动导航改为居中弹层，已有邀请撤销表单同步采用统一外观。实现、TypeScript/Vite构建、6项上下文测试、代码卫生与真实Chrome桌面/390/320代表检查通过；缺记录页面、未做业务写入及工具限制见 [MODAL_EXPERIENCE](governance-experience/MODAL_EXPERIENCE.md)。本地5273静态制品及默认镜像已更新，保留旧制品/镜像，后端/数据未改动。Git发布及精确CI待收尾；原目录门户改动由独立工作树隔离保护。

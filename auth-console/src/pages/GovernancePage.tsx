@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import { Alert, Button, ConfigProvider, Drawer, Dropdown, Empty, Select, Skeleton } from 'antd'
+import { Alert, Button, ConfigProvider, Dropdown, Empty, Select, Skeleton } from 'antd'
 import { AppstoreOutlined, ArrowRightOutlined, AuditOutlined, CheckOutlined, DownOutlined, ExportOutlined, FileDoneOutlined, KeyOutlined, LogoutOutlined, MenuOutlined, ReloadOutlined, SafetyCertificateOutlined, SettingOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons'
 import { useAuth } from 'react-oidc-context'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { applications, organizations, type Organization, type Partition, type PortalApplication } from '../api/governance'
 import { applicationSearch, contextKey, normalizedSearch, organizationSearch, safeEntry, contextualEntry } from '../governance/context'
+import { GovernanceModal } from '../governance/presentation'
 import { EntryState } from '../governance/codes'
 import { Failure } from '../governance/feedback'
 import { governanceTheme } from '../theme/theme'
@@ -67,7 +68,7 @@ export default function GovernancePage() {
     }
     if (next.toString() !== params.toString()) setParams(next, { replace: true })
   }, [tenant, orgs.data, params, setParams, entries, home])
-  // 同页链接也会创建导航记录；按导航键关闭抽屉，避免只监听路径时遮住当前任务。
+  // 同页链接也会创建导航记录；按导航键关闭导航弹层，避免只监听路径时遮住当前任务。
   useEffect(() => { setMenuOpen(false); document.title = `${page?.title ?? '我的工作台'} · 权限控制台` }, [location.key, page])
   const changeOrganization = (id: string) => {
     void qc.cancelQueries({ queryKey: ['governance', subject] })
@@ -82,7 +83,7 @@ export default function GovernancePage() {
   </>
   return <ConfigProvider theme={governanceTheme}><div className="governance-shell" style={palette}>
     <a className="g-skip" href="#governance-content">跳转到主要内容</a><aside className="g-sidebar">{sidebar}</aside>
-    <Drawer title="工作空间导航" open={menuOpen} onClose={() => setMenuOpen(false)} placement="left" width={280} rootClassName="governance-overlay g-mobile-drawer"><div className="governance-shell g-drawer-navigation" style={palette}>{sidebar}</div></Drawer>
+    <GovernanceModal title="工作空间导航" open={menuOpen} onCancel={() => setMenuOpen(false)} width={480} rootClassName="g-navigation-modal"><div className="governance-shell g-modal-navigation" style={palette}>{sidebar}</div></GovernanceModal>
     <div className="g-workspace"><header className="g-topbar">
       <Button className="g-mobile-menu" type="text" icon={<MenuOutlined />} aria-label="打开工作空间导航" onClick={() => setMenuOpen(true)} />
       <div className="g-organization"><span className="g-context-label">组织</span><Select aria-label="当前组织" variant="borderless" placeholder="选择组织" value={org ? tenant : undefined} loading={orgs.isFetching} onChange={changeOrganization} options={orgs.data?.map(item => ({ value: item.tenant_id, label: item.tenant_code }))} /></div>

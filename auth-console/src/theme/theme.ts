@@ -33,5 +33,5 @@ export const appTheme: ThemeConfig = {
 /** 治理工作空间在同一设计系统内调整密度与对比度，不影响既有登录及旧工作区。 */
 export const governanceTheme: ThemeConfig = {
   token: { colorTextSecondary: colors.governanceMuted, controlHeight: 38, borderRadius: 8 },
-  components: { Table: { cellPaddingBlock: 18, headerBg: colors.bgSubtle }, Card: { headerFontSize: 16 }, Drawer: { footerPaddingBlock: 16 } },
+  components: { Table: { cellPaddingBlock: 18, headerBg: colors.bgSubtle }, Card: { headerFontSize: 16 }, Modal: { borderRadiusLG: 16, titleFontSize: 18 } },
 }

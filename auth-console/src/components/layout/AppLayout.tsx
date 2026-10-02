@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Avatar, Breadcrumb, Button, Drawer, Dropdown, Grid, Layout, Menu, Select, Space } from 'antd'
+import { Avatar, Breadcrumb, Button, Modal, Dropdown, Grid, Layout, Menu, Select, Space } from 'antd'
 import {
   LogoutOutlined,
   MenuFoldOutlined,
@@ -29,7 +29,7 @@ export default function AppLayout() {
   const screens = Grid.useBreakpoint()
   const isMobile = !screens.lg
   const [collapsed, setCollapsed] = useState(false)
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const pagePath = location.pathname.replace(/^\/w\/[^/]+/, '') || '/'
   const visibleNav = NAV.filter((item) => !item.feature || currentWorkspace?.features.includes(item.feature))
   const current = visibleNav.find((n) => n.path === pagePath)
@@ -97,7 +97,7 @@ export default function AppLayout() {
               type="text"
               aria-label={isMobile ? '打开菜单' : collapsed ? '展开菜单' : '收起菜单'}
               icon={isMobile ? <MenuOutlined /> : collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => (isMobile ? setDrawerOpen(true) : setCollapsed(!collapsed))}
+              onClick={() => (isMobile ? setMenuOpen(true) : setCollapsed(!collapsed))}
             />
             <Breadcrumb items={[{ title: currentWorkspace?.name ?? '工作区' }, { title: current?.label ?? '' }]} />
           </Space>
@@ -139,11 +139,13 @@ export default function AppLayout() {
         </Layout.Content>
       </Layout>
 
-      <Drawer
-        placement="left"
-        width={224}
-        open={isMobile && drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+      <Modal
+        centered
+        footer={null}
+        width={480}
+        rootClassName="app-navigation-modal"
+        open={isMobile && menuOpen}
+        onCancel={() => setMenuOpen(false)}
         styles={{ body: { padding: 0 } }}
         title={
           <Space>
@@ -152,8 +154,8 @@ export default function AppLayout() {
           </Space>
         }
       >
-        {menu(() => setDrawerOpen(false))}
-      </Drawer>
+        {menu(() => setMenuOpen(false))}
+      </Modal>
     </Layout>
   )
 }

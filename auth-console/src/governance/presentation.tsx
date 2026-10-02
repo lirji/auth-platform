@@ -1,10 +1,21 @@
-import { Drawer, Empty, Tag, Tooltip } from 'antd'
-import type { DrawerProps } from 'antd'
+import { Button, Empty, Modal, Tag, Tooltip } from 'antd'
+import type { ModalProps } from 'antd'
+import type { ReactNode } from 'react'
 import { executionLabels } from './codes'
 
-/** 复用同一AntD抽屉，仅限定治理样式；保留调用方的关闭/未知结果保护。 */
-export function GovernanceDrawer(props: DrawerProps) {
-  return <Drawer {...props} rootClassName={`governance-overlay ${props.rootClassName ?? ''}`} />
+interface GovernanceModalProps extends Omit<ModalProps, 'footer'> {
+  footer?: ReactNode
+  titleActions?: ReactNode
+  closeDisabled?: boolean
+}
+
+/** 弹层统一标题与固定操作区；关闭仍经过调用方校验，未知结果时禁用所有关闭入口。 */
+export function GovernanceModal({ title, titleActions, footer, closeDisabled = false, rootClassName, ...props }: GovernanceModalProps) {
+  return <Modal centered width={720} maskClosable={false} destroyOnHidden {...props}
+    keyboard={!closeDisabled} closable={!closeDisabled}
+    rootClassName={`governance-overlay ${rootClassName ?? ''}`}
+    title={<div className="g-modal-heading"><span>{title}</span>{titleActions && <div className="g-modal-title-actions">{titleActions}</div>}</div>}
+    footer={<div className="g-modal-actions"><Button disabled={closeDisabled} onClick={props.onCancel}>关闭</Button>{footer}</div>} />
 }
 
 /** 表格只收起展示；完整能力保持在原授权详情，不合并不同来源。 */

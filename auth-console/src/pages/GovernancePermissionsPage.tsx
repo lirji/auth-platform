@@ -1,4 +1,4 @@
-import { GovernanceDrawer as Drawer, CapabilityList, PermissionStatus, GovernanceEmpty } from '../governance/presentation'
+import { GovernanceModal, CapabilityList, PermissionStatus, GovernanceEmpty } from '../governance/presentation'
 import { Alert, Button, Card, Descriptions, Modal, Space, Table, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
@@ -29,7 +29,7 @@ export default function GovernancePermissionsPage() {
       ]} />}
       <Space style={{ marginTop: 12 }}>{after && <Button onClick={() => { choose('permission_after'); }}>权限首页</Button>}{list.data?.next_cursor && <Button onClick={() => choose('permission_after', list.data!.next_cursor!)}>下一页权限</Button>}</Space>
     </Card>
-    <Drawer title="同一授权来源详情" open={!!selected} onClose={() => choose('grant')} width={640}>{list.error ? <Failure error={list.error} /> : detail ? <PermissionDetails value={detail} /> : <Alert type="info" message="当前页未找到该来源，请返回列表重新选择。" />}</Drawer>
+    <GovernanceModal title="同一授权来源详情" open={!!selected} onCancel={() => choose('grant')} width={760}>{list.error ? <Failure error={list.error} /> : detail ? <PermissionDetails value={detail} /> : <Alert type="info" message="当前页未找到该来源，请返回列表重新选择。" />}</GovernanceModal>
   </>
 }
 

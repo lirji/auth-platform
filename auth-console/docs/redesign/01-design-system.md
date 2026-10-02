@@ -50,7 +50,7 @@ export const colors = {
 - **`.app-content`**:内容区容器——`max-width: 1440px` + `margin: 0 auto` 居中 + `padding: 24px`(≤768px 降为 16px)。由 `AppLayout` 包裹 `<Outlet/>`。
 - **`.mono`**:等宽字体 + `word-break: break-all`(长 id/元组换行不撑破)。
 - **`.scroll-x`**:`overflow-x: auto`——长内容(如 expand 判定树)**仅局部**横滚,不触发页面级横向溢出。
-- **`.brand`**:侧栏/抽屉品牌区(图标 + 标题,flex 居中)。
+- **`.brand`**:侧栏/弹层品牌区(图标 + 标题,flex 居中)。
 
 ## 注入(`main.tsx`)
 

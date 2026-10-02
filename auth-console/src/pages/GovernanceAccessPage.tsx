@@ -1,4 +1,4 @@
-import { GovernanceDrawer as Drawer, CapabilityList, GovernanceEmpty } from '../governance/presentation'
+import { GovernanceModal, CapabilityList, GovernanceEmpty } from '../governance/presentation'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Alert, Button, Card, Descriptions, Form, Input, InputNumber, Modal, Select, Space, Table, Tabs, Tag, Typography } from 'antd'
@@ -67,7 +67,7 @@ export default function GovernanceAccessPage() {
       <Space style={{ marginTop: 12 }}>{cursors.grant && <Button onClick={() => setCursors({ ...cursors, grant: undefined })}>授权首页</Button>}{result.data?.next_grant_cursor && <Button onClick={() => setCursors({ ...cursors, grant: result.data!.next_grant_cursor! })}>下一页授权</Button>}</Space>        </> },
       ]} />
     </Card>
-    <Drawer title={`${selected?.role_code ?? ''} · 版本 ${selected?.version ?? ''}`} open={!!selected} onClose={() => setSelected(undefined)} width={560}>
+    <GovernanceModal title={`${selected?.role_code ?? ''} · 版本 ${selected?.version ?? ''}`} open={!!selected} onCancel={() => setSelected(undefined)} width={640}>
       {impact.error ? <Failure error={impact.error} retry={() => void impact.refetch()} /> : <Card loading={impact.isPending}>
         <Descriptions column={1} items={[
           { label: '引用此版本的授权数', children: impact.data?.referencing_grant_count },
@@ -75,7 +75,7 @@ export default function GovernanceAccessPage() {
           { label: '版本处理', children: '旧授权保持固定版本；如需扩权，请重新授予或申请审批。' },
         ]} />
       </Card>}
-    </Drawer>
+    </GovernanceModal>
     {catalogOpen && <CatalogEditor application={partition.application_id} close={() => setCatalogOpen(false)} saved={refresh} />}
     {roleOpen && authority.data && <RoleEditor authority={authority.data} copy={copy} close={() => setRoleOpen(false)} saved={refresh} />}
     {grantOpen && authority.data && <GrantEditor authority={authority.data} roles={result.data?.roles ?? []} close={() => setGrantOpen(false)} saved={refresh} />}
@@ -96,8 +96,8 @@ function RoleEditor({ authority, copy, close, saved }: { authority: Management; 
     if (dirty && !command.result) Modal.confirm({ title: '放弃尚未提交的角色编辑？', okText: '放弃编辑', cancelText: '继续编辑', onOk: close })
     else close()
   }
-  return <Drawer title={copy ? '创建角色新版本' : '创建角色版本'} open onClose={cancel} width={560} maskClosable={false} footer={!command.result && (<Button type="primary" loading={command.busy} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原命令' : '创建固定版本'}</Button>)}
-    extra={<Button disabled={command.busy || command.unknown} onClick={cancel}>关闭</Button>}>
+  return <GovernanceModal title={copy ? '创建角色新版本' : '创建角色版本'} open onCancel={cancel} width={640} maskClosable={false} footer={!command.result && (<Button type="primary" loading={command.busy} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原命令' : '创建固定版本'}</Button>)}
+    closeDisabled={command.busy || command.unknown}>
     {!!command.error && <Failure error={command.error} />}
     {command.unknown && <Alert type="warning" message="提交结果尚未确认。字段已冻结，请原样重试。" />}
     {command.result ? <Alert type="success" showIcon message={`已创建 ${command.result.role_code} · 版本 ${command.result.version}`} description="创建角色不自动授予权限，也不修改既有授权。" /> : <>
@@ -109,7 +109,7 @@ function RoleEditor({ authority, copy, close, saved }: { authority: Management; 
       </Form>
 
     </>}
-  </Drawer>
+  </GovernanceModal>
 }
 
 interface GrantInput extends ScopeInput { member_id: string; role_id: string; duration_minutes: number; source_id: string }
@@ -137,7 +137,7 @@ function GrantEditor({ authority, roles, close, saved }: { authority: Management
     })
     if (response) saved()
   }
-  return <Drawer title="授予成员权限" footer={!command.result && (<Button type="primary" loading={command.busy} disabled={!command.unknown && (candidates.isPending || !!candidates.error)} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原命令' : '提交授予'}</Button>)} open onClose={cancel} width={600} maskClosable={false} extra={<Button disabled={command.busy || command.unknown} onClick={cancel}>关闭</Button>}>
+  return <GovernanceModal title="授予成员权限" footer={!command.result && (<Button type="primary" loading={command.busy} disabled={!command.unknown && (candidates.isPending || !!candidates.error)} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原命令' : '提交授予'}</Button>)} open onCancel={cancel} width={720} maskClosable={false} closeDisabled={command.busy || command.unknown}>
     {candidates.error ? <Failure error={candidates.error} retry={() => void candidates.refetch()} /> : <>
       {!!command.error && <Failure error={command.error} />}
       {command.unknown && <Alert type="warning" message="结果尚未确认。重试会使用相同成员、范围、时间和命令。" />}
@@ -154,5 +154,5 @@ function GrantEditor({ authority, roles, close, saved }: { authority: Management
 
       </>}
     </>}
-  </Drawer>
+  </GovernanceModal>
 }

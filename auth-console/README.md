@@ -12,7 +12,7 @@
 |---|---|
 | [README](./docs/redesign/README.md) | 索引 + 改造总览 + **零变更约束** |
 | [01 设计系统](./docs/redesign/01-design-system.md) | 调色板单一来源、`ThemeConfig` token、全局 CSS |
-| [02 壳层与导航](./docs/redesign/02-layout-and-navigation.md) | `AppLayout`/`PageHeader`/`nav`、**响应式与移动端 Drawer** |
+| [02 壳层与导航](./docs/redesign/02-layout-and-navigation.md) | `AppLayout`/`PageHeader`/`nav`、**响应式与移动端 Modal** |
 | [03 状态与反馈](./docs/redesign/03-state-and-feedback.md) | `AsyncState` 四态原语 + per-mode 状态机范式 |
 | [04 领域组件](./docs/redesign/04-domain-components.md) | **relation vs permission 非颜色区分**、判定卡、schema 卡、引用徽章 |
 | [05 页面清单](./docs/redesign/05-pages.md) | 七页布局骨架/栅格/状态 |
@@ -70,7 +70,7 @@ src/
   nav.tsx                       侧栏菜单 + 路由单一配置源(分组)
   router/routes.tsx             数据式路由表(/login /callback + 守卫)
   components/
-    layout/                     AppLayout(壳层+响应式 Drawer)/ PageHeader
+    layout/                     AppLayout(壳层+响应式 Modal)/ PageHeader
     common/AsyncState.tsx       PageSkeleton / ErrorState / EmptyState
     domain/                     SemanticTag(关系vs权限)/ AllowDenyResult / SchemaTypeCard / RefBadge / selects / SpaceMemberCard
   pages/*.tsx                   登录后工作区选择 + /w/:id 下业务页 + CallbackPage

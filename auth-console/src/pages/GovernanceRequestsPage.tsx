@@ -1,4 +1,4 @@
-import { GovernanceDrawer as Drawer, CapabilityList, PermissionStatus, GovernanceEmpty } from '../governance/presentation'
+import { GovernanceModal, CapabilityList, PermissionStatus, GovernanceEmpty } from '../governance/presentation'
 import { useState } from 'react'
 import { Alert, Button, Card, Descriptions, Form, Input, InputNumber, List, Modal, Select, Space, Table, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -61,7 +61,7 @@ function RequestForm({ close, saved }: { close: () => void; saved: (id: string) 
     const response = await command.send(commandId => { const from = new Date(); return { ...partition, command_id: commandId, policy_id: values.policy, valid_from: from.toISOString(), valid_to: new Date(from.getTime() + values.minutes * 60000).toISOString(), reason: values.reason } })
     if (response) saved(response.id)
   }
-  return <Drawer title="申请固定范围权限" footer={<Button type="primary" loading={command.busy} disabled={!command.unknown && (policies.isPending || !!policies.error || !policies.data?.items.length)} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原申请' : '提交申请'}</Button>} open onClose={cancel} width={600} maskClosable={false} extra={<Button disabled={command.busy || command.unknown} onClick={cancel}>关闭</Button>}>
+  return <GovernanceModal title="申请固定范围权限" footer={<Button type="primary" loading={command.busy} disabled={!command.unknown && (policies.isPending || !!policies.error || !policies.data?.items.length)} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原申请' : '提交申请'}</Button>} open onCancel={cancel} width={720} maskClosable={false} closeDisabled={command.busy || command.unknown}>
     {policies.error ? <Failure error={policies.error} retry={() => void policies.refetch()} /> : <>
       {!policies.isPending && !policies.data?.items.length && <GovernanceEmpty title="当前没有可申请的策略" description="请联系应用管理员确认可申请范围，或稍后重新打开此页面。" />}
       {!!command.error && <Failure error={command.error} />}
@@ -77,7 +77,7 @@ function RequestForm({ close, saved }: { close: () => void; saved: (id: string) 
 
       <Space style={{ marginTop: 16 }}>{after && <Button disabled={command.busy || command.unknown} onClick={() => { setAfter(undefined); form.resetFields(['policy']) }}>策略首页</Button>}{policies.data?.next_cursor && <Button disabled={command.busy || command.unknown} onClick={() => { setAfter(policies.data!.next_cursor!); form.resetFields(['policy']) }}>下一页策略</Button>}</Space>
     </>}
-  </Drawer>
+  </GovernanceModal>
 }
 
 export function PolicySummary({ policy }: { policy: RequestPolicy }) {
@@ -95,7 +95,7 @@ function RequestDetail({ id, close, saved }: { id: string; close: () => void; sa
   const r = detail.data, e = execution.data
   const refresh = () => { void detail.refetch(); void execution.refetch() }
   const cancel = async () => { const result = await command.send(commandId => ({ ...partition, id, command_id: commandId, state_version: r!.state_version })); if (result) { refresh(); saved() } }
-  return <Drawer title="申请详情与实际进度" open onClose={() => { if (!command.busy && !command.unknown) close() }} width={660} extra={<Button onClick={refresh}>刷新详情</Button>}>
+  return <GovernanceModal title="申请详情与实际进度" open onCancel={() => { if (!command.busy && !command.unknown) close() }} width={800} titleActions={<Button onClick={refresh}>刷新详情</Button>} closeDisabled={command.busy || command.unknown}>
     {detail.error || execution.error ? <Failure error={detail.error ?? execution.error} retry={refresh} /> : <Card loading={detail.isPending || execution.isPending}>
       {r && e && <>
         <Alert type="info" showIcon message={`实际状态：${executionLabels[e.display_state] ?? '待确认'}`} description={`审批事实：${requestLabels[r.state] ?? r.state}；审批通过不代表业务已可访问。`} style={{ marginBottom: 16 }} />
@@ -112,5 +112,5 @@ function RequestDetail({ id, close, saved }: { id: string; close: () => void; sa
         {command.unknown ? <Button loading={command.busy} onClick={() => void cancel()}>重试原取消命令</Button> : !command.result && ![RequestState.CANCELLED, RequestState.REJECTED].some(s => s === r.state) && <Button danger style={{ marginTop: 16 }} loading={command.busy} onClick={() => Modal.confirm({ title: '取消申请并回收本来源权限？', content: '已批准时将回收本申请生成的授权，其他合法来源保留。', okText: '确认取消或回收', cancelText: '返回详情', onOk: cancel })}>取消申请 / 回收本来源</Button>}
       </>}
     </Card>}
-  </Drawer>
+  </GovernanceModal>
 }

@@ -1,4 +1,4 @@
-import { GovernanceDrawer as Drawer, GovernanceEmpty } from '../governance/presentation'
+import { GovernanceModal, GovernanceEmpty } from '../governance/presentation'
 import { useState } from 'react'
 import { Alert, Button, Card, Form, InputNumber, Modal, Select, Space, Table, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -30,9 +30,9 @@ export default function GovernancePoliciesPage() {
       ]} />
       <Space style={{ marginTop: 12 }}>{after && <Button onClick={() => setAfter(undefined)}>策略首页</Button>}{list.data?.next_cursor && <Button onClick={() => setAfter(list.data!.next_cursor!)}>下一页策略</Button>}</Space>
     </Card>
-    <Drawer title="固定申请策略" open={!!detail} onClose={() => setDetail(undefined)} width={600}>{detail && <>
+    <GovernanceModal title="固定申请策略" open={!!detail} onCancel={() => setDetail(undefined)} width={720}>{detail && <>
       <PolicySummary policy={detail.policy} /><Typography.Paragraph>审批成员：{detail.approver_membership_id} · 第 {detail.approver_generation} 代</Typography.Paragraph>
-    </>}</Drawer>
+    </>}</GovernanceModal>
     {open && authority.data && <PolicyForm authority={authority.data} close={() => setOpen(false)} saved={() => { refresh(); setOpen(false) }} />}
   </>
 }
@@ -54,7 +54,7 @@ function PolicyForm({ authority, close, saved }: { authority: Management; close:
     const response = await command.send(id => { const member = people.data!.items.find(m => m.membership_id === values.member)!; return { ...partition, command_id: id, role_id: values.role_id, scope_rule: scopeRule(values), max_duration_seconds: values.minutes * 60, approver_membership_id: member.membership_id, approver_generation: member.generation, policy_version: values.policy_version } })
     if (response) saved()
   }
-  return <Drawer title="创建固定申请策略" footer={<Button type="primary" loading={command.busy} disabled={!command.unknown && (roles.isPending || people.isPending || !!roles.error || !!people.error)} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原策略' : '登记固定策略'}</Button>} open onClose={cancel} width={620} maskClosable={false} extra={<Button disabled={command.busy || command.unknown} onClick={cancel}>关闭</Button>}>
+  return <GovernanceModal title="创建固定申请策略" footer={<Button type="primary" loading={command.busy} disabled={!command.unknown && (roles.isPending || people.isPending || !!roles.error || !!people.error)} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原策略' : '登记固定策略'}</Button>} open onCancel={cancel} width={720} maskClosable={false} closeDisabled={command.busy || command.unknown}>
     {roles.error || people.error ? <Failure error={roles.error ?? people.error} retry={() => { void roles.refetch(); void people.refetch() }} /> : <>
       {!!command.error && <Failure error={command.error} />}
       {command.unknown && <Alert type="warning" message="策略创建结果未确认，请原样重试。" />}
@@ -70,5 +70,5 @@ function PolicyForm({ authority, close, saved }: { authority: Management; close:
       </Form>
 
     </>}
-  </Drawer>
+  </GovernanceModal>
 }

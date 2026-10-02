@@ -1,4 +1,4 @@
-import { GovernanceDrawer as Drawer, GovernanceEmpty } from '../governance/presentation'
+import { GovernanceModal, GovernanceEmpty } from '../governance/presentation'
 import { useState } from 'react'
 import { Alert, Button, Card, Form, Input, InputNumber, Modal, Select, Space, Table, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -59,7 +59,7 @@ function InvitationForm({ authority, close, saved }: { authority: InvitationAuth
     })
     if (response) saved()
   }
-  return <Drawer title="创建外部成员邀请" footer={!command.result && <Button type="primary" loading={command.busy} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原邀请' : '提交邀请'}</Button>} open onClose={cancel} maskClosable={false} width={600} extra={<Button disabled={command.busy || command.unknown} onClick={cancel}>关闭</Button>}>
+  return <GovernanceModal title="创建外部成员邀请" footer={!command.result && <Button type="primary" loading={command.busy} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原邀请' : '提交邀请'}</Button>} open onCancel={cancel} maskClosable={false} width={720} closeDisabled={command.busy || command.unknown}>
     {!!command.error && <Failure error={command.error} />}
     {command.result ? <>
       <Alert type="success" message="邀请已创建，尚未建立业务授权" description="通过受控渠道把邀请编号与证明交给指定登录者。页面不会自动发送，也不会持久保存证明。" />
@@ -79,7 +79,7 @@ function InvitationForm({ authority, close, saved }: { authority: InvitationAuth
       </Form>
 
     </>}
-  </Drawer>
+  </GovernanceModal>
 }
 
 function RevokeForm({ invitation, close, saved }: { invitation: Invitation; close: () => void; saved: () => void }) {
@@ -87,12 +87,11 @@ function RevokeForm({ invitation, close, saved }: { invitation: Invitation; clos
   const [form] = Form.useForm()
   const command = useCommand(revokeInvitation)
   const finish = async (values: { reason: string }) => { const result = await command.send(id => ({ ...partition, id: invitation.id, command_id: id, expected_version: invitation.version, reason: values.reason })); if (result) { saved(); close() } }
-  return <Modal title="撤销待接受邀请" open footer={null} onCancel={() => { if (!command.busy && !command.unknown) close() }} maskClosable={false}>
+  return <GovernanceModal title="撤销待接受邀请" closeDisabled={command.busy || command.unknown} open footer={<Button danger type="primary" loading={command.busy} onClick={() => command.unknown ? void finish(form.getFieldsValue()) : form.submit()}>{command.unknown ? '重试原撤销' : '确认撤销邀请'}</Button>} onCancel={() => { if (!command.busy && !command.unknown) close() }} maskClosable={false}>
     {!!command.error && <Failure error={command.error} />}
     <Form form={form} layout="vertical" onFinish={finish} disabled={command.busy || command.unknown}>
       <Form.Item name="reason" label="撤销原因" rules={[{ required: true, whitespace: true }, { max: 1000 }]}><Input.TextArea /></Form.Item>
-      <Button danger type="primary" htmlType="submit" loading={command.busy}>确认撤销邀请</Button>
     </Form>
-    {command.unknown && <Button loading={command.busy} onClick={() => void finish(form.getFieldsValue())}>重试原撤销</Button>}
-  </Modal>
+    {command.unknown && <Alert type="warning" message="撤销结果尚未确认，请重试原撤销命令。" />}
+  </GovernanceModal>
 }

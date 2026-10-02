@@ -53,10 +53,10 @@ export function ObjectTypeSelect({ value, onChange, exclude, id }: { …; id?: s
 
 > 每个字段的 `<label>` 关联该字段组的**主控件**(类型 Select);同组附属 Input 用 `aria-label` 单独命名。
 
-## 焦点管理(移动端 Drawer)
+## 焦点管理(移动端 Modal)
 
-移动端 `Drawer` 的**焦点陷阱、`Esc` 关闭、遮罩、打开时焦点移入**全部由 antd `Drawer` 内建,
-无需手写。点菜单项跳转后 `afterClick` 关闭 Drawer,焦点回到触发区。详见 [02](./02-layout-and-navigation.md)。
+移动端 `Modal` 的**焦点陷阱、`Esc` 关闭、遮罩、打开时焦点移入**全部由 antd `Modal` 内建,
+无需手写。点菜单项跳转后 `afterClick` 关闭 Modal,焦点回到触发区。详见 [02](./02-layout-and-navigation.md)。
 
 ## 颜色不作为唯一信息通道
 

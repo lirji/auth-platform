@@ -13,11 +13,11 @@
 | # | 文档 | 覆盖内容 |
 |---|---|---|
 | 01 | [设计系统](./01-design-system.md) | 调色板单一来源、Ant Design `ThemeConfig` token、全局 CSS、`ConfigProvider` 接入 |
-| 02 | [壳层布局与导航](./02-layout-and-navigation.md) | `AppLayout`(Sider/Header/面包屑)、`PageHeader`、`nav` 分组、**响应式与移动端 Drawer** |
+| 02 | [壳层布局与导航](./02-layout-and-navigation.md) | `AppLayout`(Sider/Header/面包屑)、`PageHeader`、`nav` 分组、**响应式与移动端 Modal** |
 | 03 | [状态与反馈](./03-state-and-feedback.md) | 加载/错误/空/成功的统一原语(`AsyncState`),per-mode 状态机范式 |
 | 04 | [领域组件](./04-domain-components.md) | `SemanticTag`(**relation vs permission 非颜色区分**)、`AllowDenyResult`、`SchemaTypeCard`、`RefBadge`、`selects` |
 | 05 | [页面清单](./05-pages.md) | 七页各自的布局骨架、栅格、状态处理 |
-| 06 | [无障碍](./06-accessibility.md) | 键盘可达、`aria-label`、表单 `<label htmlFor>`、Drawer 焦点管理 |
+| 06 | [无障碍](./06-accessibility.md) | 键盘可达、`aria-label`、表单 `<label htmlFor>`、Modal 焦点管理 |
 
 ## 技术栈(未变)
 
