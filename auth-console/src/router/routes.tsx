@@ -15,6 +15,7 @@ import SpacesPage from '../pages/SpacesPage'
 import IdentitySyncPage from '../pages/IdentitySyncPage'
 import AuditPage from '../pages/AuditPage'
 import GovernancePage from '../pages/GovernancePage'
+import GovernanceCatalogPage from '../pages/GovernanceCatalogPage'
 import GovernanceAccessPage from '../pages/GovernanceAccessPage'
 import GovernanceRequestsPage from '../pages/GovernanceRequestsPage'
 import GovernanceInvitationsPage from '../pages/GovernanceInvitationsPage'
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
   { path: '/callback', element: <CallbackPage /> },
   { path: '/invitations/accept', element: <ProtectedRoute requireWorkspaceGroups={false}><InvitationAcceptPage /></ProtectedRoute> },
   { path: '/governance', element: <ProtectedRoute requireWorkspaceGroups={false}><GovernancePage /></ProtectedRoute>, children: [
+    { path: 'menus', element: <GovernanceCatalogPage menus /> },
+    { path: 'catalog', element: <GovernanceCatalogPage /> },
+    { path: 'roles', element: <GovernanceAccessPage view="roles" /> },
+    { path: 'grants', element: <GovernanceAccessPage view="grants" /> },
     { path: 'access', element: <GovernanceAccessPage /> },
     { path: 'requests', element: <GovernanceRequestsPage /> },
     { path: 'invitations', element: <GovernanceInvitationsPage /> },

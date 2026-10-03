@@ -31,3 +31,5 @@ P0—P4已交付；P5统一入口、内部商品经营及外部门店协作已�
 OA 的 D-GOV-002／004／005 是现有实现的历史决策。它们继续约束尚未切换的旧链路；新目标通过扩展、映射、影子验证和分批接管生效，不直接修改这些历史记录，也不一次性替换旧 subject。
 
 P4契约见[CONTRACTS_P4_REQUEST](CONTRACTS_P4_REQUEST.md)，后续入口见[P4交接](../../implementation/oa-auth/phase-4/P4_HANDOFF.md)。
+
+- [治理菜单、角色与权限页面](permission-pages/README.md)：独立菜单权限、权限目录、角色管理与成员授权入口及验收。

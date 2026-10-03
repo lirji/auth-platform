@@ -14,9 +14,9 @@ export async function presentation(partition: Partition): Promise<Presentation> 
   return (await apiClient.get<Presentation>('/api/governance/v1/me/access', { params: partition })).data
 }
 /** 管理查询仍由后端校验当前成员与委派，普通业务授权不产生管理权。 */
-export async function accessState(partition: Partition, role?: string, grant?: string): Promise<AccessState> {
+export async function accessState(partition: Partition, role?: string, grant?: string, signal?: AbortSignal): Promise<AccessState> {
   return (await apiClient.get<AccessState>('/api/governance/v1/access/state', {
-    params: { ...partition, after_role: role, after_grant: grant },
+    params: { ...partition, after_role: role, after_grant: grant }, signal,
   })).data
 }
 

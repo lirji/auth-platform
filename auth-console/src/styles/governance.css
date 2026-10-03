@@ -83,3 +83,24 @@
 .g-catalog-capability { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-bottom: 1px solid var(--g-line, #e1e5ec); }
 .g-catalog-capability .ant-checkbox-wrapper { align-items: start; overflow-wrap: anywhere; min-width: 0; }
 .g-catalog-capability .ant-tag { white-space: normal; overflow-wrap: anywhere; }
+
+/* 菜单目录采用树与详情作业面，所有宽表只在自身容器滚动。 */
+.g-directory-links { display: flex; flex-wrap: wrap; gap: 12px 20px; margin: 12px 0 24px; overflow-wrap: anywhere; }
+.g-catalog-layout { display: grid; grid-template-columns: minmax(190px, 250px) minmax(0, 1fr); gap: 24px; }
+.g-menu-browser { min-width: 0; padding-right: 20px; border-right: 1px solid var(--g-line); }
+.g-menu-browser .ant-tree { margin-top: 18px; }
+.g-menu-browser .ant-tree-title { overflow-wrap: anywhere; }
+.g-menu-browser .ant-tree-node-content-wrapper { min-width: 0; white-space: normal; }
+.g-menu-detail { min-width: 0; }
+.g-menu-results { display: flex; flex-direction: column; align-items: stretch; margin-top: 12px; gap: 8px; }
+.g-menu-results .ant-btn { height: auto; white-space: normal; text-align: left; overflow-wrap: anywhere; }
+.g-catalog-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+.g-catalog-filters .ant-select { width: 100%; }
+.g-result-count { font-size: 12px; color: var(--g-muted); }
+.g-catalog-detail-card { margin-top: 24px; }
+.g-code-heading { overflow-wrap: anywhere; }
+.g-code-link.ant-btn { height: auto; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+@media(max-width: 1000px) { .g-catalog-layout { grid-template-columns: 1fr; }.g-menu-browser { border-right: 0; border-bottom: 1px solid var(--g-line); padding: 0 0 20px; }.g-catalog-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media(max-width: 560px) { .g-catalog-filters { grid-template-columns: 1fr; }.g-menu-browser .ant-tree { max-height: 280px; overflow-y: auto; }.g-directory-links { gap: 10px 16px; } }
+
+.g-role-capability-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 0; border-bottom: 1px solid #e6eaf0; overflow-wrap: anywhere; }.g-role-capability-row a { flex: 1; min-width: 150px; }.g-role-capability-row span { font-size: 12px; }

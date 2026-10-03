@@ -25,6 +25,10 @@ const kindLabels: Record<string, string> = { EMPLOYEE: '内部成员', PARTNER: 
 const routes: Record<string, { title: string; description: string; icon: ReactNode }> = {
   permissions: { title: '我的权限', description: '查看每一份权限的角色、范围与来源。', icon: <KeyOutlined /> },
   requests: { title: '申请与通知', description: '从提交到生效，跟进每一次权限申请。', icon: <FileDoneOutlined /> },
+  menus: { title: '菜单权限', description: '按菜单查看页面路由与关联权限。', icon: <MenuOutlined /> },
+  catalog: { title: '权限目录', description: '浏览当前应用已发布的权限、资源和角色关联。', icon: <KeyOutlined /> },
+  roles: { title: '角色管理', description: '查看固定角色版本及其完整权限，按需创建新版本。', icon: <SafetyCertificateOutlined /> },
+  grants: { title: '成员授权', description: '核对成员角色、数据范围、有效期与授权来源。', icon: <TeamOutlined /> },
   access: { title: '授权管理', description: '用固定角色版本，为合适的成员授予明确范围的权限。', icon: <SafetyCertificateOutlined /> },
   policies: { title: '申请策略', description: '定义可申请的角色、范围、期限和审批成员。', icon: <SettingOutlined /> },
   invitations: { title: '外部邀请', description: '邀请合作成员加入组织，再按需授予业务权限。', icon: <TeamOutlined /> },
@@ -78,7 +82,7 @@ export default function GovernancePage() {
   const navigation = (keys: string[]) => keys.map(key => app ? <Link key={key} to={pathFor(app, key)} aria-current={route === key || key === 'access' && route === 'diagnostic' ? 'page' : undefined} className="g-nav-item">{routes[key].icon}<span>{routes[key].title}</span></Link> : <span key={key} className="g-nav-item g-nav-disabled" aria-disabled="true">{routes[key].icon}<span>{routes[key].title}</span></span>)
   const sidebar = <>
     <Link className="g-brand" to={homeUrl} aria-label="权限控制台工作台"><span className="g-brand-mark" aria-hidden="true"><i /><i /><i /><i /></span><span>权限控制台<small>ACCESS CONSOLE</small></span></Link>
-    <nav className="g-navigation" aria-label="权限控制台导航"><span className="g-nav-caption">工作空间</span><Link to={homeUrl} className="g-nav-item" aria-current={home ? 'page' : undefined}><AppstoreOutlined /><span>我的工作台</span></Link><span className="g-nav-caption">个人中心</span>{navigation(['permissions', 'requests'])}{app?.management && <><span className="g-nav-caption">应用管理</span>{navigation(['access', 'policies', 'invitations', 'audit'])}</>}{!app && <p className="g-nav-hint">选择应用后查看相关权限与任务。</p>}</nav>
+    <nav className="g-navigation" aria-label="权限控制台导航"><span className="g-nav-caption">工作空间</span><Link to={homeUrl} className="g-nav-item" aria-current={home ? 'page' : undefined}><AppstoreOutlined /><span>我的工作台</span></Link><span className="g-nav-caption">个人中心</span>{navigation(['permissions', 'requests'])}{app?.management && <><span className="g-nav-caption">应用管理</span>{navigation(['menus', 'catalog', 'roles', 'grants', 'policies', 'invitations', 'audit'])}</>}{!app && <p className="g-nav-hint">选择应用后查看相关权限与任务。</p>}</nav>
     <div className="g-sidebar-bottom"><span className="g-member-icon"><UserOutlined /></span><div><strong>{org ? kindLabels[org.member_kind] ?? org.member_kind : '组织成员'}</strong><small>{org ? org.tenant_code : '请先选择组织'}</small></div></div>
   </>
   return <ConfigProvider theme={governanceTheme}><div className="governance-shell" style={palette}>

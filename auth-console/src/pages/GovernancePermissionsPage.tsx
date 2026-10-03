@@ -1,9 +1,10 @@
 import { GovernanceModal, CapabilityList, PermissionStatus, GovernanceEmpty } from '../governance/presentation'
 import { Alert, Button, Card, Descriptions, Modal, Space, Table, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { accessAudit, grantExplanation, myPermissions, revocationReceipt, revokeGrant, type AccessAudit, type PermissionExplanation } from '../api/governance'
 import { useGovernanceContext } from './GovernancePage'
+import { applicationSearch } from '../governance/context'
 import { Failure } from '../governance/feedback'
 import { ScopeSummary } from '../governance/ScopeFields'
 import { useCommand } from '../governance/useCommand'
@@ -12,18 +13,20 @@ import { executionLabels, GrantState, ReceiptState, ScopeKind } from '../governa
 const labels: Record<string, string> = { ...executionLabels, ACTIVE: '投影已确认，业务操作仍实时判权', GROUP_CHECK_REQUIRED: '组授权已投影，成员资格与时段仍实时检查' }
 /** 来源不合并，避免把多个Grant的能力和范围拼接成不存在的授权。 */
 export default function GovernancePermissionsPage() {
-  const { partition, queryKey } = useGovernanceContext()
+  const { partition, queryKey, application } = useGovernanceContext()
+  const useManagement = application.management
   const [params, setParams] = useSearchParams()
   const after = params.get('permission_after') ?? undefined
   const selected = params.get('grant') ?? undefined
   const list = useQuery({ queryKey: [...queryKey, 'permissions', after], queryFn: () => myPermissions(partition, after), retry: false, staleTime: 0 })
   const choose = (key: string, value?: string) => { const next = new URLSearchParams(params); if (value) next.set(key, value); else next.delete(key); setParams(next) }
+  const roleLink = (id: string) => { const next = applicationSearch(params, partition.application_id, partition.environment); next.set('role', id); return `/governance/roles?${next}` }
   const detail = !list.error ? list.data?.items.find(g => g.grant_id === selected) : undefined
   return <>
     <Card title="授权来源" extra={<Button onClick={() => void list.refetch()}>刷新权限来源</Button>}>
       <Alert type="info" showIcon message="每行是一条完整授权来源。范围和能力只能在同一行内共同使用；其他来源不会因单条撤销而消失。" style={{ marginBottom: 16 }} />
       {list.error ? <Failure error={list.error} retry={() => void list.refetch()} /> : <Table<PermissionExplanation> rowKey="grant_id" locale={{ emptyText: <GovernanceEmpty title="暂无权限来源" description="获得业务授权后，角色、范围与来源将显示在这里。" /> }} dataSource={list.data?.items} loading={list.isPending} pagination={false} scroll={{ x: 850 }} columns={[
-        { title: '固定角色', width: 180, render: (_, r) => <div className="g-role-cell"><strong>{r.role_code}</strong><small>版本 {r.role_version}</small></div> }, { title: '能力', width: 260, render: (_, r) => <CapabilityList values={r.capabilities} compact /> },
+        { title: '固定角色', width: 180, render: (_, r) => <div className="g-role-cell"><strong>{r.role_code}</strong><small>版本 {r.role_version}</small>{useManagement && <Link to={roleLink(r.role_id)}>查看角色详情</Link>}</div> }, { title: '能力', width: 260, render: (_, r) => <CapabilityList values={r.capabilities} compact /> },
         { title: '来源', dataIndex: 'source_type' }, { title: '当前状态', render: (_, r) => <PermissionStatus state={r.effective_state} explanation={labels[r.effective_state]} /> },
         { title: '有效至', render: (_, r) => new Date(r.valid_to).toLocaleString('zh-CN', { hour12: false }) }, { title: '操作', render: (_, r) => <Button type="link" onClick={() => choose('grant', r.grant_id)}>查看来源详情</Button> },
       ]} />}
@@ -67,6 +70,7 @@ export function GovernanceGrantDiagnostic() {
   if (detail.error) return <Failure error={detail.error} retry={refresh} />
   const status = receipt.error ? undefined : receipt.data ?? command.result
   return <Card title="授权诊断与来源回收" loading={detail.isPending} extra={<Button onClick={refresh}>刷新解释与回执</Button>}>
+    <div className="g-directory-links"><Link to={`/governance/grants?${applicationSearch(params, partition.application_id, partition.environment)}`}>返回成员授权</Link><Link to={`/governance/audit?${applicationSearch(params, partition.application_id, partition.environment)}`}>查看授权审计</Link></div>
     {detail.data && <>
       <PermissionDetails value={detail.data} />
       {!!command.error && <Failure error={command.error} />}{receipt.error && <Failure error={receipt.error} retry={() => void receipt.refetch()} />}

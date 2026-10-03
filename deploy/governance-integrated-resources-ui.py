@@ -21,7 +21,7 @@ def read(path):
     return path.read_text()
 def props(values):return ''.join(k+'='+str(v)+'\n' for k,v in values.items())
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--database-directory',required=True);parser.add_argument('--management-config',required=True);parser.add_argument('--graph-config',required=True);parser.add_argument('--playwright-module',required=True);parser.add_argument('--resume-prepared');parser.add_argument('--resume-browser');parser.add_argument('--resume-verify');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--database-directory',required=True);parser.add_argument('--management-config',required=True);parser.add_argument('--graph-config',required=True);parser.add_argument('--playwright-module',required=True);parser.add_argument('--resume-prepared');parser.add_argument('--resume-browser');parser.add_argument('--resume-verify');parser.add_argument('--permission-pages', action='store_true');args=parser.parse_args()
     dbdir=Path(args.database_directory).resolve();db=json.loads(read(dbdir/'database.json'))
     if not db['database'].startswith('auth_gov_p1_test_') or not db['username'].startswith('auth_gov_p1_'):raise RuntimeError('owned database required')
     for port in (ADMIN,UI):
@@ -86,6 +86,8 @@ def main():
             config=run/(kind+'-delegation.properties');private(config,database+props({'access.tenant':tenant,'access.application':'commerce','access.environment':'test','access.manager':users[kind]['member'],'access.generation':1,'access.capabilities':','.join(c['code'] for c in caps if kind==FixtureUser.OWNER or c['code']=='commerce.member.read'),'access.max-duration-seconds':3600 if kind==FixtureUser.OWNER else 600,'access.operator':'ir01-fixture','access.command':str(uuid.uuid4())}));cli('AccessBootstrapCli',config)
     graph_values=dict(line.split('=',1) for line in read(Path(args.graph_config)).splitlines() if '=' in line)
     graph_config=props({**graph_values,'scope.graph.http':graph_values['graph.http'],'scope.graph.key':graph_values['graph.key']})
+    if args.permission_pages:
+        graph_config += props({'portal.diagnostic.count': 1, 'portal.diagnostic.1.tenant-id': tenant, 'portal.diagnostic.1.application-id': 'commerce', 'portal.diagnostic.1.environment': 'test', 'portal.diagnostic.1.membership-id': users['owner']['member'], 'portal.diagnostic.1.generation': 1})
     config=run/('admin-'+secrets.token_hex(3)+'.properties');private(config,database+graph_config+props({'issuer':ISSUER,'jwks.uri':ISSUER+'/.well-known/jwks','audience':client['name'],'client.id':client['name'],'client.secret':client['secret'],'version-probe.client.id':ops['client_id'],'version-probe.client.secret':ops['client_secret'],'approval.tenant':tenant,'approval.application':'commerce','approval.environment':'test','approval.inbound-key':secrets.token_urlsafe(48)}))
     def request_http(path,token=None,payload=None):
         c=http.client.HTTPConnection('127.0.0.1',ADMIN,timeout=15);headers={'Content-Type':'application/json'}
@@ -153,7 +155,7 @@ def main():
                 except OSError:pass
                 time.sleep(.1)
             browser_log=run/('browser-'+secrets.token_hex(3)+'.log')
-            result=subprocess.run(['node',str(ROOT/'deploy/governance-integrated-resources-ui.mjs')],cwd=ROOT,env=dict(env,IR_RUN=str(run),IR_ATTEMPT=secrets.token_hex(3),IR_PLAYWRIGHT_MODULE=args.playwright_module),stdout=browser_log.open('wb'),stderr=subprocess.STDOUT,timeout=240)
+            result=subprocess.run(['node',str(ROOT/('deploy/governance-permission-pages.mjs' if args.permission_pages else 'deploy/governance-integrated-resources-ui.mjs'))],cwd=ROOT,env=dict(env,IR_RUN=str(run),IR_ATTEMPT=secrets.token_hex(3),IR_PLAYWRIGHT_MODULE=args.playwright_module),stdout=browser_log.open('wb'),stderr=subprocess.STDOUT,timeout=240)
             if result.returncode:raise RuntimeError('actual browser failed; inspect '+str(browser_log))
         state=json.loads(sql("SELECT json_build_object('roles',(SELECT json_agg(row_to_json(r)) FROM auth_governance.role_version r WHERE r.tenant_id='%s'),'grants',(SELECT json_agg(row_to_json(g)) FROM auth_governance.access_grant g WHERE g.tenant_id='%s'),'scopes',(SELECT json_agg(row_to_json(s)) FROM auth_governance.grant_scope s WHERE s.tenant_id='%s'),'policies',(SELECT json_agg(row_to_json(p)) FROM auth_governance.request_policy p WHERE p.tenant_id='%s'));"%(tenant,tenant,tenant,tenant)))
         private(run/('final-sql-'+secrets.token_hex(3)+'.json'),json.dumps(state));assert len(state['roles'])==3 and len(state['grants'])==1 and len(state['scopes'])==1 and len(state['policies'])==1

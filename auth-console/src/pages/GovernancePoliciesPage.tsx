@@ -1,4 +1,6 @@
 import { GovernanceModal, GovernanceEmpty } from '../governance/presentation'
+import { Link, useSearchParams } from 'react-router-dom'
+import { applicationSearch } from '../governance/context'
 import { useState } from 'react'
 import { Alert, Button, Card, Form, InputNumber, Modal, Select, Space, Table, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -14,7 +16,9 @@ import { roleScopeEligibility } from '../governance/publishedCatalog'
 /** 策略配置受当前应用委派保护，审批人资格和授权上限在服务端再次核对。 */
 export default function GovernancePoliciesPage() {
   const { partition, queryKey } = useGovernanceContext()
-  const [after, setAfter] = useState<string>()
+  const [params, setParams] = useSearchParams()
+  const after = params.get('policy_after') ?? undefined
+  const setAfter = (value?: string) => { const next = new URLSearchParams(params); if (value) next.set('policy_after', value); else next.delete('policy_after'); setParams(next) }
   const [open, setOpen] = useState(false)
   const [detail, setDetail] = useState<PolicyConfiguration>()
   const qc = useQueryClient()
@@ -29,7 +33,7 @@ export default function GovernancePoliciesPage() {
       {catalog.error && <Failure error={catalog.error} retry={() => void catalog.refetch()} />}
       <Alert type="info" showIcon message="策略固定角色版本、范围、期限和审批成员。新策略不修改已提交申请。" style={{ marginBottom: 16 }} />
       <Table<PolicyConfiguration> rowKey={r => r.policy.id} locale={{ emptyText: <GovernanceEmpty title="暂无申请策略" description="登记策略后，成员才能申请对应角色与固定范围。" /> }} dataSource={list.data?.items} loading={list.isPending} pagination={false} scroll={{ x: 780 }} columns={[
-        { title: '固定角色', render: (_, r) => `${r.policy.role_code} · v${r.policy.role_version}` }, { title: '策略版本', render: (_, r) => r.policy.policy_version },
+        { title: '固定角色', render: (_, r) => <Link to={`/governance/roles?${applicationSearch(params, partition.application_id, partition.environment)}&role=${encodeURIComponent(r.policy.role_id)}`}>{r.policy.role_code} · v{r.policy.role_version}</Link> }, { title: '策略版本', render: (_, r) => r.policy.policy_version },
         { title: '上限', render: (_, r) => `${Math.floor(r.policy.max_duration_seconds / 60)} 分钟` }, { title: '配置状态', render: (_, r) => r.enabled ? '已登记（提交时重验）' : '停用' },
         { title: '操作', render: (_, r) => <Button type="link" onClick={() => setDetail(r)}>策略详情</Button> },
       ]} />
