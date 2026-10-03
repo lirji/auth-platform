@@ -81,6 +81,17 @@ export interface CatalogImpactReport extends Partition { current_version: number
 export const catalogImpact = async (partition: Partition, manifest: CatalogManifest, cursor?: CatalogImpactCursor, signal?: AbortSignal): Promise<CatalogImpactReport> =>
   (await apiClient.post('/api/governance/v1/access/catalog-impact', { ...partition, manifest, cursor }, { signal })).data
 
+export interface CatalogRelease { application: string; version: number; content_hash: string; presentation_hash: string | null; published_by: string; published_at: string;
+  source: { commit: string; artifact_hash: string } | null; reason: string | null; decision: 'KEEP_CURRENT_GRANTS' | 'SEPARATE_AUTHORIZATION_REVIEW' | null;
+  command_id: string | null; base_version: number | null; base_content_hash: string | null; base_presentation_hash: string | null; preview: CatalogPreview | null }
+export interface CatalogHistory { items: CatalogRelease[]; next_before_version: number | null }
+export interface CatalogReleaseDetail { release: CatalogRelease; manifest: CatalogManifest }
+/** 发布历史只读，失败不能替换成空列表或推测来源。 */
+export const catalogHistory = async (application: string, before?: number, signal?: AbortSignal): Promise<CatalogHistory> =>
+  (await apiClient.get('/api/governance/v1/catalog/releases', { params: { application_id: application, before_version: before }, signal })).data
+export const catalogReleaseDetail = async (application: string, version: number, signal?: AbortSignal): Promise<CatalogReleaseDetail> =>
+  (await apiClient.get(`/api/governance/v1/catalog/releases/${version}`, { params: { application_id: application }, signal })).data
+
 export interface RequestPolicy { id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; policy_version: number; role_code: string; role_version: number; capabilities: string[] }
 export interface PolicyConfiguration { policy: RequestPolicy; approver_membership_id: string; approver_generation: number; enabled: boolean }
 export interface PolicyCommand extends Partition { command_id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; approver_membership_id: string; approver_generation: number; policy_version: number }

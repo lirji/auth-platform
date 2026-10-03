@@ -120,3 +120,5 @@
 .g-catalog-impact { margin-top: 24px; overflow-wrap: anywhere; }
 .g-catalog-impact > .ant-btn, .g-catalog-impact > .ant-alert { margin: 12px 0; }
 .g-catalog-impact pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.g-catalog-history-version { padding: 16px; }

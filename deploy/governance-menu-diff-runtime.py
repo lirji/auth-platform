@@ -26,12 +26,12 @@ def module(name, file):
     return value
 
 
-def main(impact=False):
+def main(impact=False, history=False):
     """本次夹具只写随机应用／企业；所有凭据和日志留在忽略的0600证据目录。"""
     os.umask(0o077)
     h = module('context', 'governance-context-smoke.py')
     auth = module('access_smoke', 'governance-access-smoke.py')
-    run = ROOT / '.local/menu-role-governance' / (('mg03-' if impact else 'mg02-') + uuid.uuid4().hex[:12])
+    run = ROOT / '.local/menu-role-governance' / (('mg04-' if history else 'mg03-' if impact else 'mg02-') + uuid.uuid4().hex[:12])
     run.mkdir(parents=True, mode=0o700)
     fixture = json.loads(h.read_private(ROOT / '.local/governance/p2/identity/casdoor.json'))
     ops = json.loads(h.read_private(ROOT / '.local/governance/casdoor-isolated/management-client.json'))
@@ -73,7 +73,13 @@ def main(impact=False):
                            menu('page.products', 'group.a', '/products', [app + '.read'], '商品列表', 2),
                            menu('page.old', 'group.a', '/old', [app + '.read'], '旧入口', 3)])
     h.private(run / 'manifest.json', json.dumps(manifest))
-    cli('CatalogCli', ['publish', run / 'catalog.properties', run / 'manifest.json'])
+    declared_source = {'commit': 'a' * 40, 'artifact_hash': 'b' * 64}
+    if history:
+        # 这是隔离验收的声明来源，仅证明记录／重试，不声称真实Commerce制品或运行部署。
+        h.private(run / 'source-candidate.json', json.dumps({'manifest': manifest, 'source': declared_source, 'reason': '隔离来源验收', 'decision': 'KEEP_CURRENT_GRANTS'}))
+        cli('CatalogCli', ['publish-source', run / 'catalog.properties', run / 'source-candidate.json'])
+    else:
+        cli('CatalogCli', ['publish', run / 'catalog.properties', run / 'manifest.json'])
     client = fixture['clients']['management']
     authority = {'issuer': h.ISSUER, 'jwks.uri': h.ISSUER + '/.well-known/jwks', 'audience': client['name'], 'client.id': client['name'],
                  'client.secret': client['secret'], 'version-probe.client.id': ops['client_id'], 'version-probe.client.secret': ops['client_secret']}
@@ -150,6 +156,23 @@ def main(impact=False):
             request('strict impact actor injection', '/access/catalog-impact', {**partition, 'manifest': candidate, 'subject': 'victim'}, 400, code='INVALID_ARGUMENT')
             h.start(jar, 21663, run / 'admin-owner-only.log', config=run / 'admin-owner-only.properties', access=True, presentation=True, scope=True)
             request('Owner management alone cannot diagnose', '/access/catalog-impact', {**partition, 'manifest': candidate}, 403, code='ACCESS_DENIED', port=21663)
+        if history:
+            receipt = h.expect('publish only random history application',21662,'/api/governance/v1/catalog/publish',headers+[('X-Command-Id',str(uuid.uuid4()))],json.dumps(candidate).encode(),200)
+            assert receipt['proposed_version'] == 2
+            cli('CatalogCli', ['publish-source', run / 'catalog.properties', run / 'source-candidate.json'])
+            def history_read(name, endpoint, status=200, credential=headers, code=None):
+                return h.expect(name,21662,endpoint,credential,None,status,code)
+            listing = history_read('current Owner sees source and unknown history','/api/governance/v1/catalog/releases?application_id='+app)
+            assert [item['version'] for item in listing['items']] == [2,1]
+            assert listing['items'][0]['source'] is None and listing['items'][1]['source'] == declared_source
+            detail = history_read('fixed version actual menu facts','/api/governance/v1/catalog/releases/1?application_id='+app)
+            expected_manifest = {**manifest, 'menus': sorted(manifest['menus'], key=lambda item: item['code']),
+                                 'capabilities': sorted(manifest['capabilities'], key=lambda item: item['code'])}
+            assert detail['manifest'] == expected_manifest and detail['release']['preview']['current_version'] == 0
+            history_read('foreign Owner cannot inspect history','/api/governance/v1/catalog/releases?application_id='+app,403,[('Authorization','Bearer '+other)],'ACCESS_DENIED')
+            history_read('anonymous history denied','/api/governance/v1/catalog/releases?application_id='+app,401,[],'INVALID_CREDENTIAL')
+            history_read('unknown fixed version not a current fallback','/api/governance/v1/catalog/releases/3?application_id='+app,404,code='NOT_FOUND')
+            history_read('invalid history cursor rejected','/api/governance/v1/catalog/releases?application_id='+app+'&before_version=0',400,code='INVALID_ARGUMENT')
         # 页面以实际组件挂载，使用真实Token及实际HTTP；测试壳不冒充完整门户PKCE验收。
         harness = ROOT / 'auth-console/.local/menu-role-governance'
         harness.mkdir(parents=True, exist_ok=True)
@@ -160,7 +183,7 @@ import '../../src/styles/global.css';import '../../src/styles/governance.css';
 const f=(window as any).__MG02;await userManager.storeUser(new User({access_token:f.token,token_type:'Bearer',profile:{sub:f.subject,iss:f.issuer},expires_at:Math.floor(Date.now()/1000)+600}));
 createRoot(document.getElementById('root')!).render(<ConfigProvider><CatalogEditor partition={f.partition} application={f.application} close={()=>{(window as any).__closed=true}} saved={()=>{(window as any).__saved=true}}/></ConfigProvider>);
 """)
-        payload = {'token': token, 'subject': user['id'], 'issuer': h.ISSUER, 'application': app, 'partition': partition, 'owner_only_admin': 'http://127.0.0.1:21663', 'candidate': candidate, 'illegal': illegal,
+        payload = {'token': token, 'subject': user['id'], 'issuer': h.ISSUER, 'application': app, 'partition': partition, 'owner_only_admin': 'http://127.0.0.1:21663', 'declared_source': declared_source, 'candidate': candidate, 'illegal': illegal,
                    'admin': 'http://127.0.0.1:21662', 'ui': 'http://127.0.0.1:21665/.local/menu-role-governance/index.html'}
         h.private(run / 'browser.private.json', json.dumps(payload))
         with (run / 'vite.log').open('w') as output:
@@ -177,7 +200,7 @@ createRoot(document.getElementById('root')!).render(<ConfigProvider><CatalogEdit
         else:
             raise RuntimeError('owned Vite process startup timeout')
         with (run / 'browser.log').open('w') as output:
-            result = subprocess.run(['node', str(ROOT / ('deploy/governance-menu-impact-ui.mjs' if impact else 'deploy/governance-menu-diff-ui.mjs')), str(run)], cwd=ROOT, timeout=BROWSER_TIMEOUT_SECONDS,
+            result = subprocess.run(['node', str(ROOT / ('deploy/governance-menu-history-ui.mjs' if history else 'deploy/governance-menu-impact-ui.mjs' if impact else 'deploy/governance-menu-diff-ui.mjs')), str(run)], cwd=ROOT, timeout=BROWSER_TIMEOUT_SECONDS,
                                     stdout=output, stderr=subprocess.STDOUT)
         if result.returncode:
             raise RuntimeError('browser verification failed; private evidence retained')

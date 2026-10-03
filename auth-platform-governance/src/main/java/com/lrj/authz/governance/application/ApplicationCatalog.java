@@ -2,6 +2,7 @@ package com.lrj.authz.governance.application;
 
 import com.lrj.authz.governance.authentication.VerifiedLogin;
 import com.lrj.authz.governance.domain.CatalogModels.*;
+import com.lrj.authz.governance.domain.CatalogReleaseModels.*;
 import com.lrj.authz.governance.domain.IdentityModels.GlobalStatus;
 import com.lrj.authz.governance.domain.IdentityModels.PrincipalKind;
 import com.lrj.authz.governance.persistence.*;
@@ -13,11 +14,13 @@ import static com.lrj.authz.governance.application.GovernanceException.Code.*;
 public final class ApplicationCatalog {
     private final CatalogMapper mapper;
     private final SafetyMapper safety;
+    private final CatalogReleaseMapper releases;
     private final IdentityMapper identities;
     private final IdentityGovernance identity;
     private final TransactionTemplate transaction;
     /** 事务与Mapper由既有治理Runtime提供。 */
-    public ApplicationCatalog(CatalogMapper mapper, IdentityMapper identities, IdentityGovernance identity, TransactionTemplate transaction, SafetyMapper safety) {
+    public ApplicationCatalog(CatalogMapper mapper, IdentityMapper identities, IdentityGovernance identity, TransactionTemplate transaction, SafetyMapper safety, CatalogReleaseMapper releases) {
+        this.releases=releases;
         this.safety=safety;
         this.mapper=mapper; this.identities=identities; this.identity=identity; this.transaction=transaction;
     }
@@ -43,24 +46,76 @@ public final class ApplicationCatalog {
     }
     /** 锁定当前版本并事务发布；同版重试返回同一快照，不重复审计。 */
     public Preview publish(VerifiedLogin login, Manifest input, String command) {
-        Manifest manifest=CatalogManifest.normalize(input); BootstrapCommand.bounded(command,100);
+        return publishCandidate(login,new Candidate(input,null,null,null),command,true);
+    }
+    /** 来源发布仍使用同一目录事务；不会向旧快照补造来源或自动授予。 */
+    public Release publishSource(VerifiedLogin login,Candidate input,String command) {
+        var candidate=CatalogPublication.normalize(input);
+        return transaction.execute(status -> {
+            publishCandidate(login,candidate,command,false);
+            return release(releases.command(candidate.manifest().application(),command));
+        });
+    }
+    private Preview publishCandidate(VerifiedLogin login,Candidate input,String command,boolean legacy) {
+        var candidate=CatalogPublication.normalize(input); var manifest=candidate.manifest(); BootstrapCommand.bounded(command,100);
         return transaction.execute(status -> {
             Application app=requireOwner(login,manifest.application(),true);
+            String bodyHash=CatalogPublication.hash(candidate); var prior=releases.command(app.applicationId(),command);
+            // 同键成功重试先读取原回执，不用当前更高版本重算差异或倒退指针。
+            if(prior!=null) {
+                if(!bodyHash.equals(prior.commandHash()))throw new GovernanceException(COMMAND_CONFLICT);
+                return CatalogPublication.preview(prior.previewJson());
+            }
             Preview result=preview(app,manifest);
             if (!result.publishable()) { throw new GovernanceException(VERSION_CONFLICT); }
             Snapshot existing=mapper.snapshot(app.applicationId(),manifest.manifestVersion());
             if (existing!=null) {
+                if(!legacy)throw new GovernanceException(VERSION_CONFLICT);
                 if (!existing.contentHash().equals(result.contentHash()) || app.manifestVersion()!=existing.version()) { throw new GovernanceException(VERSION_CONFLICT); }
                 return result;
             }
+            var base=mapper.snapshot(app.applicationId(),app.manifestVersion());
+            var baseShown=mapper.presentation(app.applicationId(),app.manifestVersion());
             requireOne(mapper.insertSnapshot(new Snapshot(app.applicationId(),manifest.manifestVersion(),result.contentHash(),CatalogManifest.json(manifest)),app.ownerPrincipalId()));
             // 名称与权限同事务提交，审计失败不能留下半个可见目录。
             String presentation = CatalogManifest.presentationJson(manifest);
             if (!"[]".equals(presentation)) { requireOne(mapper.insertPresentation(new PresentationSnapshot(app.applicationId(),manifest.manifestVersion(),CatalogManifest.presentationHash(manifest),presentation),app.ownerPrincipalId())); }
             requireOne(mapper.advance(app.applicationId(),app.manifestVersion(),manifest.manifestVersion()));
             requireOne(mapper.audit(UUID.randomUUID().toString(),app.applicationId(),app.ownerPrincipalId(),"PUBLISH",manifest.manifestVersion(),command));
+            var source=candidate.source();
+            requireOne(releases.insert(new CatalogReleaseMapper.Row(app.applicationId(),manifest.manifestVersion(),result.contentHash(),result.presentationHash(),
+                    app.ownerPrincipalId(),null,command,bodyHash,source==null?null:source.commit(),source==null?null:source.artifactHash(),candidate.reason(),
+                    candidate.decision()==null?null:candidate.decision().code(),app.manifestVersion(),base==null?null:base.contentHash(),
+                    base==null?null:baseShown==null?CatalogManifest.presentationHash(CatalogManifest.read(base.manifestJson())):baseShown.presentationHash(),CatalogPublication.previewJson(result))));
             return result;
         });
+    }
+    /** 历史分页受当前Owner保护，旧发布无来源记录仍保留在版本列表。 */
+    public History history(VerifiedLogin login,String application,Long before) {
+        if(before!=null&&before<1)throw new GovernanceException(INVALID_ARGUMENT);
+        requireOwner(login,application,false); var rows=releases.history(application,before,101);
+        var page=rows.subList(0,Math.min(rows.size(),100));
+        return new History(page.stream().map(ApplicationCatalog::release).toList(),rows.size()>100?page.getLast().version():null);
+    }
+    /** 固定版本重验双摘要；不读取当前版本假装历史详情。 */
+    public Detail releaseDetail(VerifiedLogin login,String application,long version) {
+        if(version<1)throw new GovernanceException(INVALID_ARGUMENT); requireOwner(login,application,false);
+        var row=releases.version(application,version); if(row==null)throw new GovernanceException(NOT_FOUND);
+        var snapshot=mapper.snapshot(application,version); var shown=mapper.presentation(application,version);
+        try {
+            var manifest=CatalogManifest.withPresentation(CatalogManifest.read(snapshot.manifestJson()),shown==null?"[]":shown.presentationJson(),shown==null?null:shown.presentationHash());
+            if(!application.equals(manifest.application())||version!=manifest.manifestVersion()||!CatalogManifest.hash(manifest).equals(row.contentHash())
+                    ||row.presentationHash()!=null&&!CatalogManifest.presentationHash(manifest).equals(row.presentationHash()))throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
+            return new Detail(release(row),manifest);
+        } catch(GovernanceException failure) { throw new GovernanceException(DEPENDENCY_UNAVAILABLE); }
+    }
+    private static Release release(CatalogReleaseMapper.Row row) {
+        if(row==null)throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
+        try {
+            return new Release(row.application(),row.version(),row.contentHash(),row.presentationHash(),row.publishedBy(),row.publishedAt(),
+                    row.sourceCommit()==null?null:new Source(row.sourceCommit(),row.artifactHash()),row.reason(),row.decision()==null?null:Decision.from(row.decision()),
+                    row.commandId(),row.baseVersion(),row.baseContentHash(),row.basePresentationHash(),row.previewJson()==null?null:CatalogPublication.preview(row.previewJson()));
+        } catch(IllegalArgumentException corrupt) { throw new GovernanceException(DEPENDENCY_UNAVAILABLE); }
     }
     /** 当前清单仅供已拥有该应用的管理用户查询。 */
     public Manifest current(VerifiedLogin login, String application) {

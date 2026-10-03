@@ -29,6 +29,13 @@ public class GovernanceAccessController {
     /** 所有权来自已验证登录，不能在body中替换发布人。 */
     @PostMapping(value="/catalog/publish",consumes="application/json")
     public JsonNode publish(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{return GovernanceWeb.body(catalog.publish(login,CatalogManifest.read(request.getInputStream()),GovernanceWeb.singleHeader(request.getHeaders("X-Command-Id"))));}
+    /** 当前Owner的固定发布历史；未知来源不回填成部署事实。 */
+    @GetMapping("/catalog/releases") public JsonNode releases(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("application_id") String application,
+            @RequestParam(value="before_version",required=false) Long before) {return GovernanceWeb.body(catalog.history(login,application,before));}
+    /** 路径版本和应用同时限定，不允许查看其他Owner的历史。 */
+    @GetMapping("/catalog/releases/{version}") public JsonNode release(@AuthenticationPrincipal VerifiedLogin login,@PathVariable long version,@RequestParam("application_id") String application) {
+        return GovernanceWeb.body(catalog.releaseDetail(login,application,version));
+    }
     /** 固定角色版本创建；业务角色不授予管理权。 */
     @PostMapping(value="/access/roles",consumes="application/json")
     public JsonNode role(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{

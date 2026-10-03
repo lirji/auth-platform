@@ -5,6 +5,7 @@ public final class GovernanceException extends RuntimeException {
     /** 当前治理契约错误，与旧 SpiceDB 协议异常保持各自语义。 */
     public enum Code {
         INVALID_ARGUMENT("INVALID_ARGUMENT"),
+        NOT_FOUND("NOT_FOUND"),
         SCOPE_UNSUPPORTED("SCOPE_UNSUPPORTED"),
         AUTHZ_STATE_NOT_READY("AUTHZ_STATE_NOT_READY"),
         AUTHZ_PROTOCOL_INVALID("AUTHZ_PROTOCOL_INVALID"),

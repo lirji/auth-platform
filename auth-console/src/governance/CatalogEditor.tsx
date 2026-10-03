@@ -6,6 +6,7 @@ import { Failure } from './feedback'
 import { useCommand } from './useCommand'
 import { CatalogChanges, completeCatalogPreview } from './CatalogChanges'
 import { CatalogImpactPanel } from './CatalogImpactPanel'
+import { CatalogHistoryPanel } from './CatalogHistoryPanel'
 
 /** 应用Owner的技术清单发布：预览固定内容后再发布，编辑会立即作废旧预览。 */
 export function CatalogEditor({ application, partition, close, saved }: { application: string; partition: Partition; close: () => void; saved: () => void }) {
@@ -47,6 +48,7 @@ export function CatalogEditor({ application, partition, close, saved }: { applic
       { label: '应用', children: preview.result.application }, { label: '版本', children: `${preview.result.current_version} → ${preview.result.proposed_version}` },
       { label: '新增能力', children: preview.result.added.join('、') || '无' }, { label: '保留能力', children: preview.result.retained.join('、') || '无' },
     ]} /><CatalogChanges key={`${preview.result.content_hash}-${preview.result.presentation_hash}`} result={preview.result} /><CatalogImpactPanel key={`${partition.tenant_id}-${partition.environment}-${preview.result.content_hash}-${preview.result.presentation_hash}`} partition={partition} manifest={preview.manifest} preview={preview.result} /></>}
+    <CatalogHistoryPanel key={application} application={application} />
     {command.result && <Alert type="success" showIcon message={`清单版本 ${command.result.proposed_version} 已发布`} description="固定角色与已有Grant未自动升级，请按实际需求另行授予或申请。" style={{ marginTop: 16 }} />}
   </GovernanceModal>
 }

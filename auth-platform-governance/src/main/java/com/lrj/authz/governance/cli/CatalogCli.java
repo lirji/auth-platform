@@ -27,6 +27,13 @@ public final class CatalogCli {
                                 config.getProperty("catalog.entry-origin"),config.getProperty("catalog.operator"),config.getProperty("catalog.command"));
                         output.println("REGISTERED " + app.applicationId());
                     }
+                    case "publish-source" -> {
+                        var login=new VerifiedLogin(config.getProperty("catalog.owner-issuer"),config.getProperty("catalog.owner-subject"));
+                        var path=Path.of(args[2]); if(!Files.isRegularFile(path,LinkOption.NOFOLLOW_LINKS))throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);
+                        try(var input=Files.newInputStream(path)) {
+                            output.println(com.lrj.authz.governance.web.GovernanceWeb.body(runtime.catalog().publishSource(login,CatalogPublication.read(input),config.getProperty("catalog.command"))));
+                        }
+                    }
                     case "preview", "publish" -> {
                         var login=new VerifiedLogin(config.getProperty("catalog.owner-issuer"),config.getProperty("catalog.owner-subject"));
                         var path=Path.of(args[2]);
