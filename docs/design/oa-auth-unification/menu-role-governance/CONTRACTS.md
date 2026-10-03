@@ -71,3 +71,5 @@ MG01 验证声明／导航一致和非法声明拒绝；MG02验证纯差异与 O
 ## 8. 阶段 C 独立发布契约
 
 MG09新增的环境与SERVICE机器发布边界见[MG09_CONTRACT](MG09_CONTRACT.md)，架构与技术选择见[BACKEND_ARCHITECTURE](BACKEND_ARCHITECTURE.md)和[TECH_SELECTION](TECH_SELECTION.md)。阶段A的HUMAN、快照、摘要及原命令语义保持；真实机器启用需MG10必要验收。
+
+MG11固定CI输入、私密检查点、默认预览与原命令恢复见[MG11_CONTRACT](MG11_CONTRACT.md)；[PUBLISHER_RUNBOOK](PUBLISHER_RUNBOOK.md)提供阶段调用和报告解释。目录回执不代替投影或运行核验，普通Git推送不授予生产发布或部署权限。

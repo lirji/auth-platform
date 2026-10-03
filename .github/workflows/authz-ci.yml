@@ -9,6 +9,9 @@ on:
       - 'deploy/benefit-platform-provision.sh'
       - 'deploy/governance-test-db.py'
       - 'deploy/governance-context-smoke.py'
+      - 'deploy/governance-publisher-runtime.py'
+      - 'deploy/governance-catalog-publisher*.py'
+      - 'deploy/tests/test_governance_catalog_publisher.py'
       - 'deploy/governance-invitation-smoke.py'
       - 'deploy/governance-casdoor-*.py'
       - 'deploy/governance-access-smoke.py'
@@ -49,6 +52,9 @@ on:
       - 'deploy/benefit-platform-provision.sh'
       - 'deploy/governance-test-db.py'
       - 'deploy/governance-context-smoke.py'
+      - 'deploy/governance-publisher-runtime.py'
+      - 'deploy/governance-catalog-publisher*.py'
+      - 'deploy/tests/test_governance_catalog_publisher.py'
       - 'deploy/governance-invitation-smoke.py'
       - 'deploy/governance-casdoor-*.py'
       - 'deploy/governance-access-smoke.py'
@@ -133,6 +139,8 @@ jobs:
           python3 -m py_compile deploy/governance-integrated-resources-ui.py
           python3 -m unittest discover -s deploy/tests -p 'test_governance_commerce_publication.py' -v
           python3 -m unittest discover -s deploy/tests -p 'test_governance_commerce_menu_export.py' -v
+          python3 -m unittest discover -s deploy/tests -p 'test_governance_catalog_publisher.py' -v
+          python3 -m py_compile deploy/governance-catalog-publisher.py deploy/governance-catalog-publisher-runtime.py deploy/governance-publisher-runtime.py
           python3 -m py_compile deploy/governance-commerce-publication.py deploy/governance-commerce-publication-runtime.py
           python3 -m py_compile deploy/governance-p4-e2e.py deploy/governance-p4-runtime.py deploy/governance-approval-start-smoke.py deploy/governance-p5-commerce.py deploy/governance-p5-login.py deploy/governance-p5-packaged.py
           bash -n deploy/risk-platform-provision.sh deploy/risk-authz-fixture.sh \

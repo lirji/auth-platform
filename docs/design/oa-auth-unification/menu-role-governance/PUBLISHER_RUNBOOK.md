@@ -41,3 +41,39 @@ Owner委派和机器路由、严格字段及错误见[MG09_CONTRACT](MG09_CONTRA
 ## 本机隔离验收
 
 先构建当前Admin及其嵌套治理制品，再运行`python3 deploy/governance-publisher-runtime.py`。工具只新建随机专用库与IdP客户端，检查两个独立目标；只停止本工具持有的回环进程。失败日志、凭据和检查点保留在忽略的0600／0700私密目录，不删除共享数据或更新原部署。
+
+## CI客户端：固定输入、预览、发布和恢复
+
+[MG11_CONTRACT](MG11_CONTRACT.md)定义标准库客户端`deploy/governance-catalog-publisher.py`。受控0600目标JSON字段见契约，`publish_enabled`缺省false，不能从候选中改目标或委派。secret仅由凭据系统写入私密目标文件，不能拼进命令行。每次构建分配独立0700目录，不复用别的构建检查点；目录与检查点需作为受控恢复资料保存。
+
+以下命令从Auth根目录运行；`CATALOG_COMMIT`和`CATALOG_VERSION`由构建阶段固定，不能使用浮动工作区声明。`CATALOG_TARGET`是已核验实例、客户端和有限期委派的私密文件路径。
+
+```sh
+umask 077
+: "${CATALOG_COMMIT:?固定完整Git提交}" "${CATALOG_VERSION:?显式选定新版本}" "${CATALOG_TARGET:?私密目标文件路径}"
+mkdir -p .local/catalog-ci
+CATALOG_JOB="$(mktemp -d "$PWD/.local/catalog-ci/job-XXXXXX")"
+git -C ../commerce-platform show "${CATALOG_COMMIT}:frontend/src/iam/catalog.json" > "$CATALOG_JOB/declaration.json"
+node ../commerce-platform/frontend/scripts/export-menu-catalog.mjs --commit "$CATALOG_COMMIT" --version "$CATALOG_VERSION" --output "$CATALOG_JOB/candidate.json"
+python3 deploy/governance-catalog-publisher.py preview --target "$CATALOG_TARGET" --checkpoint "$CATALOG_JOB/checkpoint.json" --candidate "$CATALOG_JOB/candidate.json" --source-artifact "$CATALOG_JOB/declaration.json" --commit "$CATALOG_COMMIT"
+```
+
+省略阶段参数也只做preview。工具同时核对预期commit、原声明字节SHA和完整声明；服务器再校验目录合法性、当前基础及机器资格。报告为REQUIRES_OWNER_REVIEW时只保存报告，没有机器票据，须转既有真实Owner流程，不自动批准语义变化或新增授权。
+
+已核验获授权目标并显式启用私密配置`publish_enabled=true`后，使用**同一**检查点和输入执行：
+
+```sh
+python3 deploy/governance-catalog-publisher.py publish --target "$CATALOG_TARGET" --checkpoint "$CATALOG_JOB/checkpoint.json" --candidate "$CATALOG_JOB/candidate.json" --source-artifact "$CATALOG_JOB/declaration.json" --commit "$CATALOG_COMMIT"
+```
+
+候选或声明制品在预览后被替换会拒绝；不会悄悄重新预览、更新版本或换command。工具发送前落盘PUBLISHING_UNKNOWN；5xx、断连、截断或错误回执不能证明未提交。结果未知时，先查询原命令：
+
+```sh
+python3 deploy/governance-catalog-publisher.py recover --target "$CATALOG_TARGET" --checkpoint "$CATALOG_JOB/checkpoint.json"
+```
+
+recover不要求源码文件仍存在。404保持未知；需要重试时只能持原输入执行上面的publish。重试被401／403／409拒绝只证明本次未执行，不能把此前未知提交改成未提交；已经核验的旧回执也是历史事实，不代表当前身份仍可发布。禁用或到期委派没有认证例外，新机器不能接管旧命令。
+
+成功输出分别给出`directory_publication`、`projection_status`和`runtime_status`；`state`保留同一个目录发布状态便于检查点关联。目录PUBLISHED仅代表原固定快照回执核验通过。投影与业务运行没有独立可信核验时保持UNKNOWN，不能把声明SHA当成JAR／镜像或生产运行证明。完整预览、原命令、准确来源和回执留在0600检查点；Token和secret不落盘。退出0表示本阶段成功，2表示明确拒绝，3表示依赖或协议结果需要恢复／核对。
+
+现有GitHub CI仅跑协议回归及语法检查，正常main推送不获取发布密钥、不自动发布目录。实际远程发布job须由明确目标的受控环境编排以上阶段；本片没有创建GitHub Secret或开启生产job。真实本机验收使用`python3 deploy/governance-catalog-publisher-runtime.py`，读取Commerce固定提交，只向本轮新专用库／客户端发布，并实际丢弃事务已提交的响应验证恢复。

@@ -39,3 +39,5 @@
 ## CI配置边界补证
 
 MG10产品8ad560d正常推送后检查workflow，发现新PG测试只读取本机私密配置，而既有CI使用受限数据库环境变量。补齐与既有测试一致的输入分支；本机移除GOVERNANCE_TEST_CONFIG，按CI三项环境变量实际执行18规则单测和15真PG，均PASS。首次带skipTests命令未执行IT，只作为编译记录，实际证据为mg10-ci-config-actual-tests.log。该修正只改测试配置入口，产品源码／真实HTTP制品未变；原产品指纹保留，当前测试文件另记SHA。
+
+最终补丁4371b486888118c0c3e78304002d18dbbcd1f87c已正常合入并推送main；[精确CI37112631055](https://github.com/lirji/auth-platform/actions/runs/37112631055) completed SUCCESS，headSha完全一致。第一次配置入口失败保留，最终CI完成而非用历史run替代。

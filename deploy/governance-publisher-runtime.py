@@ -27,7 +27,7 @@ def module(name, file):
     return value
 
 
-def main():
+def main(client_rehearsal=None):
     """仅新增本次夹具，失败保留日志及检查点；不更新原IdP客户端或权限目录。"""
     os.umask(0o077)
     h = module('publisher_context', 'governance-context-smoke.py')
@@ -122,6 +122,10 @@ def main():
             clients = [machine_client('primary-' + str(index)), machine_client('rotation-' + str(index))]
             if index == 0:
                 clients.append(machine_client('short', 5))
+                if client_rehearsal:
+                    ci_client = machine_client('ci-commerce')
+                    ci_client['application'] = 'commerce'
+                    clients.append(ci_client)
             target['clients'] = clients
             targets.append(target)
             person = {'command.id': uid(), 'operator.ref': 'mg10-fixture', 'tenant.id': uid(), 'tenant.code': 'mg10-' + uid(), 'principal.id': target['owner'], 'issuer': ISSUER, 'subject': fixture['users']['internal']['id'], 'membership.id': uid(), 'valid.from': '2020-01-01T00:00:00Z', 'source.system': 'mg10-fixture', 'source.tenant.ref': uid(), 'source.subject.ref': 'owner'}
@@ -132,12 +136,24 @@ def main():
             cli('CatalogCli', ['register', directory / 'catalog.properties', 'configured'])
             h.private(directory / 'manifest.json', json.dumps(candidate(target, 1, '初始目录')['manifest']))
             cli('CatalogCli', ['publish', directory / 'catalog.properties', directory / 'manifest.json'])
+            if index == 0 and client_rehearsal:
+                # CI验收使用实际Commerce固定提交声明，只发布到本次新建的权限数据库。
+                commerce = ROOT.parent / 'commerce-platform'
+                commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=commerce, text=True).strip()
+                artifact = subprocess.check_output(['git', 'show', commit + ':frontend/src/iam/catalog.json'], cwd=commerce)
+                declaration = json.loads(artifact)
+                ci_catalog = {**catalog, 'catalog.application': 'commerce', 'catalog.command': uid()}
+                h.private(directory / 'ci-catalog.properties', db + h.props(ci_catalog))
+                h.private(directory / 'ci-initial-manifest.json', json.dumps({**declaration, 'manifest_version': 1}))
+                cli('CatalogCli', ['register', directory / 'ci-catalog.properties', 'configured'])
+                cli('CatalogCli', ['publish', directory / 'ci-catalog.properties', directory / 'ci-initial-manifest.json'])
+                target['ci_source'] = {'commit': commit, 'artifact': artifact}
             management = fixture['clients']['management']
             authority = {'issuer': ISSUER, 'jwks.uri': ISSUER + '/.well-known/jwks', 'audience': management['name'], 'client.id': management['name'], 'client.secret': management['secret'], 'version-probe.client.id': ops['client_id'], 'version-probe.client.secret': ops['client_secret']}
             settings = {'publisher.target-instance-id': target['instance'], 'publisher.environment': target['environment'], 'publisher.ids': ','.join(c['publisher'] for c in clients), 'publisher.initialize.operator': 'mg10-fixture', 'publisher.initialize.reason': '独立实例数据库隔离验收'}
             for client in clients:
                 prefix = 'publisher.' + client['publisher'] + '.'
-                values = {**authority, 'audience': client['name'], 'client.id': client['name'], 'client.secret': client['secret'], 'application': target['application'], 'subject': 'admin/' + client['name'], 'service-principal-id': client['principal']}
+                values = {**authority, 'audience': client['name'], 'client.id': client['name'], 'client.secret': client['secret'], 'application': client.get('application', target['application']), 'subject': 'admin/' + client['name'], 'service-principal-id': client['principal']}
                 settings.update({prefix + key: value for key, value in values.items()})
             config = directory / 'admin.properties'
             h.private(config, db + h.props({**authority, **settings}))
@@ -153,7 +169,7 @@ def main():
             h.start(jar, port, directory / 'admin.log', config=config, access=True, publisher=True)
             check('real owner guards isolated catalog', target, '/api/governance/v1/catalog/enable-guard', owner_token, {'application_id': target['application'], 'command_id': uid(), 'expected_version': 0, 'legacy_writers_exited': True, 'reason': '本工具不存在旧写节点'})
             for client in clients:
-                client['delegation'] = delegate(target, client, owner_token)
+                client['delegation'] = delegate({**target, 'application': client.get('application', target['application'])}, client, owner_token)
             target['token'], target['claims'] = token(clients[0])
         one, two = targets
         path = '/api/catalog-publisher/v1/'
@@ -205,6 +221,8 @@ def main():
         rotated, rotated_claims = token(one['clients'][1])
         check('new isolated client and delegation rotates safely', one, path + 'preview', rotated, candidate(one, 3, '新客户端'))
         check('new client cannot read old client receipt', one, path + 'receipt', rotated, query, 404, 'NOT_FOUND')
+        if client_rehearsal:
+            client_rehearsal(h, run, one, owner_token, pg, check)
         # 只撤销本工具刚签发、并精确核对所属客户端的Token，不删除客户端或其他人员凭据。
         token_id = rotated_claims.get('jti')
         if not isinstance(token_id, str) or not token_id.startswith('admin/'):
