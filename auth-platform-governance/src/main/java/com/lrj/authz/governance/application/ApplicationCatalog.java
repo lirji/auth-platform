@@ -60,55 +60,64 @@ public final class ApplicationCatalog {
         });
     }
     private Preview publishCandidate(VerifiedLogin login,Candidate input,String command,boolean legacy,CatalogGuardMapper.PreviewRow ticket,PortalPermissions diagnostics) {
-        var candidate=CatalogPublication.normalize(input); var manifest=candidate.manifest(); BootstrapCommand.bounded(command,100);
+        var candidate=CatalogPublication.normalize(input); BootstrapCommand.bounded(command,100);
         return transaction.execute(status -> {
-            Application app=requireOwner(login,manifest.application(),true);
+            Application app=requireOwner(login,candidate.manifest().application(),true);
             if(!app.ownerPrincipalId().equals(mapper.lockOwner(login.issuer(),login.subject(),app.ownerPrincipalId())))throw new GovernanceException(ACCESS_DENIED);
-            if(ticket!=null && (!app.applicationId().equals(ticket.applicationId())||!app.ownerPrincipalId().equals(ticket.ownerPrincipal())
-                    ||!CatalogPublication.hash(candidate).equals(ticket.candidateHash())))throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
-            String bodyHash=ticket==null?CatalogPublication.hash(candidate):AccessValues.hash("catalog-release-publish/v1",ticket.id()); var prior=releases.command(app.applicationId(),command);
-            // 同键成功重试先读取原回执，不用当前更高版本重算差异或倒退指针。
-            if(prior!=null) {
-                // 旧摘要使用String.valueOf(null)；元数据逐字段比较避免原因文本"null"与缺省原因碰撞，兼容已保存摘要。
-                var source=candidate.source();
-                if(!bodyHash.equals(prior.commandHash())||!Objects.equals(candidate.reason(),prior.reason())
-                        ||!Objects.equals(source==null?null:source.commit(),prior.sourceCommit())||!Objects.equals(source==null?null:source.artifactHash(),prior.artifactHash())
-                        ||!Objects.equals(candidate.decision()==null?null:candidate.decision().code(),prior.decision()))throw new GovernanceException(COMMAND_CONFLICT);
-                return CatalogPublication.preview(prior.previewJson());
-            }
-            if(ticket==null && guards.policy(app.applicationId())!=null)throw new GovernanceException(VERSION_CONFLICT);
-            if(ticket!=null) {
-                var current=basis(app);
-                var fresh=guards.ticket(ticket.id());
-                if(fresh==null || !fresh.unexpired() || ticket.baseVersion()!=app.manifestVersion() || !Objects.equals(ticket.baseContentHash(),current.contentHash())
-                        ||!Objects.equals(ticket.basePresentationHash(),current.presentationHash()))throw new GovernanceException(VERSION_CONFLICT);
-                confirmImpact(login,candidate,CatalogPublication.impact(ticket.impactJson()),diagnostics);
-                // 排队与影响SQL会消耗有效期，不能仅用获取票据时的旧unexpired标志。
-                if(!guards.ticket(ticket.id()).unexpired())throw new GovernanceException(VERSION_CONFLICT);
-            }
-            Preview result=preview(app,manifest);
-            if (!result.publishable()) { throw new GovernanceException(VERSION_CONFLICT); }
-            Snapshot existing=mapper.snapshot(app.applicationId(),manifest.manifestVersion());
-            if (existing!=null) {
-                if(!legacy)throw new GovernanceException(VERSION_CONFLICT);
-                if (!existing.contentHash().equals(result.contentHash()) || app.manifestVersion()!=existing.version()) { throw new GovernanceException(VERSION_CONFLICT); }
-                return result;
-            }
-            var base=mapper.snapshot(app.applicationId(),app.manifestVersion());
-            var baseShown=mapper.presentation(app.applicationId(),app.manifestVersion());
-            requireOne(mapper.insertSnapshot(new Snapshot(app.applicationId(),manifest.manifestVersion(),result.contentHash(),CatalogManifest.json(manifest)),app.ownerPrincipalId()));
-            // 名称与权限同事务提交，审计失败不能留下半个可见目录。
-            String presentation = CatalogManifest.presentationJson(manifest);
-            if (!"[]".equals(presentation)) { requireOne(mapper.insertPresentation(new PresentationSnapshot(app.applicationId(),manifest.manifestVersion(),CatalogManifest.presentationHash(manifest),presentation),app.ownerPrincipalId())); }
-            requireOne(mapper.advance(app.applicationId(),app.manifestVersion(),manifest.manifestVersion()));
-            requireOne(mapper.audit(UUID.randomUUID().toString(),app.applicationId(),app.ownerPrincipalId(),"PUBLISH",manifest.manifestVersion(),command));
-            var source=candidate.source();
-            requireOne(releases.insert(new CatalogReleaseMapper.Row(app.applicationId(),manifest.manifestVersion(),result.contentHash(),result.presentationHash(),
-                    app.ownerPrincipalId(),null,command,bodyHash,source==null?null:source.commit(),source==null?null:source.artifactHash(),candidate.reason(),
-                    candidate.decision()==null?null:candidate.decision().code(),app.manifestVersion(),base==null?null:base.contentHash(),
-                    base==null?null:baseShown==null?CatalogManifest.presentationHash(CatalogManifest.read(base.manifestJson())):baseShown.presentationHash(),CatalogPublication.previewJson(result))));
-            return result;
+            if(ticket!=null && guards.machineSource(ticket.id()))throw new GovernanceException(ACCESS_DENIED);
+            return publishLocked(app,app.ownerPrincipalId(),candidate,command,legacy,ticket,
+                    () -> confirmImpact(login,candidate,CatalogPublication.impact(ticket.impactJson()),diagnostics));
         });
+    }
+    /** 已授权并持有应用锁的共同内核；只有实际publisher写审计，不把SERVICE映射成HUMAN。 */
+    private Preview publishLocked(Application app,String publisherPrincipal,Candidate candidate,String command,boolean legacy,
+                                  CatalogGuardMapper.PreviewRow ticket,Runnable impactConfirmation) {
+        Manifest manifest=candidate.manifest();
+        if(ticket!=null && (!app.applicationId().equals(ticket.applicationId())||!app.ownerPrincipalId().equals(ticket.ownerPrincipal())
+                ||!CatalogPublication.hash(candidate).equals(ticket.candidateHash())))throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
+        String bodyHash=ticket==null?CatalogPublication.hash(candidate):AccessValues.hash("catalog-release-publish/v1",ticket.id()); var prior=releases.command(app.applicationId(),command);
+        // 同键成功重试先读取原回执，不用当前更高版本重算差异或倒退指针。
+        if(prior!=null) {
+            if(!publisherPrincipal.equals(prior.publishedBy()))throw new GovernanceException(COMMAND_CONFLICT);
+            // 旧摘要使用String.valueOf(null)；元数据逐字段比较避免原因文本"null"与缺省原因碰撞，兼容已保存摘要。
+            var source=candidate.source();
+            if(!bodyHash.equals(prior.commandHash())||!Objects.equals(candidate.reason(),prior.reason())
+                    ||!Objects.equals(source==null?null:source.commit(),prior.sourceCommit())||!Objects.equals(source==null?null:source.artifactHash(),prior.artifactHash())
+                    ||!Objects.equals(candidate.decision()==null?null:candidate.decision().code(),prior.decision()))throw new GovernanceException(COMMAND_CONFLICT);
+            return CatalogPublication.preview(prior.previewJson());
+        }
+        if(ticket==null && guards.policy(app.applicationId())!=null)throw new GovernanceException(VERSION_CONFLICT);
+        if(ticket!=null) {
+            var current=basis(app);
+            var fresh=guards.ticket(ticket.id());
+            if(fresh==null || !fresh.unexpired() || ticket.baseVersion()!=app.manifestVersion() || !Objects.equals(ticket.baseContentHash(),current.contentHash())
+                    ||!Objects.equals(ticket.basePresentationHash(),current.presentationHash()))throw new GovernanceException(VERSION_CONFLICT);
+            impactConfirmation.run();
+            // 排队与影响SQL会消耗有效期，不能仅用获取票据时的旧unexpired标志。
+            if(!guards.ticket(ticket.id()).unexpired())throw new GovernanceException(VERSION_CONFLICT);
+        }
+        Preview result=preview(app,manifest);
+        if (!result.publishable()) { throw new GovernanceException(VERSION_CONFLICT); }
+        Snapshot existing=mapper.snapshot(app.applicationId(),manifest.manifestVersion());
+        if (existing!=null) {
+            if(!legacy)throw new GovernanceException(VERSION_CONFLICT);
+            if (!existing.contentHash().equals(result.contentHash()) || app.manifestVersion()!=existing.version()) { throw new GovernanceException(VERSION_CONFLICT); }
+            return result;
+        }
+        var base=mapper.snapshot(app.applicationId(),app.manifestVersion());
+        var baseShown=mapper.presentation(app.applicationId(),app.manifestVersion());
+        requireOne(mapper.insertSnapshot(new Snapshot(app.applicationId(),manifest.manifestVersion(),result.contentHash(),CatalogManifest.json(manifest)),publisherPrincipal));
+        // 名称与权限同事务提交，审计失败不能留下半个可见目录。
+        String presentation = CatalogManifest.presentationJson(manifest);
+        if (!"[]".equals(presentation)) { requireOne(mapper.insertPresentation(new PresentationSnapshot(app.applicationId(),manifest.manifestVersion(),CatalogManifest.presentationHash(manifest),presentation),publisherPrincipal)); }
+        requireOne(mapper.advance(app.applicationId(),app.manifestVersion(),manifest.manifestVersion()));
+        requireOne(mapper.audit(UUID.randomUUID().toString(),app.applicationId(),publisherPrincipal,"PUBLISH",manifest.manifestVersion(),command));
+        var source=candidate.source();
+        requireOne(releases.insert(new CatalogReleaseMapper.Row(app.applicationId(),manifest.manifestVersion(),result.contentHash(),result.presentationHash(),
+                publisherPrincipal,null,command,bodyHash,source==null?null:source.commit(),source==null?null:source.artifactHash(),candidate.reason(),
+                candidate.decision()==null?null:candidate.decision().code(),app.manifestVersion(),base==null?null:base.contentHash(),
+                base==null?null:baseShown==null?CatalogManifest.presentationHash(CatalogManifest.read(base.manifestJson())):baseShown.presentationHash(),CatalogPublication.previewJson(result))));
+        return result;
     }
     /** 新预览保存固定候选及依据，不改变目录、角色或Grant。 */
     public Ticket releasePreview(VerifiedLogin login,PreviewInput input,PortalPermissions diagnostics) {
@@ -118,14 +127,41 @@ public final class ApplicationCatalog {
             if(!diff.publishable()||diff.proposedVersion()<=diff.currentVersion())throw new GovernanceException(VERSION_CONFLICT);
             if(CatalogPublication.needsDecision(diff,current.capabilities())&&(candidate.reason()==null||candidate.decision()==null))throw new GovernanceException(INVALID_ARGUMENT);
             confirmImpact(login,candidate,input.impact(),diagnostics);
-            String id=UUID.randomUUID().toString();
-            requireOne(guards.preview(new CatalogGuardMapper.PreviewRow(id,app.applicationId(),app.ownerPrincipalId(),CatalogPublication.candidateJson(candidate),
-                    CatalogPublication.hash(candidate),CatalogPublication.previewJson(diff),app.manifestVersion(),current.contentHash(),current.presentationHash(),
-                    CatalogPublication.impactJson(input.impact()),null,false)));
-            var row=guards.ticket(id);
-            return new Ticket(id,row.expiresAt(),row.baseVersion(),row.baseContentHash(),row.basePresentationHash(),candidate,diff,input.impact());
+            return freezePreview(app,candidate,diff,current,input.impact());
         });
     }
+    private Ticket freezePreview(Application app,Candidate candidate,Preview diff,Basis current,Impact impact) {
+        String id=UUID.randomUUID().toString();
+        requireOne(guards.preview(new CatalogGuardMapper.PreviewRow(id,app.applicationId(),app.ownerPrincipalId(),CatalogPublication.candidateJson(candidate),
+                CatalogPublication.hash(candidate),CatalogPublication.previewJson(diff),app.manifestVersion(),current.contentHash(),current.presentationHash(),
+                CatalogPublication.impactJson(impact),null,false)));
+        var row=guards.ticket(id);
+        return new Ticket(id,row.expiresAt(),row.baseVersion(),row.baseContentHash(),row.basePresentationHash(),candidate,diff,impact);
+    }
+    record MachinePreview(com.lrj.authz.governance.domain.CatalogPublisherModels.Eligibility eligibility,Preview preview,Ticket ticket) {}
+    /** 机器只能生成GUARDED应用的非语义票据；需要Owner的候选只返回差异。 */
+    MachinePreview machinePreviewLocked(Application app,Candidate input) {
+        var candidate=CatalogPublication.normalize(input); var current=basis(app);
+        if(guards.policy(app.applicationId())==null)throw new GovernanceException(VERSION_CONFLICT);
+        var diff=preview(app,candidate.manifest());
+        if(!diff.publishable()||diff.proposedVersion()<=diff.currentVersion())throw new GovernanceException(VERSION_CONFLICT);
+        var eligibility=CatalogPublisherPolicy.classify(current.manifest(),candidate.manifest());
+        return new MachinePreview(eligibility,diff,eligibility==com.lrj.authz.governance.domain.CatalogPublisherModels.Eligibility.AUTOMATION_ALLOWED
+                ?freezePreview(app,candidate,diff,current,null):null);
+    }
+    /** 包内受限适配器已锁定SERVICE和委派；原回执优先于新基础或过期票据。 */
+    Release machinePublishLocked(Application app,String servicePrincipal,String command,CatalogGuardMapper.PreviewRow ticket) {
+        if(ticket==null || !guards.machineSource(ticket.id()))throw new GovernanceException(ACCESS_DENIED);
+        var candidate=CatalogPublication.candidate(ticket.candidateJson());
+        publishLocked(app,servicePrincipal,candidate,command,false,ticket,()->{
+            if(ticket.impactJson()!=null || candidate.decision()!=null)throw new GovernanceException(ACCESS_DENIED);
+            if(CatalogPublisherPolicy.classify(basis(app).manifest(),candidate.manifest())
+                    !=com.lrj.authz.governance.domain.CatalogPublisherModels.Eligibility.AUTOMATION_ALLOWED)throw new GovernanceException(VERSION_CONFLICT);
+        });
+        return release(releases.command(app.applicationId(),command));
+    }
+    /** 仅包内受限回执用例调用；对外仍由原Owner或机器当前资格保护。 */
+    Release publisherReceipt(String app,String command) { return release(releases.command(app,command)); }
     /** 发布内容只能来自不可变票据；已成功原命令先于期限／当前基础检查返回。 */
     public Release releasePublish(VerifiedLogin login,PublishCommand command,PortalPermissions diagnostics) {
         if(command==null)throw new GovernanceException(INVALID_ARGUMENT); BootstrapCommand.uuid(command.commandId()); BootstrapCommand.uuid(command.previewId());
@@ -181,15 +217,15 @@ public final class ApplicationCatalog {
         var report=diagnostics.catalogImpact(login,new com.lrj.authz.governance.domain.AccessModels.Partition(impact.tenantId(),impact.applicationId(),impact.environment()),candidate.manifest(),null);
         if(report.completeness()!=com.lrj.authz.governance.domain.CatalogImpactModels.Completeness.COMPLETE||!impact.basisHash().equals(report.basisHash()))throw new GovernanceException(VERSION_CONFLICT);
     }
-    private record Basis(String contentHash,String presentationHash,Set<String> capabilities) {}
+    private record Basis(String contentHash,String presentationHash,Set<String> capabilities,Manifest manifest) {}
     private Basis basis(Application app) {
-        if(app.manifestVersion()==0)return new Basis(null,null,Set.of());
+        if(app.manifestVersion()==0)return new Basis(null,null,Set.of(),null);
         var row=mapper.snapshot(app.applicationId(),app.manifestVersion()); if(row==null)throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
         var shown=mapper.presentation(app.applicationId(),app.manifestVersion());
         try {
             var manifest=CatalogManifest.withPresentation(CatalogManifest.read(row.manifestJson()),shown==null?"[]":shown.presentationJson(),shown==null?null:shown.presentationHash());
             if(!app.applicationId().equals(manifest.application())||app.manifestVersion()!=manifest.manifestVersion()||!row.contentHash().equals(CatalogManifest.hash(manifest)))throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
-            return new Basis(row.contentHash(),CatalogManifest.presentationHash(manifest),Set.copyOf(manifest.capabilities().stream().map(Capability::code).toList()));
+            return new Basis(row.contentHash(),CatalogManifest.presentationHash(manifest),Set.copyOf(manifest.capabilities().stream().map(Capability::code).toList()),manifest);
         } catch(GovernanceException corrupt) { throw new GovernanceException(DEPENDENCY_UNAVAILABLE); }
     }
     /** 历史分页受当前Owner保护，旧发布无来源记录仍保留在版本列表。 */

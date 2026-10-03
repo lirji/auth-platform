@@ -30,7 +30,9 @@ public class GovernanceAdminConfiguration {
                 .forEach(name -> invitation.setProperty(name.substring("invitation.user.".length()), props.getProperty(name)));
         Optional<TokenAuthority> invitationAuthority = Boolean.TRUE.equals(environment.getProperty("authz.governance.invitations.enabled", Boolean.class, false))
                 ? Optional.of(TokenAuthority.from(invitation)) : Optional.empty();
-        return new Settings(GovernanceDatabase.from(props), TokenAuthority.from(props), invitationAuthority, com.lrj.authz.governance.application.PortalInvitationAuthority.from(props), com.lrj.authz.governance.application.PortalDiagnosticAuthority.from(props),com.lrj.authz.governance.application.CatalogDrift.from(props));
+        var publisher = Boolean.TRUE.equals(environment.getProperty("authz.governance.publisher.enabled", Boolean.class, false))
+                ? Optional.of(com.lrj.authz.governance.application.CatalogPublisherSettings.from(props)) : Optional.<com.lrj.authz.governance.application.CatalogPublisherSettings>empty();
+        return new Settings(GovernanceDatabase.from(props), TokenAuthority.from(props), invitationAuthority, com.lrj.authz.governance.application.PortalInvitationAuthority.from(props), com.lrj.authz.governance.application.PortalDiagnosticAuthority.from(props),com.lrj.authz.governance.application.CatalogDrift.from(props),publisher);
     }
 
     /** HTTP 服务只 validate 已初始化迁移，不隐式成为 migration owner。 */
@@ -54,5 +56,25 @@ public class GovernanceAdminConfiguration {
         return http.build();
     }
 
-    record Settings(GovernanceDatabase database, TokenAuthority authority, Optional<TokenAuthority> invitationAuthority, java.util.List<com.lrj.authz.governance.application.PortalInvitationAuthority> portalInvitations, java.util.List<com.lrj.authz.governance.application.PortalDiagnosticAuthority> portalDiagnostics,java.util.List<com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration> catalogDeployments) {}
+    /** 即使机器入口关闭也占用独立前缀，避免落入旧管理JWT链。 */
+    @Bean @Order(-1)
+    SecurityFilterChain catalogPublisherSecurity(HttpSecurity http, Settings settings) throws Exception {
+        http.securityMatcher("/api/catalog-publisher/v1/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        if (settings.publisher().isEmpty()) http.authorizeHttpRequests(a -> a.anyRequest().denyAll())
+                .exceptionHandling(e -> e.authenticationEntryPoint((request,response,failure) -> CatalogPublisherBearerFilter.reject(response,new com.lrj.authz.governance.application.GovernanceException(com.lrj.authz.governance.application.GovernanceException.Code.ACCESS_DENIED)))
+                        .accessDeniedHandler((request,response,failure) -> CatalogPublisherBearerFilter.reject(response,new com.lrj.authz.governance.application.GovernanceException(com.lrj.authz.governance.application.GovernanceException.Code.ACCESS_DENIED))));
+        else http.addFilterBefore(new CatalogPublisherBearerFilter(new CasdoorMachineTokens(settings.publisher().orElseThrow().authorities())),AnonymousAuthenticationFilter.class)
+                .authorizeHttpRequests(a -> a.anyRequest().authenticated());
+        return http.build();
+    }
+
+    /** 开启时才验证主库固定目标；通常启动绝不创建目标或委派。 */
+    @Bean @ConditionalOnProperty(name="authz.governance.publisher.enabled",havingValue="true")
+    com.lrj.authz.governance.application.CatalogPublisher catalogPublisher(Settings settings, GovernanceRuntime runtime) {
+        return runtime.publisher(settings.publisher().orElseThrow());
+    }
+
+    record Settings(GovernanceDatabase database, TokenAuthority authority, Optional<TokenAuthority> invitationAuthority, java.util.List<com.lrj.authz.governance.application.PortalInvitationAuthority> portalInvitations, java.util.List<com.lrj.authz.governance.application.PortalDiagnosticAuthority> portalDiagnostics,java.util.List<com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration> catalogDeployments,Optional<com.lrj.authz.governance.application.CatalogPublisherSettings> publisher) {}
 }

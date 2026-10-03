@@ -19,6 +19,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 /** 既有进程内专用治理 Runtime，生命周期由调用者持有，默认不会自动启动或迁移。 */
 public final class GovernanceRuntime implements AutoCloseable {
     private final HikariDataSource dataSource;
+    private CatalogPublisherMapper publisherMapper;
+    private CatalogGuardMapper guardMapper;
+    private CatalogReleaseMapper releaseMapper;
     private final IdentityMapper mapper;
     private final IdentityGovernance identity;
     private final LifecycleGovernance lifecycle;
@@ -114,6 +117,8 @@ public final class GovernanceRuntime implements AutoCloseable {
                     new InvitationGovernance(mapper, session.getMapper(InvitationMapper.class), transaction),
                     new DirectoryGovernance(session.getMapper(DirectoryMapper.class), mapper, session.getMapper(InvitationMapper.class),
                             directoryTransaction, conflictTransaction));
+            runtime.publisherMapper=session.getMapper(CatalogPublisherMapper.class);
+            runtime.guardMapper=session.getMapper(CatalogGuardMapper.class);runtime.releaseMapper=session.getMapper(CatalogReleaseMapper.class);
             runtime.catalog = new com.lrj.authz.governance.application.ApplicationCatalog(session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(SafetyMapper.class), session.getMapper(CatalogReleaseMapper.class), session.getMapper(CatalogGuardMapper.class));
             runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(FenceMapper.class), session.getMapper(SafetyMapper.class));
             runtime.portalMapper=session.getMapper(PortalMapper.class);
@@ -161,6 +166,14 @@ public final class GovernanceRuntime implements AutoCloseable {
     /** 目录发布不接管旧工作区或业务权限。 */
     public com.lrj.authz.governance.application.ApplicationCatalog catalog() { return catalog; }
 
+    /** 默认关闭的机器适配器只验证固定实例，不在启动时写数据。 */
+    public com.lrj.authz.governance.application.CatalogPublisher publisher(com.lrj.authz.governance.application.CatalogPublisherSettings settings) {
+        return new com.lrj.authz.governance.application.CatalogPublisher(settings,publisherMapper,catalogMapper,guardMapper,releaseMapper,mapper,identity,catalog,transaction);
+    }
+    /** 受控CLI初始化目标；HTTP和常规启动不会调用此方法。 */
+    public com.lrj.authz.governance.domain.CatalogPublisherModels.Target initializePublisherTarget(com.lrj.authz.governance.domain.CatalogPublisherModels.Target target,String operator,String reason) {
+        return com.lrj.authz.governance.application.CatalogPublisher.initializeTarget(publisherMapper,transaction,target,operator,reason);
+    }
     /** 应用管理不能绕过委派和当前成员状态。 */
     public com.lrj.authz.governance.application.AccessManagement access() { return access; }
 

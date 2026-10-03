@@ -188,6 +188,113 @@ class CasdoorAccessTokenVerifierTest {
         expect(INVALID_CREDENTIAL, () -> verifier.verify(null));
     }
 
+    @Test void machineIdentityIsSeparateAndLiveFactsAreRequiredEveryTime() throws Exception {
+        var verifier = verifier(1_000, 2);
+        String publisher = UUID.randomUUID().toString(), token = machineToken(null);
+        var result = verifier.verifyMachine(token, publisher, "admin/isolated-publisher");
+        assertThat(result.publisherId()).isEqualTo(publisher);
+        assertThat(result.issuer()).isEqualTo(issuer);
+        assertThat(result.subject()).isEqualTo("admin/isolated-publisher");
+        assertThat(result.clientId()).isEqualTo(CLIENT);
+        assertThat(result.expiresAt()).isAfter(result.issuedAt());
+        assertThat(result.toString()).doesNotContain(token, "private-introspection-secret");
+        assertThat(verifier.verifyMachine(token, publisher, "admin/isolated-publisher")).isEqualTo(result);
+        assertThat(introspections).hasValue(2);
+        active = false;
+        expect(INVALID_CREDENTIAL, () -> verifier.verifyMachine(token, publisher, "admin/isolated-publisher"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"human-kind", "subject", "azp", "extra-audience", "too-long", "future-iat", "id-token", "bad-type"})
+    void machineRejectsSignedHumanOrOverbroadCredentialBeforeIntrospection(String defect) throws Exception {
+        var verifier = verifier(1_000, 2); String token = machineToken(defect), publisher = UUID.randomUUID().toString();
+        expect(INVALID_CREDENTIAL, () -> verifier.verifyMachine(token, publisher, "admin/isolated-publisher"));
+        assertThat(introspections).hasValue(0);
+    }
+
+    @Test void machineRequiresIntrospectionIssuanceAgreementAndRejectsExpiryWhileWaiting() throws Exception {
+        var verifier = verifier(2_500, 2); String publisher = UUID.randomUUID().toString();
+        changedField = "iat";
+        String invalidFacts = machineToken(null);
+        expect(INVALID_CREDENTIAL, () -> verifier.verifyMachine(invalidFacts, publisher, "admin/isolated-publisher"));
+        changedField = null;
+        String shortToken = machineToken("short");
+        Instant expiration = SignedJWT.parse(shortToken).getJWTClaimsSet().getExpirationTime().toInstant();
+        introspectionEntered = new CountDownLatch(1); introspectionRelease = new CountDownLatch(1);
+        try (var executor = Executors.newFixedThreadPool(1)) {
+            var result = executor.submit(() -> verifier.verifyMachine(shortToken, publisher, "admin/isolated-publisher"));
+            assertThat(introspectionEntered.await(1, TimeUnit.SECONDS)).isTrue();
+            long remaining = java.time.Duration.between(Instant.now(), expiration.plusMillis(50)).toMillis();
+            if (remaining > 0) { Thread.sleep(remaining); }
+            introspectionRelease.countDown();
+            assertThatThrownBy(() -> result.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(GovernanceException.class)
+                    .satisfies(error -> assertThat(((GovernanceException) error.getCause()).code()).isEqualTo(INVALID_CREDENTIAL));
+        }
+        assertThat(introspections).hasValue(2);
+    }
+
+    @Test void machineRegistryUsesHintsOnlyForFixedLookupAndStillVerifiesSignature() throws Exception {
+        var slot = machineAuthority();
+        assertThat(slot.toString()).doesNotContain("private-introspection-secret", "private-version-secret");
+        var machines = new CasdoorMachineTokens(List.of(slot));
+        assertThat(machines.verify(machineToken(null)).publisherId()).isEqualTo(slot.publisherId());
+        String broad = machineToken("extra-audience");
+        expect(INVALID_CREDENTIAL, () -> machines.verify(broad));
+        String foreign = token("issuer");
+        expect(INVALID_CREDENTIAL, () -> machines.verify(foreign));
+        var attacker = new RSAKeyGenerator(2048).keyID(key.getKeyID()).generate();
+        var forged = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(key.getKeyID()).build(), machineClaims(null));
+        forged.sign(new RSASSASigner(attacker));
+        expect(INVALID_CREDENTIAL, () -> machines.verify(forged.serialize()));
+        assertThat(introspections).hasValue(1);
+        for (String invalid : List.of("", "a b", "a".repeat(32_769), "not-a-jwt")) {
+            expect(INVALID_CREDENTIAL, () -> machines.verify(invalid));
+        }
+        expect(INVALID_CREDENTIAL, () -> machines.verify(null));
+    }
+
+    @Test void ambiguousOrUnboundedMachineConfigurationFailsBeforeExternalCalls() {
+        var slot = machineAuthority();
+        expect(INVALID_ARGUMENT, () -> new CasdoorMachineTokens(List.of()));
+        expect(INVALID_ARGUMENT, () -> new CasdoorMachineTokens(Collections.nCopies(17, slot)));
+        expect(INVALID_ARGUMENT, () -> new CasdoorMachineTokens(List.of(slot, slot)));
+        var alias = new MachineTokenAuthority(UUID.randomUUID().toString(), UUID.randomUUID().toString(), "commerce",
+                slot.targetInstanceId(), "test", slot.subject(), slot.tokenAuthority());
+        expect(INVALID_ARGUMENT, () -> new CasdoorMachineTokens(List.of(slot, alias)));
+        expect(INVALID_ARGUMENT, () -> new MachineTokenAuthority(slot.publisherId(), slot.servicePrincipal(), "commerce",
+                slot.targetInstanceId(), "production", slot.subject(), slot.tokenAuthority()));
+        assertThat(introspections).hasValue(0);
+    }
+
+    @Test void machineIntrospectionCannotUseDuplicateAudienceToMatchASet() throws Exception {
+        var machines=new CasdoorMachineTokens(List.of(machineAuthority()));String token=machineToken(null);
+        var claims=SignedJWT.parse(token).getJWTClaimsSet();
+        introspectionOverride=json.writeValueAsString(Map.of("active",true,"client_id",CLIENT,"iss",issuer,"sub",claims.getSubject(),
+                "iat",claims.getIssueTime().toInstant().getEpochSecond(),"exp",claims.getExpirationTime().toInstant().getEpochSecond(),
+                "aud",List.of(CLIENT,CLIENT),"token_type","Bearer"));
+        expect(INVALID_CREDENTIAL,()->machines.verify(token));
+    }
+
+    private MachineTokenAuthority machineAuthority() {
+        return new MachineTokenAuthority(UUID.randomUUID().toString(), UUID.randomUUID().toString(), "commerce",
+                UUID.randomUUID().toString(), "test", "admin/isolated-publisher", authority(1_000, 2));
+    }
+    private JWTClaimsSet machineClaims(String defect) {
+        Instant base = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).minusSeconds(5);
+        return new JWTClaimsSet.Builder().issuer(issuer)
+                .subject("subject".equals(defect) ? "admin/another-publisher" : "admin/isolated-publisher")
+                .audience("extra-audience".equals(defect) ? List.of(CLIENT, "other-client") : List.of(CLIENT))
+                .issueTime(Date.from("future-iat".equals(defect) ? base.plusSeconds(60) : base))
+                .expirationTime(Date.from(base.plusSeconds("too-long".equals(defect) ? 301 : "short".equals(defect) ? 7 : 300)))
+                .notBeforeTime(Date.from(base)).claim("tokenType", "id-token".equals(defect) ? "id-token" : "access-token")
+                .claim("type", "human-kind".equals(defect) ? "normal-user" : "bad-type".equals(defect) ? List.of("application") : "application")
+                .claim("azp", "azp".equals(defect) ? "other-client" : CLIENT).build();
+    }
+    private String machineToken(String defect) throws Exception {
+        var jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(key.getKeyID()).build(), machineClaims(defect));
+        jwt.sign(new RSASSASigner(key)); return jwt.serialize();
+    }
+
     private CasdoorAccessTokenVerifier verifier(int timeout, int maximum) { return new CasdoorAccessTokenVerifier(authority(timeout, maximum)); }
     private TokenAuthority authority(int timeout, int maximum) {
         return new TokenAuthority(issuer, URI.create(issuer + "/jwks"), CLIENT, CLIENT, "private-introspection-secret",
@@ -231,6 +338,7 @@ class CasdoorAccessTokenVerifierTest {
             var jwt = SignedJWT.parse(fields.get("token")).getJWTClaimsSet();
             Map<String, Object> result = new HashMap<>(Map.of("active", active, "client_id", CLIENT, "iss", jwt.getIssuer(),
                     "sub", jwt.getSubject(), "exp", jwt.getExpirationTime().toInstant().getEpochSecond(), "aud", jwt.getAudience(), "token_type", "Bearer"));
+            result.put("iat", jwt.getIssueTime().toInstant().getEpochSecond());
             if (changedField != null) { result.put(changedField, "invalid-value"); }
             respond(exchange, json.writeValueAsString(result), 200);
         } catch (InterruptedException failure) { Thread.currentThread().interrupt(); }

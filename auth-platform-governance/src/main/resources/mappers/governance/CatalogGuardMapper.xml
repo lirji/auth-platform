@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.CatalogGuardMapper">
+ <select id="machineSource" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.catalog_publisher_preview WHERE preview_id=#{id})</select>
  <select id="policy" resultType="com.lrj.authz.governance.persistence.CatalogGuardMapper$PolicyRow">SELECT application_id,enabled_by,
  to_char(enabled_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') enabled_at,reason,command_id,command_hash FROM auth_governance.catalog_guard_policy WHERE application_id=#{app}</select>
  <insert id="enable">INSERT INTO auth_governance.catalog_guard_policy(application_id,enabled_by,reason,command_id,command_hash)

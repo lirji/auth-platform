@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrj.authz.governance.persistence.CatalogPublisherMapper">
+ <sql id="columns">d.id,d.publisher_id,d.application_id,d.target_instance_id,d.environment,d.service_principal,d.owner_principal,d.issuer,d.subject,d.client_id,d.status,d.version,
+ to_char(d.valid_until AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') valid_until,d.command_id,d.reason,
+ to_char(d.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') created_at,
+ to_char(d.disabled_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') disabled_at,d.valid_until&gt;clock_timestamp() unexpired</sql>
+ <select id="target" resultType="com.lrj.authz.governance.domain.CatalogPublisherModels$Target">SELECT target_instance_id,environment FROM auth_governance.catalog_publisher_target WHERE singleton=1</select>
+ <insert id="initializeTarget">INSERT INTO auth_governance.catalog_publisher_target(target_instance_id,environment,created_by,reason) VALUES(#{target.targetInstanceId},#{target.environment},#{operator},#{reason}) ON CONFLICT DO NOTHING</insert>
+ <select id="event" resultType="com.lrj.authz.governance.persistence.CatalogPublisherMapper$Event">SELECT operator_principal,payload_hash,result_json FROM auth_governance.catalog_publisher_event WHERE application_id=#{app} AND command_id=#{command}</select>
+ <select id="list" resultType="com.lrj.authz.governance.persistence.CatalogPublisherMapper$Row">SELECT <include refid="columns"/> FROM auth_governance.catalog_publisher_delegation d WHERE d.application_id=#{app} ORDER BY d.id LIMIT #{limit}</select>
+ <select id="delegation" resultType="com.lrj.authz.governance.persistence.CatalogPublisherMapper$Row">SELECT <include refid="columns"/> FROM auth_governance.catalog_publisher_delegation d WHERE d.application_id=#{app} AND d.id=#{id}</select>
+ <select id="publisher" resultType="com.lrj.authz.governance.persistence.CatalogPublisherMapper$Row">SELECT <include refid="columns"/> FROM auth_governance.catalog_publisher_delegation d WHERE d.application_id=#{app} AND d.publisher_id=#{publisher}</select>
+ <select id="authorize" resultType="com.lrj.authz.governance.persistence.CatalogPublisherMapper$Row">SELECT <include refid="columns"/>
+ FROM auth_governance.catalog_publisher_delegation d
+ JOIN auth_governance.login_identity li ON li.issuer=d.issuer AND li.subject=d.subject AND li.principal_id=d.service_principal
+ JOIN auth_governance.principal s ON s.id=d.service_principal AND s.kind='SERVICE' AND s.status='ACTIVE'
+ JOIN auth_governance.principal o ON o.id=d.owner_principal AND o.kind='HUMAN' AND o.status='ACTIVE'
+ JOIN auth_governance.application_catalog a ON a.application_id=d.application_id AND a.owner_principal_id=d.owner_principal
+ JOIN auth_governance.catalog_publisher_target t ON t.target_instance_id=d.target_instance_id AND t.environment=d.environment
+ WHERE d.publisher_id=#{slot.publisherId} AND d.application_id=#{slot.applicationId} AND d.target_instance_id=#{slot.targetInstanceId} AND d.environment=#{slot.environment}
+ AND d.service_principal=#{slot.servicePrincipal} AND d.issuer=#{slot.tokenAuthority.issuer} AND d.subject=#{slot.subject} AND d.client_id=#{slot.tokenAuthority.clientId}
+ AND d.status='ACTIVE' AND d.valid_until&gt;clock_timestamp() AND CAST(#{expiresAt} AS timestamptz)&gt;clock_timestamp()
+ FOR SHARE OF d,li,s,o,t</select>
+ <select id="tokenAlive" resultType="boolean">SELECT CAST(#{expiresAt} AS timestamptz)&gt;clock_timestamp()</select>
+ <select id="validPeriod" resultType="boolean">SELECT CAST(#{until} AS timestamptz)&gt;clock_timestamp() AND CAST(#{until} AS timestamptz)&lt;=clock_timestamp()+interval '30 days'</select>
+ <insert id="create">INSERT INTO auth_governance.catalog_publisher_delegation(id,publisher_id,application_id,target_instance_id,environment,service_principal,owner_principal,issuer,subject,client_id,valid_until,command_id,reason)
+ VALUES(#{id},#{slot.publisherId},#{slot.applicationId},#{slot.targetInstanceId},#{slot.environment},#{slot.servicePrincipal},#{owner},#{slot.tokenAuthority.issuer},#{slot.subject},#{slot.tokenAuthority.clientId},CAST(#{until} AS timestamptz),#{command},#{reason}) ON CONFLICT DO NOTHING</insert>
+ <update id="disable">UPDATE auth_governance.catalog_publisher_delegation SET status='DISABLED',version=2,disabled_at=clock_timestamp() WHERE application_id=#{app} AND id=#{id} AND status='ACTIVE' AND version=#{expected}</update>
+ <insert id="eventInsert">INSERT INTO auth_governance.catalog_publisher_event(application_id,command_id,delegation_id,operator_principal,operation,payload_hash,previous_version,resulting_version,reason,result_json)
+ VALUES(#{app},#{command},#{delegation},#{owner},#{operation},#{hash},#{previous},#{resulting},#{reason},#{result})</insert>
+ <insert id="previewInsert">INSERT INTO auth_governance.catalog_publisher_preview(preview_id,delegation_id,application_id,target_instance_id,environment,service_principal,owner_principal)
+ VALUES(#{preview},#{row.id},#{row.applicationId},#{row.targetInstanceId},#{row.environment},#{row.servicePrincipal},#{row.ownerPrincipal})</insert>
+ <select id="ownPreview" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.catalog_publisher_preview WHERE preview_id=#{preview} AND application_id=#{app} AND delegation_id=#{delegation})</select>
+ <insert id="releaseInsert">INSERT INTO auth_governance.catalog_publisher_release(application_id,version,delegation_id,target_instance_id,environment,service_principal,owner_principal)
+ VALUES(#{app},#{version},#{row.id},#{row.targetInstanceId},#{row.environment},#{row.servicePrincipal},#{row.ownerPrincipal})</insert>
+ <select id="receiptVersion" resultType="long">SELECT r.version FROM auth_governance.catalog_release r JOIN auth_governance.catalog_publisher_release p ON p.application_id=r.application_id AND p.version=r.version
+ WHERE r.application_id=#{app} AND r.command_id=#{command} AND p.delegation_id=#{delegation}</select>
+ <select id="actor" resultType="com.lrj.authz.governance.domain.CatalogPublisherModels$Actor">SELECT 'SERVICE' kind,p.service_principal,p.owner_principal,p.delegation_id,d.publisher_id,p.target_instance_id,p.environment
+ FROM auth_governance.catalog_publisher_release p JOIN auth_governance.catalog_publisher_delegation d ON d.id=p.delegation_id WHERE p.application_id=#{app} AND p.version=#{version}</select>
+</mapper>

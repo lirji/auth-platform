@@ -4,6 +4,8 @@ import org.apache.ibatis.annotations.Param;
 
 /** 票据／目标门禁只由同一目录写用例消费，SQL时点和有效期来自PG。 */
 public interface CatalogGuardMapper {
+    /** HUMAN与SERVICE票据不得交叉消费，来源关系不可变。 */
+    boolean machineSource(@Param("id") String id);
     /** 当前Owner在应用锁下读取模式；没有记录表示LEGACY。 */
     PolicyRow policy(@Param("app") String app);
     /** 单向启用同时保存原原因／命令体和发布人，不提供UPDATE。 */

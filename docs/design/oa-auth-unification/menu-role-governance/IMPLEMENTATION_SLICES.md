@@ -20,8 +20,8 @@
 | MG07 | Commerce 通过受信身份链路得到本人导航提示 | MG00、MG01 | Auth business API／SDK；Commerce `commerce-app/.../iam`／HTTP | D-NAV、只读业务契约；不复用管理 Token | 现有 IdP／SDK／授权图 | M | DONE |
 | MG08 | Commerce 侧栏、搜索和默认入口按真实提示过滤 | MG01、MG07 | `CentralShell.tsx`、`navigation.ts`、`session.ts`、前端 client | 消费已发布 MG07 契约，无新授权模型 | 现有 Commerce 前后端 | M | DONE |
 | MG09 | 环境隔离与机器发布的选型和契约明确 | MG05、MG06 | Auth 设计、IdP 能力核验、环境运行说明 | D-ENV、D-PUB；契约设计片 | 只核对既有组件 | M | DONE |
-| MG10 | 受限机器身份只能发布获授权应用／目标 | MG09 | 认证边界、发布授权适配、catalog 用例、受控登记 | 发布委派／审计模型，追加迁移 | 现有 IdP／PG；选定隔离配置 | M | IN_PROGRESS |
-| MG11 | CI 产出预览、受控发布并核对准确结果 | MG01、MG05、MG06、MG10 | 发布工具、相关 workflow／环境说明 | 发布客户端契约；不得绕过 MG05 | 隔离 CI 目标，不自动生产部署 | M | TODO |
+| MG10 | 受限机器身份只能发布获授权应用／目标 | MG09 | 认证边界、发布授权适配、catalog 用例、受控登记 | 发布委派／审计模型，追加迁移 | 现有 IdP／PG；选定隔离配置 | M | DONE |
+| MG11 | CI 产出预览、受控发布并核对准确结果 | MG01、MG05、MG06、MG10 | 发布工具、相关 workflow／环境说明 | 发布客户端契约；不得绕过 MG05 | 隔离 CI 目标，不自动生产部署 | M | IN_PROGRESS |
 | MG12 | 管理员看到角色 v1→v2 迁移对象及风险，不执行写入 | MG03 | `PortalManagement`／Mapper、角色页迁移预览 | D-MIG、D-SOURCE 和迁移契约设计＋只读实现 | 现有 PG／console | M | TODO |
 | MG13 | 指定直接授权按固定范围／期限受控迁移，可断点恢复 | MG12 | `AccessManagement`、既有投影／栅栏、迁移任务和 UI | 任务／子项／来源谱系，追加迁移 | 复用现有执行组件 | M | TODO |
 | MG14 | 组与审批来源有明确升级路径，不能伪装成直接授权 | MG13 | `AccessRequests`、组授权、来源 Owner、迁移 UI | 来源专项契约／审批快照兼容；迁移按需 | 现有目录／审批／投影 | M | TODO |

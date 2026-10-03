@@ -19,6 +19,8 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Map;
@@ -65,6 +67,20 @@ public final class CasdoorAccessTokenVerifier {
 
     /** 所有状态请求均实时校验发行方契约和 introspection；不存在跨请求正向认证缓存。 */
     public VerifiedLogin verify(String accessToken) {
+        Jwt jwt = verifyToken(accessToken, null);
+        return new VerifiedLogin(authority.issuer(), jwt.getSubject());
+    }
+
+    /** 机器身份另行检查应用主体和五分钟期限，不能作为 HUMAN Owner 登录证据。 */
+    public VerifiedMachine verifyMachine(String accessToken, String publisherId, String expectedSubject) {
+        BootstrapCommand.uuid(publisherId);
+        BootstrapCommand.bounded(expectedSubject, 500);
+        Jwt jwt = verifyToken(accessToken, expectedSubject);
+        return new VerifiedMachine(publisherId, authority.issuer(), jwt.getSubject(), authority.clientId(),
+                jwt.getIssuedAt(), jwt.getExpiresAt());
+    }
+
+    private Jwt verifyToken(String accessToken, String expectedMachineSubject) {
         if (accessToken == null || accessToken.isBlank() || accessToken.length() > MAX_TOKEN_BYTES
                 || accessToken.chars().anyMatch(Character::isWhitespace)) { throw new GovernanceException(INVALID_CREDENTIAL); }
         if (!capacity.tryAcquire()) { throw new GovernanceException(DEPENDENCY_UNAVAILABLE); }
@@ -82,6 +98,7 @@ public final class CasdoorAccessTokenVerifier {
                 }
                 throw new GovernanceException(INVALID_CREDENTIAL);
             }
+            if (expectedMachineSubject != null) { validateMachineClaims(jwt, expectedMachineSubject); }
             JsonNode facts = fetch("/api/login/oauth/introspect", authority.clientId(), authority.clientSecret(),
                     "token=" + encode(accessToken) + "&token_type_hint=access_token");
             // HTTP 200 也可能是发行方数据库故障的错误对象；缺少明确认证事实不能归咎于用户凭据。
@@ -98,8 +115,34 @@ public final class CasdoorAccessTokenVerifier {
                     || !audience(facts.path("aud")).equals(new HashSet<>(jwt.getAudience()))) {
                 throw new GovernanceException(INVALID_CREDENTIAL);
             }
-            return new VerifiedLogin(authority.issuer(), jwt.getSubject());
+            if (expectedMachineSubject != null) {
+                if (!facts.path("iat").isIntegralNumber() || !facts.path("iat").canConvertToLong()
+                        || !facts.path("exp").canConvertToLong()
+                        || (facts.path("aud").isArray() && facts.path("aud").size()!=1)
+                        || facts.path("iat").longValue() != jwt.getIssuedAt().getEpochSecond()) {
+                    throw new GovernanceException(INVALID_CREDENTIAL);
+                }
+                // introspection 会耗时；不能把发请求前尚有效的机器 Token 当作完成后仍有效。
+                validateMachineClaims(jwt, expectedMachineSubject);
+            }
+            return jwt;
         } finally { capacity.release(); }
+    }
+
+    private void validateMachineClaims(Jwt jwt, String expectedSubject) {
+        Instant now = Instant.now();
+        try {
+            if (!authority.audience().equals(authority.clientId())
+                    || !jwt.getAudience().equals(List.of(authority.clientId()))
+                    || !expectedSubject.equals(jwt.getSubject())
+                    || !"application".equals(jwt.getClaims().get("type"))
+                    || !authority.clientId().equals(jwt.getClaims().get("azp"))
+                    || jwt.getIssuedAt().isAfter(now) || !jwt.getExpiresAt().isAfter(now)
+                    || !jwt.getExpiresAt().isAfter(jwt.getIssuedAt())
+                    || Duration.between(jwt.getIssuedAt(), jwt.getExpiresAt()).compareTo(Duration.ofSeconds(300)) > 0) {
+                throw new GovernanceException(INVALID_CREDENTIAL);
+            }
+        } catch (RuntimeException failure) { throw new GovernanceException(INVALID_CREDENTIAL); }
     }
 
     private OAuth2TokenValidatorResult validateClaims(Jwt jwt) {
