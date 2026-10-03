@@ -1,6 +1,6 @@
 # 菜单与角色授权治理候选实施切片
 
-状态：`PLAN_DRAFT`；20 个稳定切片 ID，产品切片均为 `TODO`。本轮只完成候选拆分，新增正式契约尚未冻结，不把设计计划作为执行成功或直接编码依据。
+状态：`APPROVED`；用户已明确要求开始实施。20 个稳定切片按依赖推进，设计／实现／验证状态分别记录；MG00 首先冻结阶段 A 契约。
 
 [总体计划](PLAN.md) · [当前状态](PROGRESS_STATE.md)。MG 前缀属于本子计划，不替换父计划 P0–P7、CE 或已完成 CM／GP 的 ID。
 
@@ -10,8 +10,8 @@
 
 | ID | 可观察结果 | Needs | Owner／改动路径 | 契约／迁移归属 | Runtime | 规模 | 状态 |
 |---|---|---|---|---|---|---|---|
-| MG00 | 第一阶段规则、差异和统计口径明确，可据此实现 | 计划确认 | Auth 设计契约＋Commerce 声明契约 | 新 `CONTRACTS.md` 第一阶段；不改库 | 无新增 | M | TODO |
-| MG01 | 修改一份项目声明即可一致生成导航与候选清单 | MG00 | Commerce `frontend/src/iam/navigation.ts` 及新声明；Auth 导出器／映射消费方 | 声明契约；保留旧 manifest v1 | 无新增 | M | TODO |
+| MG00 | 第一阶段规则、差异和统计口径明确，可据此实现 | 计划确认 | Auth 设计契约＋Commerce 声明契约 | 新 `CONTRACTS.md` 第一阶段；不改库 | 无新增 | M | DONE |
+| MG01 | 修改一份项目声明即可一致生成导航与候选清单 | MG00 | Commerce `frontend/src/iam/navigation.ts` 及新声明；Auth 导出器／映射消费方 | 声明契约；保留旧 manifest v1 | 无新增 | M | IN_PROGRESS |
 | MG02 | Owner 在预览弹层看到完整菜单及能力差异 | MG00 | `ApplicationCatalog`、domain/web/Controller、`CatalogEditor.tsx`、API 类型 | 兼容新增预览读契约；原则上无迁移 | 现有 Auth／console | M | TODO |
 | MG03 | 分区管理员查看潜在受影响角色、来源和人员 | MG02 | `PortalManagement`、Mapper XML、Controller、预览详情 | 管理读契约；按执行计划加索引 | 现有 PG／console | M | TODO |
 | MG04 | 发布记录关联项目提交、清单摘要及操作者，并可查询 | MG01、MG02 | `ApplicationCatalog`、`CatalogMapper`／XML、console 历史详情 | 不可变发布元数据，追加迁移 | 现有 PG | M | TODO |
@@ -217,8 +217,8 @@ flowchart LR
     MG18 --> MG19
 ```
 
-- 当前可进入的下一项：计划确认后 MG00 的契约设计；当前没有标 READY 的产品实施片。
-- 第一阶段新增 CONTRACTS 尚未冻结，因此正式实施 gate 为 HOLD；这不阻止候选计划交付。MG07／09／12／15／17 的业务决策按各阶段就近确定，不需要本轮假装全部已批准。
+- 当前执行：MG00 契约已冻结／文档核对通过，MG01 IN_PROGRESS；按本表串行推进。
+- 阶段 A CONTRACTS 已冻结，MG00 DONE；对应已满足依赖的实施可推进。MG07／09／12／15／17 的业务决策按各阶段就近确定，不需要本轮假装全部已批准。
 - 全部标记 `parallel=no`：共享目录／授权契约、PG 迁移链、Controller、SDK、console 和跨仓声明需要串行集成；本计划不授予并行代理权限。
 - 迁移唯一 Owner 为 Auth 治理后端；Commerce 只维护自有声明、适配和业务数据，不能直接写 Auth 表。
 - Runtime 首次介入 MG10／MG11 的已选环境配置与隔离 CI 目标。其他片复用现有运行组件；实际部署按目标授权和验证另行执行。
