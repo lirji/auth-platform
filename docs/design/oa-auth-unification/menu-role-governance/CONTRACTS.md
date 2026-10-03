@@ -81,3 +81,5 @@ MG11固定CI输入、私密检查点、默认预览与原命令恢复见[MG11_CO
 MG15独立能力弃用与停止新增使用矩阵见[MG15_CONTRACT](MG15_CONTRACT.md)，FROZEN；MG14来源审批规则待业务答复，见[MG14_DESIGN_NOTES](MG14_DESIGN_NOTES.md)，DRAFT。
 
 MG16只读引用退出分析见[MG16_DESIGN_NOTES](MG16_DESIGN_NOTES.md)，DRAFT；未来生效来源、在途申请／迁移及未核验项目API不能被当前菜单影响统计替代，最终退役契约待MG14依赖完成。
+
+MG17只读人员变更分析见[MG17_DESIGN_NOTES](MG17_DESIGN_NOTES.md)，DRAFT；OA事实权威、成员代际、历史前后内容缺失及诊断边界已核对，D-HR岗位治理规则仍待业务选择，未冻结自动授权规则。
