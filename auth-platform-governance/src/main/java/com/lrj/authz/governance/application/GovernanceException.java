@@ -17,6 +17,7 @@ public final class GovernanceException extends RuntimeException {
         BINDING_CONFLICT("BINDING_CONFLICT"),
         COMMAND_CONFLICT("COMMAND_CONFLICT"),
         VERSION_CONFLICT("VERSION_CONFLICT"),
+        CAPABILITY_DEPRECATED("CAPABILITY_DEPRECATED"),
         DEPENDENCY_UNAVAILABLE("DEPENDENCY_UNAVAILABLE");
         private final String value;
         Code(String value) { this.value = value; }

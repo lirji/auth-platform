@@ -122,8 +122,8 @@ public final class GovernanceRuntime implements AutoCloseable {
                             directoryTransaction, conflictTransaction));
             runtime.publisherMapper=session.getMapper(CatalogPublisherMapper.class);
             runtime.guardMapper=session.getMapper(CatalogGuardMapper.class);runtime.releaseMapper=session.getMapper(CatalogReleaseMapper.class);
-            runtime.catalog = new com.lrj.authz.governance.application.ApplicationCatalog(session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(SafetyMapper.class), session.getMapper(CatalogReleaseMapper.class), session.getMapper(CatalogGuardMapper.class));
-            runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(FenceMapper.class), session.getMapper(SafetyMapper.class));
+            runtime.catalog = new com.lrj.authz.governance.application.ApplicationCatalog(session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(SafetyMapper.class), session.getMapper(CatalogReleaseMapper.class), session.getMapper(CatalogGuardMapper.class), session.getMapper(CapabilityLifecycleMapper.class));
+            runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(FenceMapper.class), session.getMapper(SafetyMapper.class), session.getMapper(CapabilityLifecycleMapper.class));
             runtime.portalMapper=session.getMapper(PortalMapper.class);
             runtime.roleMigrationMapper=session.getMapper(RoleMigrationMapper.class);
             runtime.roleMigrationTaskMapper=session.getMapper(RoleMigrationTaskMapper.class);
@@ -137,7 +137,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             runtime.migrationMapper=session.getMapper(MigrationMapper.class);
             runtime.inboxMapper=session.getMapper(ApprovalInboxMapper.class);
             runtime.requestMapper=session.getMapper(RequestMapper.class);
-            runtime.requests=new com.lrj.authz.governance.application.AccessRequests(session.getMapper(RequestMapper.class),runtime.accessMapper,runtime.catalogMapper,mapper,runtime.identity,transaction);
+            runtime.requests=new com.lrj.authz.governance.application.AccessRequests(session.getMapper(RequestMapper.class),runtime.accessMapper,runtime.catalogMapper,mapper,runtime.identity,transaction,session.getMapper(CapabilityLifecycleMapper.class));
             return runtime;
         } catch (Exception failure) {
             dataSource.close();

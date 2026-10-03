@@ -9,7 +9,9 @@ public final class PortalCatalogModels {
             String membershipId, long generation, long membershipVersion,
             String capabilitiesJson, long maxDurationSeconds,
             long manifestVersion, String contentHash, String manifestJson,
-            String capabilityStatesJson, String presentationJson, String presentationHash) {}
+            String capabilityStatesJson, String presentationJson, String presentationHash, String lifecycleStatesJson, String ownerPrincipalId) {}
+    /** 生命周期只代表新增使用资格，与紧急开关分开读取。 */
+    public record LifecycleState(String capability,String state,long version,String reason) {}
     /** 未持久化的开关由调用者显式解释为false/version0，不把缺行视为全权限。 */
     public record CapabilityState(String capability, boolean disabled, long version) {}
 }

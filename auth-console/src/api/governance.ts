@@ -1,3 +1,4 @@
+import { LifecycleState } from '../governance/codes.ts'
 import { apiClient } from './client'
 import { validatePublishedCatalog } from '../governance/publishedCatalog'
 
@@ -35,14 +36,28 @@ export async function applications(tenant: string, after?: string, signal?: Abor
 export interface Capability { code: string; resource_type: string; risk_level: string; disabled: boolean }
 export interface Management { membership_id: string; generation: number; max_duration_seconds: number; capabilities: Capability[];
   catalog_owner: boolean; manifest_version: number; policy_state: string; directory_state: string; desired_epoch: number | null; applied_epoch: number | null }
-export interface PublishedCapability extends Capability { grantable: boolean }
+export type CapabilityLifecycleState = typeof LifecycleState[keyof typeof LifecycleState]
+export interface PublishedCapability extends Capability { grantable: boolean; lifecycle_state?: CapabilityLifecycleState | null; lifecycle_version?: number | null; lifecycle_reason?: string | null }
 export interface PublishedMenu { code: string; parent: string | null; route: string | null; any_of: string[]; label?: string | null; position?: number | null }
 export interface PublishedResourceType { code: string; scope_supported: boolean; allowed_scope_kinds: string[] }
 export interface PublishedCatalog extends Partition { membership_id: string; generation: number; max_duration_seconds: number;
-  manifest_version: number; content_hash: string; view_hash: string; menus: PublishedMenu[]; capabilities: PublishedCapability[]; resource_types: PublishedResourceType[] }
+  manifest_version: number; content_hash: string; view_hash: string; menus: PublishedMenu[]; capabilities: PublishedCapability[]; resource_types: PublishedResourceType[]; lifecycle_owner?: boolean }
 /** 当前实际清单与委派选项有限返回；写入仍独立回源判权。 */
 export const publishedCatalog = async (p: Partition, signal?: AbortSignal): Promise<PublishedCatalog> =>
   validatePublishedCatalog((await apiClient.get<PublishedCatalog>('/api/governance/v1/access/published-catalog', { params: p, signal })).data, p)
+export interface CapabilityLifecycleCommand { application_id: string; capability: string; state: CapabilityLifecycleState; expected_version: number; reason: string; command_id: string }
+export interface CapabilityLifecycleMutation { current: { application_id: string; capability: string; state: CapabilityLifecycleState; version: number; reason: string; changed_by: string; updated_at: string };
+  receipt: { command_id: string; application_id: string; capability: string; before_state: CapabilityLifecycleState; after_state: CapabilityLifecycleState; before_version: number; after_version: number; reason: string; actor: string; created_at: string } }
+/** Owner作用域由后端重新核验，原命令重试保留目标、预期版本及原因。 */
+export const changeCapabilityLifecycle = async (body: CapabilityLifecycleCommand): Promise<CapabilityLifecycleMutation> => {
+  const result = (await apiClient.post<CapabilityLifecycleMutation>('/api/governance/v1/catalog/capability-lifecycle', body)).data
+  if (!result?.current || !result.receipt || result.current.application_id !== body.application_id || result.current.capability !== body.capability
+    || result.receipt.command_id !== body.command_id || result.receipt.application_id !== body.application_id || result.receipt.capability !== body.capability
+    || result.receipt.after_state !== body.state || result.receipt.before_version !== body.expected_version || result.receipt.after_version !== body.expected_version + 1
+    || result.receipt.reason !== body.reason || !Object.values(LifecycleState).includes(result.current.state) || !Number.isSafeInteger(result.current.version)
+    || result.current.version < result.receipt.after_version) throw new Error('能力生命周期变更结果尚未确认，请重试原命令')
+  return result
+}
 export interface Member { membership_id: string; generation: number; member_kind: string; valid_to: string | null }
 export interface RoleImpact { role_id: string; previous_role_id: string | null; added: string[]; removed: string[]; referencing_grant_count: number }
 export interface ScopeRule { version: number; resource_type: string; clauses: { kind: string; values: string[]; include_root: boolean }[] }

@@ -40,10 +40,14 @@ public final class PortalManagement {
         }
         var allowed = AccessValues.read(before.capabilitiesJson());
         var states = states(before.capabilityStatesJson(), manifest.capabilities().stream().map(c -> c.code()).toList());
+        var lifecycle = lifecycles(before.lifecycleStatesJson(),manifest.capabilities().stream().map(c -> c.code()).toList());
         var capabilities = manifest.capabilities().stream().map(c -> {
             var state = states.get(c.code());
             boolean disabled = state != null && state.disabled();
-            return new PublishedCapability(c.code(), c.resourceType(), c.riskLevel().name(), disabled, allowed.contains(c.code()) && !disabled);
+            var life=lifecycle.get(c.code());
+            var stateCode=life==null?com.lrj.authz.protocol.CapabilityLifecycleDtos.State.ACTIVE:com.lrj.authz.protocol.CapabilityLifecycleDtos.State.valueOf(life.state());
+            return new PublishedCapability(c.code(), c.resourceType(), c.riskLevel().name(), disabled, allowed.contains(c.code()) && !disabled && stateCode==com.lrj.authz.protocol.CapabilityLifecycleDtos.State.ACTIVE,
+                    stateCode,life==null?0L:life.version(),life==null?null:life.reason());
         }).toList();
         var resources = capabilities.stream().map(PublishedCapability::resourceType).distinct().sorted().map(type ->
                 new PublishedResourceType(type, ScopeResourceBindings.supports(type),
@@ -52,13 +56,13 @@ public final class PortalManagement {
         // 不能把清单摘要当作选项版本：委派缩减、成员变化和紧急开关也必须使旧选择失效。
         String viewHash = AccessValues.hash(p.tenantId(), p.applicationId(), p.environment(), before.principalId(),
                 before.principalVersion(), before.tenantVersion(), before.membershipId(), before.generation(), before.membershipVersion(),
-                AccessValues.json(allowed), before.maxDurationSeconds(), before.manifestVersion(), before.contentHash(), before.capabilityStatesJson(), before.presentationHash());
+                AccessValues.json(allowed), before.maxDurationSeconds(), before.manifestVersion(), before.contentHash(), before.capabilityStatesJson(), before.presentationHash(), before.lifecycleStatesJson(), before.ownerPrincipalId());
         var latest = access.authority(login, p);
         var after = mapper.publishedCatalogBasis(p, login.issuer(), login.subject());
         requireBasis(after, latest);
         if (!before.equals(after)) throw new GovernanceException(GovernanceException.Code.VERSION_CONFLICT);
         return new PublishedCatalog(p.tenantId(), p.applicationId(), p.environment(), before.membershipId(), before.generation(),
-                before.maxDurationSeconds(), before.manifestVersion(), before.contentHash(), viewHash, menus, capabilities, resources);
+                before.maxDurationSeconds(), before.manifestVersion(), before.contentHash(), viewHash, menus, capabilities, resources,before.principalId().equals(before.ownerPrincipalId()));
     }
 
     /** 单语句资格必须与原管理用例一致，晚到撤权不允许返回旧选项。 */
@@ -85,6 +89,20 @@ public final class PortalManagement {
         } catch (Exception failure) { throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE); }
     }
 
+    /** 未知生命周期或损坏行必须显式失败，不能扩大新授权选项。 */
+    private static Map<String,com.lrj.authz.governance.domain.PortalCatalogModels.LifecycleState> lifecycles(String json,List<String> codes) {
+        try {
+            var values=STATE_JSON.readValue(json,com.lrj.authz.governance.domain.PortalCatalogModels.LifecycleState[].class);
+            if(values.length>200)throw new IllegalArgumentException();
+            Map<String,com.lrj.authz.governance.domain.PortalCatalogModels.LifecycleState> result=new HashMap<>();
+            for(var value:values) {
+                if(value==null || value.version()<1 || !codes.contains(value.capability()) || value.reason()==null || value.reason().isBlank() || value.reason().length()>500
+                        || Arrays.stream(com.lrj.authz.protocol.CapabilityLifecycleDtos.State.values()).noneMatch(state -> state.code().equals(value.state()))
+                        || result.put(value.capability(),value)!=null)throw new IllegalArgumentException();
+            }
+            return Map.copyOf(result);
+        } catch(Exception failure){throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE);}
+    }
     /** 所有表单选项来自当前清单和委派交集，禁用能力保留明确状态但不可新授予。 */
     public Management management(VerifiedLogin login, Partition p) {
         var ceiling = access.authority(login, p);

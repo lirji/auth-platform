@@ -10,7 +10,11 @@ public final class PortalDtos {
             String membershipId, long generation, long maxDurationSeconds,
             long manifestVersion, String contentHash, String viewHash,
             List<PublishedMenu> menus, List<PublishedCapability> capabilities,
-            List<PublishedResourceType> resourceTypes) {
+            List<PublishedResourceType> resourceTypes, boolean lifecycleOwner) {
+        /** 旧Java调用者没有新资格依据，保守返回不可变更。 */
+        public PublishedCatalog(String tenantId,String applicationId,String environment,String membershipId,long generation,long maxDurationSeconds,long manifestVersion,String contentHash,String viewHash,List<PublishedMenu> menus,List<PublishedCapability> capabilities,List<PublishedResourceType> resourceTypes) {
+            this(tenantId,applicationId,environment,membershipId,generation,maxDurationSeconds,manifestVersion,contentHash,viewHash,menus,capabilities,resourceTypes,false);
+        }
         public PublishedCatalog { menus=List.copyOf(menus); capabilities=List.copyOf(capabilities); resourceTypes=List.copyOf(resourceTypes); }
     }
     /** 父菜单仅作为浏览上下文，anyOf不是批量授权或角色模板。 */
@@ -20,7 +24,11 @@ public final class PortalDtos {
         public PublishedMenu(String code, String parent, String route, List<String> anyOf) { this(code,parent,route,anyOf,null,null); }
     }
     /** 全清单可读，超委派或停用项明确不可新选；原管理接口形状保持。 */
-    public record PublishedCapability(String code, String resourceType, String riskLevel, boolean disabled, boolean grantable) {}
+    public record PublishedCapability(String code, String resourceType, String riskLevel, boolean disabled, boolean grantable,
+            CapabilityLifecycleDtos.State lifecycleState, Long lifecycleVersion, String lifecycleReason) {
+        /** 旧Java构造没有新生命周期证据，不能伪造成ACTIVE。 */
+        public PublishedCapability(String code,String resourceType,String riskLevel,boolean disabled,boolean grantable){this(code,resourceType,riskLevel,disabled,grantable,null,null,null);}
+    }
     /** 资源名来自实际清单，允许范围只来自协议绑定，不伪造业务实例目录。 */
     public record PublishedResourceType(String code, boolean scopeSupported, List<ScopeDtos.Kind> allowedScopeKinds) {
         public PublishedResourceType { allowedScopeKinds=List.copyOf(allowedScopeKinds); }

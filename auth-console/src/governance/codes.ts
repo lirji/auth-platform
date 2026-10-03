@@ -20,3 +20,6 @@ export const MigrationStage = {
   WAIT_NEW_CONFIRM: 'WAIT_NEW_CONFIRM', FAILED: 'FAILED',
 } as const
 export const MigrationAction = { ADVANCE: 'advance', CANCEL: 'cancel', RETRY: 'retry' } as const
+
+/** 能力生命周期控制新增使用，与紧急停用和授权状态分别建模。 */
+export const LifecycleState = { ACTIVE: 'ACTIVE', DEPRECATED: 'DEPRECATED' } as const

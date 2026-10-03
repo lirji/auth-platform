@@ -14,6 +14,7 @@ import static com.lrj.authz.governance.application.GovernanceException.Code.*;
 /** 应用目录唯一写用例；清单发布不产生或修改业务授权。 */
 public final class ApplicationCatalog {
     private final CatalogMapper mapper;
+    private final CapabilityLifecycleMapper lifecycles;
     private final SafetyMapper safety;
     private final CatalogReleaseMapper releases;
     private final CatalogGuardMapper guards;
@@ -21,7 +22,8 @@ public final class ApplicationCatalog {
     private final IdentityGovernance identity;
     private final TransactionTemplate transaction;
     /** 事务与Mapper由既有治理Runtime提供。 */
-    public ApplicationCatalog(CatalogMapper mapper, IdentityMapper identities, IdentityGovernance identity, TransactionTemplate transaction, SafetyMapper safety, CatalogReleaseMapper releases, CatalogGuardMapper guards) {
+    public ApplicationCatalog(CatalogMapper mapper, IdentityMapper identities, IdentityGovernance identity, TransactionTemplate transaction, SafetyMapper safety, CatalogReleaseMapper releases, CatalogGuardMapper guards, CapabilityLifecycleMapper lifecycles) {
+        this.lifecycles=lifecycles;
         this.guards=guards;
         this.releases=releases;
         this.safety=safety;
@@ -283,6 +285,43 @@ public final class ApplicationCatalog {
             requireOne(safety.capabilityAudit(application,capability,command,hash,app.ownerPrincipalId(),reason,expectedVersion,disabled));
             return safety.capability(application,capability);
         });
+    }
+    /** 弃用只停止新增使用；应用排他锁、连续版本与原命令审计同事务提交。 */
+    public com.lrj.authz.protocol.CapabilityLifecycleDtos.Mutation changeLifecycle(VerifiedLogin login,com.lrj.authz.protocol.CapabilityLifecycleDtos.Change input) {
+        if(input==null || input.state()==null || input.expectedVersion()==null || input.expectedVersion()<0 || input.expectedVersion()==Long.MAX_VALUE)throw new GovernanceException(INVALID_ARGUMENT);
+        CatalogManifest.code(input.applicationId());CatalogManifest.code(input.capability());BootstrapCommand.uuid(input.commandId());BootstrapCommand.bounded(input.reason(),500);
+        return transaction.execute(status -> {
+            var app=requireOwner(login,input.applicationId(),true);
+            if(!app.ownerPrincipalId().equals(mapper.lockOwner(login.issuer(),login.subject(),app.ownerPrincipalId())))throw new GovernanceException(ACCESS_DENIED);
+            var snapshot=mapper.snapshot(app.applicationId(),app.manifestVersion());
+            if(snapshot==null || CatalogManifest.read(snapshot.manifestJson()).capabilities().stream().noneMatch(c -> c.code().equals(input.capability())))throw new GovernanceException(ACCESS_DENIED);
+            String hash=AccessValues.hash(input.applicationId(),input.capability(),input.state().code(),input.expectedVersion(),input.reason());
+            var previous=lifecycles.receipt(app.applicationId(),input.commandId());
+            if(previous!=null) {
+                if(!previous.payloadHash().equals(hash))throw new GovernanceException(COMMAND_CONFLICT);
+                return new com.lrj.authz.protocol.CapabilityLifecycleDtos.Mutation(lifecycleValue(app.applicationId(),input.capability()),lifecycleReceipt(previous));
+            }
+            var current=lifecycleValue(app.applicationId(),input.capability());
+            if(current.version()!=input.expectedVersion() || current.state()==input.state())throw new GovernanceException(VERSION_CONFLICT);
+            var now=java.time.Instant.now();
+            requireOne(lifecycles.change(new com.lrj.authz.governance.domain.CapabilityLifecycleModels.Value(app.applicationId(),input.capability(),input.state().code(),current.version()+1,input.reason(),app.ownerPrincipalId(),now),current.version()));
+            var receipt=new com.lrj.authz.governance.domain.CapabilityLifecycleModels.Receipt(app.applicationId(),input.commandId(),hash,input.capability(),current.state().code(),input.state().code(),current.version(),current.version()+1,input.reason(),app.ownerPrincipalId(),now);
+            requireOne(lifecycles.audit(receipt));
+            // 实际PG存储按微秒截断时间，响应从权威行重读，重放字节不受Java纳秒影响。
+            return new com.lrj.authz.protocol.CapabilityLifecycleDtos.Mutation(lifecycleValue(app.applicationId(),input.capability()),lifecycleReceipt(lifecycles.receipt(app.applicationId(),input.commandId())));
+        });
+    }
+    private com.lrj.authz.protocol.CapabilityLifecycleDtos.Value lifecycleValue(String app,String cap) {
+        var row=lifecycles.value(app,cap);
+        return row==null?new com.lrj.authz.protocol.CapabilityLifecycleDtos.Value(app,cap,com.lrj.authz.protocol.CapabilityLifecycleDtos.State.ACTIVE,0,null,null,null):
+            new com.lrj.authz.protocol.CapabilityLifecycleDtos.Value(app,cap,lifecycleState(row.state()),row.version(),row.reason(),row.changedBy(),row.updatedAt().toString());
+    }
+    private static com.lrj.authz.protocol.CapabilityLifecycleDtos.State lifecycleState(String code) {
+        return Arrays.stream(com.lrj.authz.protocol.CapabilityLifecycleDtos.State.values()).filter(s -> s.code().equals(code)).findFirst().orElseThrow(() -> new GovernanceException(DEPENDENCY_UNAVAILABLE));
+    }
+    private static com.lrj.authz.protocol.CapabilityLifecycleDtos.Receipt lifecycleReceipt(com.lrj.authz.governance.domain.CapabilityLifecycleModels.Receipt row) {
+        if(row==null)throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
+        return new com.lrj.authz.protocol.CapabilityLifecycleDtos.Receipt(row.commandId(),row.applicationId(),row.capability(),lifecycleState(row.beforeState()),lifecycleState(row.afterState()),row.beforeVersion(),row.afterVersion(),row.reason(),row.actor(),row.createdAt().toString());
     }
     private Application requireOwner(VerifiedLogin login,String application,boolean lock) {
         CatalogManifest.code(application);

@@ -1,3 +1,4 @@
+import { LifecycleState } from './codes.ts'
 import type { Partition, PublishedCatalog, PublishedResourceType, Role } from '../api/governance'
 
 const kinds = new Set(['TENANT_ALL', 'SPECIFIED_STORES', 'SPECIFIED_RESOURCES'])
@@ -13,11 +14,19 @@ export function validatePublishedCatalog(value: PublishedCatalog, partition: Par
     || !/^[a-f0-9]{64}$/.test(value.content_hash) || !/^[a-f0-9]{64}$/.test(value.view_hash)
     || !Array.isArray(value.capabilities) || !value.capabilities.length || value.capabilities.length > 200
     || !Array.isArray(value.menus) || value.menus.length > 100 || !Array.isArray(value.resource_types) || value.resource_types.length > 200) fail()
+  if (value.lifecycle_owner !== undefined && typeof value.lifecycle_owner !== 'boolean') fail()
   const caps = new Set<string>()
   const types = new Set<string>()
   for (const cap of value.capabilities) {
     if (!cap || !validCode(cap.code) || !cap.code.startsWith(`${partition.application_id}.`) || caps.has(cap.code) || !validCode(cap.resource_type)
       || !['NORMAL', 'HIGH'].includes(cap.risk_level) || typeof cap.disabled !== 'boolean' || typeof cap.grantable !== 'boolean' || cap.disabled && cap.grantable) fail()
+    const present = cap.lifecycle_state != null || cap.lifecycle_version != null || cap.lifecycle_reason != null
+    if (present && (![LifecycleState.ACTIVE, LifecycleState.DEPRECATED].some(state => state === cap.lifecycle_state) || typeof cap.lifecycle_version !== 'number'
+      || !Number.isSafeInteger(cap.lifecycle_version) || cap.lifecycle_version < 0
+      || cap.lifecycle_version === 0 && (cap.lifecycle_state !== LifecycleState.ACTIVE || cap.lifecycle_reason != null)
+      || cap.lifecycle_version > 0 && (typeof cap.lifecycle_reason !== 'string' || !cap.lifecycle_reason.trim() || cap.lifecycle_reason.length > 500)
+      || cap.lifecycle_state === LifecycleState.DEPRECATED && cap.grantable)) fail()
+    if (value.lifecycle_owner === true && !present) fail()
     caps.add(cap.code); types.add(cap.resource_type)
   }
   const resources = new Set<string>()
@@ -60,6 +69,7 @@ export function roleScopeEligibility(role: Role | undefined, catalog: PublishedC
   if (!role || !role.capabilities.length) return { resourceTypes: [], reason: '请选择当前页的固定角色版本' }
   const caps = role.capabilities.map(code => catalog.capabilities.find(cap => cap.code === code))
   if (caps.some(cap => !cap)) return { resourceTypes: [], reason: '角色含当前清单未登记的能力' }
+  if (caps.some(cap => cap!.lifecycle_state === LifecycleState.DEPRECATED)) return { resourceTypes: [], reason: '角色含已弃用能力，已停止新增授权' }
   if (caps.some(cap => !cap!.grantable)) return { resourceTypes: [], reason: '角色含已停用或超出当前委派的能力' }
   const types = new Set(caps.map(cap => cap!.resource_type))
   if (types.size !== 1) return { resourceTypes: [], reason: '此固定角色包含多种资源，请创建单资源新版本后授予' }
@@ -72,7 +82,7 @@ export function roleScopeEligibility(role: Role | undefined, catalog: PublishedC
 export function capabilitySelectionError(catalog: PublishedCatalog, resource: string | undefined, codes: string[]): string | undefined {
   if (!resource) return '请选择真实资源类型'
   if (!codes.length) return '至少选择一项当前可授予能力'
-  if (codes.some(code => !catalog.capabilities.some(cap => cap.code === code && cap.resource_type === resource && cap.grantable))) return '请明确移除未登记、停用、超委派或其他资源的能力'
+  if (codes.some(code => !catalog.capabilities.some(cap => cap.code === code && cap.resource_type === resource && cap.grantable))) return '请明确移除未登记、弃用、停用、超委派或其他资源的能力'
   return undefined
 }
 

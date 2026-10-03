@@ -3,6 +3,7 @@ import { isAxiosError, HttpStatusCode } from 'axios'
 
 /** 明确区分认证、拒绝、冲突和依赖故障，绝不把服务错误展示为空权限。 */
 export function failureMessage(error: unknown): string {
+  if (isAxiosError(error) && error.response?.data?.code === 'CAPABILITY_DEPRECATED') return '能力已弃用，已停止新增使用。请刷新目录并选择可用能力；现有授权按原规则继续。'
   const status = isAxiosError(error) ? error.response?.status : undefined
   if (status === HttpStatusCode.Unauthorized) return '登录已失效，请重新登录。'
   if (status === HttpStatusCode.Forbidden) return '无权访问当前范围，请检查成员关系或管理委派。'

@@ -11,7 +11,11 @@
     FROM auth_governance.capability_state cs
     WHERE cs.application_id=a.application_id AND EXISTS(
      SELECT 1 FROM jsonb_array_elements(s.manifest_json::jsonb-&gt;'capabilities') c WHERE c-&gt;&gt;'code'=cs.capability)
-   ),'[]') AS capability_states_json
+   ),'[]') AS capability_states_json,a.owner_principal_id,
+   COALESCE((SELECT jsonb_agg(jsonb_build_object('capability',l.capability,'state',l.state,'version',l.version,'reason',l.reason) ORDER BY l.capability)::text
+    FROM auth_governance.capability_lifecycle l WHERE l.application_id=a.application_id AND EXISTS(
+     SELECT 1 FROM jsonb_array_elements(s.manifest_json::jsonb-&gt;'capabilities') c WHERE c-&gt;&gt;'code'=l.capability)
+   ),'[]') AS lifecycle_states_json
   FROM auth_governance.login_identity li
   JOIN auth_governance.principal u ON u.id=li.principal_id
   JOIN auth_governance.membership m ON m.principal_id=u.id

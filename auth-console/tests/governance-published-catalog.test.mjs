@@ -24,3 +24,10 @@ test('database menu names require bounded complete unique display pairs',()=>{
   const v=catalog();v.menus[0]={...v.menus[0],label:'会员经营',position:0};v.menus[1]={...v.menus[1],...override};assert.throws(()=>validatePublishedCatalog(v,p));
  }
 })
+
+test('deprecation metadata is distinct, bounded and cannot remain grantable',()=>{
+ const c=catalog();c.lifecycle_owner=true;c.capabilities=c.capabilities.map(cap=>({...cap,lifecycle_state:'ACTIVE',lifecycle_version:0,lifecycle_reason:null}));assert.equal(validatePublishedCatalog(c,p).lifecycle_owner,true);
+ c.capabilities[0]={...c.capabilities[0],lifecycle_state:'DEPRECATED',lifecycle_version:1,lifecycle_reason:'停止新增',grantable:false};assert.match(roleScopeEligibility(role([c.capabilities[0].code]),c).reason,/弃用/);
+ for(const override of [{lifecycle_state:'RETIRED'},{lifecycle_version:-1},{lifecycle_version:0},{lifecycle_reason:''},{lifecycle_reason:'x'.repeat(501)},{grantable:true}])assert.throws(()=>validatePublishedCatalog({...c,capabilities:[{...c.capabilities[0],...override},...c.capabilities.slice(1)]},p));
+ const legacy=catalog();assert.equal(validatePublishedCatalog(legacy,p).capabilities[0].lifecycle_state,undefined);assert.throws(()=>validatePublishedCatalog({...legacy,lifecycle_owner:true},p));
+})

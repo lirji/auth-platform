@@ -16,8 +16,9 @@ public final class AccessManagement {
     private final IdentityGovernance identity;private final TransactionTemplate tx;
     private final FenceMapper fences;
     private final SafetyMapper safety;
+    private final CapabilityLifecycleMapper lifecycles;
     /** 仅所属治理Runtime装配专用数据库事务。 */
-    public AccessManagement(AccessMapper mapper,CatalogMapper catalog,IdentityMapper commands,IdentityGovernance identity,TransactionTemplate tx,FenceMapper fences,SafetyMapper safety){this.safety=safety;this.fences=fences;this.mapper=mapper;this.catalog=catalog;this.commands=commands;this.identity=identity;this.tx=tx;}
+    public AccessManagement(AccessMapper mapper,CatalogMapper catalog,IdentityMapper commands,IdentityGovernance identity,TransactionTemplate tx,FenceMapper fences,SafetyMapper safety,CapabilityLifecycleMapper lifecycles){this.lifecycles=lifecycles;this.safety=safety;this.fences=fences;this.mapper=mapper;this.catalog=catalog;this.commands=commands;this.identity=identity;this.tx=tx;}
     /** 先完成升级节点路由再启用；启用后没有自动退回P2的操作。 */
     public void enableStrict(VerifiedLogin login,Partition p,String command){
         tx.executeWithoutResult(status->{
@@ -40,6 +41,9 @@ public final class AccessManagement {
             int created=mapper.registerPartition(p,operator);
             if(!Boolean.TRUE.equals(mapper.lockPartition(p)))throw new GovernanceException(ACCESS_DENIED);
             Delegation normalized=new Delegation(d.membershipId(),d.generation(),caps,d.maxDurationSeconds());
+            var existing=mapper.delegation(p,d.membershipId(),d.generation());
+            if(existing==null)CapabilityUsage.requireCreatable(lifecycles,p.applicationId(),AccessValues.read(caps));
+            else if(!normalized.equals(existing))throw new GovernanceException(BINDING_CONFLICT);
             int inserted=mapper.registerDelegation(p,normalized,operator);
             if(!normalized.equals(mapper.delegation(p,d.membershipId(),d.generation())))throw new GovernanceException(BINDING_CONFLICT);
             if(created+inserted>0)one(commands.appendAudit(id(),operator,p.tenantId(),"BOOTSTRAP_ACCESS",d.membershipId(),d.generation(),command));
@@ -53,6 +57,7 @@ public final class AccessManagement {
             Manager manager=manager(login,p,true);requireCeiling(manager.delegation(),AccessValues.read(caps));requireCapabilities(p,AccessValues.read(caps));
             String hash=AccessValues.hash(p,code,version,caps);
             String result=command(manager.context(),p,"CREATE_ROLE",command,hash,()->{
+                if(mapper.roleByCode(p,code,version)==null)CapabilityUsage.requireCreatable(lifecycles,p.applicationId(),AccessValues.read(caps));
                 RoleVersion role=new RoleVersion(id(),p.tenantId(),p.applicationId(),p.environment(),code,version,caps,hash);
                 int inserted=mapper.insertRole(role,manager.context().membershipId());
                 RoleVersion actual=mapper.roleByCode(p,code,version);
@@ -104,6 +109,7 @@ public final class AccessManagement {
                     :AccessValues.hash(p,member,generation,roleId,scope,ruleJson,source,from,to);
             String commandHash=group==null?hash:AccessValues.hash(hash,group);
             String result=command(manager.context(),p,"CREATE_GRANT",command,commandHash,()->{
+                CapabilityUsage.requireCreatable(lifecycles,p.applicationId(),AccessValues.read(role.capabilitiesJson()));
                 if(group==null){if(!mapper.memberActive(p,member,generation))throw new GovernanceException(MEMBERSHIP_UNAVAILABLE);}
                 else {
                     var target=safety.group(p,group);

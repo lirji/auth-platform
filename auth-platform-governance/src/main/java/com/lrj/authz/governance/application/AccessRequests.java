@@ -22,10 +22,12 @@ public final class AccessRequests {
     private final IdentityMapper identities;
     private final IdentityGovernance identity;
     private final TransactionTemplate tx;
+    private final CapabilityLifecycleMapper lifecycles;
 
     /** 与既有治理聚合共用事务管理器，不跨库写OA状态。 */
     public AccessRequests(RequestMapper requests, AccessMapper access, CatalogMapper catalog,
-                          IdentityMapper identities, IdentityGovernance identity, TransactionTemplate tx) {
+                          IdentityMapper identities, IdentityGovernance identity, TransactionTemplate tx, CapabilityLifecycleMapper lifecycles) {
+        this.lifecycles=lifecycles;
         this.requests=requests; this.access=access; this.catalog=catalog;
         this.identities=identities; this.identity=identity; this.tx=tx;
     }
@@ -45,6 +47,7 @@ public final class AccessRequests {
             requireResource(p,role,rule.resourceType());
             String hash=AccessValues.hash(p,roleId,scope,duration,approver,approverGeneration,delegationHash(delegation),version);
             String id=command(actor,p,"REGISTER_REQUEST_POLICY",command,hash,()-> {
+                CapabilityUsage.requireCreatable(lifecycles,p.applicationId(),AccessValues.read(role.capabilitiesJson()));
                 Policy policy=new Policy(id(),p.tenantId(),p.applicationId(),p.environment(),roleId,scope,duration,
                         approver,approverGeneration,delegationHash(delegation),version,hash,true);
                 one(requests.insertPolicy(policy,actor.membershipId()));
@@ -68,6 +71,7 @@ public final class AccessRequests {
             String result=command(actor,p,"SUBMIT_ACCESS_REQUEST",command,hash,()-> {
                 Policy policy=usablePolicy(p,policyId,actor.membershipId());
                 RoleVersion role=access.role(p,policy.roleId());
+                CapabilityUsage.requireCreatable(lifecycles,p.applicationId(),AccessValues.read(role.capabilitiesJson()));
                 long seconds=policy.maxDurationSeconds();
                 if(!end.isAfter(access.now()) || Duration.between(start,end).compareTo(Duration.ofSeconds(seconds))>0) throw denied();
                 var member=identities.membership(actor.membershipId());
@@ -201,6 +205,7 @@ public final class AccessRequests {
                     || policy==null || !event.policyId().equals(policy.id()) || event.policyVersion()!=policy.policyVersion()
                     || !event.approverMembershipId().equals(policy.approverMembershipId()) || event.approverGeneration()!=policy.approverGeneration()) throw denied();
             usablePolicy(p,r.policyId(),r.membershipId());
+            if(approved)CapabilityUsage.requireCreatable(lifecycles,p.applicationId(),AccessValues.read(r.capabilitiesJson()));
             var member=identities.membership(r.membershipId());
             if(!access.memberActive(p,r.membershipId(),r.generation()) || !r.validTo().isAfter(access.now())
                     || member.validTo()!=null && r.validTo().isAfter(member.validTo())
@@ -226,6 +231,7 @@ public final class AccessRequests {
         if(policy==null || !policy.enabled() || policy.approverMembershipId().equals(beneficiary)) throw denied();
         RoleVersion role=access.role(p,policy.roleId());
         if(role==null) throw denied();
+        if(lifecycles.deprecated(p.applicationId(),AccessValues.read(role.capabilitiesJson())))throw new GovernanceException(CAPABILITY_DEPRECATED);
         Delegation delegation=ceiling(p,policy.approverMembershipId(),policy.approverGeneration(),role,policy.maxDurationSeconds());
         if(!policy.delegationHash().equals(delegationHash(delegation))) throw denied();
         requireResource(p,role,ScopeRules.decode(policy.scopeJson()).resourceType());

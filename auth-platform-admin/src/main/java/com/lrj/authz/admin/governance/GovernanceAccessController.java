@@ -23,6 +23,10 @@ public class GovernanceAccessController {
     private final AccessManagement access;private final ApplicationCatalog catalog;private final PortalPermissions diagnostics;private final java.util.List<com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration> deployments;
     /** 独立开关默认关闭，不改变旧管理工作区。 */
     public GovernanceAccessController(GovernanceRuntime runtime,GovernanceAdminConfiguration.Settings settings){access=runtime.access();catalog=runtime.catalog();diagnostics=runtime.portalPermissions(settings.portalDiagnostics());deployments=settings.catalogDeployments();}
+    /** 弃用和恢复仅当前真实Owner可操作，旧成功命令重放不再次改变生命周期。 */
+    @PostMapping(value="/catalog/capability-lifecycle",consumes="application/json") public ResponseEntity<JsonNode> lifecycle(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request) throws IOException {
+        return ResponseEntity.ok().header("Cache-Control","no-store").body(GovernanceWeb.body(catalog.changeLifecycle(login,AccessWeb.read(request.getInputStream(),com.lrj.authz.protocol.CapabilityLifecycleDtos.Change.class))));
+    }
     /** 受控配置声明与本次Owner候选分开，客户端不能提交运行证明或任意URL。 */
     @PostMapping(value="/catalog/drift",consumes="application/json") public JsonNode drift(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request) throws IOException {
         return GovernanceWeb.body(catalog.drift(login,CatalogPublication.read(request.getInputStream()),deployments));

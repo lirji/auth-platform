@@ -1,3 +1,4 @@
+import { LifecycleState } from '../governance/codes.ts'
 import { Alert, Button, Card, Descriptions, Empty, Input, Select, Skeleton, Space, Table, Tag, Tree, Typography } from 'antd'
 import type { DataNode } from 'antd/es/tree'
 import { useQuery } from '@tanstack/react-query'
@@ -9,9 +10,10 @@ import { Failure } from '../governance/feedback'
 import { capabilityMenus, menuCapabilities, relatedRoles, menuTitle, orderedMenus } from '../governance/catalogModel'
 import { useRoleDirectory } from '../governance/useRoleDirectory'
 import { PublishedCatalogBrowser } from '../governance/PublishedCatalogSelector'
+import { CapabilityLifecycleControl } from '../governance/CapabilityLifecycleControl'
 import { GovernanceEmpty } from '../governance/presentation'
 
-const CatalogFilter = { Disabled: 'disabled', Grantable: 'grantable', Restricted: 'restricted', Unlinked: 'unlinked' } as const
+const CatalogFilter = { Deprecated: 'deprecated', Disabled: 'disabled', Grantable: 'grantable', Restricted: 'restricted', Unlinked: 'unlinked' } as const
 
 /** 菜单只是目录映射；显示any_of原语义，避免将目录阅读当作实际访问授权。 */
 export default function GovernanceCatalogPage({ menus = false }: { menus?: boolean }) {
@@ -33,7 +35,7 @@ export default function GovernanceCatalogPage({ menus = false }: { menus?: boole
   const menuCodes = selectedMenu ? new Set(menuCapabilities(catalog, selectedMenu.code, true).map(cap => cap.code)) : undefined
   const caps = catalog.capabilities.filter(cap => (!menuCodes || menuCodes.has(cap.code)) && (!resource || cap.resource_type === resource)
     && (!risk || cap.risk_level === risk) && (!status || status === CatalogFilter.Disabled && cap.disabled || status === CatalogFilter.Grantable && cap.grantable
-      || status === CatalogFilter.Restricted && !cap.grantable && !cap.disabled || status === CatalogFilter.Unlinked && !capabilityMenus(catalog, cap.code).length)
+      || status === CatalogFilter.Deprecated && cap.lifecycle_state === LifecycleState.DEPRECATED || status === CatalogFilter.Restricted && !cap.grantable && !cap.disabled && cap.lifecycle_state !== LifecycleState.DEPRECATED || status === CatalogFilter.Unlinked && !capabilityMenus(catalog, cap.code).length)
     && (!search || `${cap.code} ${cap.resource_type}`.toLowerCase().includes(search)))
   const reset = () => setParams(applicationSearch(params, partition.application_id, partition.environment))
   const tree = (parent: string | null): DataNode[] => orderedMenus(catalog).filter(menu => menu.parent === parent).map(menu => ({ key: menu.code, title: menuTitle(menu), children: tree(menu.code) }))
@@ -67,7 +69,7 @@ export default function GovernanceCatalogPage({ menus = false }: { menus?: boole
           <Select aria-label="筛选菜单" placeholder="全部菜单" allowClear value={selectedMenu?.code} options={orderedMenus(catalog).map(menu => ({ value: menu.code, label: menuTitle(menu) }))} onChange={value => set('menu', value)} />
           <Select aria-label="筛选资源" placeholder="全部资源类型" allowClear value={resource || undefined} options={catalog.resource_types.map(type => ({ value: type.code, label: type.code }))} onChange={value => set('resource', value)} />
           <Select aria-label="筛选风险" placeholder="全部风险等级" allowClear value={risk || undefined} options={[{ value: 'NORMAL', label: '普通风险' }, { value: 'HIGH', label: '高风险' }]} onChange={value => set('risk', value)} />
-          <Select aria-label="筛选权限状态" placeholder="全部权限状态" allowClear value={status || undefined} options={[{ value: CatalogFilter.Grantable, label: '当前可授予' }, { value: CatalogFilter.Restricted, label: '超当前委派' }, { value: CatalogFilter.Disabled, label: '已停用' }, { value: CatalogFilter.Unlinked, label: '未关联菜单' }]} onChange={value => set('status', value)} />
+          <Select aria-label="筛选权限状态" placeholder="全部权限状态" allowClear value={status || undefined} options={[{ value: CatalogFilter.Grantable, label: '当前可授予' }, { value: CatalogFilter.Restricted, label: '超当前委派' }, { value: CatalogFilter.Disabled, label: '已停用' }, { value: CatalogFilter.Deprecated, label: '已弃用 · 停止新增' }, { value: CatalogFilter.Unlinked, label: '未关联菜单' }]} onChange={value => set('status', value)} />
           <Button onClick={reset}>重置筛选</Button>
         </div>
         <p className="g-result-count">匹配 {caps.length} 项 / 当前目录 {catalog.capabilities.length} 项</p>
@@ -78,6 +80,7 @@ export default function GovernanceCatalogPage({ menus = false }: { menus?: boole
       {!selectedCapability ? <Alert type="warning" message="当前目录未找到该能力，可能已变更，请刷新目录。" /> : <>
         <Typography.Title level={4} className="g-code-heading">{selectedCapability.code}</Typography.Title>
         <Descriptions column={1} items={[{ label: '资源类型', children: selectedCapability.resource_type }, { label: '风险等级', children: selectedCapability.risk_level === 'HIGH' ? '高风险' : '普通风险' }, { label: '当前状态', children: <CapabilityStatus capability={selectedCapability} /> }, { label: '支持范围', children: catalog.resource_types.find(type => type.code === selectedCapability.resource_type)?.allowed_scope_kinds.join(' / ') || '当前未绑定可执行范围' }]} />
+        <CapabilityLifecycleControl key={`${partition.application_id}:${selectedCapability.code}`} application={partition.application_id} capability={selectedCapability} owner={catalog.lifecycle_owner === true} refreshing={query.isFetching} refresh={async () => { await query.refetch(); await roles.refetch() }} />
         <section className="g-detail-section"><h3>直接关联菜单</h3><Space wrap>{capabilityMenus(catalog, selectedCapability.code).map(menu => <Link key={menu.code} to={link('menus', 'menu', menu.code)}>{menuTitle(menu)}</Link>)}{!capabilityMenus(catalog, selectedCapability.code).length && <span>未关联菜单；该权限仍可用于接口或其他业务能力。</span>}</Space></section>
         <section className="g-detail-section"><h3>关联固定角色版本</h3><p>以下关联表示角色包含此权限，成员的实际访问还受授权范围、有效期和实时判权约束。</p>
           {roles.error ? <Failure error={roles.error} retry={() => void roles.refetch()} /> : roles.isPending ? <Skeleton active /> : <div className="g-directory-links">{relatedRoles(roles.data ?? [], [selectedCapability.code]).map(role => <Link key={role.id} to={link('roles', 'role', role.id)}>{role.role_code} · v{role.version}</Link>)}{!relatedRoles(roles.data ?? [], [selectedCapability.code]).length && <span>当前没有包含此权限的固定角色版本</span>}</div>}
@@ -88,7 +91,7 @@ export default function GovernanceCatalogPage({ menus = false }: { menus?: boole
 }
 
 export function CapabilityStatus({ capability: cap }: { capability: PublishedCapability }) {
-  return <Tag color={cap.disabled ? 'error' : cap.grantable ? 'success' : undefined}>{cap.disabled ? '已停用' : cap.grantable ? '当前可授予' : '超当前委派'}</Tag>
+  return <Space wrap>{cap.lifecycle_state === LifecycleState.DEPRECATED && <Tag color="warning">已弃用 · 停止新增</Tag>}{cap.lifecycle_state == null && <Tag>生命周期信息缺失</Tag>}<Tag color={cap.disabled ? 'error' : cap.grantable ? 'success' : undefined}>{cap.disabled ? '已停用' : cap.grantable ? '当前可授予' : cap.lifecycle_state === LifecycleState.DEPRECATED ? '保留现有使用' : '超当前委派'}</Tag></Space>
 }
 
 function CapabilityTable({ capabilities, catalog, onSelect, page, onPage }: { capabilities: PublishedCapability[]; catalog?: PublishedCatalog; onSelect: (code: string) => void; page?: number; onPage?: (page: number) => void }) {
