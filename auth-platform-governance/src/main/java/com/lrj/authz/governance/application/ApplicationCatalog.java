@@ -7,8 +7,6 @@ import com.lrj.authz.governance.domain.IdentityModels.PrincipalKind;
 import com.lrj.authz.governance.persistence.*;
 import org.springframework.transaction.support.TransactionTemplate;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import static com.lrj.authz.governance.application.GovernanceException.Code.*;
 
 /** 应用目录唯一写用例；清单发布不产生或修改业务授权。 */
@@ -49,6 +47,7 @@ public final class ApplicationCatalog {
         return transaction.execute(status -> {
             Application app=requireOwner(login,manifest.application(),true);
             Preview result=preview(app,manifest);
+            if (!result.publishable()) { throw new GovernanceException(VERSION_CONFLICT); }
             Snapshot existing=mapper.snapshot(app.applicationId(),manifest.manifestVersion());
             if (existing!=null) {
                 if (!existing.contentHash().equals(result.contentHash()) || app.manifestVersion()!=existing.version()) { throw new GovernanceException(VERSION_CONFLICT); }
@@ -97,21 +96,12 @@ public final class ApplicationCatalog {
         return app;
     }
     private Preview preview(Application app,Manifest manifest) {
-        if (manifest.manifestVersion()<app.manifestVersion()) { throw new GovernanceException(VERSION_CONFLICT); }
         Snapshot previous=mapper.snapshot(app.applicationId(),app.manifestVersion());
-        Map<String,Capability> old=previous==null?Map.of():CatalogManifest.read(previous.manifestJson()).capabilities().stream().collect(Collectors.toMap(Capability::code,Function.identity()));
-        Map<String,Capability> next=manifest.capabilities().stream().collect(Collectors.toMap(Capability::code,Function.identity()));
-        if (!next.keySet().containsAll(old.keySet()) || old.values().stream().anyMatch(c -> !c.equals(next.get(c.code())))) { throw new GovernanceException(VERSION_CONFLICT); }
-        String hash=CatalogManifest.hash(manifest);
-        // 同版重试也必须保持中文名称与顺序，不能靠相同权限摘要悄悄改显示事实。
-        if (manifest.manifestVersion()==app.manifestVersion()) {
-            var shown=mapper.presentation(app.applicationId(),app.manifestVersion());
-            String expected=shown==null ? CatalogManifest.presentationHash(new Manifest(manifest.schemaVersion(),manifest.application(),manifest.manifestVersion(),manifest.capabilities(),List.of())) : shown.presentationHash();
-            if (!expected.equals(CatalogManifest.presentationHash(manifest))) { throw new GovernanceException(VERSION_CONFLICT); }
-        }
-        if (manifest.manifestVersion()==app.manifestVersion() && (previous==null || !hash.equals(previous.contentHash()))) { throw new GovernanceException(VERSION_CONFLICT); }
-        return new Preview(app.applicationId(),app.manifestVersion(),manifest.manifestVersion(),hash,
-                next.keySet().stream().filter(k -> !old.containsKey(k)).sorted().toList(),old.keySet().stream().sorted().toList());
+        if (app.manifestVersion()>0 && previous==null) { throw new GovernanceException(DEPENDENCY_UNAVAILABLE); }
+        var shown=previous==null ? null : mapper.presentation(app.applicationId(),app.manifestVersion());
+        Manifest old=previous==null ? null : CatalogManifest.withPresentation(CatalogManifest.read(previous.manifestJson()),
+                shown==null ? "[]" : shown.presentationJson(),shown==null ? null : shown.presentationHash());
+        return CatalogDiff.compare(app.applicationId(),app.manifestVersion(),old,manifest);
     }
     private static void requireOne(int count) { if(count!=1) { throw new GovernanceException(VERSION_CONFLICT); } }
 }

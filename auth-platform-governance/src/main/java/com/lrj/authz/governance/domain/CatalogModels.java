@@ -28,9 +28,26 @@ public final class CatalogModels {
                            List<Capability> capabilities, List<Menu> menus) {
         public Manifest { capabilities = capabilities == null ? null : List.copyOf(capabilities); menus = menus == null ? null : List.copyOf(menus); }
     }
-    /** 预览只报告版本和能力差异，不产生角色授予。 */
+    /** 差异类型来自稳定菜单ID；名称或路由变化不被误认为新菜单。 */
+    public enum ChangeKind { ADDED, REMOVED, CHANGED }
+    /** 修改前后均保留完整菜单，字段按固定顺序返回以便审查。 */
+    public record MenuChange(String code, ChangeKind kind, Menu before, Menu after, List<String> fields) {
+        public MenuChange { fields = List.copyOf(fields); }
+    }
+    /** 发布限制单独展示，语义错误不能通过预览获得发布资格。 */
+    public enum ViolationKind { CAPABILITY_REMOVED, CAPABILITY_CHANGED, VERSION_REGRESSION, SAME_VERSION_CHANGED }
+    /** 能力冲突明确保留旧／新语义；版本冲突没有能力目标。 */
+    public record CatalogViolation(ViolationKind code, String capability, Capability before, Capability after) {}
+    /** 预览只报告目录事实及潜在关联能力，不产生角色授予或资源授权证明。 */
     public record Preview(String application, long currentVersion, long proposedVersion, String contentHash,
-                          List<String> added, List<String> retained) {}
+                          List<String> added, List<String> retained, String presentationHash,
+                          List<MenuChange> menuChanges, List<CatalogViolation> violations, boolean publishable,
+                          List<String> affectedCapabilities) {
+        public Preview {
+            added = List.copyOf(added); retained = List.copyOf(retained); menuChanges = List.copyOf(menuChanges);
+            violations = List.copyOf(violations); affectedCapabilities = List.copyOf(affectedCapabilities);
+        }
+    }
     /** 持久化快照保留摘要用于同版本幂等判断。 */
     public record Snapshot(String applicationId, long version, String contentHash, String manifestJson) {}
 }

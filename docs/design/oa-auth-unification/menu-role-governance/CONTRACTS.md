@@ -23,6 +23,8 @@ Commerce `frontend/src/iam/catalog.json` 保存 schema_version、application、c
 
 原 application/current_version/proposed_version/content_hash/added/retained 保留；兼容增加 presentation_hash、menu_changes、violations、publishable。menu_changes 按稳定 code 排序，含 code、kind（ADDED/REMOVED/CHANGED）、before/after 菜单、fields（label/position/parent/route/any_of）。纯列表排序不产生差异。
 
+MG02实现细化：affected_capabilities 为稳定排序的潜在关联能力并集；retained 只含语义完整保留的原能力。violations 为 `{code, capability, before, after}`，code取 CAPABILITY_REMOVED、CAPABILITY_CHANGED、VERSION_REGRESSION、SAME_VERSION_CHANGED；能力冲突保留旧／新能力事实，版本冲突后三字段为null。新增／删除菜单的fields列全部五个展示／映射字段。
+
 结构损坏、未知字段、重复键、超限仍 INVALID_ARGUMENT（400）。原能力删除／resource_type 或 risk_level 改变、倒退版本、同版内容改变以 violations 展示并 publishable=false；实际发布继续 VERSION_CONFLICT（409）。预览不写快照、命令或授权；非法预览也不能获得可发布资格。
 
 变化的潜在关联能力是变更节点及两版相关子树 any_of 的并集；它表示入口／展示可能受影响，不是资源授权证明。相同编码下业务实现扩大语义无法自动检测，必须在项目变更中评审。

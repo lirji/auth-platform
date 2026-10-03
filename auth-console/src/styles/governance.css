@@ -104,3 +104,14 @@
 @media(max-width: 560px) { .g-catalog-filters { grid-template-columns: 1fr; }.g-menu-browser .ant-tree { max-height: 280px; overflow-y: auto; }.g-directory-links { gap: 10px 16px; } }
 
 .g-role-capability-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 0; border-bottom: 1px solid #e6eaf0; overflow-wrap: anywhere; }.g-role-capability-row a { flex: 1; min-width: 150px; }.g-role-capability-row span { font-size: 12px; }
+/* 差异两侧在窄屏自然换行，稳定编码和路由必须可完整查看。 */
+.g-catalog-changes { margin-top: 20px; overflow-wrap: anywhere; }
+.g-catalog-change-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.g-catalog-change-filters > .ant-input-affix-wrapper { flex: 1 1 240px; min-width: 0; }
+.g-catalog-change-filters > .ant-select { flex: 0 1 160px; }
+.g-catalog-change { border: 1px solid var(--g-line, #e1e5ec); border-radius: 8px; margin: 12px 0; }
+.g-catalog-change summary { cursor: pointer; padding: 12px; }
+.g-catalog-change summary code, .g-catalog-change summary > span:last-child { display: block; margin-top: 6px; }
+.g-catalog-change-facts { display: flex; flex-wrap: wrap; gap: 16px; padding: 0 12px 12px; }
+.g-catalog-change-side { flex: 1 1 300px; min-width: 0; }
+.g-catalog-change-side h4 { margin: 12px 0; }

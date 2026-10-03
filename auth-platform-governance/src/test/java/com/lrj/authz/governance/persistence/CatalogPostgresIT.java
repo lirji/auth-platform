@@ -33,8 +33,12 @@ class CatalogPostgresIT {
     private Manifest manifest(String app,long version){return new Manifest("1",app,version,List.of(new Capability(app+".read","store",Risk.NORMAL)),List.of(new Menu("stores",null,"/stores",List.of(app+".read"))));}
     @Test void previewIsReadOnlyAndConcurrentPublishHasOneAudit() throws Exception {
         var p=person();String app=register(p);var m=manifest(app,1);
+        int auditBefore=jdbc.queryForObject("select count(*) from auth_governance.catalog_audit where application_id=?",Integer.class,app);
         assertThat(runtime.catalog().preview(login(p),m).added()).containsExactly(app+".read");
         assertThat(runtime.catalog().current(login(p),app)).isNull();
+        assertThat(jdbc.queryForObject("select count(*) from auth_governance.catalog_audit where application_id=?",Integer.class,app)).isEqualTo(auditBefore);
+        assertThat(jdbc.queryForObject("select count(*) from auth_governance.role_version where tenant_id=?",Integer.class,p.tenantId())).isZero();
+        assertThat(jdbc.queryForObject("select count(*) from auth_governance.access_grant where tenant_id=?",Integer.class,p.tenantId())).isZero();
         try(var executor=Executors.newFixedThreadPool(3)) {
             Callable<Preview> call=()->runtime.catalog().publish(login(p),m,id());
             for(var result:executor.invokeAll(List.of(call,call,call)))assertThat(result.get().proposedVersion()).isEqualTo(1);
@@ -51,6 +55,8 @@ class CatalogPostgresIT {
     @Test void immutableMeaningAndOldVersionAreRejected(){
         var p=person();String app=register(p);var first=manifest(app,1);runtime.catalog().publish(login(p),first,id());
         var changed=new Manifest("1",app,2,List.of(new Capability(app+".read","order",Risk.HIGH)),List.of());
+        assertThat(runtime.catalog().preview(login(p),changed).publishable()).isFalse();
+        assertThat(runtime.catalog().preview(login(p),changed).violations()).extracting(CatalogViolation::code).containsExactly(ViolationKind.CAPABILITY_CHANGED);
         assertThatThrownBy(()->runtime.catalog().publish(login(p),changed,id())).hasMessage("VERSION_CONFLICT");
         var next=new Manifest("1",app,2,List.of(new Capability(app+".read","store",Risk.NORMAL),new Capability(app+".write","store",Risk.HIGH)),first.menus());
         assertThat(runtime.catalog().publish(login(p),next,id()).added()).containsExactly(app+".write");
@@ -85,6 +91,11 @@ class CatalogPostgresIT {
         assertThat(jdbc.queryForObject("select count(*) from auth_governance.catalog_audit where application_id=? and operation='PUBLISH'",Integer.class,app)).isEqualTo(1);
         assertThatThrownBy(()->runtime.catalog().publish(login(p),named(app,1,"改名"),id())).hasMessage("VERSION_CONFLICT");
         assertThatThrownBy(()->runtime.catalog().publish(login(p),manifest(app,1),id())).hasMessage("VERSION_CONFLICT");
+        var preview=runtime.catalog().preview(login(p),named(app,1,"改名"));
+        assertThat(preview.publishable()).isFalse();
+        assertThat(preview.menuChanges().getFirst().before().label()).isEqualTo("商家与门店");
+        assertThat(preview.menuChanges().getFirst().after().label()).isEqualTo("改名");
+        assertThat(jdbc.queryForObject("select count(*) from auth_governance.catalog_audit where application_id=? and operation='PUBLISH'",Integer.class,app)).isEqualTo(1);
         runtime.catalog().publish(login(p),named(app,2,"商品与门店"),id());
         assertThat(runtime.catalog().current(login(p),app).menus().getFirst().label()).isEqualTo("商品与门店");
     }

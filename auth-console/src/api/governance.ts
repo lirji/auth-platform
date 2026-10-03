@@ -55,7 +55,11 @@ export const roleImpact = async (p: Partition, role: string): Promise<RoleImpact
 export const createRole = async (body: RoleCommand): Promise<Role> => (await apiClient.post('/api/governance/v1/access/roles', body)).data
 export const grantScoped = async (body: GrantCommand): Promise<Grant> => (await apiClient.post('/api/governance/v1/access/scoped-grants', body)).data
 
-export interface CatalogPreview { application: string; current_version: number; proposed_version: number; content_hash: string; added: string[]; retained: string[] }
+export interface MenuChange { code: string; kind: 'ADDED' | 'REMOVED' | 'CHANGED'; before: PublishedMenu | null; after: PublishedMenu | null; fields: string[] }
+export interface CatalogViolation { code: 'CAPABILITY_REMOVED' | 'CAPABILITY_CHANGED' | 'VERSION_REGRESSION' | 'SAME_VERSION_CHANGED'; capability: string | null;
+  before: CatalogManifest['capabilities'][number] | null; after: CatalogManifest['capabilities'][number] | null }
+export interface CatalogPreview { application: string; current_version: number; proposed_version: number; content_hash: string; added: string[]; retained: string[];
+  presentation_hash: string; menu_changes: MenuChange[]; violations: CatalogViolation[]; publishable: boolean; affected_capabilities: string[] }
 export interface CatalogManifest { schema_version: string; application: string; manifest_version: number;
   capabilities: { code: string; resource_type: string; risk_level: string }[]; menus: { code: string; parent: string | null; route: string | null; any_of: string[]; label?: string | null; position?: number | null }[] }
 export const previewCatalog = async (manifest: CatalogManifest): Promise<CatalogPreview> => (await apiClient.post('/api/governance/v1/catalog/preview', manifest)).data
