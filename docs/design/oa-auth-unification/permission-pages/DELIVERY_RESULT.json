@@ -1,0 +1,52 @@
+{
+  "status": "COMPLETED",
+  "gate": "PASS",
+  "slices": [
+    "GP01",
+    "GP02",
+    "GP03"
+  ],
+  "branch": "feat/governance-permission-pages",
+  "product_commit": "c101b4538160f7e005b25b2ac1a302d0213719f0",
+  "main_product_push": "PASS",
+  "ci": {
+    "result": "PASS",
+    "run_id": 37095434945,
+    "url": "https://github.com/lirji/auth-platform/actions/runs/37095434945",
+    "head_sha": "c101b4538160f7e005b25b2ac1a302d0213719f0",
+    "successful_steps": 28
+  },
+  "deployment": {
+    "target": "http://localhost:5273",
+    "result": "PASS",
+    "console_image": "auth-platform/governance-console:rev-c101b4538160",
+    "image_id": "sha256:414a71edaf7175ee1654e148602f4f96b76672d895742f5ea032abdaa773c2c2",
+    "backend_image": "retained previous verified artifact",
+    "health": "PASS",
+    "static_files_equal_image": 8,
+    "business_data_unchanged": true,
+    "other_containers_unchanged": 32,
+    "browser_checks": 14,
+    "browser_page_errors": 0,
+    "management_writes": 0,
+    "visual_screenshots": 39,
+    "visual_review": "PASS",
+    "rollback": "NOT_NEEDED; previous console image and private runtime configuration preserved"
+  },
+  "validation": {
+    "unit_tests": 19,
+    "isolated_browser_checks": 17,
+    "isolated_http_sql_checks": 6,
+    "result": "PASS"
+  },
+  "limitations": [
+    "No canonical formatter/static analyzer configured.",
+    "Current local partition has 2 menus/3 capabilities; isolated test catalog not migrated."
+  ],
+  "cleanup": {
+    "new_worktrees": 0,
+    "unrelated_worktrees": "retained",
+    "private_evidence_and_test_databases": "retained; not authorized for deletion"
+  },
+  "documentation_followup": "Pure delivery metadata; no product/test/runtime source change."
+}
