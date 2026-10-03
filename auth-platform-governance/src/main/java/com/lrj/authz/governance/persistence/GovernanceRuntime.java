@@ -33,6 +33,7 @@ public final class GovernanceRuntime implements AutoCloseable {
     private ApprovalInboxMapper inboxMapper;
     private RequestMapper requestMapper;
     private PortalMapper portalMapper;
+    private RoleMigrationMapper roleMigrationMapper;
     private PermissionMapper permissionMapper;
     private CatalogImpactMapper catalogImpactMapper;
     private InvitationMapper invitationMapper;
@@ -122,6 +123,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             runtime.catalog = new com.lrj.authz.governance.application.ApplicationCatalog(session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(SafetyMapper.class), session.getMapper(CatalogReleaseMapper.class), session.getMapper(CatalogGuardMapper.class));
             runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(FenceMapper.class), session.getMapper(SafetyMapper.class));
             runtime.portalMapper=session.getMapper(PortalMapper.class);
+            runtime.roleMigrationMapper=session.getMapper(RoleMigrationMapper.class);
             runtime.permissionMapper=session.getMapper(PermissionMapper.class);
             runtime.catalogImpactMapper=session.getMapper(CatalogImpactMapper.class);
             runtime.invitationMapper=session.getMapper(InvitationMapper.class);
@@ -255,6 +257,11 @@ public final class GovernanceRuntime implements AutoCloseable {
     /** 管理展示复用与写入相同的身份/委派边界。 */
     public com.lrj.authz.governance.application.PortalManagement portalManagement() {
         return new com.lrj.authz.governance.application.PortalManagement(access, identity, accessMapper, catalogMapper, portalMapper);
+    }
+
+    /** 固定角色迁移只读用例复用当前委派、主库和既有事务管理器。 */
+    public com.lrj.authz.governance.application.RoleMigrationPreview roleMigrationPreview() {
+        return new com.lrj.authz.governance.application.RoleMigrationPreview(access,portalManagement(),accessMapper,roleMigrationMapper,transaction);
     }
 
     /** 门户复用本进程现有身份与展示装配，组织/应用目录不依赖OA。 */

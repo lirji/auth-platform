@@ -1,6 +1,7 @@
+import { RoleMigrationPanel } from '../governance/RoleMigrationPanel'
 import { menuTitle } from '../governance/catalogModel'
 import { GovernanceModal, CapabilityList, GovernanceEmpty } from '../governance/presentation'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Alert, Button, Card, Descriptions, Form, Input, InputNumber, Modal, Select, Skeleton, Space, Table, Tabs, Tag, Typography } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -32,6 +33,12 @@ export default function GovernanceAccessPage({ view }: { view?: 'roles' | 'grant
   const [grantOpen, setGrantOpen] = useState(false)
   const [catalogOpen, setCatalogOpen] = useState(false)
   const [copy, setCopy] = useState<Role>()
+  const [migrationRole, setMigrationRole] = useState<Role>()
+  const migrationTrigger = useRef<HTMLElement | null>(null)
+  // 该子弹层关闭后直接卸载，显式恢复入口焦点，避免依赖未执行的关闭动画回调。
+  const closeMigration = () => { setMigrationRole(undefined); requestAnimationFrame(() => { if (migrationTrigger.current?.isConnected) migrationTrigger.current.focus() }) }
+  const migrationContext = queryKey.join(':')
+  useEffect(() => setMigrationRole(undefined), [migrationContext])
   const authority = useQuery({ queryKey: [...queryKey, 'management'], queryFn: () => management(partition), retry: false, staleTime: 0, gcTime: 0 })
   const catalog = useQuery({ queryKey: [...queryKey, 'published-catalog'], queryFn: ({ signal }) => publishedCatalog(partition, signal), retry: false, staleTime: 0, gcTime: 0 })
   const result = useQuery({ queryKey: [...queryKey, 'access', cursors], queryFn: ({ signal }) => accessState(partition, cursors.role, cursors.grant, signal), retry: false, staleTime: 0, gcTime: 0 })
@@ -44,7 +51,7 @@ export default function GovernanceAccessPage({ view }: { view?: 'roles' | 'grant
   const roleName = (id: string) => !roleDirectory.error ? roleDirectory.data?.find(role => role.id === id) : undefined
   const filteredRoles = result.data?.roles.filter(role => (!q || `${role.role_code} ${role.version} ${role.capabilities.join(' ')}`.toLowerCase().includes(q)) && (!params.get('resource') || !catalog.error && role.capabilities.some(code => catalog.data?.capabilities.some(cap => cap.code === code && cap.resource_type === params.get('resource')))))
   const filteredGrants = result.data?.grants.filter(grant => (!params.get('state') || grant.state === params.get('state')) && (!q || `${grant.member_id} ${roleName(grant.role_id)?.role_code ?? grant.role_id} ${grant.source_id} ${grant.source_type}`.toLowerCase().includes(q)))
-  if ((authority.error || result.error) && !roleOpen && !grantOpen) return <Failure error={authority.error ?? result.error} retry={refresh} />
+  if ((authority.error || result.error) && !roleOpen && !grantOpen && !migrationRole) return <Failure error={authority.error ?? result.error} retry={refresh} />
   const roleList = <>
     <div className="g-data-heading"><p>固定版本保持不变；筛选仅针对当前游标页，下一页继续读取。</p></div>
     <div className="g-catalog-filters"><Input.Search aria-label="搜索当前页角色" placeholder="搜索当前页角色或权限" value={params.get('q') ?? ''} onChange={event => setParam('q', event.target.value)} />
@@ -54,7 +61,7 @@ export default function GovernanceAccessPage({ view }: { view?: 'roles' | 'grant
     <Table<Role> rowKey="id" locale={{ emptyText: <GovernanceEmpty title="没有匹配的角色版本" description="调整当前页筛选，或创建固定角色版本。" /> }} dataSource={filteredRoles} pagination={false} scroll={{ x: 850 }} columns={[
       { title: '角色', dataIndex: 'role_code', width: 200, render: (code, role) => <Button type="link" className="g-code-link" onClick={() => setParam('role', role.id)}>{code}</Button> }, { title: '版本', dataIndex: 'version', width: 70 },
       { title: '权限', dataIndex: 'capabilities', render: (caps: string[]) => <CapabilityList values={caps} compact /> },
-      { title: '操作', width: 230, render: (_, row) => <Space wrap><Button type="link" onClick={() => setParam('role', row.id)}>角色详情</Button><Button type="link" disabled={!catalog.data || catalog.isFetching || !!catalog.error} onClick={() => { setCopy(row); setRoleOpen(true) }}>复制新版本</Button></Space> },
+      { title: '操作', width: 310, render: (_, row) => <Space wrap><Button type="link" onClick={() => setParam('role', row.id)}>角色详情</Button><Button type="link" disabled={!catalog.data || catalog.isFetching || !!catalog.error} onClick={() => { setCopy(row); setRoleOpen(true) }}>复制新版本</Button><Button type="link" disabled={roleDirectory.isFetching || !!roleDirectory.error} onClick={event => { migrationTrigger.current = event.currentTarget; setMigrationRole(row) }}>迁移预览</Button></Space> },
     ]} />
     <Space style={{ marginTop: 12 }}>{cursors.role && <Button onClick={() => setParam('role_after')}>角色首页</Button>}{result.data?.next_role_cursor && <Button onClick={() => setParam('role_after', result.data!.next_role_cursor!)}>下一页角色</Button>}</Space>
   </>
@@ -89,6 +96,7 @@ export default function GovernanceAccessPage({ view }: { view?: 'roles' | 'grant
       </Space>
       {view ? view === 'roles' ? roleList : grantList : <Tabs activeKey={params.get('access_tab') === 'grants' ? 'grants' : 'roles'} onChange={key => setParam('access_tab', key)} items={[{ key: 'roles', label: '固定角色版本', children: roleList }, { key: 'grants', label: '成员授权', children: grantList }]} />}
     </Card>
+    {migrationRole && <RoleMigrationPanel key={`${queryKey.join(':')}:${migrationRole.id}`} oldRole={migrationRole} roles={roleDirectory.data ?? []} close={closeMigration} />}
     <GovernanceModal title={selected ? `${selected.role_code} · 版本 ${selected.version}` : '角色详情'} open={!!selectedId} onCancel={() => setParam('role')} width={760}>
       {roleDirectory.error ? <Failure error={roleDirectory.error} retry={() => void roleDirectory.refetch()} /> : roleDirectory.isPending ? <Skeleton active /> : !selected ? <Alert type="warning" message="当前分区未找到该固定角色版本，请刷新后重新选择。" /> : <>
         <Descriptions column={1} items={[{ label: '角色编码', children: selected.role_code }, { label: '固定版本', children: selected.version }, { label: '角色标识', children: <Typography.Text copyable>{selected.id}</Typography.Text> }, { label: '权限数量', children: selected.capabilities.length }]} />

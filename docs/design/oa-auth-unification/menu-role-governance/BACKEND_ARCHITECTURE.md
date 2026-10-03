@@ -55,3 +55,13 @@ Admin CatalogPublisherController → CatalogPublisher 应用服务 → Applicati
 ## 实施 handoff
 
 MG10 实现 MG09_CONTRACT 的认证、委派、唯一写内核和数据库约束；MG11 再实现默认 dry-run 的固定目标客户端和 CI 报告。当前安装版认证实测未验证，机器运行 gate HOLD；这不阻止完成默认关闭的实现和本机协议测试，但 MG10 不得标 DONE 或开启发布，直至必要真实验收通过。
+
+## 后续事实与 MG12 只读模型（2026-10-03）
+
+上文未验证状态为 MG09 当时记录。MG10／MG11安装版与隔离验证已通过，精确证据见对应 TEST_RESULT；默认关闭及独立环境的决定继续有效。
+
+MG12采用 [MG12_CONTRACT](MG12_CONTRACT.md)：原管理链 → RoleMigrationPreview → 同主库 RoleMigrationMapper XML。角色、Grant和范围继续由原模块拥有；无新中间件、后台进程、授权写入口或跨库读取。
+
+两个批量查询各最多50条，完整分区限定，关联固定范围及当前成员代际；READ_COMMITTED只读事务、5秒上限。当前管理权、目录和两份源快照不一致则409；最后PG时钟再次校验Grant／成员期限。ACTIVE记录不被当作真实图ALLOW，projection_status始终UNKNOWN。
+
+角色引用使用UUID游标每页20条（多取1条判断下一页），V25仅添加匹配分区／角色／UUID的索引。公开报告不返回图Token或内部人员版本，不写预览审计、命令、范围、角色或Grant。MG13须独立建立持久任务与来源谱系，在写事务重新校验并取得真实撤权确认。

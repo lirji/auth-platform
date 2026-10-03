@@ -18,9 +18,29 @@ import org.springframework.http.ResponseEntity;
 @RequestMapping("/api/governance/v1/access")
 public class GovernanceManagementViewController {
     private final PortalManagement management;
+    private final com.lrj.authz.governance.application.RoleMigrationPreview migrations;
     private final com.lrj.authz.governance.application.AccessRequests requests;
     /** 只复用既有治理Runtime，没有独立BFF存储。 */
-    public GovernanceManagementViewController(GovernanceRuntime runtime) { management = runtime.portalManagement(); requests=runtime.requests(); }
+    public GovernanceManagementViewController(GovernanceRuntime runtime) { management = runtime.portalManagement(); requests=runtime.requests(); migrations=runtime.roleMigrationPreview(); }
+
+    /** 有界旧角色引用只供明确选择，不能把第一页冒充全部迁移对象。 */
+    @GetMapping("/role-migration-grants")
+    public ResponseEntity<JsonNode> migrationGrants(@AuthenticationPrincipal VerifiedLogin login,
+            @RequestParam("tenant_id") String tenant,@RequestParam("application_id") String app,
+            @RequestParam("environment") String env,@RequestParam("old_role_id") String role,
+            @RequestParam(value="after",required=false) String after,jakarta.servlet.http.HttpServletRequest request) {
+        var allowed=java.util.Set.of("tenant_id","application_id","environment","old_role_id","after");
+        if(request.getParameterMap().entrySet().stream().anyMatch(e->!allowed.contains(e.getKey())||e.getValue().length!=1))
+            throw new com.lrj.authz.governance.application.GovernanceException(com.lrj.authz.governance.application.GovernanceException.Code.INVALID_ARGUMENT);
+        return ResponseEntity.ok().header("Cache-Control","no-store").body(GovernanceWeb.body(migrations.candidates(login,new Partition(tenant,app,env),role,after)));
+    }
+
+    /** 严格只读JSON不接受操作者或来源改写，预览不能作为后续执行票据。 */
+    @PostMapping(value="/role-migration-preview",consumes="application/json")
+    public ResponseEntity<JsonNode> migrationPreview(@AuthenticationPrincipal VerifiedLogin login,jakarta.servlet.http.HttpServletRequest request) throws java.io.IOException {
+        var input=com.lrj.authz.governance.web.AccessWeb.read(request.getInputStream(),com.lrj.authz.protocol.RoleMigrationDtos.PreviewRequest.class);
+        return ResponseEntity.ok().header("Cache-Control","no-store").body(GovernanceWeb.body(migrations.preview(login,input)));
+    }
     /** 完整已发布元数据受当前管理委派保护，浏览器不能缓存为长期授予资格。 */
     @GetMapping("/published-catalog")
     public ResponseEntity<JsonNode> publishedCatalog(@AuthenticationPrincipal VerifiedLogin login,

@@ -55,6 +55,19 @@ export const roleImpact = async (p: Partition, role: string): Promise<RoleImpact
 export const createRole = async (body: RoleCommand): Promise<Role> => (await apiClient.post('/api/governance/v1/access/roles', body)).data
 export const grantScoped = async (body: GrantCommand): Promise<Grant> => (await apiClient.post('/api/governance/v1/access/scoped-grants', body)).data
 
+export interface MigrationGrant extends Omit<Grant, 'member_id'> { member_id: string | null; group_id: string | null }
+export interface RoleMigrationItem { grant: MigrationGrant; scope_rule: ScopeRule | null; scope_hash: string | null;
+  remaining_seconds: number; proposed_source_id: string; eligible: boolean; reasons: string[] }
+export interface RoleMigrationPreview extends Partition { old_role: Role; new_role: Role; added: string[]; removed: string[]; retained: string[];
+  assessed_at: string; view_hash: string; continuity: 'REVOKE_CONFIRM_THEN_GRANT'; projection_status: 'UNKNOWN';
+  items: RoleMigrationItem[]; eligible_count: number; excluded_count: number }
+export interface RoleMigrationRequest extends Partition { old_role_id: string; new_role_id: string; grant_ids: string[] }
+/** 引用页和资格报告来自当前主库；客户端不能用它作为执行授权。 */
+export const migrationGrants = async (p: Partition, role: string, after?: string, signal?: AbortSignal): Promise<Page<MigrationGrant>> =>
+  (await apiClient.get('/api/governance/v1/access/role-migration-grants', { params: { ...p, old_role_id: role, after }, signal })).data
+export const previewRoleMigration = async (body: RoleMigrationRequest, signal?: AbortSignal): Promise<RoleMigrationPreview> =>
+  (await apiClient.post('/api/governance/v1/access/role-migration-preview', body, { signal })).data
+
 export interface MenuChange { code: string; kind: 'ADDED' | 'REMOVED' | 'CHANGED'; before: PublishedMenu | null; after: PublishedMenu | null; fields: string[] }
 export interface CatalogViolation { code: 'CAPABILITY_REMOVED' | 'CAPABILITY_CHANGED' | 'VERSION_REGRESSION' | 'SAME_VERSION_CHANGED'; capability: string | null;
   before: CatalogManifest['capabilities'][number] | null; after: CatalogManifest['capabilities'][number] | null }

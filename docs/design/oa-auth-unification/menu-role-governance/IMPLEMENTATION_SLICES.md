@@ -22,7 +22,7 @@
 | MG09 | 环境隔离与机器发布的选型和契约明确 | MG05、MG06 | Auth 设计、IdP 能力核验、环境运行说明 | D-ENV、D-PUB；契约设计片 | 只核对既有组件 | M | DONE |
 | MG10 | 受限机器身份只能发布获授权应用／目标 | MG09 | 认证边界、发布授权适配、catalog 用例、受控登记 | 发布委派／审计模型，追加迁移 | 现有 IdP／PG；选定隔离配置 | M | DONE |
 | MG11 | CI 产出预览、受控发布并核对准确结果 | MG01、MG05、MG06、MG10 | 发布工具、相关 workflow／环境说明 | 发布客户端契约；不得绕过 MG05 | 隔离 CI 目标，不自动生产部署 | M | DONE |
-| MG12 | 管理员看到角色 v1→v2 迁移对象及风险，不执行写入 | MG03 | `PortalManagement`／Mapper、角色页迁移预览 | D-MIG、D-SOURCE 和迁移契约设计＋只读实现 | 现有 PG／console | M | BLOCKED |
+| MG12 | 管理员看到角色 v1→v2 迁移对象及风险，不执行写入 | MG03 | `PortalManagement`／Mapper、角色页迁移预览 | D-MIG、D-SOURCE 和迁移契约设计＋只读实现 | 现有 PG／console | M | DONE |
 | MG13 | 指定直接授权按固定范围／期限受控迁移，可断点恢复 | MG12 | `AccessManagement`、既有投影／栅栏、迁移任务和 UI | 任务／子项／来源谱系，追加迁移 | 复用现有执行组件 | M | TODO |
 | MG14 | 组与审批来源有明确升级路径，不能伪装成直接授权 | MG13 | `AccessRequests`、组授权、来源 Owner、迁移 UI | 来源专项契约／审批快照兼容；迁移按需 | 现有目录／审批／投影 | M | TODO |
 | MG15 | 能力可标记弃用，停止新增使用但不删历史 | MG05、MG12 | 生命周期用例、角色／Grant／策略写入口、目录 UI | D-RET、生命周期元数据，追加迁移 | 现有 PG／console | M | TODO |
@@ -219,7 +219,7 @@ flowchart LR
     MG18 --> MG19
 ```
 
-- 当前执行：MG00–MG09设计DONE，继续MG10；按本表串行推进。
+- 当前执行：MG00–MG12产品／必要验证DONE（MG09为设计），MG12 Git／CI收尾后串行进入MG13；全计划ACTIVE。
 - 阶段 A CONTRACTS 已冻结，MG00 DONE；对应已满足依赖的实施可推进。MG07／09／12／15／17 的业务决策按各阶段就近确定，不需要本轮假装全部已批准。
 - 全部标记 `parallel=no`：共享目录／授权契约、PG 迁移链、Controller、SDK、console 和跨仓声明需要串行集成；本计划不授予并行代理权限。
 - 迁移唯一 Owner 为 Auth 治理后端；Commerce 只维护自有声明、适配和业务数据，不能直接写 Auth 表。

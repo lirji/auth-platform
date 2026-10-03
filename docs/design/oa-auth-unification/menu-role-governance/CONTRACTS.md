@@ -2,6 +2,8 @@
 
 状态：阶段 A 冻结，2026-10-02。授权来源：用户已确认计划并要求开始实施。此文件只定义 MG00–MG06，不授权生产部署或修改业务 Grant。
 
+后续角色迁移阶段独立冻结于 [MG12_CONTRACT.md](MG12_CONTRACT.md)。MG12只有明确对象的只读预览，不增加任务、Grant或执行票据。
+
 ## 1. 兼容与不变量
 
 - 原 Manifest schema_version=1、100 菜单／200 能力／128 KiB 上限及 V20 展示快照规则不变。稳定 menu.code 不因 route／label 变化而重建。
