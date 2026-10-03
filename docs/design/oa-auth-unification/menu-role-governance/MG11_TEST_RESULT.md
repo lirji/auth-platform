@@ -36,3 +36,7 @@
 操作、停止与原命令恢复见[PUBLISHER_RUNBOOK](PUBLISHER_RUNBOOK.md)。停止job／关闭入口不会撤销已经发布的目录；目录修正用更高版本，业务授权补偿走独立来源。
 
 验证Handoff：implementation-validation / MG11 / COMPLETED / PASS；下游update-progress-docs后正常Git交付与精确CI，下一必要工作MG12，D-MIG待业务答复。
+
+## Git与精确CI
+
+产品提交0438b79b530cca07774f50ef1f5153d4202d8eae已在原任务分支feat/menu-role-governance-a正常推送，并ff合入远程main。[精确CI37113786373](https://github.com/lirji/auth-platform/actions/runs/37113786373) completed SUCCESS，headSha完全一致；包含新增16项客户端协议测试、后端真实数据库与身份／图回归、SDK兼容性和console构建。未将本机真实客户端发布演练冒充托管发布job。产品文件仍与验收指纹一致，之后仅同步交付状态文档。

@@ -22,7 +22,7 @@
 ## 下一步
 MG09设计、MG10默认关闭机器入口和MG11固定CI工具DONE；下一必要工作MG12暂因D-MIG缺业务答复而BLOCKED，不代表全计划完成。已询问：是否允许先撤销旧版本、确认真实撤权完成，再授予新版本，出现短暂保守拒绝；若要求不中断，需另行设计切换机制，不能暗中叠加新旧权限。MG12设计／只读预览依此冻结，未迁移任何有效授权；MG13–MG19依赖仍TODO。
 
-MG11证据见[MG11_TEST_RESULT](MG11_TEST_RESULT.md)：16协议fixture单测、41支持HTTP／CLI及16实际Commerce客户端检查PASS，真实提交后响应丢失能恢复原回执，默认预览、生产关闭。Git及新增workflow精确CI在本片交付流程核对，不能使用历史run替代。D-ENV已确认独立权限实例和DB；无需重复确认，不自动生产部署。
+MG11证据见[MG11_TEST_RESULT](MG11_TEST_RESULT.md)：16协议fixture单测、41支持HTTP／CLI及16实际Commerce客户端检查PASS，真实提交后响应丢失能恢复原回执，默认预览、生产关闭。产品0438b79已在原任务分支正常推送并ff合入远程main；新增workflow精确CI37113786373 completed SUCCESS，headSha完全一致，不能使用历史run替代。D-ENV已确认独立权限实例和DB；无需重复确认，不自动生产部署。
 
 ## 验证记录
 MG00：结构化声明、差异类别、非法变化、双哈希、分区诊断权限、发布幂等和旧写路径门禁、UNKNOWN运行状态及UI验收均有正式规则；文档链接／diff检查无阻断。产品验证从MG01开始，不引用历史CI为本轮证明。
