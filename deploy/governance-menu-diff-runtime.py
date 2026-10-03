@@ -12,6 +12,9 @@ import uuid
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+CLI_TIMEOUT_SECONDS = 40
+BROWSER_TIMEOUT_SECONDS = 120
+UI_STARTUP_TIMEOUT_SECONDS = 20
 
 
 def module(name, file):
@@ -48,7 +51,7 @@ def main():
         with (run / (name + '-' + uuid.uuid4().hex + '.log')).open('w') as output:
             result = subprocess.run(['java', '-Dloader.main=com.lrj.authz.governance.cli.' + name, '-cp', str(jar),
                                      'org.springframework.boot.loader.launch.PropertiesLauncher', *map(str, args)],
-                                    stdout=output, stderr=subprocess.STDOUT, timeout=40)
+                                    stdout=output, stderr=subprocess.STDOUT, timeout=CLI_TIMEOUT_SECONDS)
         if result.returncode:
             raise RuntimeError('owned CLI failed: ' + name)
 
@@ -114,7 +117,7 @@ createRoot(document.getElementById('root')!).render(<ConfigProvider><CatalogEdit
         h.private(run / 'browser.private.json', json.dumps(payload))
         with (run / 'vite.log').open('w') as output:
             vite = subprocess.Popen(['node', 'node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '21665', '--strictPort'], cwd=ROOT / 'auth-console', stdout=output, stderr=subprocess.STDOUT)
-        deadline = time.monotonic() + 20
+        deadline = time.monotonic() + UI_STARTUP_TIMEOUT_SECONDS
         while time.monotonic() < deadline:
             if vite.poll() is not None:
                 raise RuntimeError('owned Vite process failed')
@@ -126,7 +129,7 @@ createRoot(document.getElementById('root')!).render(<ConfigProvider><CatalogEdit
         else:
             raise RuntimeError('owned Vite process startup timeout')
         with (run / 'browser.log').open('w') as output:
-            result = subprocess.run(['node', str(ROOT / 'deploy/governance-menu-diff-ui.mjs'), str(run)], cwd=ROOT, timeout=120,
+            result = subprocess.run(['node', str(ROOT / 'deploy/governance-menu-diff-ui.mjs'), str(run)], cwd=ROOT, timeout=BROWSER_TIMEOUT_SECONDS,
                                     stdout=output, stderr=subprocess.STDOUT)
         if result.returncode:
             raise RuntimeError('browser verification failed; private evidence retained')

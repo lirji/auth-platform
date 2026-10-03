@@ -92,5 +92,5 @@ try {
   checks.push('lost committed response freezes input and closing; retry keeps same key and body')
   assert.deepEqual(errors, [])
   fs.writeFileSync(path.join(dir, 'browser-result.json'), JSON.stringify({ status: 'PASS', checks, shots, errors, isolated_publication_attempts: publications.length }, null, 2), { mode: 0o600 })
-  console.log(JSON.stringify({ status: 'PASS', checks: checks.length, shots: shots.length }))
+  process.stdout.write(JSON.stringify({ status: 'PASS', checks: checks.length, shots: shots.length }) + '\n')
 } finally { await context.close(); await browser.close() }

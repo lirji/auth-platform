@@ -3,7 +3,8 @@ import { Alert, Descriptions, Input, Select, Tag } from 'antd'
 import type { CatalogPreview, MenuChange, PublishedMenu } from '../api/governance'
 import { CapabilityList } from './presentation'
 
-const kindLabels = { ADDED: '新增', REMOVED: '删除', CHANGED: '修改' }
+const kindLabels: Record<MenuChange['kind'], string> = { ADDED: '新增', REMOVED: '删除', CHANGED: '修改' }
+const kindColors: Record<MenuChange['kind'], string> = { ADDED: 'success', REMOVED: 'error', CHANGED: 'processing' }
 const fieldLabels: Record<string, string> = { label: '名称', position: '顺序', parent: '父菜单', route: '页面路由', any_of: '权限映射' }
 const violationLabels = { CAPABILITY_REMOVED: '已发布能力不能删除', CAPABILITY_CHANGED: '已发布能力的资源或风险语义不能改变',
   VERSION_REGRESSION: '候选版本早于当前发布版本', SAME_VERSION_CHANGED: '同一版本必须保持原目录和展示内容' }
@@ -29,12 +30,13 @@ export function CatalogChanges({ result }: { result: CatalogPreview }) {
   const [kind, setKind] = useState<MenuChange['kind']>()
   if (!completeCatalogPreview(result)) return <Alert type="warning" showIcon message="当前服务未返回完整菜单差异" description="请升级服务并重新预览，取得完整差异后才能发布。" />
   const changes = result.menu_changes ?? []
+  const counts = changes.reduce((counts, change) => { counts[change.kind]++; return counts }, { ADDED: 0, REMOVED: 0, CHANGED: 0 })
   const needle = query.trim().toLocaleLowerCase()
   const shown = changes.filter(change => (!kind || change.kind === kind) &&
     [change.code, change.before?.label, change.after?.label, change.before?.route, change.after?.route].some(value => value?.toLocaleLowerCase().includes(needle)))
   return <div className="g-catalog-changes">
     <h3>菜单变更 · {changes.length} 项</h3>
-    <p>新增 {changes.filter(c => c.kind === 'ADDED').length} · 删除 {changes.filter(c => c.kind === 'REMOVED').length} · 修改 {changes.filter(c => c.kind === 'CHANGED').length}</p>
+    <p>新增 {counts.ADDED} · 删除 {counts.REMOVED} · 修改 {counts.CHANGED}</p>
     {result.publishable !== true && <Alert type="error" showIcon message="此候选不能发布" description={<ul>{(result.violations ?? []).map((violation, i) =>
       <li key={`${violation.code}-${violation.capability ?? i}`}>{violationLabels[violation.code]}{violation.capability && <>：<code>{violation.capability}</code>
         {violation.before && <div>原语义：{violation.before.resource_type} / {violation.before.risk_level}</div>}
@@ -46,7 +48,7 @@ export function CatalogChanges({ result }: { result: CatalogPreview }) {
     {!changes.length && <p>菜单内容与当前发布版本一致。</p>}
     {!!changes.length && !shown.length && <p>没有匹配的菜单变更，请调整筛选。</p>}
     {shown.map(change => <details key={change.code} className="g-catalog-change"><summary>
-      <Tag color={change.kind === 'REMOVED' ? 'error' : change.kind === 'ADDED' ? 'success' : 'processing'}>{kindLabels[change.kind]}</Tag>
+      <Tag color={kindColors[change.kind]}>{kindLabels[change.kind]}</Tag>
       <strong>{change.after?.label || change.before?.label || change.code}</strong><code>{change.code}</code>
       <span>{change.fields.map(field => fieldLabels[field] ?? field).join('、')}</span>
     </summary><div className="g-catalog-change-facts"><MenuFacts menu={change.before} label="修改前" /><MenuFacts menu={change.after} label="修改后" /></div></details>)}
