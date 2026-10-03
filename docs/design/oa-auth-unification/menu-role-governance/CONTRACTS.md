@@ -4,6 +4,8 @@
 
 后续角色迁移阶段独立冻结于 [MG12_CONTRACT.md](MG12_CONTRACT.md)。MG12只有明确对象的只读预览，不增加任务、Grant或执行票据。
 
+直接来源的任务、检查点、固定谱系、真实撤权后授新、取消和恢复见 [MG13_CONTRACT](MG13_CONTRACT.md)。预览仍不构成执行票据，实际写入重新核验。
+
 ## 1. 兼容与不变量
 
 - 原 Manifest schema_version=1、100 菜单／200 能力／128 KiB 上限及 V20 展示快照规则不变。稳定 menu.code 不因 route／label 变化而重建。

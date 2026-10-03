@@ -50,7 +50,7 @@ try {
   await page.getByLabel('搜索当前页角色').fill('reader')
   await old.getByRole('button', { name: '迁移预览', exact: true }).click()
   await expect(dialog).toBeVisible(); await expect(preview).toBeDisabled()
-  await expect(dialog.getByText('只读核对，不执行授权迁移')).toBeVisible()
+  await expect(dialog.getByText('先只读核对，再明确创建迁移任务')).toBeVisible()
   await target(2)
   const sources = dialog.locator('.ant-table').first()
   await expect(sources.locator('tbody tr.ant-table-row')).toHaveCount(20)

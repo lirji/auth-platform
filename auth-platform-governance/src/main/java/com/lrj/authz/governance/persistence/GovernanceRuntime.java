@@ -34,6 +34,7 @@ public final class GovernanceRuntime implements AutoCloseable {
     private RequestMapper requestMapper;
     private PortalMapper portalMapper;
     private RoleMigrationMapper roleMigrationMapper;
+    private RoleMigrationTaskMapper roleMigrationTaskMapper;
     private PermissionMapper permissionMapper;
     private CatalogImpactMapper catalogImpactMapper;
     private InvitationMapper invitationMapper;
@@ -92,6 +93,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.ProjectionModels.OperationState.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.ProjectionModels.OperationState.class));
             config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.FenceModels.State.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.FenceModels.State.class));
             config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.AccessModels.GrantState.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.AccessModels.GrantState.class));
+            config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.RoleMigrationTaskModels.Stage.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.RoleMigrationTaskModels.Stage.class));
             config.getTypeHandlerRegistry().register(com.lrj.authz.governance.domain.RequestModels.State.class, new IdentityCodeTypeHandler<>(com.lrj.authz.governance.domain.RequestModels.State.class));
             config.setMapUnderscoreToCamelCase(true);
             config.setArgNameBasedConstructorAutoMapping(true);
@@ -124,6 +126,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(FenceMapper.class), session.getMapper(SafetyMapper.class));
             runtime.portalMapper=session.getMapper(PortalMapper.class);
             runtime.roleMigrationMapper=session.getMapper(RoleMigrationMapper.class);
+            runtime.roleMigrationTaskMapper=session.getMapper(RoleMigrationTaskMapper.class);
             runtime.permissionMapper=session.getMapper(PermissionMapper.class);
             runtime.catalogImpactMapper=session.getMapper(CatalogImpactMapper.class);
             runtime.invitationMapper=session.getMapper(InvitationMapper.class);
@@ -262,6 +265,11 @@ public final class GovernanceRuntime implements AutoCloseable {
     /** 固定角色迁移只读用例复用当前委派、主库和既有事务管理器。 */
     public com.lrj.authz.governance.application.RoleMigrationPreview roleMigrationPreview() {
         return new com.lrj.authz.governance.application.RoleMigrationPreview(access,portalManagement(),accessMapper,roleMigrationMapper,transaction);
+    }
+
+    /** 显式人类管理命令推进迁移，复用原授权与可靠投影，不在启动时执行。 */
+    public com.lrj.authz.governance.application.RoleMigrationTasks roleMigrationTasks(){
+        return new com.lrj.authz.governance.application.RoleMigrationTasks(access,roleMigrationPreview(),accessMapper,roleMigrationMapper,roleMigrationTaskMapper,mapper,transaction);
     }
 
     /** 门户复用本进程现有身份与展示装配，组织/应用目录不依赖OA。 */

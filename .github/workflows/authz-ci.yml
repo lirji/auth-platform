@@ -138,6 +138,7 @@ jobs:
           python3 -m py_compile deploy/governance-p6-migration.py deploy/governance-p6-rehearsal.py deploy/governance-ce05-segments.py deploy/governance-ce05-segments-ui.py deploy/governance-ce05-coupon-deliveries.py deploy/governance-ce05-coupon-deliveries-ui.py
           python3 -m py_compile deploy/governance-integrated-resources-ui.py
           python3 -m py_compile deploy/governance-menu-role-migration-runtime.py
+          python3 -m py_compile deploy/governance-menu-role-migration-tasks-runtime.py
           python3 -m unittest discover -s deploy/tests -p 'test_governance_commerce_publication.py' -v
           python3 -m unittest discover -s deploy/tests -p 'test_governance_commerce_menu_export.py' -v
           python3 -m unittest discover -s deploy/tests -p 'test_governance_catalog_publisher.py' -v

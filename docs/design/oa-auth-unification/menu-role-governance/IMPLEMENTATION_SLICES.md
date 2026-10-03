@@ -23,7 +23,7 @@
 | MG10 | 受限机器身份只能发布获授权应用／目标 | MG09 | 认证边界、发布授权适配、catalog 用例、受控登记 | 发布委派／审计模型，追加迁移 | 现有 IdP／PG；选定隔离配置 | M | DONE |
 | MG11 | CI 产出预览、受控发布并核对准确结果 | MG01、MG05、MG06、MG10 | 发布工具、相关 workflow／环境说明 | 发布客户端契约；不得绕过 MG05 | 隔离 CI 目标，不自动生产部署 | M | DONE |
 | MG12 | 管理员看到角色 v1→v2 迁移对象及风险，不执行写入 | MG03 | `PortalManagement`／Mapper、角色页迁移预览 | D-MIG、D-SOURCE 和迁移契约设计＋只读实现 | 现有 PG／console | M | DONE |
-| MG13 | 指定直接授权按固定范围／期限受控迁移，可断点恢复 | MG12 | `AccessManagement`、既有投影／栅栏、迁移任务和 UI | 任务／子项／来源谱系，追加迁移 | 复用现有执行组件 | M | TODO |
+| MG13 | 指定直接授权按固定范围／期限受控迁移，可断点恢复 | MG12 | `AccessManagement`、既有投影／栅栏、迁移任务和 UI | 任务／子项／来源谱系，追加迁移 | 复用现有执行组件 | M | DONE |
 | MG14 | 组与审批来源有明确升级路径，不能伪装成直接授权 | MG13 | `AccessRequests`、组授权、来源 Owner、迁移 UI | 来源专项契约／审批快照兼容；迁移按需 | 现有目录／审批／投影 | M | TODO |
 | MG15 | 能力可标记弃用，停止新增使用但不删历史 | MG05、MG12 | 生命周期用例、角色／Grant／策略写入口、目录 UI | D-RET、生命周期元数据，追加迁移 | 现有 PG／console | M | TODO |
 | MG16 | 退役前所有引用能定位，退出条件可检查 | MG13、MG14、MG15 | 引用分析、能力状态、项目声明／接口核对、目录详情 | 退役门禁；沿用紧急停用，不降低版本 | 现有 PG／项目构建信息 | M | TODO |
@@ -219,7 +219,7 @@ flowchart LR
     MG18 --> MG19
 ```
 
-- 当前执行：MG00–MG12产品／必要验证DONE（MG09为设计），MG12 Git／CI收尾后串行进入MG13；全计划ACTIVE。
+- 当前执行：MG00–MG12产品／必要验证／Git DONE（MG09为设计），MG12精确CI SUCCESS；MG13 IN_PROGRESS，按已冻结MG13_CONTRACT串行实现和验收；全计划ACTIVE。
 - 阶段 A CONTRACTS 已冻结，MG00 DONE；对应已满足依赖的实施可推进。MG07／09／12／15／17 的业务决策按各阶段就近确定，不需要本轮假装全部已批准。
 - 全部标记 `parallel=no`：共享目录／授权契约、PG 迁移链、Controller、SDK、console 和跨仓声明需要串行集成；本计划不授予并行代理权限。
 - 迁移唯一 Owner 为 Auth 治理后端；Commerce 只维护自有声明、适配和业务数据，不能直接写 Auth 表。

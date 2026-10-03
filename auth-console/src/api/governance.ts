@@ -68,6 +68,30 @@ export const migrationGrants = async (p: Partition, role: string, after?: string
 export const previewRoleMigration = async (body: RoleMigrationRequest, signal?: AbortSignal): Promise<RoleMigrationPreview> =>
   (await apiClient.post('/api/governance/v1/access/role-migration-preview', body, { signal })).data
 
+export interface MigrationTaskItem { id: string; old_grant_id: string; old_version: number; member_id: string; member_generation: number;
+  original_source_id: string; scope: string; scope_rule: ScopeRule | null; scope_hash: string | null; valid_from: string; valid_to: string;
+  new_source_id: string; state: string; version: number; reason: string | null; revocation_operation_id: string | null;
+  new_grant: MigrationGrant | null; new_operation_id: string | null; updated_at: string }
+export interface MigrationTask { id: string; tenant_id: string; application_id: string; environment: string; old_role: Role; new_role: Role;
+  state: string; version: number; command_id: string; created_at: string; updated_at: string; items: MigrationTaskItem[];
+  completed_count: number; failed_count: number; cancelled_count: number; waiting_count: number }
+export interface MigrationTaskSummary { id: string; old_role_id: string; new_role_id: string; state: string; version: number; created_at: string; updated_at: string }
+export interface CreateMigrationTask extends Partition { command_id: string; old_role_id: string; new_role_id: string;
+  grants: { grant_id: string; expected_version: number; valid_to: string; scope_hash: string | null }[] }
+export interface AdvanceMigrationTask extends Partition { command_id: string; item_id: string; expected_version: number }
+export interface CancelMigrationTask extends Partition { command_id: string; expected_version: number }
+const migrationTaskUrl = '/api/governance/v1/access/role-migrations'
+export const createMigrationTask = async (body: CreateMigrationTask): Promise<MigrationTask> => (await apiClient.post(migrationTaskUrl, body)).data
+export const migrationTasks = async (p: Partition, old?: string, after?: string, signal?: AbortSignal): Promise<Page<MigrationTaskSummary>> =>
+  (await apiClient.get(migrationTaskUrl, { params: { ...p, old_role_id: old, after }, signal })).data
+export const migrationTask = async (p: Partition, id: string, signal?: AbortSignal): Promise<MigrationTask> =>
+  (await apiClient.get(`${migrationTaskUrl}/${id}`, { params: p, signal })).data
+export const advanceMigrationTask = async (id: string, body: AdvanceMigrationTask): Promise<MigrationTask> => (await apiClient.post(`${migrationTaskUrl}/${id}/advance`, body)).data
+export const cancelMigrationTask = async (id: string, body: CancelMigrationTask): Promise<MigrationTask> => (await apiClient.post(`${migrationTaskUrl}/${id}/cancel`, body)).data
+export const retryMigrationProjection = async (p: Partition, command: string, kind: 'POLICY' | 'DIRECTORY'): Promise<void> => {
+  await apiClient.post('/api/governance/v1/access/retry-strict', { ...p, command_id: command, kind })
+}
+
 export interface MenuChange { code: string; kind: 'ADDED' | 'REMOVED' | 'CHANGED'; before: PublishedMenu | null; after: PublishedMenu | null; fields: string[] }
 export interface CatalogViolation { code: 'CAPABILITY_REMOVED' | 'CAPABILITY_CHANGED' | 'VERSION_REGRESSION' | 'SAME_VERSION_CHANGED'; capability: string | null;
   before: CatalogManifest['capabilities'][number] | null; after: CatalogManifest['capabilities'][number] | null }

@@ -12,3 +12,11 @@ export const requestLabels: Record<string, string> = { SUBMITTED: '已提交，�
 export const executionLabels: Record<string, string> = { ...requestLabels, ACTIVE: '已实际生效', PENDING_APPLY: '等待权限生效', APPLY_FAILED: '权限同步失败', EXPIRED: '已到期', UNAVAILABLE: '当前不可用', REVOKING: '正在回收', REVOKED: '本来源已回收' }
 export const ReceiptState = { COMPLETED: 'COMPLETED', PROCESSING: 'PROCESSING', BLOCKED: 'BLOCKED' } as const
 export const GrantState = { PENDING: 'PENDING', ACTIVE: 'ACTIVE', REVOKED: 'REVOKED' } as const
+
+/** 持久迁移阶段与任务动作使用固定协议值，避免界面分支出现不同拼写。 */
+export const MigrationStage = {
+  RUNNING: 'RUNNING', COMPLETED: 'COMPLETED', FINISHED_WITH_FAILURES: 'FINISHED_WITH_FAILURES', CANCELLED: 'CANCELLED',
+  READY_TO_REVOKE: 'READY_TO_REVOKE', WAIT_REVOKE_CONFIRM: 'WAIT_REVOKE_CONFIRM', READY_TO_GRANT: 'READY_TO_GRANT',
+  WAIT_NEW_CONFIRM: 'WAIT_NEW_CONFIRM', FAILED: 'FAILED',
+} as const
+export const MigrationAction = { ADVANCE: 'advance', CANCEL: 'cancel', RETRY: 'retry' } as const

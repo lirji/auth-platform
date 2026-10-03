@@ -75,6 +75,18 @@ public final class AccessManagement {
     }
     private Grant grantFixed(VerifiedLogin login,Partition p,String command,String member,long generation,String roleId,String scope,
                               com.lrj.authz.protocol.ScopeDtos.Rule rule,String source,Instant from,Instant to,String group){
+        if(source!=null&&source.startsWith("role-migration:"))throw new GovernanceException(INVALID_ARGUMENT);
+        return grantFixed(login,p,command,member,generation,roleId,scope,rule,source,from,to,group,null,null);
+    }
+    /** 仅迁移应用服务可用；保留原范围字节，数据库谱系栅栏再次验证固定计划。 */
+    Grant grantMigration(VerifiedLogin login,Partition p,com.lrj.authz.governance.domain.RoleMigrationTaskModels.Entry entry,Instant from){
+        var rule=entry.ruleJson()==null?null:ScopeRules.decode(entry.ruleJson());
+        if(rule!=null&&!AccessValues.hash(entry.ruleJson()).equals(entry.scopeHash()))throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
+        return grantFixed(login,p,entry.grantCommand(),entry.memberId(),entry.generation(),entry.newRoleId(),entry.scope(),
+                rule,entry.newSourceId(),from,entry.validTo(),null,entry.plannedGrantId(),entry.ruleJson());
+    }
+    private Grant grantFixed(VerifiedLogin login,Partition p,String command,String member,long generation,String roleId,String scope,
+                              com.lrj.authz.protocol.ScopeDtos.Rule rule,String source,Instant from,Instant to,String group,String fixedId,String fixedRuleJson){
         if(group==null)BootstrapCommand.uuid(member);else BootstrapCommand.uuid(group);BootstrapCommand.uuid(roleId);BootstrapCommand.bounded(source,100);
         if((group==null?generation<1:generation!=0)||from==null||to==null||!to.isAfter(from))throw new GovernanceException(INVALID_ARGUMENT);
         return tx.execute(status->{
@@ -82,7 +94,7 @@ public final class AccessManagement {
             if(group==null&&manager.context().membershipId().equals(member))throw new GovernanceException(ACCESS_DENIED);
             RoleVersion role=mapper.role(p,roleId);if(role==null)throw new GovernanceException(ACCESS_DENIED);
             requireCeiling(manager.delegation(),AccessValues.read(role.capabilitiesJson()));
-            String ruleJson=rule==null?null:ScopeRules.encode(rule);
+            String ruleJson=rule==null?null:fixedRuleJson==null?ScopeRules.encode(rule):fixedRuleJson;
             if(rule!=null){
                 var app=catalog.application(p.applicationId());
                 var definitions=CatalogManifest.read(catalog.snapshot(p.applicationId(),app.manifestVersion()).manifestJson()).capabilities();
@@ -100,7 +112,7 @@ public final class AccessManagement {
                 }
                 if(!to.isAfter(mapper.now())||Duration.between(from,to).compareTo(Duration.ofSeconds(manager.delegation().maxDurationSeconds()))>0)throw new GovernanceException(ACCESS_DENIED);
                 if((group==null?mapper.liveCount(p,member,generation):safety.groupCount(p,group))>=100)throw new GovernanceException(INVALID_ARGUMENT);
-                Grant g=new Grant(id(),p.tenantId(),p.applicationId(),p.environment(),member,generation,roleId,scope,group==null?"DIRECT":"GROUP",source,from,to,GrantState.PENDING,1,null,group);
+                Grant g=new Grant(fixedId==null?id():fixedId,p.tenantId(),p.applicationId(),p.environment(),member,generation,roleId,scope,group==null?"DIRECT":"GROUP",source,from,to,GrantState.PENDING,1,null,group);
                 if(mapper.insertGrant(g,manager.context().membershipId())!=1)throw new GovernanceException(BINDING_CONFLICT);
                 if(rule!=null)one(mapper.insertScope(g,rule.resourceType(),ruleJson,AccessValues.hash(ruleJson)));
                 one(mapper.enqueue(g.id(),1,"UPSERT"));audit(manager,p,"CREATE_GRANT",g.id(),1,command);return g.id();
@@ -174,6 +186,9 @@ public final class AccessManagement {
     }
     /** 门户选项只读当前委派；返回它不代替每次写操作的重新校验。 */
     public Delegation authority(VerifiedLogin login, Partition p) { return manager(login, p, false).delegation(); }
+
+    /** 迁移先锁同一准入行，再锁任务；复用当前身份，避免和授权入口反向锁序。 */
+    Delegation lockAuthority(VerifiedLogin login,Partition p){return manager(login,p,true).delegation();}
 
     private Manager manager(VerifiedLogin login,Partition p,boolean lock){
         AccessValues.partition(p);CurrentContext current=identity.contextForLogin(login.issuer(),login.subject(),p.tenantId(),null);
