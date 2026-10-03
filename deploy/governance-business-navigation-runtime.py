@@ -26,7 +26,7 @@ def module(name,file):
     spec=importlib.util.spec_from_file_location(name,ROOT/'deploy'/file)
     value=importlib.util.module_from_spec(spec);spec.loader.exec_module(value);return value
 
-def main():
+def main(ui=False):
     """新库使用独有名称，任何错误保留检查点与日志，只关闭自有Popen。"""
     os.umask(0o077);h=module('nav_context','governance-context-smoke.py');a=module('nav_access','governance-access-smoke.py')
     run=ROOT/'.local/menu-role-governance'/('mg07-'+uuid.uuid4().hex[:12]);run.mkdir(parents=True,mode=0o700)
@@ -64,6 +64,10 @@ def main():
                        {'code':'page.products','parent':'group.products','route':'/operations/products','any_of':[read],'label':'商品档案','position':1},
                        {'code':'page.private','parent':'group.products','route':'/operations/private','any_of':[write],'label':'商品维护','position':2},
                        {'code':'page.collaboration','parent':None,'route':'/collaboration/products','any_of':[read],'label':'门店协作','position':3}]}
+    if ui:
+        # 真实当前Git声明只发布到本工具新建库，不能重复原部署Owner发布。
+        subprocess.run(['node','frontend/scripts/export-menu-catalog.mjs','--version','1','--output',str(run/'source-candidate.json')],cwd=COMMERCE,check=True,timeout=PROCESS_TIMEOUT_SECONDS,stdout=subprocess.DEVNULL)
+        manifest=json.loads(h.read_private(run/'source-candidate.json'))['manifest']
     h.private(run/'manifest.json',json.dumps(manifest));cli('CatalogCli',['publish',run/'catalog.properties',run/'manifest.json'])
     access={'access.tenant':tenant,'access.application':'commerce','access.environment':'test','access.manager':owner_member,'access.generation':1,'access.capabilities':read+','+write,
             'access.max-duration-seconds':3600,'access.operator':'mg07-fixture','access.command':uid(),**graph}
@@ -105,7 +109,8 @@ def main():
         path='/internal/governance/v1/access/navigation';headers=[('Authorization','Bearer '+service),('X-User-Access-Token',user)];request={'tenant_id':tenant,'expected_membership_generation':1,'request_id':uid()}
         before=pg("SELECT row_to_json(t)::text FROM auth_governance.access_grant t ORDER BY id; SELECT row_to_json(t)::text FROM auth_governance.role_version t ORDER BY id; SELECT row_to_json(t)::text FROM auth_governance.application_catalog t ORDER BY application_id; SELECT count(*) FROM auth_governance.execution_reference;")
         view=check('real business audience and scope return本人',SERVER_PORT,path,headers,request)
-        if view['state']!='AVAILABLE' or view['capability_hints']!=[read] or [menu['code'] for menu in view['menus']]!=['group.products','page.products','page.collaboration'] or view['menus'][0]['route'] is not None:raise RuntimeError('wrong navigation facts')
+        expected=['group.catalog','menu.operations.products','menu.collaboration.products','products'] if ui else ['group.products','page.products','page.collaboration']
+        if view['state']!='AVAILABLE' or view['capability_hints']!=[read] or [menu['code'] for menu in view['menus']]!=expected or view['menus'][0]['route'] is not None:raise RuntimeError('wrong navigation facts')
         check('anonymous refused',SERVER_PORT,path,(),request,401,'INVALID_CREDENTIAL')
         check('unapproved registered caller refused',SERVER_PORT,path,[('Authorization','Bearer '+unapproved),('X-User-Access-Token',user)],request,403,'ACCESS_DENIED')
         check('management audience refused',SERVER_PORT,path,[('Authorization','Bearer '+service),('X-User-Access-Token',manager)],request,401,'INVALID_CREDENTIAL')
@@ -127,7 +132,7 @@ def main():
             with socket.socket() as probe:
                 probe.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1);probe.bind(('127.0.0.1',COMMERCE_PORT))
             with (run/(label+'.log')).open('w') as log:
-                process=subprocess.Popen(['java','-Xmx384m','-jar',str(commerce_jar),'--server.address=127.0.0.1','--commerce.iam.store-read.enabled=true','--commerce.iam.navigation.enabled=true','--commerce.iam.store-read.configuration='+str(run/'consumer.properties')],cwd=COMMERCE,env=environment,stdout=log,stderr=subprocess.STDOUT)
+                process=subprocess.Popen(['java','-Xmx384m','-jar',str(commerce_jar),'--server.address=127.0.0.1','--commerce.iam.store-read.enabled=true','--commerce.iam.navigation.enabled=true','--commerce.iam.scope.enabled='+str(ui).lower(),'--commerce.iam.store-read.configuration='+str(run/'consumer.properties')],cwd=COMMERCE,env=environment,stdout=log,stderr=subprocess.STDOUT)
             h.PROCESSES.append(process)
             for _ in range(120):
                 if process.poll() is not None:raise RuntimeError('owned Commerce startup failed: '+label)
@@ -151,12 +156,33 @@ def main():
         check('Commerce wrong audience refused',COMMERCE_PORT,business_path,[('Authorization','Bearer '+manager),('X-Tenant-Id',tenant)],status=401,code='UNAUTHENTICATED')
         check('Commerce injection query refused',COMMERCE_PORT,business_path+'?principal_id='+owner,bh,status=400,code='INVALID_ARGUMENT')
         check('Commerce old generation refused',COMMERCE_PORT,business_path+'?expected_membership_generation=2',bh,status=403,code='FORBIDDEN')
+        browser=None
+        if ui:
+            mysql(f"""USE {mysql_db};
+INSERT INTO platform_credential(token_hash,tenant_id,actor_id,role,expires_at) VALUES('{hashlib.sha256(secrets.token_bytes(48)).hexdigest()}','{local}','manager','OPERATOR',UTC_TIMESTAMP()+INTERVAL 1 HOUR);
+INSERT INTO central_store_identity_binding(auth_tenant_id,principal_id,membership_id,generation,tenant_id,actor_id,created_by) VALUES('{tenant}','{owner}','{owner_member}',1,'{local}','manager','mg08-isolated');
+INSERT INTO merchant_record(tenant_id,merchant_id,name) VALUES('{local}','M','导航验收商家');
+INSERT INTO store_record(tenant_id,store_id,merchant_id,name) VALUES('{local}','S1','M','授权门店'),('{local}','S2','M','未授权门店');
+INSERT INTO catalog_product(tenant_id,product_id,store_id,title,category,brand) VALUES('{local}','P1','S1','导航验收商品','日用','验收品牌'),('{local}','P2','S2','保密商品','日用','其他品牌');""")
+            helper=module('navigation_ui','governance-business-navigation-ui.py')
+            browser=helper.NavigationUi(h,run,fixture,tenant,user,manager_business,manager)
+            browser.browser('active')
+            writer=check('create isolated second capability role',ADMIN_PORT,'/api/governance/v1/access/roles',mh,{**part,'command_id':uid(),'role_code':'writer','role_version':1,'capabilities':[write]})
+            second=check('create isolated second scoped source',ADMIN_PORT,'/api/governance/v1/access/scoped-grants',mh,{**part,'command_id':uid(),'member_id':member,'member_generation':1,'role_id':writer['id'],
+                'scope_rule':{'version':1,'resource_type':'product','clauses':[{'kind':'SPECIFIED_STORES','values':['S1'],'include_root':False}]},'source_id':uid(),'valid_from':stamp(-1),'valid_to':stamp(1800)},202)
+            for kind in ['POLICY','DIRECTORY']:cli('ReliableProjectionCli',[run/(kind+'.properties')])
+            browser.browser('multi')
+            check('revoke isolated second capability',ADMIN_PORT,'/api/governance/v1/access/revoke',mh,{**part,'command_id':uid(),'grant_id':second['id'],'expected_version':1})
+            for kind in ['POLICY','DIRECTORY']:cli('ReliableProjectionCli',[run/(kind+'.properties')])
         check('revoke fixture source',ADMIN_PORT,'/api/governance/v1/access/revoke',mh,{**part,'command_id':uid(),'grant_id':grant['id'],'expected_version':1})
         check('pending policy does not preserve old menus',COMMERCE_PORT,business_path,bh,status=503,code='UNAVAILABLE')
+        if browser:browser.browser('pending')
         for kind in ['POLICY','DIRECTORY']:cli('ReliableProjectionCli',[run/(kind+'.properties')])
         if check('after revocation real navigation is empty',COMMERCE_PORT,business_path,bh)['state']!='NO_ACCESS':raise RuntimeError('revoked menus retained')
+        if browser:browser.browser('revoked')
         h.stop(next(p for p in h.PROCESSES if p.args and str(server) in p.args))
         check('dependency failure has no old navigation fallback',COMMERCE_PORT,business_path,bh,status=503,code='UNAVAILABLE')
+        if browser:browser.browser('outage');browser.browser('finish');browser.shared()
         h.private(run/'http-result.json',json.dumps({'status':'PASS','checks':checks,'scope':'new owned PG/MySQL only','business_navigation_writes':0,'original_application_writes':0},ensure_ascii=False,indent=2))
         print('PASS: real Auth/SDK/Commerce navigation checks='+str(len(checks))+'; evidence='+str(run))
     finally:

@@ -1,6 +1,6 @@
 # MG07 本人业务导航验证
 
-Auth生产方pass DONE／PASS；Commerce适配源码及实际跨仓HTTP PASS，固定SDK Git提交消费方pass待生产方提交后验证。父MG07 VERIFYING，全MG00–MG19目标仍ACTIVE；未生产部署，原Commerce目录／业务Grant0写入。
+Auth生产方与Commerce固定SDK消费方两个pass均DONE／PASS。生产方109b1ed、消费方8da6f4b已main正常推送。父MG07 DONE，全MG00–MG19目标仍ACTIVE；未生产部署，原Commerce目录／业务Grant0写入。
 
 ## 交付单元与实现
 
@@ -34,3 +34,5 @@ Auth生产方pass DONE／PASS；Commerce适配源码及实际跨仓HTTP PASS，�
 - 实际HTTP第一轮受限MySQL账号在binlog开启时不能执行既有V48触发器迁移；第二轮改migration owner仅初始化本工具新建库，之后恢复受限账号。没有授SUPER给运行账号，没有改共享global配置或已执行迁移。
 - 第二轮导航全链路通过，到fixture撤权因脚本误期待202、实际旧端点200中止；仅修脚本。第三轮22项全部PASS，所有旧库／日志保留。
 - 演练只写新专用库。核对期间目录／角色／Grant／执行引用不变。自有进程全部退出；原部署／角色授权／共享组件和历史工作树保留，无清理授权不删除。
+
+固定消费方追加验证：既有安装脚本核对109b1ed准确源码，3模块单测及完整打包PASS，当前protocol／SDK、systemMaven仓库与Commerce嵌套制品字节一致；安装重建仅改变ZIP时间戳，所有条目内容与此前22HTTP验证版相同。消费者正式说明见Commerce docs/design/menu-catalog-source/MG07_NAVIGATION.md。Auth109b1ed精确CI37107379738 SUCCESS；Commerce8da6f4b精确CI37107505687／37107501809 SUCCESS。
