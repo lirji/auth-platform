@@ -188,6 +188,11 @@ public final class GovernanceRuntime implements AutoCloseable {
         return new com.lrj.authz.governance.application.ReliableAuthorization(readFence(),scopeMapper,catalogMapper,accessMapper,graph);
     }
 
+    /** 业务本人导航独立使用严格范围与整次查询栅栏，不签发执行引用。 */
+    public com.lrj.authz.governance.application.BusinessNavigation navigation(com.lrj.authz.protocol.StrictGraphReader graph) {
+        return new com.lrj.authz.governance.application.BusinessNavigation(catalogMapper,readFence(),reliableAuthorization(graph));
+    }
+
     /** 后台引用复核共享实时栅栏，永远不使用已缓存的ALLOW。 */
     public com.lrj.authz.governance.application.ExecutionAuthorization executions(com.lrj.authz.protocol.StrictGraphReader graph) {
         return new com.lrj.authz.governance.application.ExecutionAuthorization(executionMapper,reliableAuthorization(graph),transaction);

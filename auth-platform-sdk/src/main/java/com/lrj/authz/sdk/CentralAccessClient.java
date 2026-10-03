@@ -52,6 +52,44 @@ public final class CentralAccessClient {
     }
     /** 无代理/自调用等路径必须显式使用此入口，DENY和故障不混为成功。 */
     public Decision requireAllowed(String token,Check request){Decision decision=check(token,request);if(!"ALLOW".equals(decision.decision()))throw new AccessDeniedException("CENTRAL_ACCESS_DENIED");return decision;}
+    /** 本人导航只提供当前提示，独立协议不能由单能力执行引用或管理Token代替。 */
+    public com.lrj.authz.protocol.NavigationDtos.View navigation(String user,com.lrj.authz.protocol.NavigationDtos.Request request) {
+        if(request==null||!uuid(request.tenantId())||!uuid(request.requestId())
+                ||(request.expectedMembershipGeneration()!=null&&request.expectedMembershipGeneration()<1))throw new IllegalArgumentException("invalid navigation request");
+        var view=post("navigation",user,request,com.lrj.authz.protocol.NavigationDtos.View.class,com.lrj.authz.protocol.NavigationDtos.MAX_RESPONSE_BYTES);
+        if(view==null||!"1".equals(view.schemaVersion())||!request.requestId().equals(view.requestId())||view.context()==null
+                ||view.manifestVersion()<1||!hash(view.contentHash())||!hash(view.presentationHash())||view.state()==null
+                ||view.menus()==null||view.menus().size()>com.lrj.authz.protocol.NavigationDtos.MAX_MENUS
+                ||view.capabilityHints()==null||view.capabilityHints().size()>com.lrj.authz.protocol.NavigationDtos.MAX_CAPABILITIES)throw unavailable();
+        com.lrj.authz.protocol.NavigationDtos.State state;
+        try { state=com.lrj.authz.protocol.NavigationDtos.State.from(view.state()); }
+        catch(IllegalArgumentException unknown) { throw unavailable(); }
+        validateContext(new Check(request.tenantId(),request.expectedMembershipGeneration(),request.requestId(),"navigation","navigation"),view.context());
+        try {
+            var observed=Instant.parse(view.observedAt());var now=Instant.now();
+            if(!view.observedAt().endsWith("Z")||observed.isAfter(now.plusSeconds(5))||observed.isBefore(now.minusSeconds(31)))throw unavailable();
+        } catch(RuntimeException invalid) { throw unavailable(); }
+        var caps=new HashSet<String>();
+        for(String capability:view.capabilityHints())if(!code(capability)||!capability.startsWith(application+".")||!caps.add(capability))throw unavailable();
+        var menus=new HashMap<String,com.lrj.authz.protocol.NavigationDtos.Menu>();var positions=new HashSet<Integer>();
+        for(var menu:view.menus()) {
+            if(menu==null||!code(menu.code())||menus.put(menu.code(),menu)!=null||(menu.parent()!=null&&!code(menu.parent()))
+                    ||(menu.route()!=null&&(!menu.route().matches("/[a-zA-Z0-9/_-]*")||menu.route().contains("//")))
+                    ||((menu.label()==null)!=(menu.position()==null)))throw unavailable();
+            if(menu.label()!=null&&(menu.label().isBlank()||!menu.label().equals(menu.label().strip())||menu.label().codePointCount(0,menu.label().length())>80
+                    ||menu.label().codePoints().anyMatch(c->Character.isISOControl(c)||c=='<'||c=='>')||menu.position()<0
+                    ||menu.position()>=com.lrj.authz.protocol.NavigationDtos.MAX_MENUS||!positions.add(menu.position())))throw unavailable();
+        }
+        for(var menu:view.menus()) {
+            Set<String> ancestors=new HashSet<>();var current=menu;
+            while(current!=null) {
+                if(!ancestors.add(current.code())||(current.parent()!=null&&!menus.containsKey(current.parent())))throw unavailable();
+                current=current.parent()==null?null:menus.get(current.parent());
+            }
+        }
+        if(state==com.lrj.authz.protocol.NavigationDtos.State.NO_ACCESS?(!caps.isEmpty()||!menus.isEmpty()):(caps.isEmpty()||menus.isEmpty()))throw unavailable();
+        return view;
+    }
     /** 只在当前后端调用使用，完整验证版本/主体/范围后才允许交给SQL适配器。 */
     public Plan scopePlan(String user,Check request){
         validate(request);Plan p=post("scope-plan",user,request,Plan.class,ScopeDtos.MAX_PLAN_BYTES);
@@ -179,6 +217,7 @@ public final class CentralAccessClient {
     }
 
     private static boolean code(String value){return value!=null&&value.matches("[a-z][a-z0-9._-]{0,99}");}
+    private static boolean hash(String value){return value!=null&&value.matches("[a-f0-9]{64}");}
     private static boolean uuid(String value){try{return value!=null&&UUID.fromString(value).toString().equals(value);}catch(IllegalArgumentException e){return false;}}
     private static CentralAccessException unavailable(){return new CentralAccessException(503);}
     /** 限制响应字节数，恶意/损坏服务不能用无限body占用内存；HttpClient请求超时覆盖订阅完成。 */

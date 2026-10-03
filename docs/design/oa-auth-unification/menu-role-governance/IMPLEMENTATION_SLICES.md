@@ -17,7 +17,7 @@
 | MG04 | 发布记录关联项目提交、清单摘要及操作者，并可查询 | MG01、MG02 | `ApplicationCatalog`、`CatalogMapper`／XML、console 历史详情 | 不可变发布元数据，追加迁移 | 现有 PG | M | DONE |
 | MG05 | 基础版本或影响依据变化后旧预览不能继续发布 | MG03、MG04 | Owner 发布用例／Controller、`CatalogEditor`、`useCommand` | 发布依据、幂等和兼容门禁契约；持久化按需 | 现有 PG／console | M | DONE |
 | MG06 | 源码、部署声明和已发布目录不一致时能定位 | MG01、MG04、MG05 | 导出／核对工具、管理读接口、目录状态页面 | 漂移状态和受信证据契约；是否存核验结果按需 | 现有部署信息／PG | M | DONE |
-| MG07 | Commerce 通过受信身份链路得到本人导航提示 | MG00、MG01 | Auth business API／SDK；Commerce `commerce-app/.../iam`／HTTP | D-NAV、只读业务契约；不复用管理 Token | 现有 IdP／SDK／授权图 | M | TODO |
+| MG07 | Commerce 通过受信身份链路得到本人导航提示 | MG00、MG01 | Auth business API／SDK；Commerce `commerce-app/.../iam`／HTTP | D-NAV、只读业务契约；不复用管理 Token | 现有 IdP／SDK／授权图 | M | VERIFYING |
 | MG08 | Commerce 侧栏、搜索和默认入口按真实提示过滤 | MG01、MG07 | `CentralShell.tsx`、`navigation.ts`、`session.ts`、前端 client | 消费已发布 MG07 契约，无新授权模型 | 现有 Commerce 前后端 | M | TODO |
 | MG09 | 环境隔离与机器发布的选型和契约明确 | MG05、MG06 | Auth 设计、IdP 能力核验、环境运行说明 | D-ENV、D-PUB；契约设计片 | 只核对既有组件 | M | TODO |
 | MG10 | 受限机器身份只能发布获授权应用／目标 | MG09 | 认证边界、发布授权适配、catalog 用例、受控登记 | 发布委派／审计模型，追加迁移 | 现有 IdP／PG；选定隔离配置 | M | TODO |
@@ -83,6 +83,8 @@
 - 恢复：停用核对仅影响诊断；不根据漂移自动回退目录或授权。
 
 ### MG07：业务菜单提示契约与后端路径
+
+- 有序pass：Auth生产方（协议／严格导航／SDK）DONE并先交付；Commerce固定SDK消费方VERIFYING（源码及真实链路PASS，待准确Git引用安装／验证）。父片在两pass完成后DONE。证据见MG07_TEST_RESULT。
 
 - 设计业务调用方只读入口，消费当前用户证据、受控调用方及明确分区；复用既有中央身份／actor 绑定，不能把某个业务能力的 execution reference 当成全部导航凭证。
 - 根据契约扩展 Auth API／SDK 和 Commerce 后端适配；个人菜单顺序和版本依据按需兼容补齐。管理 `/me/access` 不是未经分析就可直接复用的 Commerce 接口。
