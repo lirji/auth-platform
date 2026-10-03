@@ -17,6 +17,10 @@ public interface CatalogMapper {
     Snapshot snapshot(@Param("id") String id, @Param("version") long version);
     /** 只追加，不提供更新历史清单的入口。 */
     int insertSnapshot(@Param("snapshot") Snapshot snapshot, @Param("publisher") String publisher);
+    /** 展示快照与权限清单使用同一固定版本。 */
+    PresentationSnapshot presentation(@Param("id") String id, @Param("version") long version);
+    /** 只允许追加当前发布事务的展示快照。 */
+    int insertPresentation(@Param("snapshot") PresentationSnapshot snapshot, @Param("publisher") String publisher);
     /** 当前指针必须匹配旧版本。 */
     int advance(@Param("id") String id, @Param("previous") long previous, @Param("version") long version);
     /** 审计失败时整个登记/发布事务回滚。 */

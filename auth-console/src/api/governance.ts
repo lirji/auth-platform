@@ -2,7 +2,7 @@ import { apiClient } from './client'
 import { validatePublishedCatalog } from '../governance/publishedCatalog'
 
 export interface Partition { tenant_id: string; application_id: string; environment: string }
-export interface AccessMenu { code: string; parent: string | null; href: string | null }
+export interface AccessMenu { code: string; parent: string | null; href: string | null; label?: string | null }
 export interface Presentation { menus: AccessMenu[]; capability_hints: string[] }
 export interface Role { id: string; role_code: string; version: number; capabilities: string[] }
 export interface Grant { id: string; member_id: string; member_generation: number; role_id: string; scope: string;
@@ -36,7 +36,7 @@ export interface Capability { code: string; resource_type: string; risk_level: s
 export interface Management { membership_id: string; generation: number; max_duration_seconds: number; capabilities: Capability[];
   catalog_owner: boolean; manifest_version: number; policy_state: string; directory_state: string; desired_epoch: number | null; applied_epoch: number | null }
 export interface PublishedCapability extends Capability { grantable: boolean }
-export interface PublishedMenu { code: string; parent: string | null; route: string | null; any_of: string[] }
+export interface PublishedMenu { code: string; parent: string | null; route: string | null; any_of: string[]; label?: string | null; position?: number | null }
 export interface PublishedResourceType { code: string; scope_supported: boolean; allowed_scope_kinds: string[] }
 export interface PublishedCatalog extends Partition { membership_id: string; generation: number; max_duration_seconds: number;
   manifest_version: number; content_hash: string; view_hash: string; menus: PublishedMenu[]; capabilities: PublishedCapability[]; resource_types: PublishedResourceType[] }
@@ -57,7 +57,7 @@ export const grantScoped = async (body: GrantCommand): Promise<Grant> => (await 
 
 export interface CatalogPreview { application: string; current_version: number; proposed_version: number; content_hash: string; added: string[]; retained: string[] }
 export interface CatalogManifest { schema_version: string; application: string; manifest_version: number;
-  capabilities: { code: string; resource_type: string; risk_level: string }[]; menus: { code: string; parent: string | null; route: string | null; any_of: string[] }[] }
+  capabilities: { code: string; resource_type: string; risk_level: string }[]; menus: { code: string; parent: string | null; route: string | null; any_of: string[]; label?: string | null; position?: number | null }[] }
 export const previewCatalog = async (manifest: CatalogManifest): Promise<CatalogPreview> => (await apiClient.post('/api/governance/v1/catalog/preview', manifest)).data
 export const publishCatalog = async (command: { manifest: CatalogManifest; commandId: string }): Promise<CatalogPreview> =>
   (await apiClient.post('/api/governance/v1/catalog/publish', command.manifest, { headers: { 'X-Command-Id': command.commandId } })).data

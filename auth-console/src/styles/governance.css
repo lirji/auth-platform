@@ -88,7 +88,7 @@
 .g-directory-links { display: flex; flex-wrap: wrap; gap: 12px 20px; margin: 12px 0 24px; overflow-wrap: anywhere; }
 .g-catalog-layout { display: grid; grid-template-columns: minmax(190px, 250px) minmax(0, 1fr); gap: 24px; }
 .g-menu-browser { min-width: 0; padding-right: 20px; border-right: 1px solid var(--g-line); }
-.g-menu-browser .ant-tree { margin-top: 18px; }
+.g-menu-browser .ant-tree { margin-top: 18px; max-height: 65vh; overflow-y: auto; }
 .g-menu-browser .ant-tree-title { overflow-wrap: anywhere; }
 .g-menu-browser .ant-tree-node-content-wrapper { min-width: 0; white-space: normal; }
 .g-menu-detail { min-width: 0; }

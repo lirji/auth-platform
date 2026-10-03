@@ -38,6 +38,8 @@ public final class AccessPresentation {
         var app = catalog.application(partition.applicationId());
         if (app == null || app.manifestVersion() == 0) return new View(List.of(), List.of());
         var manifest = CatalogManifest.read(catalog.snapshot(app.applicationId(), app.manifestVersion()).manifestJson());
+        var presentation = catalog.presentation(app.applicationId(), app.manifestVersion());
+        if (presentation != null) manifest = CatalogManifest.withPresentation(manifest, presentation.presentationJson(), presentation.presentationHash());
         Set<String> allowed = new HashSet<>();
         long deadline = System.nanoTime() + 10_000_000_000L;
         for (var capability : manifest.capabilities()) {
@@ -61,12 +63,15 @@ public final class AccessPresentation {
             }
         }
         var menus = manifest.menus().stream().filter(menu -> visible.contains(menu.code()))
-                .map(menu -> new Menu(menu.code(), menu.parent(), direct.contains(menu.code()) && menu.route() != null ? origin + menu.route() : null)).toList();
+                .map(menu -> new Menu(menu.code(), menu.parent(), direct.contains(menu.code()) && menu.route() != null ? origin + menu.route() : null, menu.label())).toList();
         return new View(menus, allowed.stream().sorted().toList());
     }
 
     /** href为空意味着仅作为目录展示，能力提示不构成授权票据。 */
-    public record Menu(String code, String parent, String href) {}
+    public record Menu(String code, String parent, String href, String label) {
+        /** 存量调用仍兼容无展示名称的旧目录。 */
+        public Menu(String code, String parent, String href) { this(code,parent,href,null); }
+    }
     /** 当前响应不缓存；失败时整次查询失败，不能保留之前的允许菜单。 */
     public record View(List<Menu> menus, List<String> capabilityHints) {}
 }

@@ -9,6 +9,9 @@
  <select id="snapshot" resultType="com.lrj.authz.governance.domain.CatalogModels$Snapshot">SELECT application_id,version,content_hash,manifest_json FROM auth_governance.application_manifest WHERE application_id=#{id} AND version=#{version}</select>
  <insert id="insertSnapshot">INSERT INTO auth_governance.application_manifest(application_id,version,content_hash,manifest_json,published_by)
  VALUES(#{snapshot.applicationId},#{snapshot.version},#{snapshot.contentHash},#{snapshot.manifestJson},#{publisher})</insert>
+ <select id="presentation" resultType="com.lrj.authz.governance.domain.CatalogModels$PresentationSnapshot">SELECT application_id,version,presentation_hash,presentation_json FROM auth_governance.application_manifest_presentation WHERE application_id=#{id} AND version=#{version}</select>
+ <insert id="insertPresentation">INSERT INTO auth_governance.application_manifest_presentation(application_id,version,presentation_hash,presentation_json,published_by)
+ VALUES(#{snapshot.applicationId},#{snapshot.version},#{snapshot.presentationHash},#{snapshot.presentationJson},#{publisher})</insert>
  <update id="advance">UPDATE auth_governance.application_catalog SET manifest_version=#{version} WHERE application_id=#{id} AND manifest_version=#{previous}</update>
  <insert id="audit">INSERT INTO auth_governance.catalog_audit(id,application_id,operator_ref,operation,manifest_version,command_id)
  VALUES(#{id},#{application},#{operator},#{operation},#{version},#{command})</insert>

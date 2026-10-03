@@ -34,3 +34,7 @@ export async function collectRoles(read: (cursor?: string) => Promise<AccessStat
   }
   throw new Error('角色关联超出单次读取上限，请缩小管理分区')
 }
+
+/** 名称来自Owner发布的数据库目录；旧目录保持编码可读。 */
+export const menuTitle = (menu: PublishedCatalog['menus'][number]) => menu.label ?? menu.code
+export const orderedMenus = (catalog: PublishedCatalog) => [...catalog.menus].sort((a, b) => (a.position ?? 100) - (b.position ?? 100) || a.code.localeCompare(b.code))

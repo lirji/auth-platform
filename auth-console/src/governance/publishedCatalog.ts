@@ -31,7 +31,14 @@ export function validatePublishedCatalog(value: PublishedCatalog, partition: Par
   if (resources.size !== types.size) fail()
   const menus = new Map(value.menus.map(menu => [menu.code, menu]))
   if (menus.size !== value.menus.length) fail()
+  const positions = new Set<number>()
   for (const menu of value.menus) {
+    if ((menu.label == null) !== (menu.position == null)) fail()
+    if (menu.label != null) {
+      if (typeof menu.label !== 'string' || !menu.label.trim() || menu.label.trim() !== menu.label || [...menu.label].length > 80 || /[\u0000-\u001f\u007f-\u009f<>]/.test(menu.label)
+        || !Number.isSafeInteger(menu.position) || menu.position! < 0 || menu.position! >= 100 || positions.has(menu.position!)) fail()
+      positions.add(menu.position!)
+    }
     if (!menu || !validCode(menu.code) || menu.parent !== null && !validCode(menu.parent)
       || menu.route !== null && (typeof menu.route !== 'string' || !/^\/[a-zA-Z0-9/_-]*$/.test(menu.route) || menu.route.includes('//'))
       || !Array.isArray(menu.any_of) || menu.any_of.length > 200 || new Set(menu.any_of).size !== menu.any_of.length

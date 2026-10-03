@@ -22,6 +22,8 @@ on:
       - 'deploy/governance-permission-pages.mjs'
       - 'deploy/governance-commerce-publication*'
       - 'deploy/tests/test_governance_commerce_publication.py'
+      - 'deploy/governance-commerce-menu-export.py'
+      - 'deploy/tests/test_governance_commerce_menu_export.py'
       - 'deploy/governance-p7-*'
       - 'deploy/verify-commerce-contract.py'
       - 'deploy/tests/test_commerce_contract.py'
@@ -59,6 +61,8 @@ on:
       - 'deploy/governance-permission-pages.mjs'
       - 'deploy/governance-commerce-publication*'
       - 'deploy/tests/test_governance_commerce_publication.py'
+      - 'deploy/governance-commerce-menu-export.py'
+      - 'deploy/tests/test_governance_commerce_menu_export.py'
       - 'deploy/governance-p7-*'
       - 'deploy/verify-commerce-contract.py'
       - 'deploy/tests/test_commerce_contract.py'
@@ -126,6 +130,7 @@ jobs:
           python3 -m py_compile deploy/governance-p6-migration.py deploy/governance-p6-rehearsal.py deploy/governance-ce05-segments.py deploy/governance-ce05-segments-ui.py deploy/governance-ce05-coupon-deliveries.py deploy/governance-ce05-coupon-deliveries-ui.py
           python3 -m py_compile deploy/governance-integrated-resources-ui.py
           python3 -m unittest discover -s deploy/tests -p 'test_governance_commerce_publication.py' -v
+          python3 -m unittest discover -s deploy/tests -p 'test_governance_commerce_menu_export.py' -v
           python3 -m py_compile deploy/governance-commerce-publication.py deploy/governance-commerce-publication-runtime.py
           python3 -m py_compile deploy/governance-p4-e2e.py deploy/governance-p4-runtime.py deploy/governance-approval-start-smoke.py deploy/governance-p5-commerce.py deploy/governance-p5-login.py deploy/governance-p5-packaged.py
           bash -n deploy/risk-platform-provision.sh deploy/risk-authz-fixture.sh \

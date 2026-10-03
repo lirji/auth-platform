@@ -33,4 +33,19 @@ class CatalogManifestTest {
             assertThatThrownBy(()->CatalogManifest.origin(origin)).isInstanceOf(GovernanceException.class);
         }
     }
+    @Test void displaySnapshotPreservesLegacyAuthorizationJsonAndRoundTripsChinese() {
+        var old=manifest(List.of(new Menu("stores",null,"/stores",List.of("trade.read"))));
+        var named=manifest(List.of(new Menu("stores",null,"/stores",List.of("trade.read"),"商家与门店",0)));
+        assertThat(CatalogManifest.json(named)).isEqualTo(CatalogManifest.json(old)).doesNotContain("label","position");
+        assertThat(CatalogManifest.hash(named)).isEqualTo(CatalogManifest.hash(old));
+        assertThat(CatalogManifest.withPresentation(CatalogManifest.read(CatalogManifest.json(named)),CatalogManifest.presentationJson(named),CatalogManifest.presentationHash(named))).isEqualTo(named);
+        assertThatThrownBy(()->CatalogManifest.withPresentation(old,"[{\"code\":\"stores\",\"label\":\"损坏\",\"position\":0}]",CatalogManifest.presentationHash(named))).isInstanceOf(GovernanceException.class);
+        assertThatThrownBy(()->CatalogManifest.withPresentation(old,"[{\"code\":\"stores\",\"label\":\"商家与门店\"}]",CatalogManifest.presentationHash(named))).isInstanceOf(GovernanceException.class);
+    }
+    @Test void invalidDisplayPairsAndDuplicatePositionsAreRejected() {
+        for (var menu:List.of(new Menu("stores",null,"/stores",List.of("trade.read"),"门店",null),new Menu("stores",null,"/stores",List.of("trade.read"),null,0),new Menu("stores",null,"/stores",List.of("trade.read"),"<script>",0),new Menu("stores",null,"/stores",List.of("trade.read")," 门店",0),new Menu("stores",null,"/stores",List.of("trade.read"),"门店",100)))
+            assertThatThrownBy(()->CatalogManifest.normalize(manifest(List.of(menu)))).isInstanceOf(GovernanceException.class);
+        assertThatThrownBy(()->CatalogManifest.normalize(manifest(List.of(new Menu("a",null,null,List.of(),"目录",0),new Menu("b","a","/stores",List.of("trade.read"),"门店",0))))).isInstanceOf(GovernanceException.class);
+    }
+
 }

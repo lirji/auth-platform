@@ -9,7 +9,7 @@ public final class PortalCatalogModels {
             String membershipId, long generation, long membershipVersion,
             String capabilitiesJson, long maxDurationSeconds,
             long manifestVersion, String contentHash, String manifestJson,
-            String capabilityStatesJson) {}
+            String capabilityStatesJson, String presentationJson, String presentationHash) {}
     /** 未持久化的开关由调用者显式解释为false/version0，不把缺行视为全权限。 */
     public record CapabilityState(String capability, boolean disabled, long version) {}
 }

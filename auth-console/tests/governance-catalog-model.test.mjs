@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { relatedRoles, capabilityMenus, menuCapabilities, collectRoles } from '../src/governance/catalogModel.ts'
+import { relatedRoles, capabilityMenus, menuCapabilities, collectRoles, menuTitle, orderedMenus } from '../src/governance/catalogModel.ts'
 
 const catalog = { menus: [{ code: 'root', parent: null, route: null, any_of: [] }, { code: 'items', parent: 'root', route: '/items', any_of: ['app.item.read'] }],
   capabilities: [{ code: 'app.item.read' }, { code: 'app.item.write' }] }
@@ -33,4 +33,10 @@ test('organization switch cancellation stops further role reads', async () => {
   let reads = 0
   await assert.rejects(collectRoles(async () => { reads++; controller.abort(); return { roles: [], next_role_cursor: 'next' } }, controller.signal))
   assert.equal(reads, 1)
+})
+
+test('Chinese menu labels and source order preserve legacy fallback without mutating input', () => {
+ const c={menus:[{code:'z',label:'会员档案',position:1},{code:'a',label:'会员经营',position:0},{code:'legacy'}]}
+ assert.deepEqual(orderedMenus(c).map(menuTitle),['会员经营','会员档案','legacy'])
+ assert.equal(c.menus[0].code,'z')
 })

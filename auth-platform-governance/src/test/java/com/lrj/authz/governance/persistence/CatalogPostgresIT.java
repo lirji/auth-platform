@@ -67,9 +67,26 @@ class CatalogPostgresIT {
         // 定向临时约束只拒绝本测试应用的发布，验证真实事务回滚后立刻移除本测试约束。
         String constraint="test_catalog_"+id().replace("-","");
         jdbc.execute("alter table auth_governance.catalog_audit add constraint "+constraint+" check (application_id <> '"+app+"' or operation <> 'PUBLISH')");
-        try { assertThatThrownBy(()->runtime.catalog().publish(login(p),manifest(app,1),id())).isInstanceOf(RuntimeException.class);
+        try { assertThatThrownBy(()->runtime.catalog().publish(login(p),named(app,1,"门店"),id())).isInstanceOf(RuntimeException.class);
             assertThat(runtime.catalog().current(login(p),app)).isNull();
             assertThat(jdbc.queryForObject("select count(*) from auth_governance.application_manifest where application_id=?",Integer.class,app)).isZero();
+            assertThat(jdbc.queryForObject("select count(*) from auth_governance.application_manifest_presentation where application_id=?",Integer.class,app)).isZero();
         } finally {jdbc.execute("alter table auth_governance.catalog_audit drop constraint "+constraint);}
     }
+    private Manifest named(String app,long version,String label) {
+        var m=manifest(app,version);return new Manifest("1",app,version,m.capabilities(),List.of(new Menu("stores",null,"/stores",List.of(app+".read"),label,0)));
+    }
+    @Test void displayPublicationIsImmutableAndDoesNotChangeLegacyManifestStorage() {
+        var p=person();String app=register(p);var m=named(app,1,"商家与门店");
+        runtime.catalog().publish(login(p),m,id());runtime.catalog().publish(login(p),m,id());
+        assertThat(runtime.catalog().current(login(p),app)).isEqualTo(m);
+        assertThat(jdbc.queryForObject("select manifest_json from auth_governance.application_manifest where application_id=?",String.class,app)).doesNotContain("label","position");
+        assertThat(jdbc.queryForObject("select count(*) from auth_governance.application_manifest_presentation where application_id=?",Integer.class,app)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from auth_governance.catalog_audit where application_id=? and operation='PUBLISH'",Integer.class,app)).isEqualTo(1);
+        assertThatThrownBy(()->runtime.catalog().publish(login(p),named(app,1,"改名"),id())).hasMessage("VERSION_CONFLICT");
+        assertThatThrownBy(()->runtime.catalog().publish(login(p),manifest(app,1),id())).hasMessage("VERSION_CONFLICT");
+        runtime.catalog().publish(login(p),named(app,2,"商品与门店"),id());
+        assertThat(runtime.catalog().current(login(p),app).menus().getFirst().label()).isEqualTo("商品与门店");
+    }
+
 }

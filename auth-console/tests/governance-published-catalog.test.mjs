@@ -17,3 +17,10 @@ test('whole role must have one enabled grantable resource, not a partial interse
 test('outside ceiling and unsupported binding are explicit',()=>{const c=catalog();c.capabilities[0].grantable=false;assert.ok(roleScopeEligibility(role(['commerce.member.read']),c).reason);c.capabilities[0].grantable=true;c.resource_types[0]={code:'commerce_member',scope_supported:false,allowed_scope_kinds:[]};assert.ok(roleScopeEligibility(role(['commerce.member.read']),c).reason)})
 test('copied incompatible codes need explicit correction before a single resource role',()=>{assert.equal(capabilitySelectionError(catalog(),'commerce_member',['commerce.member.read']),undefined);for(const codes of [[],['commerce.member.write'],['commerce.member.read','commerce.store.read'],['commerce.missing']])assert.ok(capabilitySelectionError(catalog(),'commerce_member',codes))})
 test('parent menu browsing returns a finite context without changing selection',()=>{const c=catalog(),selected=['commerce.store.read'];assert.deepEqual([...menuCapabilityCodes(c,'operations')],['commerce.member.read']);assert.deepEqual(selected,['commerce.store.read']);assert.equal(menuCapabilityCodes(c,undefined),undefined)})
+
+test('database menu names require bounded complete unique display pairs',()=>{
+ const c=catalog();c.menus[0]={...c.menus[0],label:'会员经营',position:0};c.menus[1]={...c.menus[1],label:'会员档案',position:1};assert.equal(validatePublishedCatalog(c,p).menus[1].label,'会员档案');
+ for(const override of [{label:'会员档案'}, {position:0}, {label:'<script>',position:1}, {label:' 会员档案',position:1}, {label:'会员档案',position:100}, {label:'会员档案',position:0}]) {
+  const v=catalog();v.menus[0]={...v.menus[0],label:'会员经营',position:0};v.menus[1]={...v.menus[1],...override};assert.throws(()=>validatePublishedCatalog(v,p));
+ }
+})

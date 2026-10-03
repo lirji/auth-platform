@@ -125,4 +125,17 @@ class PublishedCatalogPostgresIT {
         assertThatThrownBy(()->runtime.requests().registerPolicy(login(f.owner),f.p,id(),disabled.id(),rule,60,f.owner.membershipId(),1,1)).hasMessage("ACCESS_DENIED");
         assertThat(runtime.portalManagement().publishedCatalog(login(f.owner),f.p).capabilities()).anySatisfy(c->{assertThat(c.code()).isEqualTo(store);assertThat(c.disabled()).isTrue();assertThat(c.grantable()).isFalse();});
     }
+    @Test void chineseMenusReachNarrowManagersWithoutExpandingDelegationAndDamagedPresentationFailsClosed() {
+        var f=fixture(true);var old=runtime.portalManagement().publishedCatalog(login(f.narrow),f.p);
+        assertThat(old.menus()).allSatisfy(m->assertThat(m.label()).isNull());
+        var m=new Manifest("1",f.p.applicationId(),2,f.caps,List.of(new Menu("operations",null,null,List.of(),"商品与门店",0),new Menu("stores","operations","/operations/directory",List.of(f.p.applicationId()+".store.read",f.p.applicationId()+".merchant.read"),"商家与门店",1)));
+        runtime.catalog().publish(login(f.owner),m,id());
+        var current=runtime.portalManagement().publishedCatalog(login(f.narrow),f.p);
+        assertThat(current.menus()).extracting(v->v.label()).containsExactly("商品与门店","商家与门店");
+        assertThat(current.capabilities().stream().filter(v->v.grantable()).map(v->v.code())).containsExactly(f.p.applicationId()+".store.read");
+        assertThat(current.viewHash()).isNotEqualTo(old.viewHash());
+        jdbc.update("update auth_governance.application_manifest_presentation set presentation_hash=repeat('0',64) where application_id=?",f.p.applicationId());
+        assertThatThrownBy(()->runtime.portalManagement().publishedCatalog(login(f.narrow),f.p)).hasMessage("DEPENDENCY_UNAVAILABLE");
+    }
+
 }

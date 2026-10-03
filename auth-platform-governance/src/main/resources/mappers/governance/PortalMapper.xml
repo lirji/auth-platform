@@ -5,6 +5,7 @@
   SELECT u.id AS principal_id,u.version AS principal_version,t.version AS tenant_version,
    m.id AS membership_id,m.generation,m.version AS membership_version,
    d.capabilities_json,d.max_duration_seconds,a.manifest_version,s.content_hash,s.manifest_json,
+   COALESCE(mp.presentation_json,'[]') AS presentation_json,mp.presentation_hash,
    COALESCE((
     SELECT jsonb_agg(jsonb_build_object('capability',cs.capability,'disabled',cs.disabled,'version',cs.version) ORDER BY cs.capability)::text
     FROM auth_governance.capability_state cs
@@ -20,6 +21,7 @@
    AND d.environment=ta.environment AND d.membership_id=m.id AND d.generation=m.generation
   JOIN auth_governance.application_catalog a ON a.application_id=ta.application_id
   JOIN auth_governance.application_manifest s ON s.application_id=a.application_id AND s.version=a.manifest_version
+  LEFT JOIN auth_governance.application_manifest_presentation mp ON mp.application_id=s.application_id AND mp.version=s.version
   WHERE li.issuer=#{issuer} AND li.subject=#{subject}
    AND ta.tenant_id=#{p.tenantId} AND ta.application_id=#{p.applicationId} AND ta.environment=#{p.environment}
    AND ta.enabled AND d.enabled AND u.kind='HUMAN' AND u.status='ACTIVE' AND t.status='ACTIVE' AND m.status='ACTIVE'

@@ -14,8 +14,10 @@ public final class PortalDtos {
         public PublishedCatalog { menus=List.copyOf(menus); capabilities=List.copyOf(capabilities); resourceTypes=List.copyOf(resourceTypes); }
     }
     /** 父菜单仅作为浏览上下文，anyOf不是批量授权或角色模板。 */
-    public record PublishedMenu(String code, String parent, String route, List<String> anyOf) {
+    public record PublishedMenu(String code, String parent, String route, List<String> anyOf, String label, Integer position) {
         public PublishedMenu { anyOf=List.copyOf(anyOf); }
+        /** 保留旧Java消费者的四字段构造入口。 */
+        public PublishedMenu(String code, String parent, String route, List<String> anyOf) { this(code,parent,route,anyOf,null,null); }
     }
     /** 全清单可读，超委派或停用项明确不可新选；原管理接口形状保持。 */
     public record PublishedCapability(String code, String resourceType, String riskLevel, boolean disabled, boolean grantable) {}

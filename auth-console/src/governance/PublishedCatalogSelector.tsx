@@ -1,3 +1,4 @@
+import { menuTitle, orderedMenus } from './catalogModel'
 import { useState } from 'react'
 import { Alert, Button, Checkbox, Input, Select, Space, Tag, TreeSelect, Typography } from 'antd'
 import type { PublishedCatalog } from '../api/governance'
@@ -31,7 +32,7 @@ export function PublishedCatalogSelector({ catalog, resource, value = [], onChan
       <Input.Search aria-label="搜索当前能力" placeholder="搜索能力或资源编码" value={search} onChange={event => setSearch(event.target.value.toLowerCase())} disabled={disabled} />
       <TreeSelect aria-label="菜单浏览上下文" placeholder="全部菜单及未关联能力" allowClear disabled={disabled || !catalog.menus.length}
         style={{ width: '100%' }} value={menu} onChange={value => { setMenu(value); setUnlinked(false) }} treeDefaultExpandAll
-        treeData={catalog.menus.map(menu => ({ id: menu.code, pId: menu.parent ?? undefined, value: menu.code, title: `${menu.code}${menu.route ? ` · ${menu.route}` : ''}` }))} treeDataSimpleMode />
+        treeData={orderedMenus(catalog).map(menu => ({ id: menu.code, pId: menu.parent ?? undefined, value: menu.code, title: `${menuTitle(menu)}${menu.route ? ` · ${menu.route}` : ''}` }))} treeDataSimpleMode />
       <Select aria-label="能力关联筛选" value={unlinked ? 'unlinked' : 'all'} disabled={disabled} options={[{ value: 'all', label: '显示当前浏览能力' }, { value: 'unlinked', label: '仅未关联菜单能力' }]}
         onChange={value => { setUnlinked(value === 'unlinked'); if (value === 'unlinked') setMenu(undefined) }} style={{ width: '100%' }} />
     </Space>

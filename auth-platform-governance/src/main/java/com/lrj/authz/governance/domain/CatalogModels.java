@@ -14,9 +14,15 @@ public final class CatalogModels {
     /** 能力与资源类型属于同一应用命名空间。 */
     public record Capability(String code, String resourceType, Risk riskLevel) {}
     /** 父菜单只组织展示，业务权限始终逐请求检查。 */
-    public record Menu(String code, String parent, String route, List<String> anyOf) {
+    public record Menu(String code, String parent, String route, List<String> anyOf, String label, Integer position) {
         public Menu { anyOf = anyOf == null ? null : List.copyOf(anyOf); }
+        /** 旧调用者仍可构建没有显示元数据的v1菜单。 */
+        public Menu(String code, String parent, String route, List<String> anyOf) { this(code,parent,route,anyOf,null,null); }
     }
+    /** 名称与顺序仅承载应用Owner的界面事实，不成为新的权限规则。 */
+    public record MenuPresentation(String code, String label, Integer position) {}
+    /** 展示快照与同版本权限清单分开存储，旧后端可继续读取原始v1JSON。 */
+    public record PresentationSnapshot(String applicationId, long version, String presentationHash, String presentationJson) {}
     /** 不可变发布内容；集合防御复制，不能在验收后被调用方修改。 */
     public record Manifest(String schemaVersion, String application, long manifestVersion,
                            List<Capability> capabilities, List<Menu> menus) {

@@ -55,6 +55,9 @@ public final class ApplicationCatalog {
                 return result;
             }
             requireOne(mapper.insertSnapshot(new Snapshot(app.applicationId(),manifest.manifestVersion(),result.contentHash(),CatalogManifest.json(manifest)),app.ownerPrincipalId()));
+            // 名称与权限同事务提交，审计失败不能留下半个可见目录。
+            String presentation = CatalogManifest.presentationJson(manifest);
+            if (!"[]".equals(presentation)) { requireOne(mapper.insertPresentation(new PresentationSnapshot(app.applicationId(),manifest.manifestVersion(),CatalogManifest.presentationHash(manifest),presentation),app.ownerPrincipalId())); }
             requireOne(mapper.advance(app.applicationId(),app.manifestVersion(),manifest.manifestVersion()));
             requireOne(mapper.audit(UUID.randomUUID().toString(),app.applicationId(),app.ownerPrincipalId(),"PUBLISH",manifest.manifestVersion(),command));
             return result;
@@ -64,7 +67,9 @@ public final class ApplicationCatalog {
     public Manifest current(VerifiedLogin login, String application) {
         Application app=requireOwner(login,application,false);
         Snapshot row=mapper.snapshot(application,app.manifestVersion());
-        return row==null ? null : CatalogManifest.read(row.manifestJson());
+        if (row==null) { return null; }
+        var presentation=mapper.presentation(application,app.manifestVersion());
+        return CatalogManifest.withPresentation(CatalogManifest.read(row.manifestJson()),presentation==null ? "[]" : presentation.presentationJson(),presentation==null ? null : presentation.presentationHash());
     }
     /** 紧急停用不修改已发布RoleVersion；恢复也必须显式拥有者命令和新版本。 */
     public CapabilityState changeCapability(VerifiedLogin login,String application,String capability,boolean disabled,long expectedVersion,String reason,String command) {
@@ -98,6 +103,12 @@ public final class ApplicationCatalog {
         Map<String,Capability> next=manifest.capabilities().stream().collect(Collectors.toMap(Capability::code,Function.identity()));
         if (!next.keySet().containsAll(old.keySet()) || old.values().stream().anyMatch(c -> !c.equals(next.get(c.code())))) { throw new GovernanceException(VERSION_CONFLICT); }
         String hash=CatalogManifest.hash(manifest);
+        // 同版重试也必须保持中文名称与顺序，不能靠相同权限摘要悄悄改显示事实。
+        if (manifest.manifestVersion()==app.manifestVersion()) {
+            var shown=mapper.presentation(app.applicationId(),app.manifestVersion());
+            String expected=shown==null ? CatalogManifest.presentationHash(new Manifest(manifest.schemaVersion(),manifest.application(),manifest.manifestVersion(),manifest.capabilities(),List.of())) : shown.presentationHash();
+            if (!expected.equals(CatalogManifest.presentationHash(manifest))) { throw new GovernanceException(VERSION_CONFLICT); }
+        }
         if (manifest.manifestVersion()==app.manifestVersion() && (previous==null || !hash.equals(previous.contentHash()))) { throw new GovernanceException(VERSION_CONFLICT); }
         return new Preview(app.applicationId(),app.manifestVersion(),manifest.manifestVersion(),hash,
                 next.keySet().stream().filter(k -> !old.containsKey(k)).sorted().toList(),old.keySet().stream().sorted().toList());

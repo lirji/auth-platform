@@ -32,6 +32,8 @@ public final class PortalManagement {
         var before = mapper.publishedCatalogBasis(p, login.issuer(), login.subject());
         requireBasis(before, initial);
         var manifest = CatalogManifest.read(before.manifestJson());
+        try { manifest=CatalogManifest.withPresentation(manifest,before.presentationJson(),before.presentationHash()); }
+        catch (GovernanceException corrupt) { throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE); }
         if (!manifest.application().equals(p.applicationId()) || manifest.manifestVersion() != before.manifestVersion()
                 || !CatalogManifest.hash(manifest).equals(before.contentHash())) {
             throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE);
@@ -46,11 +48,11 @@ public final class PortalManagement {
         var resources = capabilities.stream().map(PublishedCapability::resourceType).distinct().sorted().map(type ->
                 new PublishedResourceType(type, ScopeResourceBindings.supports(type),
                     Arrays.stream(Kind.values()).filter(kind -> ScopeResourceBindings.allows(type, kind)).sorted(Comparator.comparing(Enum::name)).toList())).toList();
-        var menus = manifest.menus().stream().map(m -> new PublishedMenu(m.code(), m.parent(), m.route(), m.anyOf())).toList();
+        var menus = manifest.menus().stream().map(m -> new PublishedMenu(m.code(), m.parent(), m.route(), m.anyOf(), m.label(), m.position())).toList();
         // 不能把清单摘要当作选项版本：委派缩减、成员变化和紧急开关也必须使旧选择失效。
         String viewHash = AccessValues.hash(p.tenantId(), p.applicationId(), p.environment(), before.principalId(),
                 before.principalVersion(), before.tenantVersion(), before.membershipId(), before.generation(), before.membershipVersion(),
-                AccessValues.json(allowed), before.maxDurationSeconds(), before.manifestVersion(), before.contentHash(), before.capabilityStatesJson());
+                AccessValues.json(allowed), before.maxDurationSeconds(), before.manifestVersion(), before.contentHash(), before.capabilityStatesJson(), before.presentationHash());
         var latest = access.authority(login, p);
         var after = mapper.publishedCatalogBasis(p, login.issuer(), login.subject());
         requireBasis(after, latest);
