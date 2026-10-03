@@ -55,7 +55,7 @@ services:
         condition: service_completed_successfully
 
   casdoor:
-    # 保持原身份服务的已验证摘要；治理 profile 的 v4.11.0 仍是外部依赖。
+    # 保持原身份服务的已验证摘要；治理身份由可选 dependencies.compose.yml 单独管理。
     image: ${CASDOOR_IMAGE:-casbin/casdoor@sha256:1b479655bf51b1c630f2a3ea93ec1ef58388e1d5861173377269266ea321537e}
     container_name: authz-casdoor
     environment:

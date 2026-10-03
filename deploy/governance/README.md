@@ -9,7 +9,7 @@
 - 既有兼容治理验证的 Casdoor 4.11：localhost:18090。8000 的旧 Casdoor 保留给原环境。
 - 既有 P3 治理 SpiceDB：localhost:18544；使用全新 tenant UUID 分区，不覆盖已有图数据。读池 min/max=1/4，写池 min/max=1/2，避免默认 30 个常驻连接耗尽共享 PostgreSQL。`governance-graph-isolation.py` 新建本地阶段图时同样采用此上限；已有实例需保留镜像、环境、端口、数据源再重建，不能只重启期待配置改变。
 - 私密身份夹具目录必须包含 `p2/identity/casdoor.json`、`casdoor-isolated/management-client.json`、`p3/graph/graph.properties`。这些文件不入 Git，不进入镜像。
-- 18090/18544 的容器须保持运行。当前本机对应 `auth-gov-casdoor-p1-f56b6f94d6bc`、`auth-governance-p3-graph`，已设 `unless-stopped`。它们虽有阶段命名，现已是此本地入口的有效依赖，清理测试容器时须排除。
+- 18090/18544 是此入口的有效依赖，清理测试容器时须排除。本机接管后分别由 `auth-governance-casdoor`、`auth-governance-graph` 提供，均属于 `auth-platform` Compose 项目并设 `unless-stopped`；没有接管的环境仍可沿用原外部实例。
 
 固定库含一个 `local-commerce` 组织、两个已有身份的成员映射、commerce 应用、local 环境以及门店读取/管理、商品读取三项能力。首次管理员由受控 CLI 显式委派；不会按首次登录或 isAdmin 自动提权。示例外部身份仅在本地示例中作为 EMPLOYEE 成员导入。
 
@@ -50,7 +50,27 @@ GOVERNANCE_ENV_FILE=/absolute/path/runtime.env bash deploy/governance/run.sh res
 GOVERNANCE_ENV_FILE=/absolute/path/runtime.env bash deploy/governance/run.sh stop
 ```
 
-`restart` 一起重建三个治理容器，`stop` 只停止这三个服务，均不删除数据卷、不操作 OA 或原 Auth 基建。
+`restart` 一起重建三个治理应用容器；已接管的认证/图服务只调和运行状态，不强制重建。`stop` 停止三个应用及已接管的两项依赖，均不删除数据卷、不操作 OA 或原 8000/8543 Auth 基建。
+
+## 已有依赖纳入同一 Compose 组
+
+Docker Desktop 按 Compose 项目标签分组。阶段脚本创建的独立容器没有这些标签，不能靠改名归组。`dependencies.compose.yml` 把已有独立实例纳入 `auth-platform`：认证仍用 18090、原只读配置卷和原 PostgreSQL 数据库；授权图仍用 18544、原连接串/密钥和原池上限。共享 PostgreSQL 继续由 dev_infra 管理。
+
+接管前先保存私密容器配置、配置卷内容并备份所连接的数据库。下面的准备命令只读取 Docker 并导出 0600 私密文件，不启动、停止或重建容器，也不生成新账号：
+
+```bash
+python3 deploy/governance/prepare-dependencies.py \
+  --casdoor-container <现有认证容器> \
+  --graph-container <现有授权图容器> \
+  --output-directory "$PWD/.local/docker-governance"
+bash deploy/governance/run.sh config
+```
+
+`run.sh` 检测到与 runtime.env 同目录的 `dependencies.env` 后加载依赖 Compose 文件；可用 `GOVERNANCE_DEPENDENCIES_ENV_FILE` 显式指定路径。未提供此文件时维持外部依赖模式，避免在其它环境自动创建重复实例。私密配置中的镜像为原容器不可变 digest；配置卷和数据库网络声明为 external，缺失即拒绝启动，不创建空卷。
+
+接管配置需要支持 env_file.format: raw 的 Compose；本机验证版本为5.5.0。`up`/`update`/`restart` 在调和依赖后实际读取原登录 issuer 和图 schema，最多等待45秒，再启动应用，避免把冷启动中的 running 当成依赖已可用。
+
+首次切换需在维护窗口停止旧两个实例并保存为停机回退容器，然后只启动 `governance-casdoor governance-graph`。端口互斥，不能让旧、新实例同时运行。验证 Compose 标签、镜像/数据源一致、真实 PKCE 登录、schema 读取、管理接口和两类投影 READY 后完成接管。回退先停止新两个实例，再启动旧实例；不还原或删除数据库。原始检查点、停机回退容器和数据库备份保留，清理另行处理。接管结果见 [分组迁移报告](../../docs/deployment/governance-compose-group.md)。
 
 ## 网络、健康与权限生效
 

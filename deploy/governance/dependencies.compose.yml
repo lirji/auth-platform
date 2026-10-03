@@ -1,0 +1,49 @@
+# 仅在已有依赖被显式接管后加载；不新建数据库、身份、图模型或配置卷。
+services:
+  governance-casdoor:
+    profiles: [governance]
+    image: ${GOVERNANCE_CASDOOR_IMAGE:?Prepare dependencies.env first}
+    container_name: auth-governance-casdoor
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 768m
+    ports:
+      - "127.0.0.1:18090:8000"
+    volumes:
+      - governance-casdoor-config:/conf:ro
+    networks:
+      - governance-database
+
+  governance-graph:
+    profiles: [governance]
+    image: ${GOVERNANCE_GRAPH_IMAGE:?Prepare dependencies.env first}
+    container_name: auth-governance-graph
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 512m
+    # 保留原 bridge 网络和数据库连接，不借分组改变数据源。
+    network_mode: bridge
+    env_file:
+      - path: ${GOVERNANCE_GRAPH_ENV_FILE:?Prepare dependencies.env first}
+        format: raw
+    command:
+      - serve
+      - --http-enabled
+      - --http-addr=:8443
+      - --grpc-addr=:50051
+      - --datastore-conn-pool-read-min-open=1
+      - --datastore-conn-pool-read-max-open=4
+      - --datastore-conn-pool-write-min-open=1
+      - --datastore-conn-pool-write-max-open=2
+    ports:
+      - "127.0.0.1:18544:8443"
+
+volumes:
+  governance-casdoor-config:
+    external: true
+    name: ${GOVERNANCE_CASDOOR_CONFIG_VOLUME:?Prepare dependencies.env first}
+
+networks:
+  governance-database:
+    external: true
+    name: ${GOVERNANCE_DATABASE_NETWORK:?Prepare dependencies.env first}

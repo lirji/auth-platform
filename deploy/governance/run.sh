@@ -21,12 +21,28 @@ fi
 . "$repo/deploy/load-platform-ports.sh"
 compose+=(--env-file "$PLATFORM_PORTS_FILE" -p auth-platform -f "$repo/deploy/docker-compose.yml" --profile governance)
 services=(auth-console governance-admin governance-projector)
+# 未接管的环境继续使用外部依赖；接管后同一项目显式管理两项基础设施。
+dependencies_env=${GOVERNANCE_DEPENDENCIES_ENV_FILE:-$(dirname "$env_file")/dependencies.env}
+dependencies=()
+if [[ -f "$dependencies_env" ]]; then
+  compose+=(--env-file "$dependencies_env" -f "$repo/deploy/governance/dependencies.compose.yml")
+  dependencies=(governance-casdoor governance-graph)
+fi
+start_dependencies(){
+  if [[ ${#dependencies[@]} -gt 0 ]]; then
+    "${compose[@]}" up -d --no-build --pull never "${dependencies[@]}"
+    # 进程 running 不等于可登录/读图；冷启动先验证依赖再启用应用严格投影。
+    graph_env=$(dirname "$dependencies_env")/dependencies-graph.env
+    python3 "$repo/deploy/governance/wait-dependencies.py" --configuration "$graph_env"
+  fi
+}
 build_services(){
   "${compose[@]}" config --quiet
   "${compose[@]}" build auth-console governance-admin
 }
 start_services(){
   "${compose[@]}" config --quiet
+  start_dependencies
   "${compose[@]}" up -d --no-build --pull never --wait --wait-timeout 180 auth-console governance-admin
   python3 "$repo/deploy/governance/provision-local.py" --runtime-env "$env_file" --activate
   "${compose[@]}" up -d --no-build --pull never --wait --wait-timeout 180 "${services[@]}"
@@ -41,9 +57,11 @@ case "$action" in
     start_services
     ;;
   restart)
+    # 基础设施只调和状态，不随应用 restart 强制重建，避免额外登录中断。
+    start_dependencies
     # 共享网络命名空间不能只重建 UI；三者必须一起更新。
     "${compose[@]}" up -d --force-recreate --no-build --pull never --wait --wait-timeout 180 "${services[@]}"
     ;;
-  stop) "${compose[@]}" stop "${services[@]}" ;;
-  status) "${compose[@]}" ps "${services[@]}" ;;
+  stop) "${compose[@]}" stop "${services[@]}" "${dependencies[@]}" ;;
+  status) "${compose[@]}" ps "${services[@]}" "${dependencies[@]}" ;;
 esac
