@@ -119,6 +119,23 @@ class CommercePublicationTest(unittest.TestCase):
         path.write_text(path.read_text().replace(']]}', '],["/operations/new","新页"]]}'))
         self.reject()
 
+    def test_structured_navigation_retains_stable_id_and_detects_unsupported_hierarchy(self):
+        directory = self.root / "frontend/src/iam"
+        (directory / "navigation.ts").write_text('import declaration from "./catalog.json";')
+        declaration = {"schema_version": "1", "application": "commerce", "menus": [
+            {"code": "group.catalog", "parent": None, "route": None, "label": "商品"},
+            {"code": "stable.product.page", "parent": "group.catalog", "route": "/operations/renamed", "label": "新名称"}]}
+        path = directory / "catalog.json"
+        path.write_text(json.dumps(declaration))
+        routes, groups, references = publisher.navigation(self.roots)
+        self.assertEqual(routes, {"/operations/renamed": {"group": "catalog", "label": "新名称"}})
+        self.assertEqual(groups, {"catalog": "商品"})
+        self.assertEqual(len(references), 2)
+        declaration["menus"][1]["parent"] = "missing"
+        path.write_text(json.dumps(declaration))
+        with self.assertRaisesRegex(ValueError, "unsupported navigation hierarchy"):
+            publisher.navigation(self.roots)
+
     def test_unsupported_navigation_shape_is_not_guessed(self):
         path = self.root / "frontend/src/iam/navigation.ts"
         path.write_text('export const routes=["/operations/products"];')

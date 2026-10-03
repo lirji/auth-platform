@@ -114,6 +114,25 @@ def navigation(roots):
         text = path.read_text()
         reference = {"repo": repo, "path": str(path.relative_to(root)), "sha256": sha(path)}
         references.append(reference)
+        registry = root / "frontend/src/iam/catalog.json"
+        if registry.is_file():
+            # 新项目消费结构化声明；历史Owner能力证明流程仍核对实际导航，但不再解析生成后的TS。
+            require('"./catalog.json"' in text or "'./catalog.json'" in text, "navigation does not consume declaration")
+            declaration = load(registry)
+            require(declaration.get('schema_version') == '1' and declaration.get('application') == 'commerce', 'invalid declaration identity')
+            indexed = {menu['code']: menu for menu in declaration['menus']}
+            require(len(indexed) == len(declaration['menus']) <= MAX_MENUS, 'duplicate/overflow source menus')
+            references.append({"repo": repo, "path": str(registry.relative_to(root)), "sha256": sha(registry)})
+            for menu in declaration['menus']:
+                if menu['code'].startswith('group.') and menu['parent'] is None:
+                    groups[menu['code'][6:]] = menu['label']
+                if menu['route'] is not None and menu['route'].startswith('/operations/'):
+                    parent = indexed.get(menu['parent'])
+                    require(parent is not None and parent['code'].startswith('group.') and parent['parent'] is None, 'unsupported navigation hierarchy')
+                    route, key = menu['route'], parent['code'][6:]
+                    require(route not in routes, 'duplicate source navigation route')
+                    routes[route] = {'group': key, 'label': menu['label']}
+            continue
         parsed = set()
         for group in GROUP.finditer(text):
             key, label, body = group.groups()

@@ -11,8 +11,8 @@
 | ID | 可观察结果 | Needs | Owner／改动路径 | 契约／迁移归属 | Runtime | 规模 | 状态 |
 |---|---|---|---|---|---|---|---|
 | MG00 | 第一阶段规则、差异和统计口径明确，可据此实现 | 计划确认 | Auth 设计契约＋Commerce 声明契约 | 新 `CONTRACTS.md` 第一阶段；不改库 | 无新增 | M | DONE |
-| MG01 | 修改一份项目声明即可一致生成导航与候选清单 | MG00 | Commerce `frontend/src/iam/navigation.ts` 及新声明；Auth 导出器／映射消费方 | 声明契约；保留旧 manifest v1 | 无新增 | M | IN_PROGRESS |
-| MG02 | Owner 在预览弹层看到完整菜单及能力差异 | MG00 | `ApplicationCatalog`、domain/web/Controller、`CatalogEditor.tsx`、API 类型 | 兼容新增预览读契约；原则上无迁移 | 现有 Auth／console | M | TODO |
+| MG01 | 修改一份项目声明即可一致生成导航与候选清单 | MG00 | Commerce `frontend/src/iam/navigation.ts` 及新声明；Auth 导出器／映射消费方 | 声明契约；保留旧 manifest v1 | 无新增 | M | DONE |
+| MG02 | Owner 在预览弹层看到完整菜单及能力差异 | MG00 | `ApplicationCatalog`、domain/web/Controller、`CatalogEditor.tsx`、API 类型 | 兼容新增预览读契约；原则上无迁移 | 现有 Auth／console | M | IN_PROGRESS |
 | MG03 | 分区管理员查看潜在受影响角色、来源和人员 | MG02 | `PortalManagement`、Mapper XML、Controller、预览详情 | 管理读契约；按执行计划加索引 | 现有 PG／console | M | TODO |
 | MG04 | 发布记录关联项目提交、清单摘要及操作者，并可查询 | MG01、MG02 | `ApplicationCatalog`、`CatalogMapper`／XML、console 历史详情 | 不可变发布元数据，追加迁移 | 现有 PG | M | TODO |
 | MG05 | 基础版本或影响依据变化后旧预览不能继续发布 | MG03、MG04 | Owner 发布用例／Controller、`CatalogEditor`、`useCommand` | 发布依据、幂等和兼容门禁契约；持久化按需 | 现有 PG／console | M | TODO |

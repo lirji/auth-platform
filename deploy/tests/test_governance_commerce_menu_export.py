@@ -54,3 +54,24 @@ class MenuExportTest(unittest.TestCase):
         self.setUp()
         with self.assertRaises(ValueError):
             exporter.export(self.approved, self.contract, self.current, self.nav, '"商品协作"', 1)
+
+    def test_registry_allows_real_menu_evolution_but_keeps_capability_semantics(self):
+        registry = dict(schema_version='1', application='commerce', capabilities=copy.deepcopy(self.current['capabilities']),
+                        menus=[dict(code='stable.entry', parent=None, route='/operations/new-path', any_of=['commerce.product.read'], label='真实新入口', position=0)])
+        result = exporter.export_registry(registry, self.current, 3)
+        self.assertEqual(result['menus'][0]['code'], 'stable.entry')
+        self.assertEqual(len(result['menus']), 1)
+        self.assertEqual(self.current['manifest_version'], 1)
+        registry['capabilities'][0]['risk_level'] = 'HIGH'
+        with self.assertRaises(ValueError):
+            exporter.export_registry(registry, self.current, 3)
+
+    def test_registry_rejects_unknown_bindings_cycles_and_bad_position(self):
+        registry = dict(schema_version='1', application='commerce', capabilities=self.current['capabilities'],
+                        menus=[dict(code='stable.entry', parent=None, route='/operations/new', any_of=['commerce.unknown'])])
+        with self.assertRaises(ValueError):
+            exporter.export_registry(registry, self.current, 2)
+        registry['menus'][0]['any_of'] = ['commerce.product.read']
+        registry['menus'][0]['parent'] = 'stable.entry'
+        with self.assertRaises(ValueError):
+            exporter.export_registry(registry, self.current, 2)
