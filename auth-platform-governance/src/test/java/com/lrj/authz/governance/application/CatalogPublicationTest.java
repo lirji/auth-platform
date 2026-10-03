@@ -24,4 +24,15 @@ class CatalogPublicationTest {
         assertThatThrownBy(()->CatalogPublication.read(new ByteArrayInputStream(new byte[141313]))).hasMessage("INVALID_ARGUMENT");
         assertThatThrownBy(()->read("{\"manifest\":"+MANIFEST+",\"decision\":\"KEEP_CURRENT_GRANTS\"}")).hasMessage("INVALID_ARGUMENT");
     }
+    @Test void guardedCommandsRejectInjectedCandidateActorExpiryAndCoercions() {
+        String valid="{\"command_id\":\"a\",\"preview_id\":\"b\"}";
+        for(String value:new String[]{valid.replace("{","{\"manifest\":"+MANIFEST+","),valid.replace("{","{\"subject\":\"victim\","),
+                valid.replace("\"preview_id\":\"b\"","\"preview_id\":1"),valid.replace("{","{\"expires_at\":\"2099\","),
+                valid.replace("{","{\"command_id\":\"duplicate\","),valid+"{}"})
+            assertThatThrownBy(()->CatalogPublication.read(new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8)),com.lrj.authz.governance.domain.CatalogGuardModels.PublishCommand.class)).hasMessage("INVALID_ARGUMENT");
+        for(String value:new String[]{"{\"manifest\":"+MANIFEST+",\"decision\":0}","{\"manifest\":"+MANIFEST+",\"source\":{\"commit\":12,\"artifact_hash\":\"x\"}}",
+                "{\"manifest\":"+MANIFEST+",\"impact\":{\"tenant_id\":1}}"})
+            assertThatThrownBy(()->CatalogPublication.read(new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8)),com.lrj.authz.governance.domain.CatalogGuardModels.PreviewInput.class)).hasMessage("INVALID_ARGUMENT");
+        assertThatThrownBy(()->CatalogPublication.read(new ByteArrayInputStream("{\"legacy_writers_exited\":\"true\"}".getBytes(StandardCharsets.UTF_8)),com.lrj.authz.governance.domain.CatalogGuardModels.Enable.class)).hasMessage("INVALID_ARGUMENT");
+    }
 }

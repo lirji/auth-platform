@@ -114,7 +114,7 @@ public final class GovernanceRuntime implements AutoCloseable {
                     new InvitationGovernance(mapper, session.getMapper(InvitationMapper.class), transaction),
                     new DirectoryGovernance(session.getMapper(DirectoryMapper.class), mapper, session.getMapper(InvitationMapper.class),
                             directoryTransaction, conflictTransaction));
-            runtime.catalog = new com.lrj.authz.governance.application.ApplicationCatalog(session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(SafetyMapper.class), session.getMapper(CatalogReleaseMapper.class));
+            runtime.catalog = new com.lrj.authz.governance.application.ApplicationCatalog(session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(SafetyMapper.class), session.getMapper(CatalogReleaseMapper.class), session.getMapper(CatalogGuardMapper.class));
             runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(FenceMapper.class), session.getMapper(SafetyMapper.class));
             runtime.portalMapper=session.getMapper(PortalMapper.class);
             runtime.permissionMapper=session.getMapper(PermissionMapper.class);

@@ -20,15 +20,29 @@ import java.io.IOException;
 @ConditionalOnProperty(name={"authz.governance.enabled","authz.governance.access.enabled"},havingValue="true")
 @RequestMapping("/api/governance/v1")
 public class GovernanceAccessController {
-    private final AccessManagement access;private final ApplicationCatalog catalog;
+    private final AccessManagement access;private final ApplicationCatalog catalog;private final PortalPermissions diagnostics;
     /** 独立开关默认关闭，不改变旧管理工作区。 */
-    public GovernanceAccessController(GovernanceRuntime runtime){access=runtime.access();catalog=runtime.catalog();}
+    public GovernanceAccessController(GovernanceRuntime runtime,GovernanceAdminConfiguration.Settings settings){access=runtime.access();catalog=runtime.catalog();diagnostics=runtime.portalPermissions(settings.portalDiagnostics());}
     /** 拥有者可以预览自己的清单，未知字段和外部应用能力拒绝。 */
     @PostMapping(value="/catalog/preview",consumes="application/json")
     public JsonNode preview(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{return GovernanceWeb.body(catalog.preview(login,CatalogManifest.read(request.getInputStream())));}
     /** 所有权来自已验证登录，不能在body中替换发布人。 */
     @PostMapping(value="/catalog/publish",consumes="application/json")
     public JsonNode publish(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{return GovernanceWeb.body(catalog.publish(login,CatalogManifest.read(request.getInputStream()),GovernanceWeb.singleHeader(request.getHeaders("X-Command-Id"))));}
+    /** 新发布只接受固定服务器候选，来源／原因和可选影响依据同时保存。 */
+    @PostMapping(value="/catalog/release-preview",consumes="application/json") public JsonNode releasePreview(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request) throws IOException {
+        return GovernanceWeb.body(catalog.releasePreview(login,CatalogPublication.read(request.getInputStream(),com.lrj.authz.governance.domain.CatalogGuardModels.PreviewInput.class),diagnostics));
+    }
+    /** command／preview ID没有权限效力，当前Owner和依据由同一用例重新校验。 */
+    @PostMapping(value="/catalog/release-publish",consumes="application/json") public JsonNode releasePublish(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request) throws IOException {
+        return GovernanceWeb.body(catalog.releasePublish(login,CatalogPublication.read(request.getInputStream(),com.lrj.authz.governance.domain.CatalogGuardModels.PublishCommand.class),diagnostics));
+    }
+    /** 单向启用只供当前Owner；退出旧写节点声明不等于本服务自动做了生产部署。 */
+    @PostMapping(value="/catalog/enable-guard",consumes="application/json") public JsonNode enableGuard(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request) throws IOException {
+        return GovernanceWeb.body(catalog.enableGuard(login,CatalogPublication.read(request.getInputStream(),com.lrj.authz.governance.domain.CatalogGuardModels.Enable.class)));
+    }
+    /** 旧应用缺省模式兼容，启用事实可定位当前原因和命令。 */
+    @GetMapping("/catalog/guard-policy") public JsonNode guardPolicy(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("application_id")String application) {return GovernanceWeb.body(catalog.guardPolicy(login,application));}
     /** 当前Owner的固定发布历史；未知来源不回填成部署事实。 */
     @GetMapping("/catalog/releases") public JsonNode releases(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("application_id") String application,
             @RequestParam(value="before_version",required=false) Long before) {return GovernanceWeb.body(catalog.history(login,application,before));}

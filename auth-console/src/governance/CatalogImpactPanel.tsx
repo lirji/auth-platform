@@ -6,26 +6,28 @@ import { CapabilityList } from './presentation'
 import { ImpactCompleteness, validateCatalogImpact } from './catalogImpact'
 
 /** 显式按需请求独立诊断；切换候选／分区时终止旧请求并移除旧依据。 */
-export function CatalogImpactPanel({ partition, manifest, preview }: { partition: Partition; manifest: CatalogManifest; preview: CatalogPreview }) {
+export function CatalogImpactPanel({ partition, manifest, preview, locked = false, onBasis }: { partition: Partition; manifest: CatalogManifest; preview: CatalogPreview; locked?: boolean; onBasis?: (report?: CatalogImpactReport) => void }) {
   const [report, setReport] = useState<CatalogImpactReport>()
   const [error, setError] = useState<unknown>()
   const [busy, setBusy] = useState(false)
   const [page, setPage] = useState(0)
   const pending = useRef<AbortController>()
   useEffect(() => () => pending.current?.abort(), [])
+  useEffect(() => { if (locked) { pending.current?.abort(); setBusy(false) } }, [locked])
   const inspect = async (cursor?: CatalogImpactCursor) => {
+    if (locked) return
     pending.current?.abort()
     const controller = new AbortController(); pending.current = controller
-    setBusy(true); setError(undefined); setReport(undefined)
+    setBusy(true); setError(undefined); setReport(undefined); onBasis?.(undefined)
     try {
       const result = validateCatalogImpact(await catalogImpact(partition, manifest, cursor, controller.signal), partition, preview)
-      if (!controller.signal.aborted) { setReport(result); setPage(value => cursor ? value + 1 : 1) }
+      if (!controller.signal.aborted) { setReport(result); setPage(value => cursor ? value + 1 : 1); onBasis?.(result.completeness === ImpactCompleteness.COMPLETE ? result : undefined) }
     } catch (failure) { if (!controller.signal.aborted) { setError(failure); setPage(0) } }
     finally { if (!controller.signal.aborted) setBusy(false) }
   }
   return <section className="g-catalog-impact" aria-label="菜单授权影响">
     <h3>潜在授权影响</h3><p>需要当前分区的管理委派和独立诊断资格。统计来自当前有效来源；业务访问仍受范围、能力状态和投影栅栏检查。</p>
-    <Button loading={busy} onClick={() => void inspect()}>重新分析授权影响</Button>
+    <Button disabled={locked} loading={busy} onClick={() => void inspect()}>重新分析授权影响</Button>
     {!!error && <><Failure error={error} /><p>未取得可用的影响报告，不能据此判断为零影响。403 请核对当前分区的独立诊断资格；409 请重新预览和分析。</p></>}
     {report && <>
       <Descriptions column={1} bordered size="small" items={[
@@ -57,7 +59,7 @@ export function CatalogImpactPanel({ partition, manifest, preview }: { partition
         ]} /></details>)}
       <h4>申请策略 · 当前页 {report.policies.length}</h4>
       {report.policies.map(policy => <p key={policy.id}>{policy.id} · 角色 {policy.role_id} · v{policy.policy_version} · {policy.enabled ? '启用' : '停用'}</p>)}
-      <Button disabled={busy || !report.next_cursor} onClick={() => void inspect(report.next_cursor ?? undefined)}>读取下一页影响明细</Button>
+      <Button disabled={locked || busy || !report.next_cursor} onClick={() => void inspect(report.next_cursor ?? undefined)}>读取下一页影响明细</Button>
     </>}
   </section>
 }

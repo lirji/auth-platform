@@ -11,6 +11,8 @@ public interface CatalogMapper {
     int register(@Param("app") Application app, @Param("operator") String operator);
     /** 只读当前登记事实。 */
     Application application(@Param("id") String id);
+    /** 发布锁定当前Owner身份行，避免校验后并发停用仍提交新版本。 */
+    String lockOwner(@Param("issuer") String issuer,@Param("subject") String subject,@Param("owner") String owner);
     /** 发布事务锁，避免同版本并发覆盖。 */
     Application lockApplication(@Param("id") String id);
     /** 读取固定版本内容。 */

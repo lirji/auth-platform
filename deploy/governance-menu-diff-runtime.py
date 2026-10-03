@@ -26,12 +26,13 @@ def module(name, file):
     return value
 
 
-def main(impact=False, history=False):
+def main(impact=False, history=False, guard=False):
     """本次夹具只写随机应用／企业；所有凭据和日志留在忽略的0600证据目录。"""
+    impact = impact or guard
     os.umask(0o077)
     h = module('context', 'governance-context-smoke.py')
     auth = module('access_smoke', 'governance-access-smoke.py')
-    run = ROOT / '.local/menu-role-governance' / (('mg04-' if history else 'mg03-' if impact else 'mg02-') + uuid.uuid4().hex[:12])
+    run = ROOT / '.local/menu-role-governance' / (('mg05-' if guard else 'mg04-' if history else 'mg03-' if impact else 'mg02-') + uuid.uuid4().hex[:12])
     run.mkdir(parents=True, mode=0o700)
     fixture = json.loads(h.read_private(ROOT / '.local/governance/p2/identity/casdoor.json'))
     ops = json.loads(h.read_private(ROOT / '.local/governance/casdoor-isolated/management-client.json'))
@@ -156,6 +157,42 @@ def main(impact=False, history=False):
             request('strict impact actor injection', '/access/catalog-impact', {**partition, 'manifest': candidate, 'subject': 'victim'}, 400, code='INVALID_ARGUMENT')
             h.start(jar, 21663, run / 'admin-owner-only.log', config=run / 'admin-owner-only.properties', access=True, presentation=True, scope=True)
             request('Owner management alone cannot diagnose', '/access/catalog-impact', {**partition, 'manifest': candidate}, 403, code='ACCESS_DENIED', port=21663)
+        if guard:
+            guarded_candidate = dict(manifest=candidate, source=declared_source, reason='隔离菜单入口调整，保留原授权', decision='KEEP_CURRENT_GRANTS', impact=None)
+            request('changed route requires explicit business decision', '/catalog/release-preview', dict(manifest=candidate), 400, code='INVALID_ARGUMENT')
+            fixed = request('Owner creates persistent fixed source preview', '/catalog/release-preview', guarded_candidate)
+            assert fixed['preview']['content_hash'] == result['content_hash'] and fixed['preview']['presentation_hash'] == result['presentation_hash']
+            assert fixed['base_version'] == 1 and fixed['candidate']['source'] == declared_source
+            scoped = {**guarded_candidate, 'impact': {**partition, 'basis_hash': report['basis_hash']}}
+            request('fixed preview independently verifies selected impact basis', '/catalog/release-preview', scoped)
+            request('Owner cannot confirm impact without diagnostic authority', '/catalog/release-preview', scoped, 403, code='ACCESS_DENIED', port=21663)
+            request('wrong impact basis rejected', '/catalog/release-preview', {**scoped, 'impact': {**partition, 'basis_hash': 'c'*64}}, 409, code='VERSION_CONFLICT')
+            request('foreign Owner cannot use fixed preview ID', '/catalog/release-publish', {'command_id': str(uuid.uuid4()), 'preview_id': fixed['preview_id']}, 403, [('Authorization','Bearer '+other)], 'ACCESS_DENIED')
+            request('anonymous fixed publication rejected', '/catalog/release-publish', {'command_id': str(uuid.uuid4()), 'preview_id': fixed['preview_id']}, 401, [], 'INVALID_CREDENTIAL')
+            for field in ['manifest', 'subject', 'expires_at']:
+                request('publication rejects injected '+field, '/catalog/release-publish', {'command_id': str(uuid.uuid4()), 'preview_id': fixed['preview_id'], field: candidate if field=='manifest' else 'client-value'}, 400, code='INVALID_ARGUMENT')
+            policy_app = app+'-policy'
+            h.private(run/'policy-catalog.properties', db+h.props({**catalog,'catalog.application':policy_app,'catalog.command':str(uuid.uuid4())}))
+            cli('CatalogCli',['register',run/'policy-catalog.properties','configured'])
+            policy = h.expect('old application default remains explicit LEGACY',21662,'/api/governance/v1/catalog/guard-policy?application_id='+policy_app,headers,None,200)
+            assert policy['mode']=='LEGACY' and policy['version']==0
+            enable = {'application_id':policy_app,'command_id':str(uuid.uuid4()),'expected_version':0,'legacy_writers_exited':True,'reason':'仅隔离应用已退出全部旧写节点'}
+            enabled = request('Owner enables isolated guarded policy once','/catalog/enable-guard',enable)
+            assert enabled['mode']=='GUARDED' and request('same enable command reads immutable receipt','/catalog/enable-guard',enable)==enabled
+            request('changed enable body conflicts','/catalog/enable-guard',{**enable,'reason':'改体'},409,code='COMMAND_CONFLICT')
+            request('different enable command cannot replace enabled fact','/catalog/enable-guard',{**enable,'command_id':str(uuid.uuid4())},409,code='VERSION_CONFLICT')
+            request('enable cannot coerce caller boolean','/catalog/enable-guard',{**enable,'legacy_writers_exited':'true'},400,code='INVALID_ARGUMENT')
+            policy_manifest = {**manifest,'application':policy_app,'capabilities':[{'code':policy_app+'.read','resource_type':'store','risk_level':'NORMAL'}],'menus':[]}
+            h.expect('guarded policy rejects legacy HTTP publication',21662,'/api/governance/v1/catalog/publish',headers+[('X-Command-Id',str(uuid.uuid4()))],json.dumps(policy_manifest).encode(),409,'VERSION_CONFLICT')
+            h.private(run/'policy-manifest.json',json.dumps(policy_manifest))
+            try:
+                cli('CatalogCli',['publish',run/'policy-catalog.properties',run/'policy-manifest.json'])
+            except RuntimeError:
+                if 'VERSION_CONFLICT' not in max(run.glob('CatalogCli-*.log'),key=lambda p:p.stat().st_mtime).read_text():
+                    raise RuntimeError('legacy CLI failed for unrelated reason')
+                h.CHECKS.append({'check':'guarded policy rejects current legacy CLI publication','result':'PASS'})
+            else:
+                raise RuntimeError('legacy CLI bypassed guarded policy')
         if history:
             receipt = h.expect('publish only random history application',21662,'/api/governance/v1/catalog/publish',headers+[('X-Command-Id',str(uuid.uuid4()))],json.dumps(candidate).encode(),200)
             assert receipt['proposed_version'] == 2
@@ -200,7 +237,7 @@ createRoot(document.getElementById('root')!).render(<ConfigProvider><CatalogEdit
         else:
             raise RuntimeError('owned Vite process startup timeout')
         with (run / 'browser.log').open('w') as output:
-            result = subprocess.run(['node', str(ROOT / ('deploy/governance-menu-history-ui.mjs' if history else 'deploy/governance-menu-impact-ui.mjs' if impact else 'deploy/governance-menu-diff-ui.mjs')), str(run)], cwd=ROOT, timeout=BROWSER_TIMEOUT_SECONDS,
+            result = subprocess.run(['node', str(ROOT / ('deploy/governance-menu-guard-ui.mjs' if guard else 'deploy/governance-menu-history-ui.mjs' if history else 'deploy/governance-menu-impact-ui.mjs' if impact else 'deploy/governance-menu-diff-ui.mjs')), str(run)], cwd=ROOT, timeout=BROWSER_TIMEOUT_SECONDS,
                                     stdout=output, stderr=subprocess.STDOUT)
         if result.returncode:
             raise RuntimeError('browser verification failed; private evidence retained')

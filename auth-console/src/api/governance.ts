@@ -92,6 +92,23 @@ export const catalogHistory = async (application: string, before?: number, signa
 export const catalogReleaseDetail = async (application: string, version: number, signal?: AbortSignal): Promise<CatalogReleaseDetail> =>
   (await apiClient.get(`/api/governance/v1/catalog/releases/${version}`, { params: { application_id: application }, signal })).data
 
+export interface CatalogCandidate { manifest: CatalogManifest; source: CatalogRelease['source']; reason: string | null; decision: CatalogRelease['decision'] }
+export interface CatalogImpactBasis extends Partition { basis_hash: string }
+export interface CatalogReleaseTicket { preview_id: string; expires_at: string; base_version: number; base_content_hash: string | null; base_presentation_hash: string | null;
+  candidate: CatalogCandidate; preview: CatalogPreview; impact: CatalogImpactBasis | null }
+export interface CatalogPublishCommand { command_id: string; preview_id: string }
+export interface CatalogGuardPolicy { application_id: string; mode: 'LEGACY' | 'GUARDED'; version: number; enabled_by: string | null; enabled_at: string | null; reason: string | null; command_id: string | null }
+export interface CatalogEnableCommand { application_id: string; command_id: string; expected_version: number; legacy_writers_exited: boolean; reason: string }
+/** 正式发布只发送服务器固定预览ID；不降级到旧清单写入口。 */
+export const catalogReleasePreview = async (input: CatalogCandidate & { impact: CatalogImpactBasis | null }, signal?: AbortSignal): Promise<CatalogReleaseTicket> =>
+  (await apiClient.post('/api/governance/v1/catalog/release-preview', input, { signal })).data
+export const catalogReleasePublish = async (command: CatalogPublishCommand): Promise<CatalogRelease> =>
+  (await apiClient.post('/api/governance/v1/catalog/release-publish', command)).data
+export const catalogGuardPolicy = async (application: string, signal?: AbortSignal): Promise<CatalogGuardPolicy> =>
+  (await apiClient.get('/api/governance/v1/catalog/guard-policy', { params: { application_id: application }, signal })).data
+export const catalogEnableGuard = async (command: CatalogEnableCommand): Promise<CatalogGuardPolicy> =>
+  (await apiClient.post('/api/governance/v1/catalog/enable-guard', command)).data
+
 export interface RequestPolicy { id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; policy_version: number; role_code: string; role_version: number; capabilities: string[] }
 export interface PolicyConfiguration { policy: RequestPolicy; approver_membership_id: string; approver_generation: number; enabled: boolean }
 export interface PolicyCommand extends Partition { command_id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; approver_membership_id: string; approver_generation: number; policy_version: number }

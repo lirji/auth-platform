@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.IdentityMapper">
     <select id="currentContext" resultType="com.lrj.authz.governance.domain.IdentityModels$CurrentContext">
+        -- 受控发布内需要新语句时点重验成员到期，不能冻结到事务开始时点。
         SELECT p.id AS principal_id, p.version AS principal_version, m.id AS membership_id,
             m.generation AS membership_generation, m.version AS membership_version, m.tenant_id
         FROM auth_governance.login_identity li
@@ -10,8 +11,8 @@
         JOIN auth_governance.tenant t ON t.id = m.tenant_id
         WHERE li.issuer = #{issuer} AND li.subject = #{subject} AND m.tenant_id = #{tenantId}
             AND p.kind = 'HUMAN' AND p.status = 'ACTIVE' AND t.status = 'ACTIVE' AND m.status = 'ACTIVE'
-            AND m.valid_from &lt;= CURRENT_TIMESTAMP
-            AND (m.valid_to IS NULL OR m.valid_to &gt; CURRENT_TIMESTAMP)
+            AND m.valid_from &lt;= statement_timestamp()
+            AND (m.valid_to IS NULL OR m.valid_to &gt; statement_timestamp())
     </select>
     <insert id="insertPrincipal">
         INSERT INTO auth_governance.principal(id, kind, status, version)
