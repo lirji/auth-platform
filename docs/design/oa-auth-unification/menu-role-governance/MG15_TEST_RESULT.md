@@ -1,6 +1,6 @@
 # MG15能力弃用验收（COMPLETED／PASS）
 
-2026-10-03，原任务分支feat/menu-role-governance-a。31产品／测试／工具路径摘要`9a388d4c872bfd4eb80927eb22e136360e8e6631f4e3f8bd22ab8bf167f9b4f2`。私密证据保存在`.local/menu-role-governance/mg15-evidence.json`及`mg15-source-fence.json`，不进入Git。产品Git／精确CI在交付回执中继续核对，本次未生产部署。
+2026-10-03，原任务分支feat/menu-role-governance-a。31产品／测试／工具路径摘要`9a388d4c872bfd4eb80927eb22e136360e8e6631f4e3f8bd22ab8bf167f9b4f2`。私密证据保存在`.local/menu-role-governance/mg15-evidence.json`及`mg15-source-fence.json`，不进入Git。产品36f614ba8751b169ab9d0117105e757694e37ef9已任务分支及main正常推送，精确[CI37137909570](https://github.com/lirji/auth-platform/actions/runs/37137909570) completed SUCCESS；本次未生产部署。
 
 ## 可观察结果
 
@@ -30,3 +30,10 @@ V27已在隔离目标执行；审查发现“禁用同时扩大委派”应被�
 仓库没有既有整体formatter或静态分析器；格式工具缺失保留为限制，没有新增工具。真实PKCE Token仅保存0600，browser原始日志不回显；独立同版本18094 IdP只服务隔离目标。所有本轮Admin21817／Vite21818已退出，独有IdP随全计划继续保留；测试库、图新UUID分区和全部失败证据不清理。
 
 元数据是前向扩展，生产启用前需应用V27／V28并检查旧写节点兼容；旧程序仍受数据库新增使用栅栏约束。代码回退不能清除弃用元数据或原命令，恢复必须当前Owner新命令。MG14的OA存量升级业务选择尚未答复；MG16–MG19不冒充完成。
+
+
+## Git 与精确 CI
+
+产品提交与本页验证的31路径指纹一致，交付后未修改产品源码。远程CI的headSha精确为36f614ba8751b169ab9d0117105e757694e37ef9，verify及完整流程SUCCESS，包含真实身份、HTTP边界、独立图故障恢复、CAS恢复、应用RBAC、SDK兼容和console构建。运行器关于旧Action、运行镜像迁移及Docker网络清理的annotation保留于私密回执；不将warning伪装成产品失败，也不借本片升级既有工具链。
+
+后续MG16／MG17保存的是独立DRAFT分析，不改变本片产品指纹。全计划仍ACTIVE，OA来源升级及岗位规则待业务选择；本机5273未在本片部署新版本。
