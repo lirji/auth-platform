@@ -109,6 +109,14 @@ export const catalogGuardPolicy = async (application: string, signal?: AbortSign
 export const catalogEnableGuard = async (command: CatalogEnableCommand): Promise<CatalogGuardPolicy> =>
   (await apiClient.post('/api/governance/v1/catalog/enable-guard', command)).data
 
+export type CatalogDriftState = 'NOT_PUBLISHED' | 'SOURCE_MISMATCH' | 'DISPLAY_MISMATCH' | 'MATCHED_DECLARATION' | 'UNKNOWN'
+export interface CatalogDeploymentDeclaration { application_id: string; manifest_version: number; content_hash: string; presentation_hash: string; source: NonNullable<CatalogRelease['source']>; declared_at: string; evidence_ref: string }
+export interface CatalogDriftReport { application: string; observed_at: string; expected_version: number; content_hash: string; presentation_hash: string; declared_source: CatalogRelease['source'];
+  published: CatalogRelease | null; state: CatalogDriftState; diff: CatalogPreview | null; deployment: { state: CatalogDriftState; declaration: CatalogDeploymentDeclaration | null }; runtime_state: 'UNKNOWN' }
+/** 只读核对请求不接受客户端运行证明；Owner失败保留实际HTTP状态。 */
+export const catalogDrift = async (candidate: CatalogCandidate, signal?: AbortSignal): Promise<CatalogDriftReport> =>
+  (await apiClient.post('/api/governance/v1/catalog/drift', candidate, { signal })).data
+
 export interface RequestPolicy { id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; policy_version: number; role_code: string; role_version: number; capabilities: string[] }
 export interface PolicyConfiguration { policy: RequestPolicy; approver_membership_id: string; approver_generation: number; enabled: boolean }
 export interface PolicyCommand extends Partition { command_id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; approver_membership_id: string; approver_generation: number; policy_version: number }

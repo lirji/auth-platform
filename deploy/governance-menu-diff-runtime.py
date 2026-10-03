@@ -26,13 +26,13 @@ def module(name, file):
     return value
 
 
-def main(impact=False, history=False, guard=False):
+def main(impact=False, history=False, guard=False, drift=False):
     """本次夹具只写随机应用／企业；所有凭据和日志留在忽略的0600证据目录。"""
     impact = impact or guard
     os.umask(0o077)
     h = module('context', 'governance-context-smoke.py')
     auth = module('access_smoke', 'governance-access-smoke.py')
-    run = ROOT / '.local/menu-role-governance' / (('mg05-' if guard else 'mg04-' if history else 'mg03-' if impact else 'mg02-') + uuid.uuid4().hex[:12])
+    run = ROOT / '.local/menu-role-governance' / (('mg06-' if drift else 'mg05-' if guard else 'mg04-' if history else 'mg03-' if impact else 'mg02-') + uuid.uuid4().hex[:12])
     run.mkdir(parents=True, mode=0o700)
     fixture = json.loads(h.read_private(ROOT / '.local/governance/p2/identity/casdoor.json'))
     ops = json.loads(h.read_private(ROOT / '.local/governance/casdoor-isolated/management-client.json'))
@@ -50,12 +50,14 @@ def main(impact=False, history=False, guard=False):
 
     def cli(name, args):
         """受控引导只允许本次夹具；错误细节不回显配置或底层连接信息。"""
-        with (run / (name + '-' + uuid.uuid4().hex + '.log')).open('w') as output:
+        log=run / (name + '-' + uuid.uuid4().hex + '.log')
+        with log.open('w') as output:
             result = subprocess.run(['java', '-Dloader.main=com.lrj.authz.governance.cli.' + name, '-cp', str(jar),
                                      'org.springframework.boot.loader.launch.PropertiesLauncher', *map(str, args)],
                                     stdout=output, stderr=subprocess.STDOUT, timeout=CLI_TIMEOUT_SECONDS)
         if result.returncode:
             raise RuntimeError('owned CLI failed: ' + name)
+        return log
 
     values = {'command.id': str(uuid.uuid4()), 'operator.ref': 'mg02-fixture', 'tenant.id': tenant, 'tenant.code': 'mg02-' + tenant,
               'principal.id': owner, 'issuer': h.ISSUER, 'subject': user['id'], 'membership.id': member,
@@ -75,15 +77,22 @@ def main(impact=False, history=False, guard=False):
                            menu('page.old', 'group.a', '/old', [app + '.read'], '旧入口', 3)])
     h.private(run / 'manifest.json', json.dumps(manifest))
     declared_source = {'commit': 'a' * 40, 'artifact_hash': 'b' * 64}
-    if history:
+    if history or drift:
         # 这是隔离验收的声明来源，仅证明记录／重试，不声称真实Commerce制品或运行部署。
         h.private(run / 'source-candidate.json', json.dumps({'manifest': manifest, 'source': declared_source, 'reason': '隔离来源验收', 'decision': 'KEEP_CURRENT_GRANTS'}))
-        cli('CatalogCli', ['publish-source', run / 'catalog.properties', run / 'source-candidate.json'])
+        source_log=cli('CatalogCli', ['publish-source', run / 'catalog.properties', run / 'source-candidate.json'])
     else:
         cli('CatalogCli', ['publish', run / 'catalog.properties', run / 'manifest.json'])
     client = fixture['clients']['management']
     authority = {'issuer': h.ISSUER, 'jwks.uri': h.ISSUER + '/.well-known/jwks', 'audience': client['name'], 'client.id': client['name'],
                  'client.secret': client['secret'], 'version-probe.client.id': ops['client_id'], 'version-probe.client.secret': ops['client_secret']}
+    if drift:
+        published=json.loads(next(line for line in source_log.read_text().splitlines() if line.startswith('{')))
+        deployment={'catalog.deployment.count':'1','catalog.deployment.1.application-id':app,'catalog.deployment.1.manifest-version':'1',
+                    'catalog.deployment.1.content-hash':published['content_hash'],'catalog.deployment.1.presentation-hash':published['presentation_hash'],
+                    'catalog.deployment.1.commit':declared_source['commit'],'catalog.deployment.1.artifact-hash':declared_source['artifact_hash'],
+                    'catalog.deployment.1.declared-at':datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00','Z'),'catalog.deployment.1.evidence-ref':'mg06-isolated:declared-v1'}
+        authority={**authority,**deployment}
     if impact:
         # presentation启用需要既有专用图配置；只装配配置，本验收不调用图或冒充ALLOW证明。
         graph = dict(line.split('=', 1) for line in h.read_private(ROOT / '.local/governance/p3/graph/graph.properties').splitlines()
@@ -157,6 +166,37 @@ def main(impact=False, history=False, guard=False):
             request('strict impact actor injection', '/access/catalog-impact', {**partition, 'manifest': candidate, 'subject': 'victim'}, 400, code='INVALID_ARGUMENT')
             h.start(jar, 21663, run / 'admin-owner-only.log', config=run / 'admin-owner-only.properties', access=True, presentation=True, scope=True)
             request('Owner management alone cannot diagnose', '/access/catalog-impact', {**partition, 'manifest': candidate}, 403, code='ACCESS_DENIED', port=21663)
+        if drift:
+            def check(name, value, status=200, credential=headers, code=None):
+                return h.expect(name,21662,'/api/governance/v1/catalog/drift',credential,json.dumps(value).encode(),status,code)
+            first=check('fixed source and registered deployment declaration match while runtime unknown',{'manifest':manifest,'source':declared_source})
+            assert first['state']=='MATCHED_DECLARATION' and first['deployment']['state']=='MATCHED_DECLARATION' and first['runtime_state']=='UNKNOWN'
+            source_candidate={'manifest':candidate,'source':declared_source,'reason':'隔离漂移夹具v2','decision':'KEEP_CURRENT_GRANTS'}
+            h.private(run/'drift-candidate.json',json.dumps({**source_candidate,'auto_grants':False,'auto_roles':False}))
+            h.private(run/'drift-source.json',json.dumps(source_candidate))
+            h.private(run/'drift-catalog.properties',db+h.props({**catalog,**deployment,'catalog.command':str(uuid.uuid4())}))
+            cli('CatalogCli',['publish-source',run/'drift-catalog.properties',run/'drift-source.json'])
+            current=check('current source matches but stale deployment declaration remains separate',source_candidate)
+            assert current['state']=='MATCHED_DECLARATION' and current['deployment']['state']=='SOURCE_MISMATCH' and current['runtime_state']=='UNKNOWN'
+            stale=check('old project version cannot masquerade as current publication',{'manifest':manifest,'source':declared_source})
+            assert stale['state']=='SOURCE_MISMATCH' and stale['published']['version']==2
+            display={**candidate,'menus':[{**m,'label':'商品档案 · 窄屏长名称核对' if m['code']=='page.products' else m['label']} for m in candidate['menus']]}
+            shown=check('same permission hash and changed display identified',{'manifest':display,'source':declared_source})
+            assert shown['state']=='DISPLAY_MISMATCH' and shown['content_hash']==current['content_hash'] and shown['presentation_hash']!=current['presentation_hash']
+            assert check('unknown source does not become matching declaration',{'manifest':candidate})['state']=='UNKNOWN'
+            assert check('different fixed source diagnosed',{'manifest':candidate,'source':{**declared_source,'commit':'c'*40}})['state']=='SOURCE_MISMATCH'
+            check('foreign Owner cannot inspect current drift',source_candidate,403,[('Authorization','Bearer '+other)],'ACCESS_DENIED')
+            check('anonymous drift read rejected',source_candidate,401,[],'INVALID_CREDENTIAL')
+            check('drift rejects fake runtime proof', {**source_candidate,'runtime_state':'MATCHED_DECLARATION'},400,code='INVALID_ARGUMENT')
+            check('drift rejects caller internal URL',{**source_candidate,'url':'http://internal.invalid'},400,code='INVALID_ARGUMENT')
+            tool=subprocess.run(['python3',str(ROOT/'deploy/governance-catalog-check.py'),'--application',app,'--candidate',str(run/'drift-candidate.json'),
+                                 '--configuration',str(run/'drift-catalog.properties'),'--output',str(run/'manual-drift-report.json')],cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=CLI_TIMEOUT_SECONDS+5)
+            h.private(run/'manual-tool.log',tool.stdout)
+            if tool.returncode:raise RuntimeError('owned read-only check tool failed')
+            assert json.loads(h.read_private(run/'manual-drift-report.json'))['state']=='MATCHED_DECLARATION'
+            h.CHECKS.append({'check':'actual same-JAR manual check tool produces private read-only drift report','result':'PASS'})
+            listing=h.expect('read-only comparisons retain exactly two fixture publications',21662,'/api/governance/v1/catalog/releases?application_id='+app,headers,None,200)
+            assert [item['version'] for item in listing['items']]==[2,1]
         if guard:
             guarded_candidate = dict(manifest=candidate, source=declared_source, reason='隔离菜单入口调整，保留原授权', decision='KEEP_CURRENT_GRANTS', impact=None)
             request('changed route requires explicit business decision', '/catalog/release-preview', dict(manifest=candidate), 400, code='INVALID_ARGUMENT')
@@ -220,7 +260,7 @@ import '../../src/styles/global.css';import '../../src/styles/governance.css';
 const f=(window as any).__MG02;await userManager.storeUser(new User({access_token:f.token,token_type:'Bearer',profile:{sub:f.subject,iss:f.issuer},expires_at:Math.floor(Date.now()/1000)+600}));
 createRoot(document.getElementById('root')!).render(<ConfigProvider><CatalogEditor partition={f.partition} application={f.application} close={()=>{(window as any).__closed=true}} saved={()=>{(window as any).__saved=true}}/></ConfigProvider>);
 """)
-        payload = {'token': token, 'subject': user['id'], 'issuer': h.ISSUER, 'application': app, 'partition': partition, 'owner_only_admin': 'http://127.0.0.1:21663', 'declared_source': declared_source, 'candidate': candidate, 'illegal': illegal,
+        payload = {'token': token, 'subject': user['id'], 'issuer': h.ISSUER, 'application': app, 'partition': partition, 'owner_only_admin': 'http://127.0.0.1:21663', 'declared_source': declared_source, 'candidate': candidate, 'manifest':manifest,'display_candidate':display if drift else None,'illegal': illegal,
                    'admin': 'http://127.0.0.1:21662', 'ui': 'http://127.0.0.1:21665/.local/menu-role-governance/index.html'}
         h.private(run / 'browser.private.json', json.dumps(payload))
         with (run / 'vite.log').open('w') as output:
@@ -237,7 +277,7 @@ createRoot(document.getElementById('root')!).render(<ConfigProvider><CatalogEdit
         else:
             raise RuntimeError('owned Vite process startup timeout')
         with (run / 'browser.log').open('w') as output:
-            result = subprocess.run(['node', str(ROOT / ('deploy/governance-menu-guard-ui.mjs' if guard else 'deploy/governance-menu-history-ui.mjs' if history else 'deploy/governance-menu-impact-ui.mjs' if impact else 'deploy/governance-menu-diff-ui.mjs')), str(run)], cwd=ROOT, timeout=BROWSER_TIMEOUT_SECONDS,
+            result = subprocess.run(['node', str(ROOT / ('deploy/governance-menu-drift-ui.mjs' if drift else 'deploy/governance-menu-guard-ui.mjs' if guard else 'deploy/governance-menu-history-ui.mjs' if history else 'deploy/governance-menu-impact-ui.mjs' if impact else 'deploy/governance-menu-diff-ui.mjs')), str(run)], cwd=ROOT, timeout=BROWSER_TIMEOUT_SECONDS,
                                     stdout=output, stderr=subprocess.STDOUT)
         if result.returncode:
             raise RuntimeError('browser verification failed; private evidence retained')

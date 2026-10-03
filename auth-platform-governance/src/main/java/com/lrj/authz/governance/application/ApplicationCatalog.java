@@ -157,6 +157,22 @@ public final class ApplicationCatalog {
         requireOwner(login,application,false); var row=guards.policy(application);
         return row==null?new Policy(application,Mode.LEGACY,0,null,null,null,null):policy(row);
     }
+    /** 当前Owner只读核对固定来源；部署声明来自服务配置，运行仍明确未知。 */
+    public com.lrj.authz.governance.domain.CatalogDriftModels.Report drift(VerifiedLogin login,Candidate input,java.util.List<com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration> declarations) {
+        var candidate=CatalogPublication.normalize(input);var manifest=candidate.manifest();var app=requireOwner(login,manifest.application(),false);
+        var declared=declarations.stream().filter(value->value.applicationId().equals(app.applicationId())).findFirst().orElse(null);
+        if(declared!=null)CatalogDrift.validate(declared);
+        var published=app.manifestVersion()==0?null:release(releases.version(app.applicationId(),app.manifestVersion()),basis(app).presentationHash());
+        String content=CatalogManifest.hash(manifest),presentation=CatalogManifest.presentationHash(manifest);
+        var state=CatalogDrift.compare(manifest.manifestVersion(),content,presentation,candidate.source(),published);
+        // 旧发布没有显示sidecar仍可从固定Manifest计算空展示摘要，不伪造来源记录。
+        var diff=app.manifestVersion()==0?null:preview(app,manifest);
+        var deployment=new com.lrj.authz.governance.domain.CatalogDriftModels.Deployment(declared==null?com.lrj.authz.governance.domain.CatalogDriftModels.State.UNKNOWN:
+                CatalogDrift.compare(declared.manifestVersion(),declared.contentHash(),declared.presentationHash(),declared.source(),published),declared);
+        // 再读当前Owner／版本，发现并发发布要求重查，不把读到的旧基础冒充最新。
+        if(requireOwner(login,app.applicationId(),false).manifestVersion()!=app.manifestVersion())throw new GovernanceException(VERSION_CONFLICT);
+        return new com.lrj.authz.governance.domain.CatalogDriftModels.Report(app.applicationId(),java.time.Instant.now().toString(),manifest.manifestVersion(),content,presentation,candidate.source(),published,state,diff,deployment,com.lrj.authz.governance.domain.CatalogDriftModels.State.UNKNOWN);
+    }
     private static Policy policy(CatalogGuardMapper.PolicyRow row) { return new Policy(row.applicationId(),Mode.GUARDED,1,row.enabledBy(),row.enabledAt(),row.reason(),row.commandId()); }
     private void confirmImpact(VerifiedLogin login,Candidate candidate,Impact impact,PortalPermissions diagnostics) {
         if(impact==null)return; CatalogPublication.validateImpact(impact);
@@ -196,9 +212,12 @@ public final class ApplicationCatalog {
         } catch(GovernanceException failure) { throw new GovernanceException(DEPENDENCY_UNAVAILABLE); }
     }
     private static Release release(CatalogReleaseMapper.Row row) {
+        return release(row,row==null?null:row.presentationHash());
+    }
+    private static Release release(CatalogReleaseMapper.Row row,String presentationHash) {
         if(row==null)throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
         try {
-            return new Release(row.application(),row.version(),row.contentHash(),row.presentationHash(),row.publishedBy(),row.publishedAt(),
+            return new Release(row.application(),row.version(),row.contentHash(),presentationHash,row.publishedBy(),row.publishedAt(),
                     row.sourceCommit()==null?null:new Source(row.sourceCommit(),row.artifactHash()),row.reason(),row.decision()==null?null:Decision.from(row.decision()),
                     row.commandId(),row.baseVersion(),row.baseContentHash(),row.basePresentationHash(),row.previewJson()==null?null:CatalogPublication.preview(row.previewJson()));
         } catch(IllegalArgumentException corrupt) { throw new GovernanceException(DEPENDENCY_UNAVAILABLE); }

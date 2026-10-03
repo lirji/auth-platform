@@ -27,11 +27,15 @@ public final class CatalogCli {
                                 config.getProperty("catalog.entry-origin"),config.getProperty("catalog.operator"),config.getProperty("catalog.command"));
                         output.println("REGISTERED " + app.applicationId());
                     }
-                    case "publish-source" -> {
+                    case "publish-source", "check-source" -> {
                         var login=new VerifiedLogin(config.getProperty("catalog.owner-issuer"),config.getProperty("catalog.owner-subject"));
                         var path=Path.of(args[2]); if(!Files.isRegularFile(path,LinkOption.NOFOLLOW_LINKS))throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);
                         try(var input=Files.newInputStream(path)) {
-                            output.println(com.lrj.authz.governance.web.GovernanceWeb.body(runtime.catalog().publishSource(login,CatalogPublication.read(input),config.getProperty("catalog.command"))));
+                            var candidate=CatalogPublication.read(input);
+                            if("check-source".equals(args[0])) {
+                                if(!candidate.manifest().application().equals(config.getProperty("catalog.application")))throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);
+                                output.println(com.lrj.authz.governance.web.GovernanceWeb.body(runtime.catalog().drift(login,candidate,CatalogDrift.from(config))));
+                            } else output.println(com.lrj.authz.governance.web.GovernanceWeb.body(runtime.catalog().publishSource(login,candidate,config.getProperty("catalog.command"))));
                         }
                     }
                     case "preview", "publish" -> {

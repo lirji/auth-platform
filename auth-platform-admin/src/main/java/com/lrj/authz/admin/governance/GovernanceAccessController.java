@@ -20,9 +20,13 @@ import java.io.IOException;
 @ConditionalOnProperty(name={"authz.governance.enabled","authz.governance.access.enabled"},havingValue="true")
 @RequestMapping("/api/governance/v1")
 public class GovernanceAccessController {
-    private final AccessManagement access;private final ApplicationCatalog catalog;private final PortalPermissions diagnostics;
+    private final AccessManagement access;private final ApplicationCatalog catalog;private final PortalPermissions diagnostics;private final java.util.List<com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration> deployments;
     /** 独立开关默认关闭，不改变旧管理工作区。 */
-    public GovernanceAccessController(GovernanceRuntime runtime,GovernanceAdminConfiguration.Settings settings){access=runtime.access();catalog=runtime.catalog();diagnostics=runtime.portalPermissions(settings.portalDiagnostics());}
+    public GovernanceAccessController(GovernanceRuntime runtime,GovernanceAdminConfiguration.Settings settings){access=runtime.access();catalog=runtime.catalog();diagnostics=runtime.portalPermissions(settings.portalDiagnostics());deployments=settings.catalogDeployments();}
+    /** 受控配置声明与本次Owner候选分开，客户端不能提交运行证明或任意URL。 */
+    @PostMapping(value="/catalog/drift",consumes="application/json") public JsonNode drift(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request) throws IOException {
+        return GovernanceWeb.body(catalog.drift(login,CatalogPublication.read(request.getInputStream()),deployments));
+    }
     /** 拥有者可以预览自己的清单，未知字段和外部应用能力拒绝。 */
     @PostMapping(value="/catalog/preview",consumes="application/json")
     public JsonNode preview(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException{return GovernanceWeb.body(catalog.preview(login,CatalogManifest.read(request.getInputStream())));}

@@ -16,7 +16,7 @@
 | MG03 | 分区管理员查看潜在受影响角色、来源和人员 | MG02 | `PortalManagement`、Mapper XML、Controller、预览详情 | 管理读契约；按执行计划加索引 | 现有 PG／console | M | DONE |
 | MG04 | 发布记录关联项目提交、清单摘要及操作者，并可查询 | MG01、MG02 | `ApplicationCatalog`、`CatalogMapper`／XML、console 历史详情 | 不可变发布元数据，追加迁移 | 现有 PG | M | DONE |
 | MG05 | 基础版本或影响依据变化后旧预览不能继续发布 | MG03、MG04 | Owner 发布用例／Controller、`CatalogEditor`、`useCommand` | 发布依据、幂等和兼容门禁契约；持久化按需 | 现有 PG／console | M | DONE |
-| MG06 | 源码、部署声明和已发布目录不一致时能定位 | MG01、MG04、MG05 | 导出／核对工具、管理读接口、目录状态页面 | 漂移状态和受信证据契约；是否存核验结果按需 | 现有部署信息／PG | M | TODO |
+| MG06 | 源码、部署声明和已发布目录不一致时能定位 | MG01、MG04、MG05 | 导出／核对工具、管理读接口、目录状态页面 | 漂移状态和受信证据契约；是否存核验结果按需 | 现有部署信息／PG | M | DONE |
 | MG07 | Commerce 通过受信身份链路得到本人导航提示 | MG00、MG01 | Auth business API／SDK；Commerce `commerce-app/.../iam`／HTTP | D-NAV、只读业务契约；不复用管理 Token | 现有 IdP／SDK／授权图 | M | TODO |
 | MG08 | Commerce 侧栏、搜索和默认入口按真实提示过滤 | MG01、MG07 | `CentralShell.tsx`、`navigation.ts`、`session.ts`、前端 client | 消费已发布 MG07 契约，无新授权模型 | 现有 Commerce 前后端 | M | TODO |
 | MG09 | 环境隔离与机器发布的选型和契约明确 | MG05、MG06 | Auth 设计、IdP 能力核验、环境运行说明 | D-ENV、D-PUB；契约设计片 | 只核对既有组件 | M | TODO |

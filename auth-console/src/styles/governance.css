@@ -127,3 +127,4 @@
 .g-catalog-release-form > .ant-select { width: 100%; }
 .g-catalog-guard > .ant-btn, .g-catalog-guard details > .ant-btn, .g-catalog-guard details > .ant-alert { margin: 12px 0; }
 .g-catalog-guard summary { cursor: pointer; padding: 12px 0; }
+.g-catalog-drift-details > .g-catalog-changes { padding: 0 12px 12px; }

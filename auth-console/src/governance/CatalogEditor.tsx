@@ -8,6 +8,7 @@ import { CatalogChanges, completeCatalogPreview } from './CatalogChanges'
 import { CatalogImpactPanel } from './CatalogImpactPanel'
 import { CatalogHistoryPanel } from './CatalogHistoryPanel'
 import { CatalogGuardPanel } from './CatalogGuardPanel'
+import { CatalogDriftPanel } from './CatalogDriftPanel'
 import { CatalogDecision, readCatalogCandidate, validateCatalogReceipt, validateCatalogTicket } from './catalogGuard'
 
 /** 编辑差异与固定发布预览分开；未知提交结果保留原命令和服务器票据。 */
@@ -107,6 +108,7 @@ export function CatalogEditor({ application, partition, close, saved }: { applic
       ]} />
     </section>}
     <CatalogGuardPanel application={application} locked={busy || command.busy || command.unknown || !!command.result} onLockChange={setGuardLocked} />
+    <CatalogDriftPanel application={application} text={text} locked={busy || guardLocked || command.busy || command.unknown} />
     <CatalogHistoryPanel key={application} application={application} />
     {command.result && <Alert type="success" showIcon message={`清单版本 ${command.result.version} 已发布`} description="固定角色与已有Grant未自动升级，请按实际需求另行授予或申请。" style={{ marginTop: 16 }} />}
   </GovernanceModal>
