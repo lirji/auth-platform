@@ -31,6 +31,7 @@ public final class GovernanceRuntime implements AutoCloseable {
     private RequestMapper requestMapper;
     private PortalMapper portalMapper;
     private PermissionMapper permissionMapper;
+    private CatalogImpactMapper catalogImpactMapper;
     private InvitationMapper invitationMapper;
     private AccessMapper accessMapper;
     private CatalogMapper catalogMapper;
@@ -117,6 +118,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             runtime.access = new com.lrj.authz.governance.application.AccessManagement(session.getMapper(AccessMapper.class), session.getMapper(CatalogMapper.class), mapper, runtime.identity(), transaction, session.getMapper(FenceMapper.class), session.getMapper(SafetyMapper.class));
             runtime.portalMapper=session.getMapper(PortalMapper.class);
             runtime.permissionMapper=session.getMapper(PermissionMapper.class);
+            runtime.catalogImpactMapper=session.getMapper(CatalogImpactMapper.class);
             runtime.invitationMapper=session.getMapper(InvitationMapper.class);
             runtime.accessMapper=session.getMapper(AccessMapper.class); runtime.catalogMapper=session.getMapper(CatalogMapper.class);
             runtime.projectionMapper=session.getMapper(ProjectionMapper.class); runtime.transaction=transaction;
@@ -135,7 +137,8 @@ public final class GovernanceRuntime implements AutoCloseable {
 
     /** 独立诊断配置只约束管理查询，本人解释仍由当前成员关系过滤。 */
     public com.lrj.authz.governance.application.PortalPermissions portalPermissions(java.util.List<com.lrj.authz.governance.application.PortalDiagnosticAuthority> authorities) {
-        return new com.lrj.authz.governance.application.PortalPermissions(identity,access,permissionMapper,authorities,transaction);
+        return new com.lrj.authz.governance.application.PortalPermissions(identity,access,permissionMapper,authorities,transaction,
+                new com.lrj.authz.governance.application.CatalogImpact(catalogImpactMapper,portalMapper));
     }
 
     /** 门户邀请授权来自宿主受控配置，默认空集合不会授权任何管理者。 */

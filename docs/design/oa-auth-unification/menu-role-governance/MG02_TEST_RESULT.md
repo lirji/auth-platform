@@ -22,7 +22,7 @@
 - 首次HTTP发现增量Boot repackage复用了旧嵌套治理JAR；没有据构建退出码误判PASS。forceCreation重新打包，并在验收工具加入整个嵌套JAR一致性校验，最终通过。
 - 首次卫生门禁在Git动作开始后才检查返回，发现前端状态字面量比较与测试CLI console输出阻断。已改为typed映射／聚合、CLI stdout与有名称的超时常量；窄构建／6组真实HTTP组件回归及mg02-hygiene-fixed均通过，常量启发式ADVISORY已归类，禁止再据未完成门禁声明可交付。
 - 首轮截图没有完整露出手机事实／桌面错误原因；改为实际滚动到前后区域和完整错误框，最终9图已查看。
-- MG01 Auth精确CI37100573760 SUCCESS；Commerce首次37100533319因Node JSON导入属性失败，47ebb65修复后CI37100968743待终态。MG02精确Git／CI结果后续追踪，不引用历史成功代替本次。
+- MG01 Auth精确CI37100573760 SUCCESS；Commerce首次37100533319因Node JSON导入属性失败，47ebb65修复后CI37100968743 SUCCESS。MG02修复e62abe6精确CI37102284667 SUCCESS，不引用历史成功代替本次。
 
 ## 恢复
 从MG03的独立分区诊断契约和真实PG聚合实现继续；MG02已验证功能不重复重构，不运行旧Owner电商发布脚本，不自动生产部署。

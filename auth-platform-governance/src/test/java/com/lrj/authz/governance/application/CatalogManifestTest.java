@@ -12,6 +12,7 @@ class CatalogManifestTest {
         String valid=CatalogManifest.json(manifest(List.of()));
         for(String value:List.of(valid.replace("\"manifest_version\":1","\"manifest_version\":\"1\""),
                 valid.replace("\"manifest_version\":1","\"manifest_version\":1.2"),
+                valid.replace("\"schema_version\":\"1\"","\"schema_version\":1"),valid.replace("\"NORMAL\"","0"),
                 valid.replace("{","{\"extra\":true,"),valid.replace("\"schema_version\":\"1\"","\"schema_version\":\"1\",\"schema_version\":\"1\""),valid+"{}")) {
             assertThatThrownBy(()->CatalogManifest.read(value)).isInstanceOf(GovernanceException.class);
         }

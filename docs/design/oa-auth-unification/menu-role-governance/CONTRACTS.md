@@ -31,6 +31,8 @@ MG02实现细化：affected_capabilities 为稳定排序的潜在关联能力并
 
 ## 4. MG03：分区潜在影响
 
+具体请求／报告字段、组任职日期、联合游标、运算边界及一致性细化见 [MG03_CONTRACT](MG03_CONTRACT.md)，沿用本节独立诊断边界。
+
 新增 `POST /api/governance/v1/access/catalog-impact`，输入 partition（tenant_id/application_id/environment）、manifest 和可选稳定游标。manifest 必须与分区应用一致。
 
 身份必须同时满足当前管理委派和该分区／当前成员代际的 PortalDiagnosticAuthority；访问有独立诊断审计。Owner 仅有发布权不能查询；403 不显示为零影响。

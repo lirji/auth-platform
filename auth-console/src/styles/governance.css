@@ -115,3 +115,8 @@
 .g-catalog-change-facts { display: flex; flex-wrap: wrap; gap: 16px; padding: 0 12px 12px; }
 .g-catalog-change-side { flex: 1 1 300px; min-width: 0; }
 .g-catalog-change-side h4 { margin: 12px 0; }
+
+/* 影响明细随候选弹层自适应；长主体ID和范围JSON不能撑开移动视口。 */
+.g-catalog-impact { margin-top: 24px; overflow-wrap: anywhere; }
+.g-catalog-impact > .ant-btn, .g-catalog-impact > .ant-alert { margin: 12px 0; }
+.g-catalog-impact pre { white-space: pre-wrap; overflow-wrap: anywhere; }

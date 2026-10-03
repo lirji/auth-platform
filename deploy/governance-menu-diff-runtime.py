@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """MG02真实Owner HTTP与差异弹层验收；仅新增隔离PG应用，不发布原电商目录或改Grant。"""
+import datetime
 import importlib.util
 import json
 import os
@@ -25,12 +26,12 @@ def module(name, file):
     return value
 
 
-def main():
+def main(impact=False):
     """本次夹具只写随机应用／企业；所有凭据和日志留在忽略的0600证据目录。"""
     os.umask(0o077)
     h = module('context', 'governance-context-smoke.py')
     auth = module('access_smoke', 'governance-access-smoke.py')
-    run = ROOT / '.local/menu-role-governance' / ('mg02-' + uuid.uuid4().hex[:12])
+    run = ROOT / '.local/menu-role-governance' / (('mg03-' if impact else 'mg02-') + uuid.uuid4().hex[:12])
     run.mkdir(parents=True, mode=0o700)
     fixture = json.loads(h.read_private(ROOT / '.local/governance/p2/identity/casdoor.json'))
     ops = json.loads(h.read_private(ROOT / '.local/governance/casdoor-isolated/management-client.json'))
@@ -76,11 +77,38 @@ def main():
     client = fixture['clients']['management']
     authority = {'issuer': h.ISSUER, 'jwks.uri': h.ISSUER + '/.well-known/jwks', 'audience': client['name'], 'client.id': client['name'],
                  'client.secret': client['secret'], 'version-probe.client.id': ops['client_id'], 'version-probe.client.secret': ops['client_secret']}
+    if impact:
+        # presentation启用需要既有专用图配置；只装配配置，本验收不调用图或冒充ALLOW证明。
+        graph = dict(line.split('=', 1) for line in h.read_private(ROOT / '.local/governance/p3/graph/graph.properties').splitlines()
+                     if line and not line.startswith('#') and '=' in line)
+        authority = {**authority, 'graph.http': graph['graph.http'], 'graph.key': graph['graph.key'],
+                     'scope.graph.http': graph['graph.http'], 'scope.graph.key': graph['graph.key']}
+    partition = {'tenant_id': tenant, 'application_id': app, 'environment': 'test'}
+    recipients = []
+    if impact:
+        delegation = {'access.tenant': tenant, 'access.application': app, 'access.environment': 'test', 'access.manager': member,
+                      'access.generation': '1', 'access.capabilities': app+'.read,'+app+'.write', 'access.max-duration-seconds': '3600',
+                      'access.operator': 'mg03-fixture', 'access.command': str(uuid.uuid4())}
+        h.private(run / 'access.properties', db + h.props(delegation))
+        cli('AccessBootstrapCli', [run / 'access.properties'])
+        for index in range(2):
+            target = {**values, 'command.id': str(uuid.uuid4()), 'principal.id': str(uuid.uuid4()), 'subject': 'mg03-'+str(uuid.uuid4()),
+                      'membership.id': str(uuid.uuid4()), 'source.subject.ref': 'recipient-'+str(index)}
+            if index == 1:
+                external = fixture['users']['external']
+                target.update({'principal.id': str(uuid.uuid5(uuid.NAMESPACE_URL, 'p2:'+external['id'])), 'subject': external['id']})
+            h.private(run / ('recipient-'+str(index)+'.properties'), h.props(target))
+            cli('GovernanceCli', ['bootstrap', ROOT / '.local/governance/database.properties', run / ('recipient-'+str(index)+'.properties')])
+            recipients.append(target['membership.id'])
+        h.private(run / 'admin-owner-only.properties', db + h.props(authority))
+        authority = {**authority, 'portal.diagnostic.count': '1', 'portal.diagnostic.1.tenant-id': tenant,
+                     'portal.diagnostic.1.application-id': app, 'portal.diagnostic.1.environment': 'test',
+                     'portal.diagnostic.1.membership-id': member, 'portal.diagnostic.1.generation': '1'}
     h.private(run / 'admin.properties', db + h.props(authority))
     checks = []
     vite = None
     try:
-        h.start(jar, 21662, run / 'admin.log', config=run / 'admin.properties', access=True)
+        h.start(jar, 21662, run / 'admin.log', config=run / 'admin.properties', access=True, presentation=impact, scope=impact)
         token = auth.token(h.ISSUER, fixture, 'management', 'internal')
         other = auth.token(h.ISSUER, fixture, 'management', 'external')
         headers = [('Authorization', 'Bearer ' + token)]
@@ -102,6 +130,26 @@ def main():
         assert not invalid['publishable'] and invalid['violations'][0]['code'] == 'CAPABILITY_CHANGED'
         h.expect('invalid publication remains blocked', 21662, '/api/governance/v1/catalog/publish', headers + [('X-Command-Id', str(uuid.uuid4()))],
                  json.dumps(illegal).encode(), 409, 'VERSION_CONFLICT')
+        if impact:
+            def request(name, endpoint, body, status=200, credential=headers, code=None, port=21662):
+                return h.expect(name, port, '/api/governance/v1'+endpoint, credential, json.dumps(body).encode(), status, code)
+            request('enable isolated impact partition', '/access/enable-strict', {**partition, 'command_id': str(uuid.uuid4())}, 202)
+            roles = [request('create isolated fixed role '+str(i), '/access/roles', {**partition, 'command_id': str(uuid.uuid4()),
+                     'role_code': 'reader_'+str(i), 'role_version': 1, 'capabilities': [app+'.read']}) for i in range(2)]
+            for who, role in [(recipients[0], roles[0]), (recipients[0], roles[1]), (recipients[1], roles[0])]:
+                request('create isolated pending source', '/access/scoped-grants', {**partition, 'command_id': str(uuid.uuid4()),
+                        'member_id': who, 'member_generation': 1, 'role_id': role['id'], 'source_id': str(uuid.uuid4()),
+                        'scope_rule': {'version': 1, 'resource_type': 'store', 'clauses': [{'kind': 'SPECIFIED_STORES', 'values': ['S1'], 'include_root': False}]},
+                        'valid_from': (datetime.datetime.now(datetime.timezone.utc)-datetime.timedelta(seconds=2)).isoformat().replace('+00:00','Z'), 'valid_to': (datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(minutes=30)).isoformat().replace('+00:00','Z')}, 202)
+            report = request('diagnostic HTTP deduplicates exact sources', '/access/catalog-impact', {**partition, 'manifest': candidate})
+            assert report['stats']['pending_grant_count'] == 3 and report['stats']['people_count'] == 2 and report['stats']['role_count'] == 2
+            assert len(report['sources']) == 3 and report['fences']['policy_state'] != 'READY'
+            request('anonymous impact denied', '/access/catalog-impact', {**partition, 'manifest': candidate}, 401, [], 'INVALID_CREDENTIAL')
+            request('other HUMAN cannot diagnose', '/access/catalog-impact', {**partition, 'manifest': candidate}, 403, [('Authorization', 'Bearer '+other)], 'ACCESS_DENIED')
+            request('cross-environment impact denied', '/access/catalog-impact', {**partition, 'environment': 'production', 'manifest': candidate}, 403, code='ACCESS_DENIED')
+            request('strict impact actor injection', '/access/catalog-impact', {**partition, 'manifest': candidate, 'subject': 'victim'}, 400, code='INVALID_ARGUMENT')
+            h.start(jar, 21663, run / 'admin-owner-only.log', config=run / 'admin-owner-only.properties', access=True, presentation=True, scope=True)
+            request('Owner management alone cannot diagnose', '/access/catalog-impact', {**partition, 'manifest': candidate}, 403, code='ACCESS_DENIED', port=21663)
         # 页面以实际组件挂载，使用真实Token及实际HTTP；测试壳不冒充完整门户PKCE验收。
         harness = ROOT / 'auth-console/.local/menu-role-governance'
         harness.mkdir(parents=True, exist_ok=True)
@@ -110,9 +158,9 @@ def main():
 import {ConfigProvider} from 'antd';import {userManager} from '../../src/auth/oidcConfig';import {CatalogEditor} from '../../src/governance/CatalogEditor';
 import '../../src/styles/global.css';import '../../src/styles/governance.css';
 const f=(window as any).__MG02;await userManager.storeUser(new User({access_token:f.token,token_type:'Bearer',profile:{sub:f.subject,iss:f.issuer},expires_at:Math.floor(Date.now()/1000)+600}));
-createRoot(document.getElementById('root')!).render(<ConfigProvider><CatalogEditor application={f.application} close={()=>{(window as any).__closed=true}} saved={()=>{(window as any).__saved=true}}/></ConfigProvider>);
+createRoot(document.getElementById('root')!).render(<ConfigProvider><CatalogEditor partition={f.partition} application={f.application} close={()=>{(window as any).__closed=true}} saved={()=>{(window as any).__saved=true}}/></ConfigProvider>);
 """)
-        payload = {'token': token, 'subject': user['id'], 'issuer': h.ISSUER, 'application': app, 'candidate': candidate, 'illegal': illegal,
+        payload = {'token': token, 'subject': user['id'], 'issuer': h.ISSUER, 'application': app, 'partition': partition, 'owner_only_admin': 'http://127.0.0.1:21663', 'candidate': candidate, 'illegal': illegal,
                    'admin': 'http://127.0.0.1:21662', 'ui': 'http://127.0.0.1:21665/.local/menu-role-governance/index.html'}
         h.private(run / 'browser.private.json', json.dumps(payload))
         with (run / 'vite.log').open('w') as output:
@@ -129,12 +177,12 @@ createRoot(document.getElementById('root')!).render(<ConfigProvider><CatalogEdit
         else:
             raise RuntimeError('owned Vite process startup timeout')
         with (run / 'browser.log').open('w') as output:
-            result = subprocess.run(['node', str(ROOT / 'deploy/governance-menu-diff-ui.mjs'), str(run)], cwd=ROOT, timeout=BROWSER_TIMEOUT_SECONDS,
+            result = subprocess.run(['node', str(ROOT / ('deploy/governance-menu-impact-ui.mjs' if impact else 'deploy/governance-menu-diff-ui.mjs')), str(run)], cwd=ROOT, timeout=BROWSER_TIMEOUT_SECONDS,
                                     stdout=output, stderr=subprocess.STDOUT)
         if result.returncode:
             raise RuntimeError('browser verification failed; private evidence retained')
         checks = h.CHECKS
-        h.private(run / 'http-result.json', json.dumps({'status': 'PASS', 'checks': checks, 'original_catalog_writes': 0, 'grant_writes': 0}))
+        h.private(run / 'http-result.json', json.dumps({'status': 'PASS', 'checks': checks, 'original_catalog_writes': 0, 'fixture_grant_writes': 3 if impact else 0, 'original_grant_writes': 0}))
         print('PASS: isolated Owner HTTP checks=' + str(len(checks)) + '; UI evidence: ' + str(run))
     finally:
         if vite is not None:

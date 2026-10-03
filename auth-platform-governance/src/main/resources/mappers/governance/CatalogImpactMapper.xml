@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrj.authz.governance.persistence.CatalogImpactMapper">
+ <select id="report" resultType="com.lrj.authz.governance.persistence.CatalogImpactMapper$Row">
+ WITH basis AS MATERIALIZED (<include refid="com.lrj.authz.governance.persistence.PortalMapper.publishedCatalogBasisQuery"/>),
+ clock AS (SELECT statement_timestamp() at),
+ roles AS MATERIALIZED (
+  SELECT r.* FROM auth_governance.role_version r CROSS JOIN basis b
+  WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
+  AND <choose><when test="caps.size() > 0">EXISTS(SELECT 1 FROM jsonb_array_elements_text(r.capabilities_json::jsonb) cap WHERE cap.value IN
+   <foreach collection="caps" item="cap" open="(" separator="," close=")">#{cap}</foreach>)</when><otherwise>FALSE</otherwise></choose>
+ ),
+ grants AS MATERIALIZED (
+  SELECT g.*,dg.org_ref,dg.active group_active,src.environment source_environment,src.business_zone,
+   src.quarantined,sc.rule_json
+  FROM auth_governance.access_grant g JOIN roles r ON r.id=g.role_id
+  LEFT JOIN auth_governance.directory_group dg ON dg.id=g.group_id AND dg.tenant_id=g.tenant_id
+  LEFT JOIN auth_governance.directory_source src ON src.id=dg.source_id AND src.tenant_id=g.tenant_id
+  LEFT JOIN auth_governance.grant_scope sc ON sc.grant_id=g.id AND sc.tenant_id=g.tenant_id AND sc.application_id=g.application_id AND sc.environment=g.environment
+  CROSS JOIN clock
+  WHERE g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}
+   AND g.state IN ('ACTIVE','PENDING') AND g.valid_from &lt;=clock.at AND g.valid_to &gt;clock.at
+   AND (g.source_type IN ('DIRECT','OA_REQUEST') OR (g.source_type='GROUP' AND dg.active
+    AND src.environment=g.environment AND NOT src.quarantined AND src.business_zone IS NOT NULL))
+ ),
+ recipients AS MATERIALIZED (
+  SELECT g.id grant_id,g.state grant_state,m.id member_id,m.generation,m.principal_id,
+   m.version member_version,u.version principal_version,m.valid_from member_valid_from,m.valid_to member_valid_to,gm.periods
+  FROM grants g JOIN auth_governance.membership m ON m.tenant_id=g.tenant_id
+  JOIN auth_governance.principal u ON u.id=m.principal_id
+  LEFT JOIN auth_governance.directory_group_member gm ON gm.group_id=g.group_id AND gm.tenant_id=m.tenant_id
+   AND gm.membership_id=m.id AND gm.generation=m.generation AND gm.current
+  CROSS JOIN clock
+  WHERE m.status='ACTIVE' AND u.status='ACTIVE' AND u.kind='HUMAN'
+   AND m.valid_from &lt;=clock.at AND (m.valid_to IS NULL OR m.valid_to &gt;clock.at)
+   AND ((g.source_type IN ('DIRECT','OA_REQUEST') AND g.membership_id=m.id AND g.generation=m.generation)
+    OR (g.source_type='GROUP' AND gm.id IS NOT NULL AND EXISTS(SELECT 1 FROM jsonb_array_elements(gm.periods) assignment
+     WHERE (assignment-&gt;&gt;'valid_from')::date &lt;=(clock.at AT TIME ZONE g.business_zone)::date
+      AND (assignment-&gt;&gt;'valid_to' IS NULL OR (assignment-&gt;&gt;'valid_to')::date &gt;(clock.at AT TIME ZONE g.business_zone)::date))))
+ ),
+ eligible_grants AS MATERIALIZED (
+  SELECT g.* FROM grants g WHERE g.source_type='GROUP' OR EXISTS(SELECT 1 FROM recipients r WHERE r.grant_id=g.id)
+ ),
+ policies AS MATERIALIZED (
+  SELECT p.* FROM auth_governance.request_policy p JOIN roles r ON r.id=p.role_id
+  WHERE p.tenant_id=#{p.tenantId} AND p.application_id=#{p.applicationId} AND p.environment=#{p.environment}
+ ),
+ fences AS (
+  SELECT jsonb_build_object('policy_state',COALESCE(p.state,'LEGACY'),'policy_desired_epoch',p.desired_epoch,'policy_applied_epoch',p.applied_epoch,
+   'directory_state',COALESCE(d.state,'LEGACY'),'directory_desired_epoch',d.desired_epoch,'directory_applied_epoch',d.applied_epoch,
+   'source_quarantined',EXISTS(SELECT 1 FROM auth_governance.directory_source s WHERE s.tenant_id=#{p.tenantId} AND s.quarantined),
+   'disabled_capabilities',COALESCE((SELECT jsonb_agg(cs.capability ORDER BY cs.capability) FROM auth_governance.capability_state cs
+    WHERE cs.application_id=#{p.applicationId} AND cs.disabled),'[]'::jsonb)) value
+  FROM basis b LEFT JOIN auth_governance.policy_partition p ON p.tenant_id=#{p.tenantId} AND p.application_id=#{p.applicationId} AND p.environment=#{p.environment}
+  LEFT JOIN auth_governance.directory_fence d ON d.tenant_id=#{p.tenantId}
+ ),
+ role_page AS (
+  SELECT jsonb_build_object('id',r.id,'role_code',r.role_code,'version',r.version,'capabilities',r.capabilities_json::jsonb,
+   'active_grant_count',(SELECT count(*) FROM eligible_grants g WHERE g.role_id=r.id AND g.state='ACTIVE'),
+   'pending_grant_count',(SELECT count(*) FROM eligible_grants g WHERE g.role_id=r.id AND g.state='PENDING')) value,r.id
+  FROM roles r WHERE r.id &gt;#{cursor.afterRole} ORDER BY r.id LIMIT #{limit}
+ ),
+ source_page AS (
+  SELECT jsonb_build_object('grant_id',g.id,'role_id',g.role_id,'member_id',r.member_id,'generation',r.generation,
+   'group_id',g.group_id,'source_type',g.source_type,'source_id',g.source_id,
+   'valid_from',to_char(g.valid_from AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+   'valid_to',to_char(g.valid_to AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+   'grant_state',g.state,'scope',g.scope,'scope_rule_json',g.rule_json) value,g.id,COALESCE(r.member_id,'') member_id
+  FROM eligible_grants g LEFT JOIN recipients r ON r.grant_id=g.id
+  WHERE (g.id,COALESCE(r.member_id,'')) &gt;(#{cursor.afterGrant},#{cursor.afterMember}) ORDER BY g.id,COALESCE(r.member_id,'') LIMIT #{limit}
+ ),
+ policy_page AS (
+  SELECT jsonb_build_object('id',p.id,'role_id',p.role_id,'policy_version',p.policy_version,'enabled',p.enabled) value,p.id
+  FROM policies p WHERE p.id &gt;#{cursor.afterPolicy} ORDER BY p.id LIMIT #{limit}
+ ),
+ -- 每类事实先限制数量，再逐行摘要；不聚合全部原始人员／范围JSON到应用内存。
+ limited_roles AS (SELECT * FROM roles ORDER BY id LIMIT #{basisLimit}),
+ limited_grants AS (SELECT * FROM eligible_grants ORDER BY id LIMIT #{basisLimit}),
+ limited_recipients AS (SELECT * FROM recipients ORDER BY grant_id,member_id LIMIT #{basisLimit}),
+ limited_policies AS (SELECT * FROM policies ORDER BY id LIMIT #{basisLimit}),
+ facts AS (
+  SELECT 'r:'||r.id key,encode(sha256(convert_to(to_jsonb(r)::text,'UTF8')),'hex') digest FROM limited_roles r
+  UNION ALL SELECT 'g:'||g.id,encode(sha256(convert_to(to_jsonb(g)::text,'UTF8')),'hex') FROM limited_grants g
+  UNION ALL SELECT 'm:'||m.grant_id||':'||m.member_id,encode(sha256(convert_to(to_jsonb(m)::text,'UTF8')),'hex') FROM limited_recipients m
+  UNION ALL SELECT 'p:'||p.id,encode(sha256(convert_to(to_jsonb(p)::text,'UTF8')),'hex') FROM limited_policies p
+ ),
+ bounded_facts AS (SELECT * FROM facts ORDER BY key LIMIT #{basisLimit})
+ SELECT b.manifest_version,b.content_hash,b.presentation_hash,to_char(clock.at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') observed_at,
+  (to_jsonb(b)||jsonb_build_object('fences',f.value))::text basis_json,
+  encode(sha256(convert_to(COALESCE((SELECT string_agg(key||':'||digest,',' ORDER BY key) FROM bounded_facts),''),'UTF8')),'hex') facts_hash,
+  (SELECT count(*) FROM roles)+(SELECT count(*) FROM eligible_grants)+(SELECT count(*) FROM recipients)+(SELECT count(*) FROM policies) basis_size,
+  (SELECT count(*) FROM roles) role_count,
+  (SELECT count(*) FROM eligible_grants WHERE state='ACTIVE') active_grant_count,
+  (SELECT count(*) FROM eligible_grants WHERE state='PENDING') pending_grant_count,
+  (SELECT count(DISTINCT principal_id) FROM recipients WHERE grant_state='ACTIVE') active_people_count,
+  (SELECT count(DISTINCT principal_id) FROM recipients WHERE grant_state='PENDING') pending_people_count,
+  (SELECT count(DISTINCT principal_id) FROM recipients) people_count,
+  (SELECT count(*) FROM eligible_grants WHERE source_type='GROUP') group_grant_count,
+  (SELECT count(*) FROM policies) request_policy_count,f.value::text fences_json,
+  COALESCE((SELECT jsonb_agg(value ORDER BY id)::text FROM role_page),'[]') roles_json,
+  COALESCE((SELECT jsonb_agg(value ORDER BY id,member_id)::text FROM source_page),'[]') sources_json,
+  COALESCE((SELECT jsonb_agg(value ORDER BY id)::text FROM policy_page),'[]') policies_json
+ FROM basis b CROSS JOIN clock CROSS JOIN fences f
+ </select>
+</mapper>

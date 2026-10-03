@@ -16,8 +16,17 @@ public final class CatalogManifest {
     private static final ObjectMapper JSON = new ObjectMapper(JsonFactory.builder().enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION).build())
             .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .enable(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS)
             .disable(MapperFeature.ALLOW_COERCION_OF_SCALARS)
             .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT);
+    static {
+        // Jackson的Textual转换独立于标量开关，数字／布尔不能冒充字符串协议值。
+        var text = JSON.coercionConfigFor(com.fasterxml.jackson.databind.type.LogicalType.Textual);
+        for (var shape : java.util.List.of(com.fasterxml.jackson.databind.cfg.CoercionInputShape.Integer,
+                com.fasterxml.jackson.databind.cfg.CoercionInputShape.Float, com.fasterxml.jackson.databind.cfg.CoercionInputShape.Boolean)) {
+            text.setCoercion(shape, com.fasterxml.jackson.databind.cfg.CoercionAction.Fail);
+        }
+    }
     private CatalogManifest() {}
     /** 拒绝超限、未知字段、重复键和宽松类型转换。 */
     public static Manifest read(InputStream input) {

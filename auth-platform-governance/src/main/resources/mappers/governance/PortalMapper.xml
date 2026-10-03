@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.PortalMapper">
- <select id="publishedCatalogBasis" resultType="com.lrj.authz.governance.domain.PortalCatalogModels$PublishedCatalogBasis">
+ <sql id="publishedCatalogBasisQuery">
   SELECT u.id AS principal_id,u.version AS principal_version,t.version AS tenant_version,
    m.id AS membership_id,m.generation,m.version AS membership_version,
    d.capabilities_json,d.max_duration_seconds,a.manifest_version,s.content_hash,s.manifest_json,
@@ -27,7 +27,8 @@
    AND ta.enabled AND d.enabled AND u.kind='HUMAN' AND u.status='ACTIVE' AND t.status='ACTIVE' AND m.status='ACTIVE'
    AND m.valid_from &lt;= clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to &gt; clock_timestamp())
    AND a.manifest_version&gt;0
- </select>
+ </sql>
+ <select id="publishedCatalogBasis" resultType="com.lrj.authz.governance.domain.PortalCatalogModels$PublishedCatalogBasis"><include refid="publishedCatalogBasisQuery"/></select>
  <select id="applications" resultType="com.lrj.authz.governance.application.PortalDirectory$Candidate">
  SELECT a.application_id,a.environment,(d.membership_id IS NOT NULL) management
  FROM auth_governance.tenant_application a

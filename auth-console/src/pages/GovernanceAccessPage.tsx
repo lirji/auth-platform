@@ -98,7 +98,7 @@ export default function GovernanceAccessPage({ view }: { view?: 'roles' | 'grant
         <div className="g-directory-links"><Link to={link('grants', 'grant_role', selected.id)}>用此角色授予成员</Link><Link to={link('policies')}>查看申请策略</Link><Link to={link('audit')}>查看授权审计</Link></div>
       </>}
     </GovernanceModal>
-    {catalogOpen && <CatalogEditor application={partition.application_id} close={() => setCatalogOpen(false)} saved={refresh} />}
+    {catalogOpen && <CatalogEditor partition={partition} application={partition.application_id} close={() => setCatalogOpen(false)} saved={refresh} />}
     {roleOpen && catalog.data && <RoleEditor catalog={catalog.data} copy={copy} close={() => setRoleOpen(false)} saved={refresh} />}
     {grantOpen && catalog.data && <GrantEditor catalog={catalog.data} roles={roleDirectory.data ?? []} initialRole={params.get('grant_role') ?? undefined} close={() => setGrantOpen(false)} saved={refresh} />}
   </>

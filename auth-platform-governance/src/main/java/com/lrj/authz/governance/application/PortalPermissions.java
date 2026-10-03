@@ -12,7 +12,7 @@ import static com.lrj.authz.governance.application.GovernanceException.Code.*;
 
 /** 本人解释与管理诊断分开；诊断配置不自动产生业务读写权限。 */
 public final class PortalPermissions {
-    private static final String EXPLAIN="READ_GRANT_EXPLANATION", AUDIT="READ_ACCESS_AUDIT";
+    private static final String EXPLAIN="READ_GRANT_EXPLANATION", AUDIT="READ_ACCESS_AUDIT", IMPACT="READ_CATALOG_IMPACT";
     private enum Outcome {
         ALLOWED("ALLOWED"), DENIED("DENIED");
         private final String code; Outcome(String code){this.code=code;}
@@ -23,10 +23,12 @@ public final class PortalPermissions {
     private final PermissionMapper mapper;
     private final List<PortalDiagnosticAuthority> authorities;
     private final TransactionTemplate auditTransaction;
+    private final CatalogImpact catalogImpact;
     /** 审计独立提交，之后的拒绝异常不能回滚访问证据。 */
     public PortalPermissions(IdentityGovernance identity,AccessManagement access,PermissionMapper mapper,
-                             List<PortalDiagnosticAuthority> authorities,TransactionTemplate transactions) {
+                             List<PortalDiagnosticAuthority> authorities,TransactionTemplate transactions, CatalogImpact catalogImpact) {
         this.identity=identity;this.access=access;this.mapper=mapper;this.authorities=List.copyOf(authorities);
+        this.catalogImpact=catalogImpact;
         auditTransaction=new TransactionTemplate(transactions.getTransactionManager());
         auditTransaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);auditTransaction.setTimeout(5);
     }
@@ -50,6 +52,23 @@ public final class PortalPermissions {
         String actor=authorize(login,p,AUDIT,null);var rows=mapper.audit(p,cursor(after));
         record(actor,p,AUDIT,null,Outcome.ALLOWED);
         return new Page<>(List.copyOf(rows.subList(0,Math.min(100,rows.size()))),rows.size()>100?rows.get(99).id():null);
+    }
+    /** Owner仅有发布权时也不能取得人员影响；输出前再次核验当前诊断成员代际。 */
+    public com.lrj.authz.governance.domain.CatalogImpactModels.Report catalogImpact(VerifiedLogin login, Partition p,
+            com.lrj.authz.governance.domain.CatalogModels.Manifest manifest, com.lrj.authz.governance.domain.CatalogImpactModels.Cursor cursor) {
+        String actor=authorize(login,p,IMPACT,null);
+        com.lrj.authz.governance.domain.CatalogImpactModels.Report result;
+        try {
+            result=catalogImpact.analyze(login,p,manifest,cursor);
+        } catch(GovernanceException denied) {
+            // 分析期间的目录／资格消失也不能留下零影响的成功审计。
+            if(denied.code()==ACCESS_DENIED)record(actor,p,IMPACT,null,Outcome.DENIED);
+            throw denied;
+        }
+        String latest=authorize(login,p,IMPACT,null);
+        if(!actor.equals(latest))throw new GovernanceException(VERSION_CONFLICT);
+        record(actor,p,IMPACT,null,Outcome.ALLOWED);
+        return result;
     }
     private String authorize(VerifiedLogin login,Partition p,String operation,String target) {
         AccessValues.partition(p);String actor=identity.principalForLogin(login.issuer(),login.subject()).id();

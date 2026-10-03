@@ -66,6 +66,21 @@ export const previewCatalog = async (manifest: CatalogManifest): Promise<Catalog
 export const publishCatalog = async (command: { manifest: CatalogManifest; commandId: string }): Promise<CatalogPreview> =>
   (await apiClient.post('/api/governance/v1/catalog/publish', command.manifest, { headers: { 'X-Command-Id': command.commandId } })).data
 
+export interface CatalogImpactCursor { basis_hash: string; after_role: string; after_grant: string; after_member: string; after_policy: string }
+export interface CatalogImpactReport extends Partition { current_version: number; content_hash: string; presentation_hash: string;
+  observed_at: string; basis_hash: string | null; completeness: 'COMPLETE' | 'BASIS_LIMIT_EXCEEDED'; diff: CatalogPreview;
+  stats: { role_count: number; active_grant_count: number; pending_grant_count: number; active_people_count: number; pending_people_count: number;
+    people_count: number; group_grant_count: number; request_policy_count: number };
+  fences: { policy_state: string; directory_state: string; policy_desired_epoch: number | null; policy_applied_epoch: number | null;
+    directory_desired_epoch: number | null; directory_applied_epoch: number | null; source_quarantined: boolean; disabled_capabilities: string[] };
+  roles: (Role & { active_grant_count: number; pending_grant_count: number })[];
+  sources: { grant_id: string; role_id: string; member_id: string | null; generation: number | null; group_id: string | null;
+    source_type: string; source_id: string; valid_from: string; valid_to: string; grant_state: string; scope: string; scope_rule: ScopeRule | null }[];
+  policies: { id: string; role_id: string; policy_version: number; enabled: boolean }[]; next_cursor: CatalogImpactCursor | null }
+/** 单独诊断入口不能用Owner权限或普通目录预览替代；失败保留HTTP状态，不生成零计数。 */
+export const catalogImpact = async (partition: Partition, manifest: CatalogManifest, cursor?: CatalogImpactCursor, signal?: AbortSignal): Promise<CatalogImpactReport> =>
+  (await apiClient.post('/api/governance/v1/access/catalog-impact', { ...partition, manifest, cursor }, { signal })).data
+
 export interface RequestPolicy { id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; policy_version: number; role_code: string; role_version: number; capabilities: string[] }
 export interface PolicyConfiguration { policy: RequestPolicy; approver_membership_id: string; approver_generation: number; enabled: boolean }
 export interface PolicyCommand extends Partition { command_id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; approver_membership_id: string; approver_generation: number; policy_version: number }

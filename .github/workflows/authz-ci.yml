@@ -22,6 +22,7 @@ on:
       - 'deploy/governance-permission-pages.mjs'
       - 'deploy/governance-commerce-publication*'
       - 'deploy/tests/test_governance_commerce_publication.py'
+      - 'deploy/governance-menu-*'
       - 'deploy/governance-commerce-menu-export.py'
       - 'deploy/tests/test_governance_commerce_menu_export.py'
       - 'deploy/governance-p7-*'
@@ -61,6 +62,7 @@ on:
       - 'deploy/governance-permission-pages.mjs'
       - 'deploy/governance-commerce-publication*'
       - 'deploy/tests/test_governance_commerce_publication.py'
+      - 'deploy/governance-menu-*'
       - 'deploy/governance-commerce-menu-export.py'
       - 'deploy/tests/test_governance_commerce_menu_export.py'
       - 'deploy/governance-p7-*'
@@ -199,7 +201,7 @@ jobs:
           version: 9.15.9
       - name: Check portal browser harness syntax
         run: |
-          for script in deploy/governance-p5-*.mjs deploy/governance-p6-catalog.mjs deploy/governance-ce05-campaigns.mjs deploy/governance-ce05-segments.mjs deploy/governance-ce05-coupon-deliveries-ui.mjs deploy/governance-integrated-resources-*.mjs deploy/governance-permission-pages.mjs deploy/governance-commerce-publication-*.mjs; do node --check "$script"; done
-          node --test auth-console/tests/governance-context.test.mjs auth-console/tests/governance-published-catalog.test.mjs auth-console/tests/governance-catalog-model.test.mjs
+          for script in deploy/governance-menu-*.mjs deploy/governance-p5-*.mjs deploy/governance-p6-catalog.mjs deploy/governance-ce05-campaigns.mjs deploy/governance-ce05-segments.mjs deploy/governance-ce05-coupon-deliveries-ui.mjs deploy/governance-integrated-resources-*.mjs deploy/governance-permission-pages.mjs deploy/governance-commerce-publication-*.mjs; do node --check "$script"; done
+          node --test auth-console/tests/governance-context.test.mjs auth-console/tests/governance-published-catalog.test.mjs auth-console/tests/governance-catalog-model.test.mjs auth-console/tests/governance-catalog-impact.test.mjs
       - name: Build governance console
         run: pnpm --dir auth-console install --frozen-lockfile && pnpm --dir auth-console build
