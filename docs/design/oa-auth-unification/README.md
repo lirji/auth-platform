@@ -34,3 +34,4 @@ P4契约见[CONTRACTS_P4_REQUEST](CONTRACTS_P4_REQUEST.md)，后续入口见[P4�
 
 - [治理菜单、角色与权限页面](permission-pages/README.md)：独立菜单权限、权限目录、角色管理与成员授权入口及验收。
 - [菜单、角色与授权变更治理讨论](MENU_ROLE_GOVERNANCE_DISCUSSION.md)：集中授权的价值、当前实现边界、菜单变更处理、生产 API 发布和后续建设建议；讨论归档，不代表实施批准。
+- [菜单与角色授权治理优化计划](menu-role-governance/PLAN.md)：13 项有序优化、6 个阶段及 20 个候选实施切片；方案待确认，产品实施未开始。
