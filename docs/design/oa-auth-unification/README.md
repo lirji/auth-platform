@@ -33,3 +33,4 @@ OA 的 D-GOV-002／004／005 是现有实现的历史决策。它们继续约束
 P4契约见[CONTRACTS_P4_REQUEST](CONTRACTS_P4_REQUEST.md)，后续入口见[P4交接](../../implementation/oa-auth/phase-4/P4_HANDOFF.md)。
 
 - [治理菜单、角色与权限页面](permission-pages/README.md)：独立菜单权限、权限目录、角色管理与成员授权入口及验收。
+- [菜单、角色与授权变更治理讨论](MENU_ROLE_GOVERNANCE_DISCUSSION.md)：集中授权的价值、当前实现边界、菜单变更处理、生产 API 发布和后续建设建议；讨论归档，不代表实施批准。
