@@ -35,3 +35,7 @@
 - test／staging是两新隔离目标模拟，绝非真实生产；测试与生产IdP client／audience／secret必须分别管理，生产HTTPS。不清理历史、不重启原部署，不自动部署或开启生产。
 
 恢复使用新目录版本修正；禁用委派停止后续机器操作，不撤销已发布目录或恢复任何业务Grant。启用／回退操作见[PUBLISHER_RUNBOOK](PUBLISHER_RUNBOOK.md)。
+
+## CI配置边界补证
+
+MG10产品8ad560d正常推送后检查workflow，发现新PG测试只读取本机私密配置，而既有CI使用受限数据库环境变量。补齐与既有测试一致的输入分支；本机移除GOVERNANCE_TEST_CONFIG，按CI三项环境变量实际执行18规则单测和15真PG，均PASS。首次带skipTests命令未执行IT，只作为编译记录，实际证据为mg10-ci-config-actual-tests.log。该修正只改测试配置入口，产品源码／真实HTTP制品未变；原产品指纹保留，当前测试文件另记SHA。

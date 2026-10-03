@@ -27,4 +27,4 @@ MG00：结构化声明、差异类别、非法变化、双哈希、分区诊断�
 
 ## 阶段 C 当前证据
 
-MG09设计PASS_WITH_LIMITATIONS（MG09_TEST_RESULT），正式架构／选型／MG09_CONTRACT已落盘。Casdoor固定提交4文件／7项源码核对PASS，MG09当时安装版与PG验收未完成且环境超时，历史证据保留；用户确认调整Docker，MG10环境恢复后已完成真实安装版Token／PG和双实例验证，隔离运行gate PASS。环境选择无需再确认：独立权限实例／DB，可信IdP可复用但各环境client／audience／密钥不同。MG10 DONE，仍默认关闭；后续MG11只在获授权隔离目标验证，不生产部署或开启。MG10 Git与精确CI下一收口。
+MG09设计PASS_WITH_LIMITATIONS（MG09_TEST_RESULT），正式架构／选型／MG09_CONTRACT已落盘。Casdoor固定提交4文件／7项源码核对PASS，MG09当时安装版与PG验收未完成且环境超时，历史证据保留；用户确认调整Docker，MG10环境恢复后已完成真实安装版Token／PG和双实例验证，隔离运行gate PASS。环境选择无需再确认：独立权限实例／DB，可信IdP可复用但各环境client／audience／密钥不同。MG10 DONE，仍默认关闭；后续MG11只在获授权隔离目标验证，不生产部署或开启。MG10产品8ad560d已任务分支／main正常推送；发现CI测试配置入口需兼容既有环境变量，18规则／15真PG按CI方式补证PASS，补丁Git及精确CI继续收口。

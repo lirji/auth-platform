@@ -24,7 +24,12 @@ class CatalogPublisherPostgresIT {
         VerifiedMachine machine() {return new VerifiedMachine(slot.publisherId(),slot.tokenAuthority().issuer(),slot.subject(),slot.tokenAuthority().clientId(),Instant.now().minusSeconds(1),Instant.now().plusSeconds(200));}
     }
     @BeforeAll void open() {
-        var p=GovernanceConfigurationFile.read(System.getenv("GOVERNANCE_TEST_CONFIG"));
+        String file=System.getenv("GOVERNANCE_TEST_CONFIG");var p=new Properties();
+        if(file!=null)p=GovernanceConfigurationFile.read(file);
+        else {
+            // CI沿用既有受限数据库环境变量，本机则使用0600配置；两者仍验证专用测试命名空间。
+            p.setProperty("jdbc.url",System.getenv("GOVERNANCE_TEST_DB_URL"));p.setProperty("jdbc.username",System.getenv("GOVERNANCE_TEST_DB_USER"));p.setProperty("jdbc.password",System.getenv("GOVERNANCE_TEST_DB_PASSWORD"));
+        }
         assertThat(p.getProperty("jdbc.url")).matches("jdbc:postgresql://(?:127\\.0\\.0\\.1|localhost):[0-9]+/auth_gov_p1_test_[a-z0-9_]+");
         var db=GovernanceDatabase.from(p);runtime=GovernanceRuntime.open(db,true);
         jdbc=new JdbcTemplate(new DriverManagerDataSource(db.jdbcUrl(),db.username(),db.password()));
