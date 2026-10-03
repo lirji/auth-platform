@@ -19,8 +19,8 @@
 | MG06 | 源码、部署声明和已发布目录不一致时能定位 | MG01、MG04、MG05 | 导出／核对工具、管理读接口、目录状态页面 | 漂移状态和受信证据契约；是否存核验结果按需 | 现有部署信息／PG | M | DONE |
 | MG07 | Commerce 通过受信身份链路得到本人导航提示 | MG00、MG01 | Auth business API／SDK；Commerce `commerce-app/.../iam`／HTTP | D-NAV、只读业务契约；不复用管理 Token | 现有 IdP／SDK／授权图 | M | DONE |
 | MG08 | Commerce 侧栏、搜索和默认入口按真实提示过滤 | MG01、MG07 | `CentralShell.tsx`、`navigation.ts`、`session.ts`、前端 client | 消费已发布 MG07 契约，无新授权模型 | 现有 Commerce 前后端 | M | DONE |
-| MG09 | 环境隔离与机器发布的选型和契约明确 | MG05、MG06 | Auth 设计、IdP 能力核验、环境运行说明 | D-ENV、D-PUB；契约设计片 | 只核对既有组件 | M | TODO |
-| MG10 | 受限机器身份只能发布获授权应用／目标 | MG09 | 认证边界、发布授权适配、catalog 用例、受控登记 | 发布委派／审计模型，追加迁移 | 现有 IdP／PG；选定隔离配置 | M | TODO |
+| MG09 | 环境隔离与机器发布的选型和契约明确 | MG05、MG06 | Auth 设计、IdP 能力核验、环境运行说明 | D-ENV、D-PUB；契约设计片 | 只核对既有组件 | M | DONE |
+| MG10 | 受限机器身份只能发布获授权应用／目标 | MG09 | 认证边界、发布授权适配、catalog 用例、受控登记 | 发布委派／审计模型，追加迁移 | 现有 IdP／PG；选定隔离配置 | M | IN_PROGRESS |
 | MG11 | CI 产出预览、受控发布并核对准确结果 | MG01、MG05、MG06、MG10 | 发布工具、相关 workflow／环境说明 | 发布客户端契约；不得绕过 MG05 | 隔离 CI 目标，不自动生产部署 | M | TODO |
 | MG12 | 管理员看到角色 v1→v2 迁移对象及风险，不执行写入 | MG03 | `PortalManagement`／Mapper、角色页迁移预览 | D-MIG、D-SOURCE 和迁移契约设计＋只读实现 | 现有 PG／console | M | TODO |
 | MG13 | 指定直接授权按固定范围／期限受控迁移，可断点恢复 | MG12 | `AccessManagement`、既有投影／栅栏、迁移任务和 UI | 任务／子项／来源谱系，追加迁移 | 复用现有执行组件 | M | TODO |
@@ -100,8 +100,8 @@
 
 ### MG09：生产隔离与机器发布设计
 
-- 核对 IdP 可用的服务身份、audience／scope、密钥机制及现有部署目标；对独立实例／数据库隔离与同实例环境目录扩展写清取舍。默认推荐前者，最终选择需确认。
-- 输出发布权限、目标绑定、短期凭据／轮换、禁用和审计契约。仅目录发布权限不包含角色创建、Grant、能力恢复或跨目标登记权限。
+- 核对 IdP 可用的服务身份、audience／scope、密钥机制及现有部署目标；对独立实例／数据库隔离与同实例环境目录扩展写清取舍。用户已确认独立权限实例／数据库；MG09_CONTRACT与BACKEND_ARCHITECTURE／TECH_SELECTION为正式设计。
+- 输出发布权限、目标绑定、短期凭据／轮换、禁用和审计契约（见MG09_TEST_RESULT；设计DONE，安装版认证／真实PG启用验收属于MG10且当前运行HOLD）。仅目录发布权限不包含角色创建、Grant、能力恢复或跨目标登记权限。
 - 验收：能说明一个测试机器身份为何不能发布生产；单实例方案若选中，所有 catalog 读写及决策路径的环境迁移都有影响清单和兼容方案。
 - 恢复：设计片无运行副作用；目标方案未确定不开放机器发布。
 
@@ -219,7 +219,7 @@ flowchart LR
     MG18 --> MG19
 ```
 
-- 当前执行：MG00–MG08 DONE，继续MG09；按本表串行推进。
+- 当前执行：MG00–MG09设计DONE，继续MG10；按本表串行推进。
 - 阶段 A CONTRACTS 已冻结，MG00 DONE；对应已满足依赖的实施可推进。MG07／09／12／15／17 的业务决策按各阶段就近确定，不需要本轮假装全部已批准。
 - 全部标记 `parallel=no`：共享目录／授权契约、PG 迁移链、Controller、SDK、console 和跨仓声明需要串行集成；本计划不授予并行代理权限。
 - 迁移唯一 Owner 为 Auth 治理后端；Commerce 只维护自有声明、适配和业务数据，不能直接写 Auth 表。

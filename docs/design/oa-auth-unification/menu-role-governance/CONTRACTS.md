@@ -66,3 +66,8 @@ MG02实现细化：affected_capabilities 为稳定排序的潜在关联能力并
 沿用现有治理页面、GovernanceModal、Failure 和 useCommand。覆盖真实预览、差异详情、影响授权拒绝／明细、发布历史、核对结果、修改后预览作废、未知结果原键重试、关闭保护；1440／390／320 视口实际操作和截图查看。
 
 MG01 验证声明／导航一致和非法声明拒绝；MG02验证纯差异与 Owner HTTP；MG03–MG05 使用隔离真实 PG 验证权限、统计、事务、并发及重试。所有业务读写验证只在已授权隔离目标中，不重发当前本机 commerce v2，不更改原业务 Grant。
+
+
+## 8. 阶段 C 独立发布契约
+
+MG09新增的环境与SERVICE机器发布边界见[MG09_CONTRACT](MG09_CONTRACT.md)，架构与技术选择见[BACKEND_ARCHITECTURE](BACKEND_ARCHITECTURE.md)和[TECH_SELECTION](TECH_SELECTION.md)。阶段A的HUMAN、快照、摘要及原命令语义保持；真实机器启用需MG10必要验收。
