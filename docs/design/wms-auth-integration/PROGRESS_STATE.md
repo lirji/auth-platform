@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-W00–W02 本地验证 DONE；Git交付与精确CI待执行；W03 BLOCKED，Q-ORG 已发出尚未答复。全任务未完成。
+W00–W02 本地验证 DONE，实现已提交并推送任务分支；W03 BLOCKED，Q-ORG 已发出尚未答复。全任务未完成。最终精确 CI 与主线发布结果以本机交付回执为准：`/Users/liruijun/personal/LLM/auth-platform/.local/wms-auth-integration/delivery-result.json`。回执缺失或必需检查未通过时不得视为已合入主线。
 
 ## 已完成
 
@@ -20,10 +20,10 @@ W00–W02 本地验证 DONE；Git交付与精确CI待执行；W03 BLOCKED，Q-OR
 
 ## 未完成与阻塞
 
-- W01/W02 正常任务分支交付、精确CI与主线发布待执行。
+- W01 实现提交 b2d2414，W02 实现提交 411d3db；任务分支均为 feat/wms-central-authorization。交付回执单独记录最终含文档的 SHA、精确 CI 和远端 main，不能将本地测试替代完整流水线。
 - Q-ORG：ENT-DEMO 应归独立 local-wms，还是复用 local-commerce？未获得答复不能创建主体映射、复制成员或授予权限。
 - W03–W07 的身份/运行/消费契约、业务实现、真实验收尚未完成；不得以目录注册或健康检查声称接入成功。
 
 ## 下一步
 
-先交付并核对已验证 W01/W02 的精确Git/CI；用户答复后从 W03 继续。不要重做 W00、旧 MG 计划、S9/Driver 或 ERP 暂停任务。
+恢复时先读取交付回执并核对当前 Git/CI；用户答复后从 W03 继续。不要重做 W00、旧 MG 计划、S9/Driver 或 ERP 暂停任务。
