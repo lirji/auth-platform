@@ -37,3 +37,5 @@ P4契约见[CONTRACTS_P4_REQUEST](CONTRACTS_P4_REQUEST.md)，后续入口见[P4�
 - [菜单与角色授权治理优化计划](menu-role-governance/PLAN.md)：13 项有序优化、6 个阶段及 20 个已批准实施切片；MG00–17产品与必要验证已完成，MG18–19继续实施，当前状态见[治理进度](menu-role-governance/PROGRESS_STATE.md)。
 
 - [人员变更核对](menu-role-governance/MG17_CONTRACT.md)：当前／历史完整来源、不可变变更证据与独立诊断，见[验收结果](menu-role-governance/MG17_TEST_RESULT.md)。
+
+人工权限复核：见 [MG18 契约](menu-role-governance/MG18_CONTRACT.md)、[实施证据](menu-role-governance/MG18_IMPLEMENTATION_EVIDENCE.md) 与 [真实验收](menu-role-governance/MG18_TEST_RESULT.md)。人员页选择本页具体来源创建，侧栏“权限复核”跟踪固定任务及真实撤权确认。

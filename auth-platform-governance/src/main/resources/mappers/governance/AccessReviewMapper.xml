@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrj.authz.governance.persistence.AccessReviewMapper">
+ <sql id="partition">tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment}</sql>
+ <sql id="taskColumns">id,tenant_id,application_id,environment,membership_id,target_generation,original_basis_hash,responsible_membership_id,responsible_generation,state,version,reason,created_by,creator_generation,command_id,item_count,created_at::text,updated_at::text</sql>
+ <select id="lockPrincipal" resultType="string">SELECT u.id FROM auth_governance.principal u JOIN auth_governance.membership m ON m.principal_id=u.id WHERE m.id=#{member} AND m.tenant_id=#{p.tenantId} FOR SHARE OF u</select>
+ <select id="lockMember" resultType="string">SELECT id FROM auth_governance.membership WHERE id=#{member} AND tenant_id=#{p.tenantId} FOR SHARE</select>
+ <select id="qualified" resultType="com.lrj.authz.protocol.AccessReviewDtos$Responsible">
+ SELECT m.id membership_id,m.generation,m.version FROM auth_governance.membership m JOIN auth_governance.principal u ON u.id=m.principal_id JOIN auth_governance.tenant t ON t.id=m.tenant_id
+ JOIN auth_governance.access_delegation d ON d.tenant_id=m.tenant_id AND d.membership_id=m.id AND d.generation=m.generation
+ JOIN auth_governance.tenant_application a ON a.tenant_id=d.tenant_id AND a.application_id=d.application_id AND a.environment=d.environment
+ WHERE m.tenant_id=#{p.tenantId} AND d.application_id=#{p.applicationId} AND d.environment=#{p.environment} AND m.id=#{member} AND m.generation=#{generation}
+ AND m.status='ACTIVE' AND u.status='ACTIVE' AND u.kind='HUMAN' AND t.status='ACTIVE' AND d.enabled AND a.enabled
+ AND m.valid_from&lt;=clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to&gt;clock_timestamp())
+ </select>
+ <select id="qualifiedBatch" resultType="com.lrj.authz.protocol.AccessReviewDtos$Responsible">
+ SELECT m.id membership_id,m.generation,m.version FROM auth_governance.membership m JOIN auth_governance.principal u ON u.id=m.principal_id JOIN auth_governance.tenant t ON t.id=m.tenant_id
+ JOIN auth_governance.access_delegation d ON d.tenant_id=m.tenant_id AND d.membership_id=m.id AND d.generation=m.generation
+ JOIN auth_governance.tenant_application a ON a.tenant_id=d.tenant_id AND a.application_id=d.application_id AND a.environment=d.environment
+ WHERE m.tenant_id=#{p.tenantId} AND d.application_id=#{p.applicationId} AND d.environment=#{p.environment} AND (m.id,m.generation) IN <foreach collection="authorities" item="a" open="(" separator="," close=")">(#{a.membershipId},#{a.generation})</foreach>
+ AND m.status='ACTIVE' AND u.status='ACTIVE' AND u.kind='HUMAN' AND t.status='ACTIVE' AND d.enabled AND a.enabled
+ AND m.valid_from&lt;=clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to&gt;clock_timestamp())
+ ORDER BY m.id LIMIT 100
+ </select>
+ <select id="revokeCommitted" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.audit_event a WHERE a.tenant_id=#{p.tenantId} AND a.operation='REVOKE_GRANT' AND a.target_id=#{id} AND a.target_version=#{version} AND a.command_id=#{command} AND EXISTS(SELECT 1 FROM auth_governance.access_grant g WHERE g.id=a.target_id AND g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}))</select>
+ <select id="task" resultType="com.lrj.authz.governance.domain.AccessReviewModels$Task">SELECT <include refid="taskColumns"/> FROM auth_governance.access_review_task WHERE <include refid="partition"/> AND id=#{id}<if test="lock"> FOR UPDATE</if></select>
+ <select id="tasks" resultType="com.lrj.authz.governance.domain.AccessReviewModels$Task">SELECT <include refid="taskColumns"/> FROM auth_governance.access_review_task WHERE <include refid="partition"/> AND id&gt;#{after}<if test="member != null"> AND membership_id=#{member}</if> ORDER BY id LIMIT 21</select>
+ <select id="entries" resultType="com.lrj.authz.governance.domain.AccessReviewModels$Entry">SELECT id,task_id,tenant_id,application_id,environment,grant_id,original_version,original_json::text,original_hash,state,version,reason,revoke_command,confirmed_operation_id FROM auth_governance.access_review_item WHERE <include refid="partition"/> AND task_id=#{id} ORDER BY id LIMIT 101</select>
+ <insert id="insertTask">INSERT INTO auth_governance.access_review_task(id,tenant_id,application_id,environment,membership_id,target_generation,original_basis_hash,responsible_membership_id,responsible_generation,state,version,reason,created_by,creator_generation,command_id,item_count) VALUES(#{t.id},#{t.tenantId},#{t.applicationId},#{t.environment},#{t.membershipId},#{t.targetGeneration},#{t.originalBasisHash},#{t.responsibleMembershipId},#{t.responsibleGeneration},#{t.state},#{t.version},#{t.reason},#{t.createdBy},#{t.creatorGeneration},#{t.commandId},#{t.itemCount})</insert>
+ <insert id="insertEntry">INSERT INTO auth_governance.access_review_item(id,task_id,tenant_id,application_id,environment,grant_id,original_version,original_json,original_hash,state,version,reason,revoke_command,confirmed_operation_id) VALUES(#{e.id},#{e.taskId},#{e.tenantId},#{e.applicationId},#{e.environment},#{e.grantId},#{e.originalVersion},#{e.originalJson}::jsonb,#{e.originalHash},#{e.state},#{e.version},#{e.reason},#{e.revokeCommand},#{e.confirmedOperationId})</insert>
+ <update id="decide">UPDATE auth_governance.access_review_item SET state=#{state},version=version+1,reason=#{reason},confirmed_operation_id=#{operation} WHERE <include refid="partition"/> AND task_id=#{task} AND id=#{id} AND version=#{version}</update>
+ <update id="cancelEntries">UPDATE auth_governance.access_review_item SET state='CANCELLED',version=version+1,reason=#{reason} WHERE <include refid="partition"/> AND task_id=#{id} AND state IN ('PENDING','INVESTIGATE')</update>
+ <update id="refresh">UPDATE auth_governance.access_review_task t SET version=version+1,updated_at=clock_timestamp(),state=CASE WHEN #{cancel} OR t.state='CANCELLED' THEN 'CANCELLED'
+ WHEN NOT EXISTS(SELECT 1 FROM auth_governance.access_review_item i WHERE i.task_id=t.id AND i.state NOT IN ('KEPT','REVOKED')) THEN 'COMPLETED'
+ WHEN EXISTS(SELECT 1 FROM auth_governance.access_review_item i WHERE i.task_id=t.id AND i.state='INVESTIGATE') THEN 'NEEDS_INVESTIGATION' ELSE 'RUNNING' END
+ WHERE t.tenant_id=#{p.tenantId} AND t.application_id=#{p.applicationId} AND t.environment=#{p.environment} AND t.id=#{id} AND t.version=#{version}</update>
+ <update id="reassign">UPDATE auth_governance.access_review_task SET responsible_membership_id=#{member},responsible_generation=#{generation},version=version+1,updated_at=clock_timestamp() WHERE <include refid="partition"/> AND id=#{id} AND version=#{version} AND state&lt;&gt;'COMPLETED'</update>
+ <select id="lockGrant" resultType="string">SELECT id FROM auth_governance.access_grant WHERE <include refid="partition"/> AND id=#{id} FOR UPDATE</select>
+ <insert id="audit">INSERT INTO auth_governance.access_review_audit(id,tenant_id,application_id,environment,task_id,item_id,operator_ref,command_id,operation,previous_state,resulting_state,reason) VALUES(#{id},#{p.tenantId},#{p.applicationId},#{p.environment},#{task},#{item},#{actor},#{command},#{operation},#{before},#{after},#{reason})</insert>
+</mapper>

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 import { personnelImpact } from '../api/governance'
 import { DirectoryAggregate, PersonnelOutcome, PersonnelStatus, type PersonnelAssignment, type PersonnelChange, type PersonnelFacts, type PersonnelGrantSource } from '../governance/personnelImpact'
+import { ReviewCreate } from '../governance/ReviewCreate'
 import { ReceiptState } from '../governance/codes'
 import { Failure } from '../governance/feedback'
 import { GovernanceEmpty, GovernanceModal, PermissionStatus } from '../governance/presentation'
@@ -20,11 +21,13 @@ export default function GovernancePersonnelPage() {
   const { partition, queryKey } = useGovernanceContext()
   const [params, setParams] = useSearchParams(), member = params.get('member') ?? ''
   const changeCursor = params.get('change_cursor') ?? undefined, sourceCursor = params.get('source_cursor') ?? undefined
+  const [reviewSelection, setReviewSelection] = useState<string[]>([])
   const [draft, setDraft] = useState(member), [selectedChange, setSelectedChange] = useState(''), [selectedSource, setSelectedSource] = useState('')
   useEffect(() => { setDraft(member); setSelectedChange(''); setSelectedSource('') }, [member, changeCursor, sourceCursor, partition.tenant_id, partition.application_id, partition.environment])
-  const query = useQuery({ queryKey: [...queryKey, 'personnel-impact', member, changeCursor, sourceCursor], queryFn: ({ signal }) => personnelImpact(partition, member, changeCursor, sourceCursor, signal), enabled: uuid(member), staleTime: 0, gcTime: 0, retry: false })
+  const query = useQuery({ queryKey: [...queryKey, 'personnel-impact', member, changeCursor, sourceCursor], queryFn: ({ signal }) => personnelImpact(partition, member, changeCursor, sourceCursor, signal), enabled: uuid(member), staleTime: 0, gcTime: 0, retry: false, refetchOnWindowFocus: false })
   // 读取失败、切换或重新读取立即隐藏旧人员内容，迟到数据仍由完整查询键隔离。
   const report = !query.error && !query.isFetching ? query.data : undefined
+  useEffect(() => { setReviewSelection([]) }, [report?.basis_hash, member, sourceCursor, partition.tenant_id, partition.application_id, partition.environment])
   const change = report?.changes.find(c => `${c.source_id}/${c.partition_sequence}` === selectedChange)
   const source = report?.sources.find(s => s.grant.grant_id === selectedSource)
   const select = () => { const next = applicationSearch(params, partition.application_id, partition.environment); next.set('member', draft.trim()); setParams(next) }
@@ -56,9 +59,10 @@ export default function GovernancePersonnelPage() {
       </Card>
       <Card title="当前与历史授权来源">
         <Typography.Paragraph>每行保留完整角色、范围和来源；多个来源不能合并成一份访问路径。旧代际个人来源不会随重新加入继承，曾经属于组不表示现在ALLOW。</Typography.Paragraph>
-        <Table<PersonnelGrantSource> rowKey={s => s.grant.grant_id} dataSource={report.sources} pagination={false} scroll={{ x: 900 }} locale={{ emptyText: '当前应用没有该人员的授权来源' }} columns={[
+        <Table<PersonnelGrantSource> rowSelection={{ selectedRowKeys: reviewSelection, onChange: keys => setReviewSelection(keys.map(String)), preserveSelectedRowKeys: false }} rowKey={s => s.grant.grant_id} dataSource={report.sources} pagination={false} scroll={{ x: 900 }} locale={{ emptyText: '当前应用没有该人员的授权来源' }} columns={[
           { title: '固定角色', render: (_, s) => `${s.grant.role_code} · v${s.grant.role_version}` }, { title: '来源类型', dataIndex: ['grant', 'source_type'] }, { title: '当前 / 历史关系', render: (_, s) => s.grant.group_id ? '动态组 · 需核对当前关系' : s.current_generation ? '当前成员代际' : '旧代际 · 仅保留历史' }, { title: '来源状态', render: (_, s) => <PermissionStatus state={s.grant.effective_state} /> }, { title: '操作', render: (_, s) => <Button type="link" onClick={() => setSelectedSource(s.grant.grant_id)}>查看完整来源</Button> },
         ]} />
+        <ReviewCreate report={report} selected={reviewSelection} sourceCursor={sourceCursor} />
         <Space wrap style={{ marginTop: 12 }}>{sourceCursor && <Button onClick={() => nextPage('source_cursor')}>来源首页</Button>}{report.next_source_cursor && <Button onClick={() => nextPage('source_cursor', report.next_source_cursor!)}>下一页来源</Button>}</Space>
       </Card>
     </>}

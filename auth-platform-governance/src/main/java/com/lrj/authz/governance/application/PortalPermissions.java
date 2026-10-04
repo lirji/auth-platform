@@ -90,6 +90,12 @@ public final class PortalPermissions {
         if(!actor.equals(latest)||!before.membershipId().equals(after.membershipId())||before.membershipVersion()!=after.membershipVersion()||before.principalVersion()!=after.principalVersion())throw new GovernanceException(VERSION_CONFLICT);
         record(actor,p,operation,member,Outcome.ALLOWED);return result;
     }
+    /** 复核也使用当前管理与独立诊断资格，不复用一次旧人员报告授权。 */
+    com.lrj.authz.governance.domain.IdentityModels.CurrentContext reviewAuthorize(VerifiedLogin login,Partition p,String target){
+        authorize(login,p,"ACCESS_REVIEW",target);return identity.contextForLogin(login.issuer(),login.subject(),p.tenantId(),null);
+    }
+    /** 宿主受控配置只提供候选范围，实际有效性由数据库逐次核验。 */
+    List<PortalDiagnosticAuthority> reviewAuthorities(Partition p){return authorities.stream().filter(a->a.partition().equals(p)).toList();}
     private String authorize(VerifiedLogin login,Partition p,String operation,String target) {
         AccessValues.partition(p);String actor=identity.principalForLogin(login.issuer(),login.subject()).id();
         try {

@@ -49,6 +49,7 @@ public final class GovernanceRuntime implements AutoCloseable {
     private CapabilityRetirementMapper retirementMapper;
     private CapabilityLifecycleMapper lifecycleMapper;
     private PersonnelImpactMapper personnelImpactMapper;
+    private AccessReviewMapper accessReviewMapper;
     private TransactionTemplate transaction;
 
     private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle,
@@ -140,6 +141,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             runtime.migrationMapper=session.getMapper(MigrationMapper.class);
             runtime.retirementMapper=session.getMapper(CapabilityRetirementMapper.class);runtime.lifecycleMapper=session.getMapper(CapabilityLifecycleMapper.class);
             runtime.personnelImpactMapper=session.getMapper(PersonnelImpactMapper.class);
+            runtime.accessReviewMapper=session.getMapper(AccessReviewMapper.class);
             runtime.inboxMapper=session.getMapper(ApprovalInboxMapper.class);
             runtime.requestMapper=session.getMapper(RequestMapper.class);
             runtime.requests=new com.lrj.authz.governance.application.AccessRequests(session.getMapper(RequestMapper.class),runtime.accessMapper,runtime.catalogMapper,mapper,runtime.identity,transaction,session.getMapper(CapabilityLifecycleMapper.class));
@@ -154,6 +156,11 @@ public final class GovernanceRuntime implements AutoCloseable {
     public com.lrj.authz.governance.application.PortalPermissions portalPermissions(java.util.List<com.lrj.authz.governance.application.PortalDiagnosticAuthority> authorities) {
         return new com.lrj.authz.governance.application.PortalPermissions(identity,access,permissionMapper,authorities,transaction,
                 new com.lrj.authz.governance.application.CatalogImpact(catalogImpactMapper,portalMapper));
+    }
+
+    /** 人工复核默认继承现有开关和独立诊断配置，不产生后台权限写者。 */
+    public com.lrj.authz.governance.application.AccessReviews accessReviews(java.util.List<com.lrj.authz.governance.application.PortalDiagnosticAuthority> authorities){
+        return new com.lrj.authz.governance.application.AccessReviews(portalPermissions(authorities),access,personnelImpact(),accessReviewMapper,roleMigrationMapper,mapper,transaction);
     }
 
     /** 平台运维0600配置可单向退出委派或策略；HTTP不获得此能力。 */
