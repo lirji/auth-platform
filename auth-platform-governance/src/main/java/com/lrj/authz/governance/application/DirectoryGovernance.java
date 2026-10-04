@@ -114,9 +114,14 @@ public final class DirectoryGovernance {
                 && (event.partitionSequence() == snapshot.startSequence() || event.partitionSequence() == snapshot.endSequence())) {
             throw conflict(Reason.SNAPSHOT_CHANGED);
         }
-        String target = source.id(); long targetVersion = event.partitionSequence();
+        String target = source.id(); long targetVersion = event.partitionSequence();ChangeEvidence change=null;
         if (event.aggregateType() == DirectoryAggregateType.EMPLOYEE || event.aggregateType() == DirectoryAggregateType.ORG) {
             Entry previous = directory.entry(source.id(), event.aggregateType().code(), event.aggregateId());
+            // 沿员工处理的主体→成员锁顺序取前值，避免并发手工暂停被误记成目录变更。
+            Membership beforeMember=null;
+            if(previous!=null&&previous.membershipId()!=null){directory.lockHuman(previous.principalId());beforeMember=current.lockMember(previous.principalId(),authority.tenantId());}
+            String before=PersonnelFacts.snapshot(previous,beforeMember);
+            boolean applied=previous==null||event.aggregateVersion()>previous.aggregateVersion();
             if (previous == null || event.aggregateVersion() > previous.aggregateVersion()) {
                 if (event.aggregateType() == DirectoryAggregateType.EMPLOYEE) {
                     Membership member = employee(authority, event, previous, transactionStatus);
@@ -130,8 +135,12 @@ public final class DirectoryGovernance {
                             event.aggregateVersion(), event.payloadHash(), DirectoryJson.payload(event.payload()), null, null, null)));
                 }
             }
+            Entry after=directory.entry(source.id(),event.aggregateType().code(),event.aggregateId());
+            change=new ChangeEvidence(source.id(),event.eventId(),source.tenantId(),event.partitionSequence(),event.aggregateType().code(),event.aggregateId(),event.aggregateVersion(),fingerprint,after.membershipId(),applied?"APPLIED":"OBSOLETE",before,
+                    PersonnelFacts.snapshot(after,after.membershipId()==null?null:identity.membership(after.membershipId())),event.occurredAt());
         } else { control(source, event); }
         one(directory.insertInbox(source.id(), event, fingerprint, event.aggregateType() != DirectoryAggregateType.SNAPSHOT_END));
+        if(change!=null)one(directory.appendChange(change));
         if (event.snapshotId() != null) { completeSnapshot(source, event.snapshotId()); }
         one(identity.appendAudit(id(), "directory/" + source.id(), source.tenantId(), "DIRECTORY_CONSUME", target, targetVersion, event.eventId()));
         return advance(source);

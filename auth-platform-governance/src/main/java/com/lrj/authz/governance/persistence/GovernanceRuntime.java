@@ -48,6 +48,7 @@ public final class GovernanceRuntime implements AutoCloseable {
     private MigrationMapper migrationMapper;
     private CapabilityRetirementMapper retirementMapper;
     private CapabilityLifecycleMapper lifecycleMapper;
+    private PersonnelImpactMapper personnelImpactMapper;
     private TransactionTemplate transaction;
 
     private GovernanceRuntime(HikariDataSource dataSource, IdentityMapper mapper, IdentityGovernance identity, LifecycleGovernance lifecycle,
@@ -138,6 +139,7 @@ public final class GovernanceRuntime implements AutoCloseable {
             runtime.executionMapper=session.getMapper(ExecutionMapper.class);
             runtime.migrationMapper=session.getMapper(MigrationMapper.class);
             runtime.retirementMapper=session.getMapper(CapabilityRetirementMapper.class);runtime.lifecycleMapper=session.getMapper(CapabilityLifecycleMapper.class);
+            runtime.personnelImpactMapper=session.getMapper(PersonnelImpactMapper.class);
             runtime.inboxMapper=session.getMapper(ApprovalInboxMapper.class);
             runtime.requestMapper=session.getMapper(RequestMapper.class);
             runtime.requests=new com.lrj.authz.governance.application.AccessRequests(session.getMapper(RequestMapper.class),runtime.accessMapper,runtime.catalogMapper,mapper,runtime.identity,transaction,session.getMapper(CapabilityLifecycleMapper.class));
@@ -235,6 +237,8 @@ public final class GovernanceRuntime implements AutoCloseable {
 
     /** 独立通知worker不会更改已提交的申请或授权状态。 */
     public com.lrj.authz.governance.application.RequestNotifications requestNotifications() { return new com.lrj.authz.governance.application.RequestNotifications(requestMapper,transaction); }
+    /** 人员核对保持独立诊断外层，不增加人员生命周期写入口。 */
+    public com.lrj.authz.governance.application.PersonnelImpact personnelImpact(){return new com.lrj.authz.governance.application.PersonnelImpact(personnelImpactMapper,permissionMapper,transaction);}
     /** 自助申请仍强制当前成员和显式申请策略。 */
     public com.lrj.authz.governance.application.AccessRequests requests() { return requests; }
 

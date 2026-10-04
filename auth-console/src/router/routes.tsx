@@ -20,6 +20,7 @@ import GovernanceAccessPage from '../pages/GovernanceAccessPage'
 import GovernanceRequestsPage from '../pages/GovernanceRequestsPage'
 import GovernanceInvitationsPage from '../pages/GovernanceInvitationsPage'
 import GovernancePoliciesPage from '../pages/GovernancePoliciesPage'
+import GovernancePersonnelPage from '../pages/GovernancePersonnelPage'
 import InvitationAcceptPage from '../pages/InvitationAcceptPage'
 import GovernancePermissionsPage, { GovernanceAuditPage, GovernanceGrantDiagnostic } from '../pages/GovernancePermissionsPage'
 
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
     { path: 'permissions', element: <GovernancePermissionsPage /> },
     { path: 'diagnostic', element: <GovernanceGrantDiagnostic /> },
     { path: 'audit', element: <GovernanceAuditPage /> },
+    { path: 'personnel', element: <GovernancePersonnelPage /> },
   ] },
   {
     path: '/',

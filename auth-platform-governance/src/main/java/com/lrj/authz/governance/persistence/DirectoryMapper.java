@@ -34,6 +34,8 @@ public interface DirectoryMapper {
     String employeeForMember(@Param("source") String source, @Param("member") String member);
     /** 更新完整最小事实，直接关系 JSON 与主体映射同事务。 */
     int saveEntry(Entry entry);
+    /** Inbox之后追加，与目录、身份、投影及检查点同事务，重放不会再调用。 */
+    int appendChange(ChangeEvidence evidence);
     /** 员工状态 CAS；重新加入才增加代际，手工暂停不能被修改。 */
     int changeEmployee(@Param("member") String member, @Param("tenant") String tenant, @Param("version") long version,
                        @Param("before") String before, @Param("after") String after, @Param("rejoin") boolean rejoin);

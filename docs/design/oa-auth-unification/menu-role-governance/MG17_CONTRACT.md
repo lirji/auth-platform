@@ -40,6 +40,8 @@ GET `/api/governance/v1/access/personnel-impact`：固定tenant_id／application
 
 独立真实PG验证同事件重放、旧版本、冲突隔离、事务回滚、真实前后任职、手工暂停保护、LEFT重新加入新代际、历史缺失、分页及依据冲突、跨分区及诊断失权、所有新增表／字段中文注释。真实图验证调岗退组、离职／主体停用后旧身份访问拒绝、新代际不继承个人旧源、DIRECT／OA／GROUP多来源和真实撤权证明的区别。外部OA契约夹具与真实OA引擎分开注明；原业务Grant写入0，不部署生产。
 
-## 当前门禁
+## 冻结时门禁（历史记录）
 
 本文件冻结已确认方案，MG17产品尚未实施或验收。MG16环境已恢复，当前必要数据库、图、HTTP和页面验证PASS；保持串行，完成其Git交付后进入本契约实施。冻结契约不等于MG17 DONE或MG18依赖满足。
+
+当前产品与必要验证见[MG17_TEST_RESULT](MG17_TEST_RESULT.md)，Git和后续切片状态见[PROGRESS_STATE](PROGRESS_STATE.md)。以上冻结时门禁仅为历史，不改变业务契约。

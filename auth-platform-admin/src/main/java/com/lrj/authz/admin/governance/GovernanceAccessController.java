@@ -20,9 +20,15 @@ import java.io.IOException;
 @ConditionalOnProperty(name={"authz.governance.enabled","authz.governance.access.enabled"},havingValue="true")
 @RequestMapping("/api/governance/v1")
 public class GovernanceAccessController {
-    private final CapabilityRetirement retirement;private final AccessManagement access;private final ApplicationCatalog catalog;private final PortalPermissions diagnostics;private final java.util.List<com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration> deployments;
+    private final PersonnelImpact personnel;private final CapabilityRetirement retirement;private final AccessManagement access;private final ApplicationCatalog catalog;private final PortalPermissions diagnostics;private final java.util.List<com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration> deployments;
     /** 独立开关默认关闭，不改变旧管理工作区。 */
-    public GovernanceAccessController(GovernanceRuntime runtime,GovernanceAdminConfiguration.Settings settings){retirement=runtime.retirement(settings.retirementProof());access=runtime.access();catalog=runtime.catalog();diagnostics=runtime.portalPermissions(settings.portalDiagnostics());deployments=settings.catalogDeployments();}
+    public GovernanceAccessController(GovernanceRuntime runtime,GovernanceAdminConfiguration.Settings settings){personnel=runtime.personnelImpact();retirement=runtime.retirement(settings.retirementProof());access=runtime.access();catalog=runtime.catalog();diagnostics=runtime.portalPermissions(settings.portalDiagnostics());deployments=settings.catalogDeployments();}
+    /** 固定目标核对全部当前和历史来源，不把Owner或页面输入当人员诊断凭据。 */
+    @GetMapping("/access/personnel-impact") public ResponseEntity<JsonNode> personnelImpact(@AuthenticationPrincipal VerifiedLogin login,
+            @RequestParam("tenant_id") String tenant,@RequestParam("application_id") String app,@RequestParam String environment,@RequestParam("membership_id") String member,
+            @RequestParam(value="change_cursor",required=false) String changeCursor,@RequestParam(value="source_cursor",required=false) String sourceCursor){
+        return ResponseEntity.ok().header("Cache-Control","no-store").body(GovernanceWeb.body(diagnostics.personnelImpact(login,new Partition(tenant,app,environment),member,changeCursor,sourceCursor,personnel)));
+    }
     /** 独立Owner目录入口在最后管理委派退出后仍可用，不返回人员明细。 */
     @GetMapping("/catalog/owner-view") public ResponseEntity<JsonNode> ownerCatalog(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("application_id") String app) {
         return ResponseEntity.ok().header("Cache-Control","no-store").body(GovernanceWeb.body(retirement.ownerCatalog(login,app)));

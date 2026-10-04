@@ -54,6 +54,10 @@
             membership_id = EXCLUDED.membership_id, login_subject = EXCLUDED.login_subject, updated_at = clock_timestamp()
         WHERE auth_governance.directory_entry.aggregate_version &lt; EXCLUDED.aggregate_version
     </insert>
+    <insert id="appendChange">
+        INSERT INTO auth_governance.directory_change_evidence(source_id,event_id,tenant_id,partition_sequence,aggregate_type,aggregate_id,aggregate_version,event_fingerprint,membership_id,outcome,before_json,after_json,occurred_at)
+        VALUES(#{sourceId},#{eventId},#{tenantId},#{partitionSequence},#{aggregateType},#{aggregateId},#{aggregateVersion},#{eventFingerprint},#{membershipId},#{outcome},CAST(#{beforeJson} AS jsonb),CAST(#{afterJson} AS jsonb),CAST(#{occurredAt} AS timestamptz))
+    </insert>
     <update id="changeEmployee">
         UPDATE auth_governance.membership SET status = #{after}, version = version + 1,
             generation = generation + CASE WHEN #{rejoin} THEN 1 ELSE 0 END,

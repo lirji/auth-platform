@@ -9,6 +9,9 @@ public final class DirectoryModels {
     /** 当前目录事实；payloadJson 是协议定义的有界投影，不是随意扩展的业务 Map。 */
     public record Entry(String sourceId, String tenantId, String aggregateType, String aggregateId, long aggregateVersion,
                         String payloadHash, String payloadJson, String principalId, String membershipId, String loginSubject) {}
+    /** 接受后不可变证据只带必要前后内容；不重复保存登录绑定。 */
+    public record ChangeEvidence(String sourceId,String eventId,String tenantId,long partitionSequence,String aggregateType,
+            String aggregateId,long aggregateVersion,String eventFingerprint,String membershipId,String outcome,String beforeJson,String afterJson,String occurredAt) {}
     /** 最小回执用于去重和连续推进，不重新应用历史业务事实。 */
     public record Inbox(String eventId, long partitionSequence, String fingerprint, String snapshotId, boolean processed) {}
     /** 持久化封存声明必须与 BEGIN/END 和实际内容全部吻合。 */

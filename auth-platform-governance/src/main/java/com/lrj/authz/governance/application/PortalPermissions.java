@@ -80,6 +80,16 @@ public final class PortalPermissions {
         if(!actor.equals(latest))throw new GovernanceException(VERSION_CONFLICT);
         record(actor,p,operation,capability,Outcome.ALLOWED);return result;
     }
+    /** 人员核对需当前管理及独立诊断资格，前后身份版本改变不能返回旧人员内容。 */
+    public com.lrj.authz.protocol.PersonnelImpactDtos.Report personnelImpact(VerifiedLogin login,Partition p,String member,String changeCursor,String sourceCursor,PersonnelImpact impact){
+        BootstrapCommand.uuid(member);String operation="READ_PERSONNEL_IMPACT",actor=authorize(login,p,operation,member);
+        var before=identity.contextForLogin(login.issuer(),login.subject(),p.tenantId(),null);
+        com.lrj.authz.protocol.PersonnelImpactDtos.Report result;
+        try{result=impact.analyze(p,member,changeCursor,sourceCursor);}catch(GovernanceException failure){if(failure.code()==ACCESS_DENIED)record(actor,p,operation,member,Outcome.DENIED);throw failure;}
+        String latest=authorize(login,p,operation,member);var after=identity.contextForLogin(login.issuer(),login.subject(),p.tenantId(),before.membershipGeneration());
+        if(!actor.equals(latest)||!before.membershipId().equals(after.membershipId())||before.membershipVersion()!=after.membershipVersion()||before.principalVersion()!=after.principalVersion())throw new GovernanceException(VERSION_CONFLICT);
+        record(actor,p,operation,member,Outcome.ALLOWED);return result;
+    }
     private String authorize(VerifiedLogin login,Partition p,String operation,String target) {
         AccessValues.partition(p);String actor=identity.principalForLogin(login.issuer(),login.subject()).id();
         try {
@@ -92,7 +102,7 @@ public final class PortalPermissions {
         auditTransaction.executeWithoutResult(status -> {if(mapper.record(UUID.randomUUID().toString(),p,actor,operation,target,outcome.code())!=1)throw new GovernanceException(DEPENDENCY_UNAVAILABLE);});
     }
     private static String cursor(String after) {if(after==null||after.isEmpty())return "";BootstrapCommand.uuid(after);return after;}
-    private static Explanation view(PermissionMapper.Row r) {
+    static Explanation view(PermissionMapper.Row r) {
         return new Explanation(r.grantId(),r.memberId(),r.generation(),r.groupId(),r.roleId(),r.roleCode(),r.roleVersion(),AccessValues.read(r.capabilitiesJson()),r.scope(),
                 r.ruleJson()==null?null:ScopeRules.decode(r.ruleJson()),r.sourceType(),r.sourceId(),r.validFrom(),r.validTo(),r.grantState(),r.effectiveState(),r.grantVersion(),r.operationId(),r.policyState(),r.directoryState());
     }

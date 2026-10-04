@@ -1,4 +1,6 @@
-# MG17 人员变更治理影响分析（DRAFT）
+# MG17 人员变更治理影响分析（历史DRAFT）
+
+本文件为冻结前只读草稿，已被[MG17_CONTRACT](MG17_CONTRACT.md)替代；当前状态以[PROGRESS_STATE](PROGRESS_STATE.md)为准。下方TODO／待业务选择为历史记录。
 
 2026-10-03。只读核对现有目录、生命周期和来源解释链路；D-HR 岗位治理选择及 MG14 依赖尚未完成。本文件不冻结岗位授权规则，不新增人员写入口，MG17 仍为 TODO。
 

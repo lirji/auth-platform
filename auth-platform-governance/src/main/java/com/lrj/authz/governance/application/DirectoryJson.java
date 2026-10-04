@@ -29,6 +29,11 @@ public final class DirectoryJson {
     }
     /** 持久化字段是经过协议构造校验的最小事实，未引入 OA 私有实体。 */
     public static String payload(DirectoryEvents.Payload payload) { return encode(payload); }
+    /** 读取已校验持久投影形成真实前值，损坏时拒绝而不伪造历史。 */
+    public static DirectoryEvents.Payload readPayload(String value) {
+        try { return JSON.readValue(value,DirectoryEvents.Payload.class); }
+        catch(IOException | IllegalArgumentException corrupt) { throw invalid(); }
+    }
     /** 源端协议事件可使用相同字段命名，原文不作为日志内容。 */
     public static String event(DirectoryEvents.Event event) { return encode(event); }
     private static String encode(Object value) {

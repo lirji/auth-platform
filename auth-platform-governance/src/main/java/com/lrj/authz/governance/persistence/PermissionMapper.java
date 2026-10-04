@@ -8,6 +8,8 @@ import java.util.List;
 public interface PermissionMapper {
     /** 历史授权仍可解释，但生效状态不由历史ACTIVE直接推出。 */
     List<Row> mine(@Param("p") Partition p,@Param("member") String member,@Param("generation") long generation,@Param("after") String after);
+    /** 人员核对保留全部个人代际和历史组关系，由独立诊断资格入口调用。 */
+    List<Row> memberHistory(@Param("p") Partition p,@Param("member") String member,@Param("after") String after);
     /** 管理诊断按ID和分区共同定位，不查询全局Grant。 */
     Row explanation(@Param("p") Partition p,@Param("id") String id);
     /** 相关原始事件和诊断事件合并后有界分页，无其他应用的全局目录。 */

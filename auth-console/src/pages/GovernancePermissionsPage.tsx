@@ -37,7 +37,7 @@ export default function GovernancePermissionsPage() {
 }
 
 /** 仅呈现服务端当前固定事实，组受益人不虚构为单一成员。 */
-function PermissionDetails({ value: g }: { value: PermissionExplanation }) {
+export function PermissionDetails({ value: g }: { value: PermissionExplanation }) {
   return <div className="g-permission-details">
     <div className="g-detail-heading"><span className="g-detail-eyebrow">授权来源</span><h2>{g.role_code} <small>v{g.role_version}</small></h2><PermissionStatus state={g.effective_state} explanation={labels[g.effective_state]} /></div>
     {['ACTIVE', 'GROUP_CHECK_REQUIRED'].includes(g.effective_state) && <Alert type="info" showIcon message={labels[g.effective_state]} />}
@@ -72,6 +72,7 @@ export function GovernanceGrantDiagnostic() {
   return <Card title="授权诊断与来源回收" loading={detail.isPending} extra={<Button onClick={refresh}>刷新解释与回执</Button>}>
     <div className="g-directory-links"><Link to={`/governance/grants?${applicationSearch(params, partition.application_id, partition.environment)}`}>返回成员授权</Link><Link to={`/governance/audit?${applicationSearch(params, partition.application_id, partition.environment)}`}>查看授权审计</Link></div>
     {detail.data && <>
+      {detail.data.member_id && <Link to={`/governance/personnel?${applicationSearch(params, partition.application_id, partition.environment)}&member=${encodeURIComponent(detail.data.member_id)}`}>核对该人员的变更与全部来源</Link>}
       <PermissionDetails value={detail.data} />
       {!!command.error && <Failure error={command.error} />}{receipt.error && <Failure error={receipt.error} retry={() => void receipt.refetch()} />}
       {status && <Alert style={{ marginTop: 16 }} showIcon type={status.status === ReceiptState.COMPLETED ? 'success' : 'warning'} message={status.status === ReceiptState.COMPLETED ? '本来源回收已完成' : status.status === ReceiptState.BLOCKED ? '回收投影遇到故障，请保留命令并联系运维恢复' : '回收已受理，等待实际投影回执'} description={`其他合法来源继续保留。回执：${status.operation_id ?? '尚未生成'}`} />}

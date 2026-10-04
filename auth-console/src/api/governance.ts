@@ -2,6 +2,7 @@ import { LifecycleState, RetirementProofState } from '../governance/codes.ts'
 import { validateRetirementReport, validateRetirementReferences, validateRetirementReceipt } from '../governance/capabilityRetirement'
 import { apiClient } from './client'
 import { validatePublishedCatalog } from '../governance/publishedCatalog'
+import { validatePersonnelReport } from '../governance/personnelImpact'
 
 export interface Partition { tenant_id: string; application_id: string; environment: string }
 export interface AccessMenu { code: string; parent: string | null; href: string | null; label?: string | null }
@@ -210,6 +211,8 @@ export const grantExplanation = async (p: Partition, grant: string): Promise<Per
 export const accessAudit = async (p: Partition, after?: string): Promise<Page<AccessAudit>> => (await apiClient.get('/api/governance/v1/access/audit', { params: { ...p, after } })).data
 export const revokeGrant = async (command: RevokeGrant): Promise<RevocationReceipt> => (await apiClient.post('/api/governance/v1/access/strict-revoke', command)).data
 export const revocationReceipt = async (p: Partition, grant: string): Promise<RevocationReceipt> => (await apiClient.get('/api/governance/v1/access/revocation-receipt', { params: { ...p, grant_id: grant } })).data
+
+export const personnelImpact = async (p: Partition, member: string, changeCursor?: string, sourceCursor?: string, signal?: AbortSignal): Promise<import('../governance/personnelImpact').PersonnelReport> => validatePersonnelReport((await apiClient.get('/api/governance/v1/access/personnel-impact', { params: { ...p, membership_id: member, change_cursor: changeCursor, source_cursor: sourceCursor }, signal })).data, member)
 
 export interface RetirementCount { kind: string; blocking: number; historical: number }
 export interface RetirementReport { application_id: string; capability: string; lifecycle_state: CapabilityLifecycleState; lifecycle_version: number;
