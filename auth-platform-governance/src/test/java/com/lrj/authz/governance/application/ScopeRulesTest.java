@@ -62,4 +62,54 @@ class ScopeRulesTest {
         }
         assertThatThrownBy(() -> ScopeRules.validated(new Rule(1, "unknown_type", member.clauses()))).hasMessage("SCOPE_UNSUPPORTED");
     }
+    /** 宽读与窄写必须保持不同Grant；同名仓在另一企业也不能进入该授权路径。 */
+    @Test void warehouseReadCannotExpandAdjustmentFromAnotherGrant() {
+        var read = warehouseRule("WH-A", "WH-B");
+        var apply = warehouseRule("WH-A");
+        var candidates = List.of(
+                new ScopeRules.Candidate("read", List.of("wms.stock.read"), read),
+                new ScopeRules.Candidate("apply", List.of("wms.adjustment.apply"), apply));
+        var paths = ScopeRules.select("wms.adjustment.apply", "wms_warehouse", candidates, Set.of("read", "apply"));
+        assertThat(paths).extracting(Alternative::grantId).containsExactly("apply");
+        assertThat(ScopeRules.matches("T1", "U1", paths, warehouseFacts("T1", "WH-A"))).isTrue();
+        assertThat(ScopeRules.matches("T1", "U1", paths, warehouseFacts("T1", "WH-B"))).isFalse();
+        assertThat(ScopeRules.matches("T1", "U1", paths, warehouseFacts("T2", "WH-A"))).isFalse();
+        assertThat(ScopeRules.select("wms.adjustment.apply", "wms_warehouse", candidates, Set.of("read"))).isEmpty();
+    }
+    /** 不提供全仓通配或空集合退化；重复仓和过大集合沿用现有契约拒绝。 */
+    @Test void warehouseRulesRejectImplicitAllWarehousesAndMalformedSets() {
+        for (Kind kind : List.of(Kind.TENANT_ALL, Kind.SPECIFIED_STORES, Kind.DEPARTMENT)) {
+            var values = kind == Kind.TENANT_ALL ? List.<String>of() : List.of("WH-A");
+            assertThatThrownBy(() -> ScopeRules.validated(new Rule(1, "wms_warehouse",
+                    List.of(new Clause(kind, values, false))))).hasMessage("SCOPE_UNSUPPORTED");
+        }
+        assertThatThrownBy(() -> ScopeRules.validated(warehouseRule())).hasMessage("INVALID_ARGUMENT");
+        assertThatThrownBy(() -> ScopeRules.validated(warehouseRule("WH-A", "WH-A"))).hasMessage("INVALID_ARGUMENT");
+        assertThatThrownBy(() -> ScopeRules.validated(warehouseRule(
+                java.util.stream.IntStream.range(0,101).mapToObj(i -> "WH-" + i).toArray(String[]::new))))
+                .hasMessage("INVALID_ARGUMENT");
+        assertThat(ScopeRules.decode(ScopeRules.encode(warehouseRule("WH-B", "WH-A"))).clauses().getFirst().values())
+                .containsExactly("WH-A", "WH-B");
+    }
+    /** 完整Grant路径可以并集，但企业共享资源的授权不能套到仓库上。 */
+    @Test void warehousePathsUnionOnlyForTheSameCapabilityAndResourceType() {
+        var candidates = List.of(
+                new ScopeRules.Candidate("a", List.of("wms.stock.read"), warehouseRule("WH-A")),
+                new ScopeRules.Candidate("b", List.of("wms.stock.read"), warehouseRule("WH-B")),
+                new ScopeRules.Candidate("enterprise", List.of("wms.stock.read"),
+                        new Rule(1, "wms_enterprise", List.of(new Clause(Kind.TENANT_ALL, List.of(), false)))));
+        var paths = ScopeRules.select("wms.stock.read", "wms_warehouse", candidates, Set.of("a", "b", "enterprise"));
+        assertThat(paths).extracting(Alternative::grantId).containsExactly("a", "b");
+        assertThat(ScopeRules.matches("T1", "U1", paths, warehouseFacts("T1", "WH-A"))).isTrue();
+        assertThat(ScopeRules.matches("T1", "U1", paths, warehouseFacts("T1", "WH-B"))).isTrue();
+        assertThat(ScopeRules.matches("T1", "U1", paths, warehouseFacts("T1", "WH-C"))).isFalse();
+        assertThat(ScopeRules.matches("T1", "U1", paths,
+                new Facts("T1", "wms_warehouse", "WH-A", 1, null, null, List.of(), "WH-A", null))).isFalse();
+    }
+    private Rule warehouseRule(String... warehouses) {
+        return new Rule(1, "wms_warehouse", List.of(new Clause(Kind.SPECIFIED_RESOURCES, List.of(warehouses), false)));
+    }
+    private Facts warehouseFacts(String tenant, String warehouse) {
+        return new Facts(tenant, "wms_warehouse", warehouse, 1, null, null, List.of(), null, null);
+    }
 }

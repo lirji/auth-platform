@@ -127,6 +127,32 @@ class CentralAccessClientTest {
         assertThat(client.scopePlan("user-token",request).alternatives()).isEmpty();assertThatThrownBy(()->client.requireScope("user-token",request)).isInstanceOf(AccessDeniedException.class);
         data.put("decision","ALLOW");response.set(data.toString());assertThatThrownBy(()->client.scopePlan("user-token",request)).isInstanceOf(CentralAccessException.class);
     }
+    /** 真实HTTP边界只接受精确仓资源；旧门店/全企业响应不能被消费方解释为全仓。 */
+    @Test void wmsWarehousePlanRejectsStoreAndTenantAllAndRechecksEveryRequest() throws Exception {
+        var wmsClient = new CentralAccessClient("http://127.0.0.1:" + server.getAddress().getPort(),
+                "s".repeat(48), "wms", "test", Duration.ofSeconds(1), Duration.ofSeconds(1));
+        var check = new Check(tenant, 1L, UUID.randomUUID().toString(), "wms.stock.read", "wms_warehouse");
+        var context = new AccessContext(UUID.randomUUID().toString(), UUID.randomUUID().toString(), 1, 1, 1,
+                tenant, "wms", "test", "wms-test", "HUMAN", UUID.randomUUID().toString());
+        var allowed = new Plan("1", check.requestId(), check.capability(), check.resourceType(), "ALLOW",
+                UUID.randomUUID().toString(), context, UUID.randomUUID().toString(), 1, UUID.randomUUID().toString(),
+                1, 1, 1, Instant.now().plusSeconds(25).toString(), List.of(new Alternative(UUID.randomUUID().toString(),
+                1, List.of(new Clause(Kind.SPECIFIED_RESOURCES, List.of("WH-A"), false)))));
+        response.set(json.writeValueAsString(allowed));
+        assertThat(wmsClient.requireScope("same-user-token", check).alternatives().getFirst().clauses().getFirst().values())
+                .containsExactly("WH-A");
+        var tree = (com.fasterxml.jackson.databind.node.ObjectNode) json.valueToTree(allowed);
+        var clause = (com.fasterxml.jackson.databind.node.ObjectNode) tree.get("alternatives").get(0).get("clauses").get(0);
+        clause.put("kind", "SPECIFIED_STORES"); response.set(tree.toString());
+        assertThatThrownBy(() -> wmsClient.requireScope("same-user-token", check)).isInstanceOf(CentralAccessException.class);
+        clause.put("kind", "TENANT_ALL"); clause.putArray("values"); response.set(tree.toString());
+        assertThatThrownBy(() -> wmsClient.requireScope("same-user-token", check)).isInstanceOf(CentralAccessException.class);
+        // 同一个旧令牌的下一次请求仍读当前结果，不能复用前一次ALLOW。
+        tree.put("decision", "DENY"); tree.putArray("alternatives"); response.set(tree.toString());
+        assertThatThrownBy(() -> wmsClient.requireScope("same-user-token", check)).isInstanceOf(AccessDeniedException.class);
+        status.set(503);
+        assertThatThrownBy(() -> wmsClient.requireScope("same-user-token", check)).isInstanceOf(CentralAccessException.class);
+    }
     @Test void scopeFingerprintIgnoresRequestNonceButBindsPolicyAndPrincipal()throws Exception{
         var before=plan();var node=(com.fasterxml.jackson.databind.node.ObjectNode)json.valueToTree(before);
         node.put("decision_id",UUID.randomUUID().toString());node.put("request_id",UUID.randomUUID().toString());

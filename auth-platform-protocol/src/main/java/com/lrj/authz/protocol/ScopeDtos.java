@@ -40,6 +40,10 @@ public final class ScopeDtos {
     public static final String OPS_PAGE_RESOURCE_TYPE = "ops_page";
     public static final String COMMERCE_TENANT_RESOURCE_TYPE = "commerce_tenant";
     public static final String COMMERCE_RUNTIME_RESOURCE_TYPE = "commerce_runtime";
+    /** 仓库是WMS自己的资源，不复用电商门店归属字段。 */
+    public static final String WMS_WAREHOUSE_RESOURCE_TYPE = "wms_warehouse";
+    /** 全企业共享资源与仓级作业分开授权，不能借全企业读取扩大仓级写权限。 */
+    public static final String WMS_ENTERPRISE_RESOURCE_TYPE = "wms_enterprise";
     /** 范围响应大小有界，超出不能截断后放行。 */
     public static final int MAX_PLAN_BYTES = 262144;
 

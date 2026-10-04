@@ -6,6 +6,8 @@
 
 OA、Auth 与业务项目的统一权限改造见[整体计划与当前入口](docs/design/oa-auth-unification/README.md)。菜单／角色／授权治理MG00–MG19已实现并完成必要隔离验证，涵盖实际菜单、差异与影响、受控发布、历史／漂移、角色来源迁移、能力退役、人员核对和人工复核；Git／CI以[治理状态](docs/design/oa-auth-unification/menu-role-governance/PROGRESS_STATE.md)为准。页面入口、认证／图故障和四类回退见[运行手册](docs/design/oa-auth-unification/menu-role-governance/OPERATIONS_RUNBOOK.md)。后续获授权的[本机 Docker 部署](docs/deployment/menu-role-governance-docker-20261003.md)已将5273更新至rev-fd6bf5911981，三应用healthy；生产部署、真实OA联调及生产运行核验仍待接入。P1身份基础与配置仍见[治理模块](auth-platform-governance/README.md)，其中P1阶段记录不代表共享实例的当前运行版本。
 
+WMS 的下一批集中权限接入见[任务与切片](docs/design/wms-auth-integration/IMPLEMENTATION_SLICES.md)和[当前状态](docs/design/wms-auth-integration/PROGRESS_STATE.md)。精确仓库资源与真实源目录先行，组织/企业映射需明确后才导入成员和切换业务鉴权。
+
 ## 架构一览
 
 ```

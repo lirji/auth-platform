@@ -10,18 +10,22 @@ public final class ScopeResourceBindings {
             ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE, ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE, ScopeDtos.COMMERCE_RUNTIME_RESOURCE_TYPE, ScopeDtos.COMMERCE_TENANT_RESOURCE_TYPE,
             ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE, ScopeDtos.MARKETING_RULE_RESOURCE_TYPE, ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE, ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE, ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE, ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE,
             ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE, ScopeDtos.ENTITLEMENT_RESOURCE_TYPE, ScopeDtos.POINT_OFFER_RESOURCE_TYPE, ScopeDtos.JOURNEY_RESOURCE_TYPE, ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE,
-            ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE, ScopeDtos.OPS_PAGE_RESOURCE_TYPE, ScopeDtos.MARKETING_REPORT_RESOURCE_TYPE);
+            ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE, ScopeDtos.OPS_PAGE_RESOURCE_TYPE, ScopeDtos.MARKETING_REPORT_RESOURCE_TYPE,
+            ScopeDtos.WMS_ENTERPRISE_RESOURCE_TYPE);
 
     private ScopeResourceBindings() {}
 
     /** 未绑定类型失败关闭；服务端还必须显式登记调用应用为该类型Owner。 */
     public static boolean supports(String type) {
-        return type != null && (storeBound(type) || ScopeDtos.MERCHANT_RESOURCE_TYPE.equals(type) || TENANT_ONLY.contains(type));
+        return type != null && (storeBound(type) || ScopeDtos.MERCHANT_RESOURCE_TYPE.equals(type)
+                || ScopeDtos.WMS_WAREHOUSE_RESOURCE_TYPE.equals(type) || TENANT_ONLY.contains(type));
     }
 
     /** 同一资源类型在治理校验和SDK响应校验中使用同一范围语义。 */
     public static boolean allows(String type, Kind kind) {
         if (!supports(type) || kind == null) return false;
+        // 精确登记仓库集合，防止旧角色隐式取得将来新增仓库；门店范围不能被解释为仓范围。
+        if (ScopeDtos.WMS_WAREHOUSE_RESOURCE_TYPE.equals(type)) return kind == Kind.SPECIFIED_RESOURCES;
         if (kind == Kind.TENANT_ALL) return true;
         if (kind == Kind.SPECIFIED_RESOURCES) return storeBound(type) || ScopeDtos.MERCHANT_RESOURCE_TYPE.equals(type);
         return kind == Kind.SPECIFIED_STORES && storeBound(type);

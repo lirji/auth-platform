@@ -73,6 +73,40 @@ class ReliableAuthorizationIT {
         assertThat(runtime.reliableProjector(graph).step(f.p,com.lrj.authz.governance.domain.ProjectionModels.Kind.DIRECTORY,id())).isEqualTo(Step.READY);
     }
     private Facts store(Fixture f,String id){return new Facts(f.p.tenantId(),"store",id,1,null,null,List.of(),id,null);}
+    /** 真实PG与授权图验证：仓读写范围不可交叉放大，原上下文在撤权后不能续用。 */
+    @Test void realWarehouseGrantsRemainScopedAndRevocationRejectsTheOriginalContext() {
+        var original=fixture();String app=original.p.applicationId();
+        String read=app+".warehouse.read",apply=app+".warehouse.apply";
+        runtime.catalog().publish(original.login,new Manifest("1",app,2,List.of(
+                new Capability(app+".read","store",Risk.NORMAL),new Capability(app+".refund","store",Risk.HIGH),
+                new Capability(read,"wms_warehouse",Risk.NORMAL),new Capability(apply,"wms_warehouse",Risk.HIGH)),List.of()),id());
+        var owner=runtime.identity().contextForLogin(original.login.issuer(),original.login.subject(),original.p.tenantId(),null);
+        var p=new Partition(original.p.tenantId(),app,"warehouse-test");
+        runtime.access().bootstrap(p,new Delegation(owner.membershipId(),1,AccessValues.json(List.of(read,apply)),3600),"test",id());
+        var reader=runtime.access().createRole(original.login,p,id(),"warehouse-reader",1,List.of(read));
+        var writer=runtime.access().createRole(original.login,p,id(),"warehouse-adjuster",1,List.of(apply));
+        runtime.access().enableStrict(original.login,p,id());
+        var member=new Fixture(p,original.login,original.member,reader);
+        var readRule=new Rule(1,"wms_warehouse",List.of(new Clause(com.lrj.authz.protocol.ScopeDtos.Kind.SPECIFIED_RESOURCES,List.of("WH-A","WH-B"),false)));
+        var writeRule=new Rule(1,"wms_warehouse",List.of(new Clause(com.lrj.authz.protocol.ScopeDtos.Kind.SPECIFIED_RESOURCES,List.of("WH-A"),false)));
+        runtime.access().grantScoped(original.login,p,id(),original.member.membershipId(),1,reader.id(),readRule,id(),Instant.now(),Instant.now().plusSeconds(300));
+        var granted=runtime.access().grantScoped(original.login,p,id(),original.member.membershipId(),1,writer.id(),writeRule,id(),Instant.now(),Instant.now().plusSeconds(300));
+        assertThatThrownBy(()->runtime.access().grantScoped(original.login,p,id(),original.member.membershipId(),1,writer.id(),
+                new Rule(1,"wms_warehouse",List.of(new Clause(com.lrj.authz.protocol.ScopeDtos.Kind.TENANT_ALL,List.of(),false))),
+                id(),Instant.now(),Instant.now().plusSeconds(300))).hasMessage("SCOPE_UNSUPPORTED");
+        project(member);var c=context(member);var auth=second.reliableAuthorization(graph);
+        var a=new Facts(p.tenantId(),"wms_warehouse","WH-A",1,null,null,List.of(),null,null);
+        var b=new Facts(p.tenantId(),"wms_warehouse","WH-B",1,null,null,List.of(),null,null);
+        assertThat(auth.allowed(c,read,b)).isTrue();
+        assertThat(auth.allowed(c,apply,a)).isTrue();
+        assertThat(auth.allowed(c,apply,b)).isFalse();
+        assertThat(auth.allowed(c,read,new Facts(id(),"wms_warehouse","WH-A",1,null,null,List.of(),null,null))).isFalse();
+        runtime.access().revoke(original.login,p,id(),granted.id(),1);
+        assertThatThrownBy(()->auth.allowed(c,apply,a)).hasMessage("AUTHZ_STATE_NOT_READY");
+        project(member);
+        assertThat(auth.allowed(c,apply,a)).isFalse();
+        assertThat(auth.allowed(c,read,b)).isTrue();
+    }
     @Test void realGraphPathsKeepReadAllAndRefundOneStoreSeparate(){
         var f=fixture();grant(f);
         var refund=runtime.access().createRole(f.login,f.p,id(),"refunder",1,List.of(f.p.applicationId()+".refund"));
