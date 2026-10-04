@@ -17,7 +17,7 @@ Auth 管理应用目录、角色、成员授权和当前数据范围；Casdoor �
 
 ## 必要业务输入
 
-Q-ORG：WMS 的 ENT-DEMO 映射到独立 local-wms 组织，还是已有 local-commerce 组织？已向用户提出这两个选项，尚未收到答复。组织映射决定成员准入，不能默认复制电商成员或把已有 WMS 登录账号全部导入为 EMPLOYEE。
+Q-ORG：WMS 的 ENT-DEMO 映射到独立 local-wms 组织，还是已有 local-commerce 组织？用户已答复：单独建立 local-wms，明确绑定 ENT-DEMO。组织映射已确定；只创建本任务明确主体映射，不复制电商成员或把已有 WMS 登录账号全部导入为 EMPLOYEE。
 
 未指定组织不阻塞通用资源协议和目录生成；阻塞成员导入、实际应用绑定、授权写入及运行切换。
 
