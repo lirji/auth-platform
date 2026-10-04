@@ -6,7 +6,7 @@ import { useGovernanceContext } from '../pages/GovernancePage'
 import { useCommand } from './useCommand'
 import { Failure } from './feedback'
 import { ScopeSummary } from './ScopeFields'
-import { MigrationAction, MigrationStage } from './codes'
+import { GrantSourceType, MigrationAction, MigrationStage } from './codes'
 
 export const migrationStages: Record<string, string> = {
   RUNNING: '处理中', COMPLETED: '迁移已核验', FINISHED_WITH_FAILURES: '处理结束，存在失败', CANCELLED: '任务已取消',
@@ -19,13 +19,17 @@ const reasons: Record<string, string> = {
   SELF_GRANT_DENIED: '不能迁移自己的授权', CAPABILITY_UNAVAILABLE: '新版能力未发布或已停用',
   SCOPE_UNSUPPORTED: '目标能力不兼容固定范围', DURATION_EXCEEDS_CEILING: '剩余期限超出管理上限',
   REQUIRES_SEPARATE_AUTHORIZATION: '新增能力须独立授权', STRICT_PARTITION_REQUIRED: '严格分区不可用',
-  UNSUPPORTED_SOURCE: '此来源须单独处理', GRANT_ROLE_MISMATCH: '原角色已变更', GRANT_NOT_ACTIVE: '原授权未生效',
+  UNSUPPORTED_SOURCE: '此来源须单独处理', GROUP_UNAVAILABLE: '组已停用、来源隔离或缺少业务时区', GRANT_ROLE_MISMATCH: '原角色已变更', GRANT_NOT_ACTIVE: '原授权未生效',
   PROJECTION_PROCESSING: '投影仍在处理，可刷新状态后再次推进', PROJECTION_BLOCKED: '投影已阻断，修复依赖后受控重试',
   REVOCATION_PROOF_CHANGED: '原撤权证明变化，需要重新核对', LINEAGE_CONFLICT: '迁移来源已存在，不覆盖原来源',
   NEW_GRANT_CHANGED: '新授权被撤销或变更，任务不会重新创建', TASK_CANCELLED: '已停止后续步骤，已提交效果保留',
 }
 const terminal = new Set<string>([MigrationStage.COMPLETED, MigrationStage.FAILED, MigrationStage.CANCELLED])
 const time = (value: string) => new Date(value).toLocaleString('zh-CN', { hour12: false })
+/** 旧DIRECT响应仍可读；旧节点缺少GROUP元数据时不能伪造第0代个人或继续写入。 */
+const knownSource = (item: MigrationTaskItem) => item.member_id
+  ? item.member_generation > 0 && !item.group_id && (!item.source_type || item.source_type === GrantSourceType.DIRECT)
+  : item.member_generation === 0 && !!item.group_id && item.source_type === GrantSourceType.GROUP
 type Action = { kind: typeof MigrationAction.ADVANCE; body: AdvanceMigrationTask } | { kind: typeof MigrationAction.CANCEL; body: CancelMigrationTask }
   | { kind: typeof MigrationAction.RETRY; command: string; stream: 'POLICY' | 'DIRECTORY' }
 
@@ -55,6 +59,7 @@ export function RoleMigrationTaskPanel({ id, back, onLock }: { id: string; back:
     enabled: !locked, retry: false, staleTime: 0, gcTime: 0,
     refetchInterval: query => !locked && query.state.data?.state === MigrationStage.RUNNING ? 5000 : false })
   const task = !detail.error ? detail.data : undefined
+  const sourcesKnown = task?.items.every(knownSource) ?? false
   // 详情和错误重试会卸载原按钮；把焦点放回稳定操作，保持Esc与模态焦点边界。
   useEffect(() => { refreshControl.current?.focus() }, [])
   useEffect(() => {
@@ -65,7 +70,7 @@ export function RoleMigrationTaskPanel({ id, back, onLock }: { id: string; back:
     }
   }, [detail.error, detail.data, detail.isFetching])
   const run = async () => {
-    if (locked || !task || task.state !== MigrationStage.RUNNING) return
+    if (locked || !task || !sourcesKnown || task.state !== MigrationStage.RUNNING) return
     stop.current = false; setRunning(true); setBatchError(undefined)
     try {
       const current = await migrationTask(partition, id)
@@ -79,7 +84,7 @@ export function RoleMigrationTaskPanel({ id, back, onLock }: { id: string; back:
     finally { setRunning(false) }
   }
   const cancel = () => {
-    if (!task || locked) return
+    if (!task || locked || !sourcesKnown) return
     Modal.confirm({ title: '取消后续迁移步骤？', content: '已经撤销的旧授权不会恢复。已经提交的新授权可能继续生效，若要撤销它，请在授权来源中另行撤权。',
       okText: '停止后续步骤', cancelText: '保留任务', onOk: async () => { await command.send(commandId => ({ kind: MigrationAction.CANCEL, body: { ...partition, command_id: commandId, expected_version: task.version } })) } })
   }
@@ -90,6 +95,7 @@ export function RoleMigrationTaskPanel({ id, back, onLock }: { id: string; back:
     {!!command.error && <Failure error={command.error} />}
     {command.unknown && <Alert type="warning" showIcon message="本次命令结果未知" description="不要创建替代任务或重新授权。使用原命令重试核对；服务器已提交的检查点会保留。" action={<Button loading={command.busy} onClick={() => void command.send(() => { throw new Error('原迁移命令缺失') })}>重试原迁移命令</Button>} />}
     {task && <>
+      {!sourcesKnown && <Alert type="warning" showIcon message="来源信息缺失，当前任务只读" description="连接兼容服务并刷新核对后才能继续。未确认来源不解释为个人授权。" />}
       <Typography.Title level={5}>{task.old_role.role_code} · v{task.old_role.version} → v{task.new_role.version}</Typography.Title>
       <Alert showIcon type={task.failed_count ? 'warning' : task.state === MigrationStage.COMPLETED ? 'success' : 'info'} message={migrationStages[task.state] ?? task.state}
         description={`共 ${task.items.length} 项：已核验 ${task.completed_count}，失败 ${task.failed_count}，取消 ${task.cancelled_count}，待处理 ${task.waiting_count}。每轮每项推进一个阶段，等待真实投影回执期间可短暂无法访问。`} />
@@ -99,9 +105,9 @@ export function RoleMigrationTaskPanel({ id, back, onLock }: { id: string; back:
         { key: 'updated', label: '最近检查点', children: time(task.updated_at) },
       ]} />
       <Space wrap style={{ marginBottom: 12 }}>
-        <Button type="primary" disabled={locked || task.state !== MigrationStage.RUNNING} onClick={() => void run()}>推进本轮</Button>
+        <Button type="primary" disabled={locked || !sourcesKnown || task.state !== MigrationStage.RUNNING} onClick={() => void run()}>推进本轮</Button>
         {running && <Button onClick={() => { stop.current = true }}>停止继续发请求</Button>}
-        <Button danger disabled={locked || task.state !== MigrationStage.RUNNING} onClick={cancel}>取消后续迁移</Button>
+        <Button danger disabled={locked || !sourcesKnown || task.state !== MigrationStage.RUNNING} onClick={cancel}>取消后续迁移</Button>
         {task.items.some(item => item.reason === 'PROJECTION_BLOCKED') && <>
           <Button disabled={locked} onClick={() => void command.send(commandId => ({ kind: MigrationAction.RETRY, command: commandId, stream: 'POLICY' }))}>修复后重试策略投影</Button>
           <Button disabled={locked} onClick={() => void command.send(commandId => ({ kind: MigrationAction.RETRY, command: commandId, stream: 'DIRECTORY' }))}>修复后重试目录投影</Button>
@@ -112,6 +118,7 @@ export function RoleMigrationTaskPanel({ id, back, onLock }: { id: string; back:
         expandable={{ expandedRowRender: item => <Descriptions column={1} size="small" items={[
           { key: 'old', label: '原授权', children: <Typography.Text copyable>{item.old_grant_id}</Typography.Text> },
           { key: 'source', label: '原来源', children: item.original_source_id },
+          { key: 'source-type', label: '来源类型', children: !knownSource(item) ? '来源信息缺失' : item.group_id ? '组授权（当前动态成员资格）' : '直接授权' },
           { key: 'scope', label: '固定范围', children: item.scope_rule ? <div style={{ display: 'grid', gap: 4, overflowWrap: 'anywhere' }}><ScopeSummary rule={item.scope_rule} /></div> : '当前企业全部资源' },
           { key: 'valid', label: '原时间窗', children: `${time(item.valid_from)} 至 ${time(item.valid_to)}（不续期）` },
           { key: 'lineage', label: '新来源谱系', children: <Typography.Text copyable>{item.new_source_id}</Typography.Text> },
@@ -119,7 +126,7 @@ export function RoleMigrationTaskPanel({ id, back, onLock }: { id: string; back:
           { key: 'new', label: '新授权', children: item.new_grant ? <Typography.Text copyable>{item.new_grant.id}</Typography.Text> : '尚未提交' },
           { key: 'new-operation', label: '新授权回执', children: item.new_operation_id ?? '尚未确认真实生效' },
         ]} /> }} columns={[
-          { title: '成员／代际', width: 220, render: (_, item) => <><Typography.Text copyable>{item.member_id}</Typography.Text><div>第 {item.member_generation} 代</div></> },
+          { title: '成员／组', width: 220, render: (_, item) => <><Typography.Text copyable>{item.member_id ?? item.group_id ?? '来源信息缺失'}</Typography.Text><div>{!knownSource(item) ? '当前来源尚未确认' : item.group_id ? '固定组，成员资格动态核对' : `第 ${item.member_generation} 代`}</div></> },
           { title: '迁移阶段', width: 190, render: (_, item) => <Tag color={item.state === MigrationStage.FAILED ? 'error' : item.state === MigrationStage.COMPLETED ? 'success' : undefined}>{migrationStages[item.state] ?? item.state}</Tag> },
           { title: '原截止', width: 180, render: (_, item) => time(item.valid_to) },
           { title: '新授权状态／原因', render: (_, item) => <>{item.new_grant ? ({ PENDING: '新授权待生效', ACTIVE: '新授权生效记录', REVOKED: '新授权已撤销' }[item.new_grant.state]) : '尚未授新'}{item.reason && <div>{reasons[item.reason] ?? `未识别原因：${item.reason}`}</div>}</> },

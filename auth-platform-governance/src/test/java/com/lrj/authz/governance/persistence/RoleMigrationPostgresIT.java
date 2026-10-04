@@ -93,7 +93,7 @@ class RoleMigrationPostgresIT {
         String group=id();jdbc.update("INSERT INTO auth_governance.directory_group(id,source_id,tenant_id,org_ref,active) VALUES(?,?,?,?,true)",group,authority.id(),f.p.tenantId(),id());
         var rule=new Rule(1,"store",List.of(new Clause(Kind.SPECIFIED_STORES,List.of("S1"),false)));
         var g=runtime.access().grantGroup(login(f.owner),f.p,id(),group,f.old.id(),rule,id(),Instant.now().minusSeconds(1),Instant.now().plusSeconds(300));String before=facts(f);
-        var item=report(f,g).items().getFirst();assertThat(item.grant().memberId()).isNull();assertThat(item.grant().groupId()).isEqualTo(group);assertThat(item.scopeRule()).isEqualTo(rule);assertThat(item.reasons()).contains(Exclusion.UNSUPPORTED_SOURCE);assertThat(item.eligible()).isFalse();assertThat(facts(f)).isEqualTo(before);
+        var item=report(f,g).items().getFirst();assertThat(item.grant().memberId()).isNull();assertThat(item.grant().groupId()).isEqualTo(group);assertThat(item.scopeRule()).isEqualTo(rule);assertThat(item.reasons()).doesNotContain(Exclusion.UNSUPPORTED_SOURCE).contains(Exclusion.GRANT_NOT_ACTIVE);assertThat(item.eligible()).isFalse();assertThat(facts(f)).isEqualTo(before);
     }
     @Test void capabilityStopLegacyPartitionFutureAndWrongOldRoleAreExcluded(){
         var f=fixture(false);var g=grant(f,false);assertThat(report(f,g).items().getFirst().reasons()).contains(Exclusion.STRICT_PARTITION_REQUIRED);

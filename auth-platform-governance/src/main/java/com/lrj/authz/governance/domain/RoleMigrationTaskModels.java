@@ -6,6 +6,8 @@ import com.lrj.authz.governance.domain.IdentityModels.DbCode;
 /** 迁移固定计划与可推进检查点分开，终态不会自动恢复旧来源。 */
 public final class RoleMigrationTaskModels {
     private RoleMigrationTaskModels() {}
+    /** 来源类型不随任务推进改变，组授权始终保留动态目录资格。 */
+    public static final String DIRECT_SOURCE="DIRECT", GROUP_SOURCE="GROUP";
     /** 数据库和协议使用显式稳定编码，不使用 ordinal。 */
     public enum Stage implements DbCode {
         READY_TO_REVOKE("READY_TO_REVOKE"), WAIT_REVOKE_CONFIRM("WAIT_REVOKE_CONFIRM"),
@@ -31,7 +33,7 @@ public final class RoleMigrationTaskModels {
             String oldSourceId,String scope,String ruleJson,String scopeHash,Instant validFrom,Instant validTo,
             String originalHash,String newSourceId,String plannedGrantId,String revokeCommand,String grantCommand,
             Stage stage,long version,String reason,String revokeReceiptId,String newGrantId,String newReceiptId,
-            Instant updatedAt) {}
+            Instant updatedAt,String sourceType,String groupId) {}
     /** 只有真实操作回执及双栅栏当前READY才可报告新授权确认。 */
     public record Confirmation(String status,String operationId) {}
 }

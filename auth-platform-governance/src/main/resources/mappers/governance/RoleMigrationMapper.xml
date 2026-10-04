@@ -15,11 +15,14 @@
     AND m.valid_from &lt;=clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to &gt;clock_timestamp()),false) AS member_active,
    m.version AS membership_version,m.valid_from AS member_valid_from,m.valid_to AS member_valid_to,
    EXISTS(SELECT 1 FROM auth_governance.policy_partition pp WHERE pp.tenant_id=g.tenant_id
-    AND pp.application_id=g.application_id AND pp.environment=g.environment) AS strict_partition
+    AND pp.application_id=g.application_id AND pp.environment=g.environment) AS strict_partition,
+   COALESCE(dg.active AND src.environment=g.environment AND NOT src.quarantined AND src.business_zone IS NOT NULL,false) AS group_available
   FROM auth_governance.access_grant g
   LEFT JOIN auth_governance.grant_scope s ON s.grant_id=g.id AND s.tenant_id=g.tenant_id AND s.application_id=g.application_id AND s.environment=g.environment
   LEFT JOIN auth_governance.membership m ON m.id=g.membership_id AND m.tenant_id=g.tenant_id AND m.generation=g.generation
   LEFT JOIN auth_governance.principal u ON u.id=m.principal_id
+  LEFT JOIN auth_governance.directory_group dg ON dg.id=g.group_id AND dg.tenant_id=g.tenant_id
+  LEFT JOIN auth_governance.directory_source src ON src.id=dg.source_id AND src.tenant_id=g.tenant_id
   JOIN auth_governance.tenant t ON t.id=g.tenant_id
   WHERE <include refid="partition"/> AND g.id IN
   <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>

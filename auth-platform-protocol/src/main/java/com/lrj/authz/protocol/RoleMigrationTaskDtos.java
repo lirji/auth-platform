@@ -19,7 +19,7 @@ public final class RoleMigrationTaskDtos {
     public record Item(String id,String oldGrantId,long oldVersion,String memberId,long memberGeneration,
             String originalSourceId,String scope,ScopeDtos.Rule scopeRule,String scopeHash,String validFrom,String validTo,
             String newSourceId,String state,long version,String reason,String revocationOperationId,
-            AccessDtos.GrantView newGrant,String newOperationId,String updatedAt) {}
+            AccessDtos.GrantView newGrant,String newOperationId,String updatedAt,String sourceType,String groupId) {}
     /** 持久任务详情最多50项，统计覆盖原固定集合。 */
     public record Detail(String id,String tenantId,String applicationId,String environment,
             AccessDtos.RoleView oldRole,AccessDtos.RoleView newRole,String state,long version,String commandId,

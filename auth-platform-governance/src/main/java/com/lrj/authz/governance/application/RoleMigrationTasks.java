@@ -17,8 +17,9 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 import static com.lrj.authz.governance.application.GovernanceException.Code.*;
 import static com.lrj.authz.governance.domain.RoleMigrationTaskModels.Stage.*;
+import static com.lrj.authz.governance.domain.RoleMigrationTaskModels.GROUP_SOURCE;
 
-/** 直接来源迁移用例；每请求一个短事务检查点，不持有身份在后台继续授权。 */
+/** 直接与组来源迁移用例；每请求一个短事务检查点，不持有身份在后台继续授权。 */
 public final class RoleMigrationTasks {
     private static final String RUNNING="RUNNING";
     private static final String COMPLETE="COMPLETED";
@@ -59,7 +60,7 @@ public final class RoleMigrationTasks {
                 for(var row:rows){
                     var expected=selected.get(row.id());
                     if(row.version()!=expected.expectedVersion()||!row.validTo().equals(instant(expected.validTo()))||!Objects.equals(row.scopeHash(),expected.scopeHash()))throw error(VERSION_CONFLICT);
-                    if(tasks.lineageExists(p,row.id(),input.newRoleId())||tasks.sourceExists(p,row.membershipId(),row.generation(),source(row.id(),input.newRoleId())))throw error(BINDING_CONFLICT);
+                    if(tasks.lineageExists(p,row.id(),input.newRoleId())||tasks.sourceExists(p,row.membershipId(),row.generation(),row.groupId(),source(row.id(),input.newRoleId())))throw error(BINDING_CONFLICT);
                 }
                 var report=preview.preview(login,new RoleMigrationDtos.PreviewRequest(p.tenantId(),p.applicationId(),p.environment(),input.oldRoleId(),input.newRoleId(),List.copyOf(selected.keySet())));
                 if(report.excludedCount()!=0)throw error(ACCESS_DENIED);
@@ -68,7 +69,7 @@ public final class RoleMigrationTasks {
                 var task=new Task(id,p.tenantId(),p.applicationId(),p.environment(),input.oldRoleId(),input.newRoleId(),RUNNING,1,manager.membershipId(),manager.generation(),input.commandId(),now,now);
                 one(tasks.insertTask(task));
                 for(var row:rows){
-                    one(tasks.insertEntry(new Entry(id(),id,p.tenantId(),p.applicationId(),p.environment(),row.id(),row.version(),input.newRoleId(),row.membershipId(),row.generation(),row.sourceId(),row.scope(),row.ruleJson(),row.scopeHash(),row.validFrom(),row.validTo(),originalHash(row),source(row.id(),input.newRoleId()),id(),id(),id(),READY_TO_REVOKE,1,null,null,null,null,now)));
+                    one(tasks.insertEntry(new Entry(id(),id,p.tenantId(),p.applicationId(),p.environment(),row.id(),row.version(),input.newRoleId(),row.membershipId(),row.generation(),row.sourceId(),row.scope(),row.ruleJson(),row.scopeHash(),row.validFrom(),row.validTo(),originalHash(row),source(row.id(),input.newRoleId()),id(),id(),id(),READY_TO_REVOKE,1,null,null,null,null,now,row.sourceType(),row.groupId())));
                 }
                 audit(manager,p,"CREATE_ROLE_MIGRATION",id,1,input.commandId());return id;
             });
@@ -141,7 +142,7 @@ public final class RoleMigrationTasks {
                 }
                 if(entry.stage()==WAIT_REVOKE_CONFIRM){checkpoint(p,entry,READY_TO_GRANT,null,proof.operationId(),null,null);return;}
                 if(!Objects.equals(entry.revokeReceiptId(),proof.operationId())){checkpoint(p,entry,FAILED,"REVOCATION_PROOF_CHANGED",entry.revokeReceiptId(),null,null);return;}
-                if(tasks.sourceExists(p,entry.memberId(),entry.generation(),entry.newSourceId())){checkpoint(p,entry,FAILED,"LINEAGE_CONFLICT",entry.revokeReceiptId(),null,null);return;}
+                if(tasks.sourceExists(p,entry.memberId(),entry.generation(),entry.groupId(),entry.newSourceId())){checkpoint(p,entry,FAILED,"LINEAGE_CONFLICT",entry.revokeReceiptId(),null,null);return;}
                 var now=snapshots.now();var from=now.isBefore(entry.validFrom())?entry.validFrom():now;
                 if(!from.isBefore(entry.validTo())){checkpoint(p,entry,FAILED,"GRANT_EXPIRED",entry.revokeReceiptId(),null,null);return;}
                 var created=access.grantMigration(login,p,entry,from);
@@ -150,7 +151,9 @@ public final class RoleMigrationTasks {
             case WAIT_NEW_CONFIRM -> {
                 var next=grants.grant(p,entry.newGrantId());
                 if(next==null||next.state()==GrantState.REVOKED||next.version()!=1||!next.roleId().equals(entry.newRoleId())
-                        ||!next.sourceId().equals(entry.newSourceId())||!next.validTo().equals(entry.validTo())){
+                        ||!next.sourceId().equals(entry.newSourceId())||!next.validTo().equals(entry.validTo())
+                        ||!next.sourceType().equals(entry.sourceType())||!Objects.equals(next.groupId(),entry.groupId())
+                        ||!Objects.equals(next.membershipId(),entry.memberId())||next.generation()!=entry.generation()){
                     checkpoint(p,entry,FAILED,"NEW_GRANT_CHANGED",entry.revokeReceiptId(),entry.newGrantId(),null);return;
                 }
                 var proof=tasks.confirmation(p,next.id(),1,false);
@@ -164,7 +167,7 @@ public final class RoleMigrationTasks {
     private Detail detail(Partition p,Task task){
         var entries=tasks.entries(p,task.id());var ids=entries.stream().map(Entry::newGrantId).filter(Objects::nonNull).toList();
         var current=ids.isEmpty()?Map.<String,Snapshot>of():snapshots.selected(p,ids).stream().collect(Collectors.toMap(Snapshot::id,r->r));
-        var items=entries.stream().map(e->new Item(e.id(),e.oldGrantId(),e.oldVersion(),e.memberId(),e.generation(),e.oldSourceId(),e.scope(),e.ruleJson()==null?null:ScopeRules.decode(e.ruleJson()),e.scopeHash(),e.validFrom().toString(),e.validTo().toString(),e.newSourceId(),e.stage().code(),e.version(),e.reason(),e.revokeReceiptId(),e.newGrantId()!=null&&current.containsKey(e.newGrantId())?grantView(current.get(e.newGrantId()).grant()):null,e.newReceiptId(),e.updatedAt().toString())).toList();
+        var items=entries.stream().map(e->new Item(e.id(),e.oldGrantId(),e.oldVersion(),e.memberId(),e.generation(),e.oldSourceId(),e.scope(),e.ruleJson()==null?null:ScopeRules.decode(e.ruleJson()),e.scopeHash(),e.validFrom().toString(),e.validTo().toString(),e.newSourceId(),e.stage().code(),e.version(),e.reason(),e.revokeReceiptId(),e.newGrantId()!=null&&current.containsKey(e.newGrantId())?grantView(current.get(e.newGrantId()).grant()):null,e.newReceiptId(),e.updatedAt().toString(),e.sourceType(),e.groupId())).toList();
         return new Detail(task.id(),p.tenantId(),p.applicationId(),p.environment(),roleView(requireRole(p,task.oldRoleId())),roleView(requireRole(p,task.newRoleId())),task.state(),task.version(),task.commandId(),task.createdAt().toString(),task.updatedAt().toString(),items,entries.stream().filter(e->e.stage()==COMPLETED).count(),entries.stream().filter(e->e.stage()==FAILED).count(),entries.stream().filter(e->e.stage()==CANCELLED).count(),entries.stream().filter(e->!e.stage().terminal()).count());
     }
     private void checkpoint(Partition p,Entry e,Stage stage,String reason,String revoke,String next,String newReceipt){one(tasks.checkpoint(p,e,stage,reason,revoke,next,newReceipt));}
@@ -176,7 +179,11 @@ public final class RoleMigrationTasks {
         if(receipt.completed())return receipt.resultRef();String result=write.get();one(commands.completeCommand(operator,p.tenantId(),operation,command,result));return result;
     }
     private void audit(Delegation actor,Partition p,String operation,String target,long version,String command){one(commands.appendAudit(id(),actor.membershipId(),p.tenantId(),operation,target,version,command));}
-    private static String originalHash(Snapshot row){return AccessValues.hash(row.tenantId(),row.applicationId(),row.environment(),row.membershipId(),row.generation(),row.roleId(),row.scope(),row.sourceType(),row.sourceId(),row.validFrom(),row.validTo(),row.ruleJson(),row.scopeHash());}
+    /** DIRECT旧任务摘要保持不变；GROUP摘要额外固定组ID，不能换组继续执行。 */
+    private static String originalHash(Snapshot row){
+        String original=AccessValues.hash(row.tenantId(),row.applicationId(),row.environment(),row.membershipId(),row.generation(),row.roleId(),row.scope(),row.sourceType(),row.sourceId(),row.validFrom(),row.validTo(),row.ruleJson(),row.scopeHash());
+        return GROUP_SOURCE.equals(row.sourceType())?AccessValues.hash(original,row.groupId()):original;
+    }
     private static String source(String old,String next){return "role-migration:"+old+":"+next;}
     private static Partition partition(String tenant,String app,String env){var p=new Partition(tenant,app,env);AccessValues.partition(p);return p;}
     private static Instant instant(String value){try{if(value==null||!value.endsWith("Z"))throw error(INVALID_ARGUMENT);return Instant.parse(value);}catch(DateTimeException e){throw error(INVALID_ARGUMENT);}}

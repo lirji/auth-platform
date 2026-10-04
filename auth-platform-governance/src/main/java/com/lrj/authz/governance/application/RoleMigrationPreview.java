@@ -13,6 +13,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.TransactionDefinition;
 import static com.lrj.authz.governance.application.GovernanceException.Code.*;
 import static com.lrj.authz.protocol.RoleMigrationDtos.Exclusion.*;
+import static com.lrj.authz.governance.domain.RoleMigrationTaskModels.*;
 
 /** 固定角色版本迁移的有界只读预览；永远不修改Grant、来源或投影。 */
 public final class RoleMigrationPreview {
@@ -20,7 +21,6 @@ public final class RoleMigrationPreview {
     private static final int PAGE_SIZE = 20;
     private static final String CONTINUITY = "REVOKE_CONFIRM_THEN_GRANT";
     private static final String UNKNOWN = "UNKNOWN";
-    private static final String DIRECT = "DIRECT";
     private static final String SCOPED = "SCOPED";
     private final AccessManagement access;
     private final PortalManagement portal;
@@ -72,15 +72,20 @@ public final class RoleMigrationPreview {
             for(var row:current){
                 var reasons=new ArrayList<Exclusion>();
                 if(!row.roleId().equals(old.id()))reasons.add(GRANT_ROLE_MISMATCH);
-                if(!DIRECT.equals(row.sourceType()))reasons.add(UNSUPPORTED_SOURCE);
+                if(!DIRECT_SOURCE.equals(row.sourceType())&&!GROUP_SOURCE.equals(row.sourceType()))reasons.add(UNSUPPORTED_SOURCE);
                 if(row.state()!=GrantState.ACTIVE)reasons.add(GRANT_NOT_ACTIVE);
                 if(now.isBefore(row.validFrom()))reasons.add(GRANT_NOT_CURRENT);
                 if(!now.isBefore(row.validTo()))reasons.add(GRANT_EXPIRED);
-                if(DIRECT.equals(row.sourceType())){
+                if(DIRECT_SOURCE.equals(row.sourceType())){
                     // 最终评估时钟可能跨过成员期限；不能仅使用稍早快照中的布尔资格。
                     if(!row.memberActive()||row.memberValidFrom()==null||now.isBefore(row.memberValidFrom())
                             ||row.memberValidTo()!=null&&!now.isBefore(row.memberValidTo()))reasons.add(Exclusion.MEMBERSHIP_UNAVAILABLE);
                     if(ceiling.membershipId().equals(row.membershipId()))reasons.add(SELF_GRANT_DENIED);
+                }
+                if(GROUP_SOURCE.equals(row.sourceType())){
+                    var groupReason=access.groupMigrationExclusion(p,row.groupId(),ceiling);
+                    if(!row.groupAvailable())groupReason=GROUP_UNAVAILABLE;
+                    if(groupReason!=null)reasons.add(groupReason);
                 }
                 if(!allowed.containsAll(oldCaps)||!allowed.containsAll(newCaps))reasons.add(MANAGEMENT_CEILING);
                 if(newCaps.stream().anyMatch(c->!definitions.containsKey(c)||definitions.get(c).disabled()))reasons.add(CAPABILITY_UNAVAILABLE);

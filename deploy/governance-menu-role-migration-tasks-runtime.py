@@ -36,10 +36,14 @@ def main():
     parser.add_argument('--identity-fixture', type=Path, default=ROOT / '.local/governance/p2/identity/casdoor.json')
     parser.add_argument('--management-config', type=Path, default=ROOT / '.local/governance/casdoor-isolated/management-client.json')
     parser.add_argument('--tokens-file', type=Path)
+    parser.add_argument('--group', action='store_true', help='MG14-A独立组来源验收；不修改既有业务库')
     args = parser.parse_args()
+    global ADMIN_PORT, UI_PORT
+    if args.group:
+        ADMIN_PORT, UI_PORT = 21819, 21820
     h = module('mg13_context', 'governance-context-smoke.py')
     h.ISSUER = args.issuer
-    run = ROOT / '.local/menu-role-governance' / ('mg13-http-' + uuid.uuid4().hex[:12])
+    run = ROOT / '.local/menu-role-governance' / (('mg14a-http-' if args.group else 'mg13-http-') + uuid.uuid4().hex[:12])
     run.mkdir(mode=0o700, parents=True)
     subprocess.run(['python3', 'deploy/governance-test-db.py', '--directory', str(run / 'database')], cwd=ROOT, stdout=subprocess.DEVNULL, check=True, timeout=30)
     database = json.loads(h.read_private(run / 'database/database.json'))['database']
@@ -101,8 +105,13 @@ def main():
     vite = None
     try:
         h.start(jar, ADMIN_PORT, run / 'admin.log', config=run / 'admin.properties', access=True, presentation=True, scope=True)
-        tokens = json.loads(h.read_private(args.tokens_file or args.identity_fixture.parent / 'tokens.json'))
-        token, other = tokens['management']['access_token'], tokens['external']['access_token']
+        if args.group:
+            auth = module('mg14a_auth', 'governance-access-smoke.py')
+            token, other = auth.token(h.ISSUER, fixture, 'management', 'internal'), auth.token(h.ISSUER, fixture, 'management', 'external')
+            h.private(run / 'tokens.json', json.dumps({'management': {'access_token': token}, 'external': {'access_token': other}}))
+        else:
+            tokens = json.loads(h.read_private(args.tokens_file or args.identity_fixture.parent / 'tokens.json'))
+            token, other = tokens['management']['access_token'], tokens['external']['access_token']
         for key, expected in ((token, user['id']), (other, fixture['users']['external']['id'])):
             claims = json.loads(base64.urlsafe_b64decode(key.split('.')[1] + '==='))
             if claims.get('iss') != h.ISSUER or claims.get('sub') != expected or claims.get('exp', 0) <= time.time() + 240:
@@ -131,10 +140,21 @@ def main():
 
         request('strict isolated partition', '/enable-strict', {**partition, 'command_id': uid()}, 202)
         roles = [request('fixed role version ' + str(i + 1), '/roles', {**partition, 'command_id': uid(), 'role_code': 'reader', 'role_version': i + 1, 'capabilities': selected}) for i, selected in enumerate((caps[:2], caps[:1], [caps[0], caps[2]]))]
+        group = None
+        if args.group:
+            # 仅本轮自有数据库夹具；真实目录事件／退组语义另由实际PG＋图IT验证。
+            source, group = uid(), uid()
+            pg("INSERT INTO auth_governance.directory_source(id,source,environment,source_tenant_ref,tenant_id,issuer,business_zone) VALUES('" + source + "','mg14-fixture','test','1','" + tenant + "','" + h.ISSUER + "','UTC')")
+            pg("INSERT INTO auth_governance.directory_group(id,source_id,tenant_id,org_ref,active) VALUES('" + group + "','" + source + "','" + tenant + "','1',true)")
+            periods = json.dumps([{'id': '1', 'org_id': '1', 'type': 'PRIMARY', 'valid_from': '2020-01-01', 'valid_to': None}])
+            pg("INSERT INTO auth_governance.directory_group_member(group_id,tenant_id,membership_id,generation,current,periods) VALUES('" + group + "','" + tenant + "','" + recipient + "',1,true,'" + periods + "'::jsonb)")
         grants = []
         for i in range(6):
             rule = {'version': 1, 'resource_type': 'store', 'clauses': [{'kind': 'SPECIFIED_STORES' if i == 0 else 'TENANT_ALL', 'values': ['S1'] if i == 0 else [], 'include_root': False}]}
-            grants.append(request('fixed scoped source ' + str(i + 1), '/scoped-grants', {**partition, 'command_id': uid(), 'member_id': recipient, 'member_generation': 1, 'role_id': roles[0]['id'], 'source_id': uid(), 'scope_rule': rule, 'valid_from': stamp(-2), 'valid_to': stamp(1200)}, 202))
+            command = {**partition, 'command_id': uid(), 'role_id': roles[0]['id'], 'source_id': uid(), 'scope_rule': rule, 'valid_from': stamp(-2), 'valid_to': stamp(1200)}
+            endpoint = '/group-grants' if group and i in (0, 4) else '/scoped-grants'
+            command.update({'group_id': group} if endpoint == '/group-grants' else {'member_id': recipient, 'member_generation': 1})
+            grants.append(request('fixed scoped source ' + str(i + 1), endpoint, command, HTTPStatus.ACCEPTED))
         if graph['graph.http'] != 'http://127.0.0.1:18544' or not re.fullmatch(r'auth_gov_p1_test_[a-f0-9]{12}', database):
             raise RuntimeError('fixed test graph and owned database required')
         projection = []
@@ -206,6 +226,9 @@ def main():
         advance('real projection proof completes task')
         assert task['state'] == 'COMPLETED' and task['items'][0]['new_operation_id']
         assert request('completed task readable after checkpoint', root + '/' + task['id'] + query)['id'] == task['id']
+        if args.group:
+            grouped = request('GROUP preview preserves dynamic identity', '/role-migration-preview', {**preview_input, 'grant_ids': [grants[0]['id']]})
+            assert grouped['eligible_count'] == 1 and grouped['items'][0]['grant']['group_id'] == group and grouped['items'][0]['grant']['member_id'] is None
 
         harness = ROOT / 'auth-console/.local/menu-role-governance' / run.name
         harness.mkdir(mode=0o700, parents=True)
@@ -215,7 +238,7 @@ import {oidcSettings,userManager} from '../../../src/auth/oidcConfig';import Gov
 const f=(window as any).__MG13;await userManager.storeUser(new User({access_token:f.token,token_type:'Bearer',profile:{sub:f.subject,iss:f.issuer},expires_at:Math.floor(Date.now()/1000)+600}));
 createRoot(document.getElementById('root')!).render(<AuthProvider {...oidcSettings} automaticSilentRenew={false}><QueryClientProvider client={new QueryClient()}><MemoryRouter initialEntries={['/governance/roles?'+new URLSearchParams({tenant:f.partition.tenant_id,application:f.partition.application_id,environment:f.partition.environment,q:'reader'})]}><Routes><Route element={<GovernancePage/>}><Route path='/governance/roles' element={<GovernanceAccessPage view='roles'/>}/></Route></Routes></MemoryRouter></QueryClientProvider></AuthProvider>);
 """)
-        payload = {'token': token, 'subject': user['id'], 'issuer': h.ISSUER, 'partition': partition, 'roles': roles, 'grants': grants, 'jar': str(jar), 'projection': list(map(str, projection)), 'admin': 'http://127.0.0.1:' + str(ADMIN_PORT), 'ui': 'http://127.0.0.1:' + str(UI_PORT) + '/.local/menu-role-governance/' + run.name + '/index.html'}
+        payload = {'token': token, 'subject': user['id'], 'issuer': h.ISSUER, 'partition': partition, 'roles': roles, 'grants': grants, 'group': group, 'jar': str(jar), 'projection': list(map(str, projection)), 'admin': 'http://127.0.0.1:' + str(ADMIN_PORT), 'ui': 'http://127.0.0.1:' + str(UI_PORT) + '/.local/menu-role-governance/' + run.name + '/index.html'}
         h.private(run / 'browser.private.json', json.dumps(payload))
         with (run / 'vite.log').open('w') as out:
             vite = subprocess.Popen(['node', 'node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', str(UI_PORT), '--strictPort'], cwd=ROOT / 'auth-console', stdout=out, stderr=subprocess.STDOUT)

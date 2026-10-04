@@ -86,4 +86,46 @@ class RoleMigrationProjectionIT {
     @Test void capabilityStopDuringGapPreventsNewGrant(){
         var f=h.fixture();var g=h.grant(f,true);project(f);var task=h.runtime.roleMigrationTasks().create(f.login(),h.create(f,g));task=h.advance(f,task,0);project(f);task=h.advance(f,task,0);h.runtime.catalog().changeCapability(f.login(),f.partition().applicationId(),f.capabilities().getFirst(),true,0,"隔离迁移撤权后停用验收",id());task=h.advance(f,task,0);assertThat(task.items().getFirst().state()).isEqualTo("FAILED");assertThat(task.items().getFirst().reason()).isEqualTo("CAPABILITY_UNAVAILABLE");assertThat(task.items().getFirst().newGrant()).isNull();assertThat(eligible(f,g.id())).isFalse();
     }
+    @Test void groupSwitchPreservesScopeAndDynamicMembershipWithoutRemovingOtherSources(){
+        var f=h.fixture();var group=h.directoryGroup(f);var old=h.groupGrant(f,group);project(f);
+        assertThat(eligible(f,old.id())).isTrue();assertThat(eventuallyAllowed(f,f.capabilities().getFirst(),"S1")).isTrue();
+        String scope=h.scope(old.id());var task=h.runtime.roleMigrationTasks().create(f.login(),h.create(f,old));
+        task=h.advance(f,task,0);assertThat(task.items().getFirst().newGrant()).isNull();project(f);
+        assertThat(eligible(f,old.id())).isFalse();assertThat(allowed(f,f.capabilities().getFirst(),"S1")).isFalse();
+        task=h.advance(f,task,0);task=h.advance(f,task,0);var next=task.items().getFirst().newGrant();
+        assertThat(next.sourceType()).isEqualTo("GROUP");assertThat(next.memberId()).isNull();assertThat(next.memberGeneration()).isZero();
+        assertThat(next.groupId()).isEqualTo(group.groupId());assertThat(next.validTo()).isEqualTo(old.validTo().toString());assertThat(h.scope(next.id())).isEqualTo(scope);
+        project(f);task=h.advance(f,task,0);assertThat(task.state()).isEqualTo("COMPLETED");assertThat(eligible(f,next.id())).isTrue();
+        assertThat(eventuallyAllowed(f,f.capabilities().getFirst(),"S1")).isTrue();assertThat(allowed(f,f.capabilities().getFirst(),"S2")).isFalse();assertThat(allowed(f,f.capabilities().get(1),"S1")).isFalse();
+        var other=h.runtime.access().grantScoped(f.login(),f.partition(),id(),f.member().membershipId(),1,f.newRole().id(),task.items().getFirst().scopeRule(),id(),Instant.now(),old.validTo());project(f);
+        h.groupEmployee(f,group,4,2,false,false);project(f);
+        assertThat(eligible(f,next.id())).as("退组后不保留组资格").isFalse();assertThat(eventuallyAllowed(f,f.capabilities().getFirst(),"S1")).as("独立DIRECT来源仍保留").isTrue();
+        h.runtime.access().revoke(f.login(),f.partition(),id(),other.id(),1);project(f);assertThat(allowed(f,f.capabilities().getFirst(),"S1")).isFalse();
+    }
+    @Test void memberLeavingDuringGapCannotBeAddedBackByMigration(){
+        var f=h.fixture();var group=h.directoryGroup(f);var old=h.groupGrant(f,group);project(f);var task=h.runtime.roleMigrationTasks().create(f.login(),h.create(f,old));
+        task=h.advance(f,task,0);h.groupEmployee(f,group,4,2,false,false);project(f);task=h.advance(f,task,0);task=h.advance(f,task,0);
+        var next=task.items().getFirst().newGrant();project(f);task=h.advance(f,task,0);assertThat(task.state()).isEqualTo("COMPLETED");
+        assertThat(eligible(f,old.id())).isFalse();assertThat(eligible(f,next.id())).isFalse();assertThat(allowed(f,f.capabilities().getFirst(),"S1")).isFalse();
+        assertThat(h.jdbc.queryForObject("SELECT count(*) FROM auth_governance.access_grant WHERE tenant_id=? AND source_type='DIRECT'",Integer.class,f.partition().tenantId())).isZero();
+        h.groupEmployee(f,group,5,3,true,false);project(f);assertThat(eligible(f,next.id())).as("新权威任职遵循动态组语义").isTrue();assertThat(eventuallyAllowed(f,f.capabilities().getFirst(),"S1")).isTrue();
+    }
+    @Test void groupStoppedAfterOldRevocationFailsWithoutRestoringAnySource(){
+        var f=h.fixture();var group=h.directoryGroup(f);var old=h.groupGrant(f,group);project(f);var task=h.runtime.roleMigrationTasks().create(f.login(),h.create(f,old));
+        task=h.advance(f,task,0);project(f);task=h.advance(f,task,0);
+        h.jdbc.update("UPDATE auth_governance.directory_group SET active=false WHERE id=?",group.groupId());
+        task=h.advance(f,task,0);assertThat(task.items().getFirst().reason()).isEqualTo("GROUP_UNAVAILABLE");assertThat(task.items().getFirst().newGrant()).isNull();assertThat(eligible(f,old.id())).isFalse();
+    }
+    @Test void foreignRealReceiptCannotAuthorizeReservedGroupSourceThroughOldSqlWriter(){
+        var f=h.fixture();var group=h.directoryGroup(f);var old=h.groupGrant(f,group);project(f);
+        var other=h.fixture();var unrelated=h.grant(other,false);project(other);h.runtime.access().revoke(other.login(),other.partition(),id(),unrelated.id(),1);project(other);
+        String foreign=h.runtime.access().revocationReceipt(other.login(),other.partition(),unrelated.id()).operationId();
+        var task=h.runtime.roleMigrationTasks().create(f.login(),h.create(f,old));task=h.advance(f,task,0);var item=task.items().getFirst();
+        // 仅本轮新UUID夹具模拟错误旧SQL节点引用另一分区的真实回执，不伪造图回执本身。
+        h.jdbc.update("INSERT INTO auth_governance.projection_grant_receipt(grant_id,grant_version,operation_id) VALUES(?,2,?)",old.id(),foreign);
+        h.jdbc.update("UPDATE auth_governance.role_migration_item SET stage='READY_TO_GRANT',version=version+1,revoke_receipt_id=? WHERE id=?",foreign,item.id());
+        assertThatThrownBy(()->h.jdbc.update("INSERT INTO auth_governance.access_grant(id,tenant_id,application_id,environment,membership_id,generation,group_id,role_id,scope,source_type,source_id,valid_from,valid_to,state,version,created_by) SELECT i.planned_grant_id,i.tenant_id,i.application_id,i.environment,i.member_id,i.generation,i.group_id,i.new_role_id,i.scope,i.source_type,i.new_source_id,clock_timestamp(),i.valid_to,'PENDING',1,g.created_by FROM auth_governance.role_migration_item i JOIN auth_governance.access_grant g ON g.id=i.old_grant_id WHERE i.id=?",item.id()))
+            .isInstanceOf(org.springframework.dao.DataAccessException.class).hasMessageContaining("reserved migration lineage");
+        assertThat(h.jdbc.queryForObject("SELECT count(*) FROM auth_governance.access_grant WHERE tenant_id=?",Integer.class,f.partition().tenantId())).isEqualTo(1);
+    }
 }

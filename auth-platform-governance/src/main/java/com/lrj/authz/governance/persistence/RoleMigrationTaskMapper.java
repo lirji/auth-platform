@@ -16,7 +16,7 @@ public interface RoleMigrationTaskMapper {
     /** 重复固定谱系拒绝，不覆盖历史失败或已完成项。 */
     boolean lineageExists(@Param("p") Partition p,@Param("oldGrant") String oldGrant,@Param("newRole") String newRole);
     /** 既有来源碰撞在撤旧之前发现。 */
-    boolean sourceExists(@Param("p") Partition p,@Param("member") String member,@Param("generation") long generation,@Param("source") String source);
+    boolean sourceExists(@Param("p") Partition p,@Param("member") String member,@Param("generation") long generation,@Param("group") String group,@Param("source") String source);
     /** 创建固定任务，唯一和外键由数据库最终保护。 */
     int insertTask(@Param("t") Task task);
     /** 固定计划只追加，检查点通过CAS更新。 */

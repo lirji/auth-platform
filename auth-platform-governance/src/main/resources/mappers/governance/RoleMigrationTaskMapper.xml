@@ -3,7 +3,7 @@
 <mapper namespace="com.lrj.authz.governance.persistence.RoleMigrationTaskMapper">
  <sql id="partition">tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment}</sql>
  <sql id="taskColumns">id,tenant_id,application_id,environment,old_role_id,new_role_id,state,version,created_by,created_generation,command_id,created_at,updated_at</sql>
- <sql id="entryColumns">id,task_id,tenant_id,application_id,environment,old_grant_id,old_version,new_role_id,member_id,generation,old_source_id,scope,rule_json,scope_hash,valid_from,valid_to,original_hash,new_source_id,planned_grant_id,revoke_command,grant_command,stage,version,reason,revoke_receipt_id,new_grant_id,new_receipt_id,updated_at</sql>
+ <sql id="entryColumns">id,task_id,tenant_id,application_id,environment,old_grant_id,old_version,new_role_id,member_id,generation,old_source_id,scope,rule_json,scope_hash,valid_from,valid_to,original_hash,new_source_id,planned_grant_id,revoke_command,grant_command,stage,version,reason,revoke_receipt_id,new_grant_id,new_receipt_id,updated_at,source_type,group_id</sql>
  <select id="task" resultType="com.lrj.authz.governance.domain.RoleMigrationTaskModels$Task">
   SELECT <include refid="taskColumns"/> FROM auth_governance.role_migration_task WHERE <include refid="partition"/> AND id=#{id}<if test="lock"> FOR UPDATE</if>
  </select>
@@ -15,11 +15,11 @@
   SELECT <include refid="entryColumns"/> FROM auth_governance.role_migration_item WHERE <include refid="partition"/> AND task_id=#{task} ORDER BY id LIMIT 50
  </select>
  <select id="lineageExists" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.role_migration_item WHERE <include refid="partition"/> AND old_grant_id=#{oldGrant} AND new_role_id=#{newRole})</select>
- <select id="sourceExists" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.access_grant WHERE <include refid="partition"/> AND membership_id=#{member} AND generation=#{generation} AND source_type='DIRECT' AND source_id=#{source})</select>
+ <select id="sourceExists" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.access_grant WHERE <include refid="partition"/> AND source_id=#{source} AND <choose><when test="group != null">source_type='GROUP' AND group_id=#{group}</when><otherwise>source_type='DIRECT' AND membership_id=#{member} AND generation=#{generation}</otherwise></choose>)</select>
  <insert id="insertTask">INSERT INTO auth_governance.role_migration_task(id,tenant_id,application_id,environment,old_role_id,new_role_id,state,version,created_by,created_generation,command_id)
   VALUES(#{t.id},#{t.tenantId},#{t.applicationId},#{t.environment},#{t.oldRoleId},#{t.newRoleId},#{t.state},#{t.version},#{t.createdBy},#{t.createdGeneration},#{t.commandId}) ON CONFLICT DO NOTHING</insert>
- <insert id="insertEntry">INSERT INTO auth_governance.role_migration_item(id,task_id,tenant_id,application_id,environment,old_grant_id,old_version,new_role_id,member_id,generation,old_source_id,scope,rule_json,scope_hash,valid_from,valid_to,original_hash,new_source_id,planned_grant_id,revoke_command,grant_command,stage,version)
-  VALUES(#{e.id},#{e.taskId},#{e.tenantId},#{e.applicationId},#{e.environment},#{e.oldGrantId},#{e.oldVersion},#{e.newRoleId},#{e.memberId},#{e.generation},#{e.oldSourceId},#{e.scope},#{e.ruleJson},#{e.scopeHash},#{e.validFrom},#{e.validTo},#{e.originalHash},#{e.newSourceId},#{e.plannedGrantId},#{e.revokeCommand},#{e.grantCommand},#{e.stage},#{e.version}) ON CONFLICT DO NOTHING</insert>
+ <insert id="insertEntry">INSERT INTO auth_governance.role_migration_item(id,task_id,tenant_id,application_id,environment,old_grant_id,old_version,new_role_id,member_id,generation,old_source_id,scope,rule_json,scope_hash,valid_from,valid_to,original_hash,new_source_id,planned_grant_id,revoke_command,grant_command,stage,version,source_type,group_id)
+  VALUES(#{e.id},#{e.taskId},#{e.tenantId},#{e.applicationId},#{e.environment},#{e.oldGrantId},#{e.oldVersion},#{e.newRoleId},#{e.memberId},#{e.generation},#{e.oldSourceId},#{e.scope},#{e.ruleJson},#{e.scopeHash},#{e.validFrom},#{e.validTo},#{e.originalHash},#{e.newSourceId},#{e.plannedGrantId},#{e.revokeCommand},#{e.grantCommand},#{e.stage},#{e.version},#{e.sourceType},#{e.groupId}) ON CONFLICT DO NOTHING</insert>
  <update id="checkpoint">UPDATE auth_governance.role_migration_item SET stage=#{stage},version=version+1,reason=#{reason},
   revoke_receipt_id=#{revokeReceipt},new_grant_id=#{newGrant},new_receipt_id=#{newReceipt},updated_at=clock_timestamp()
   WHERE <include refid="partition"/> AND task_id=#{e.taskId} AND id=#{e.id} AND version=#{e.version} AND stage=#{e.stage}</update>

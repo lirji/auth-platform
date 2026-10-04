@@ -88,7 +88,14 @@ public final class AccessManagement {
         var rule=entry.ruleJson()==null?null:ScopeRules.decode(entry.ruleJson());
         if(rule!=null&&!AccessValues.hash(entry.ruleJson()).equals(entry.scopeHash()))throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
         return grantFixed(login,p,entry.grantCommand(),entry.memberId(),entry.generation(),entry.newRoleId(),entry.scope(),
-                rule,entry.newSourceId(),from,entry.validTo(),null,entry.plannedGrantId(),entry.ruleJson());
+                rule,entry.newSourceId(),from,entry.validTo(),entry.groupId(),entry.plannedGrantId(),entry.ruleJson());
+    }
+    /** 迁移预览只核对组来源资格；保持目录权威，不查询或固定整个成员名单。 */
+    com.lrj.authz.protocol.RoleMigrationDtos.Exclusion groupMigrationExclusion(Partition p,String group,Delegation manager){
+        var target=group==null?null:safety.group(p,group);
+        if(target==null||!target.active()||target.businessZone()==null)return com.lrj.authz.protocol.RoleMigrationDtos.Exclusion.GROUP_UNAVAILABLE;
+        if(safety.groupMember(group,manager.membershipId(),manager.generation()))return com.lrj.authz.protocol.RoleMigrationDtos.Exclusion.SELF_GRANT_DENIED;
+        return null;
     }
     private Grant grantFixed(VerifiedLogin login,Partition p,String command,String member,long generation,String roleId,String scope,
                               com.lrj.authz.protocol.ScopeDtos.Rule rule,String source,Instant from,Instant to,String group,String fixedId,String fixedRuleJson){

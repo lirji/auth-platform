@@ -11,7 +11,7 @@ const dir = path.resolve(process.argv[2]), f = JSON.parse(fs.readFileSync(path.j
 const browser = await chromium.launch({ headless: true }), context = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
 const page = await context.newPage(), checks = [], shots = [], errors = [], creates = [], mutations = [], cachePolicies = []
 const scrub = value => String(value).replace(/Bearer\s+[A-Za-z0-9_.-]+/gi, 'Bearer [REDACTED]').replace(/eyJ[A-Za-z0-9_.-]+/g, '[JWT REDACTED]')
-let loseCreate = true, closing = false, unavailableTask
+let loseCreate = true, closing = false, unavailableTask, legacySourceTask
 page.on('pageerror', error => errors.push(scrub(error.message)))
 await page.addInitScript(value => { window.__MG13 = value }, f)
 await page.route('**/api/governance/**', async route => {
@@ -28,6 +28,11 @@ await page.route('**/api/governance/**', async route => {
     const result = await response.json(); creates.push({ body: request.postDataJSON(), status: response.status(), result })
     // 已提交的真实响应丢失；原命令重试必须返回同任务，不能重建。
     if (loseCreate && response.status() === HTTP_ACCEPTED) { loseCreate = false; await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ code: 'DEPENDENCY_UNAVAILABLE', trace_id: 'e8ae7591-4a46-4acf-bfba-3b74d1e89a82' }) }); return }
+  }
+  if (legacySourceTask && request.method() === 'GET' && url.pathname.endsWith('/role-migrations/' + legacySourceTask) && response.ok()) {
+    const body = await response.json()
+    for (const item of body.items) if (item.group_id) { delete item.group_id; delete item.source_type }
+    await route.fulfill({ response, json: body }); return
   }
   await route.fulfill({ response })
 })
@@ -106,6 +111,20 @@ try {
   for (const value of creates) assert.deepEqual(value.body, creates[0].body)
   for (const value of committedCreates) assert.equal(value.result.id, committedCreates[0].result.id)
   const createdTask = committedCreates[0].result, taskId = createdTask.id
+  if (f.group) {
+    const grouped = createdTask.items.filter(item => item.group_id === f.group)
+    assert.equal(grouped.length, 1); assert.equal(grouped[0].source_type, 'GROUP'); assert.equal(grouped[0].member_id, null); assert.equal(grouped[0].member_generation, 0)
+    await expect(detail.getByText('固定组，成员资格动态核对', { exact: true })).toHaveCount(1)
+    await expect(detail.getByText('第 0 代', { exact: true })).toHaveCount(0)
+    checks.push({ check: 'GROUP plan keeps one original group and no fabricated personal generation', result: 'PASS' })
+    legacySourceTask = taskId; await detail.getByRole('button', { name: '刷新任务状态', exact: true }).click()
+    await expect(detail.getByText('来源信息缺失，当前任务只读', { exact: true })).toBeVisible()
+    await expect(detail.getByRole('button', { name: '推进本轮', exact: true })).toBeDisabled()
+    await expect(detail.getByText('第 0 代', { exact: true })).toHaveCount(0)
+    legacySourceTask = undefined; await detail.getByRole('button', { name: '刷新任务状态', exact: true }).click()
+    await expect(detail.getByRole('button', { name: '推进本轮', exact: true })).toBeEnabled()
+    checks.push({ check: 'legacy GROUP metadata missing stays readonly and current response recovers same task', result: 'PASS' })
+  }
   checks.push({ check: 'explicit eligible subset and lost committed create response recover original command', result: 'PASS' })
   await request('/strict-revoke', { ...f.partition, command_id: crypto.randomUUID(), grant_id: f.grants[2].id, expected_version: 1 })
   await round(); await expect(detail.getByText(/已核验 0，失败 1，取消 0，待处理 2/)).toBeVisible()
@@ -121,6 +140,7 @@ try {
   await detail.locator('.ant-table-row-expand-icon').nth(scopedIndex).click()
   await expect(detail.getByText('指定门店：S1', { exact: true })).toBeVisible()
   await expect(detail.getByText('新来源谱系', { exact: true })).toBeVisible()
+  if (f.group) await expect(detail.getByText('组授权（当前动态成员资格）', { exact: true })).toBeVisible()
   await shot('migration-new-pending', detail.getByText('新来源谱系', { exact: true }))
   await project(); await round(); await expect(detail.getByText(/已核验 2，失败 1，取消 0，待处理 0/)).toBeVisible()
   await expect(detail.getByRole('button', { name: '推进本轮', exact: true })).toBeDisabled()

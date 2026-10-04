@@ -61,6 +61,35 @@ public final class RoleMigrationFixture implements AutoCloseable {
     public Grant current(F f,String id){return runtime.access().state(f.login(),f.partition,null,null).grants().stream().filter(g->g.id().equals(id)).findFirst().orElseThrow();}
     /** SQL范围字节必须保持一致，不只比较解码后的近似规则。 */
     public String scope(String id){return jdbc.queryForObject("SELECT rule_json FROM auth_governance.grant_scope WHERE grant_id=?",String.class,id);}
+    /** 真实目录事件产生组与成员；不从SQL伪造成员资格作为图验收输入。 */
+    public record G(DirectoryAuthority authority,String groupId) {}
+    /** 在本轮UUID企业内注册来源并接受完整的组织、员工事件。 */
+    public G directoryGroup(F f){
+        var authority=new DirectoryAuthority(id(),"mg14-"+id(),f.partition().environment(),"1",f.partition().tenantId(),f.member().issuer());
+        runtime.directory().register(authority,"mg14");runtime.directory().configureBusinessZone(authority,"UTC","mg14",id());
+        for(int n=1;n<=2;n++)directoryEvent(authority,n,1,com.lrj.authz.protocol.DirectoryEvents.DirectoryAggregateType.ORG,Integer.toString(n),
+            new com.lrj.authz.protocol.DirectoryEvents.Payload(null,new com.lrj.authz.protocol.DirectoryEvents.Organization(Integer.toString(n),null,"ACTIVE"),null));
+        String group=jdbc.queryForObject("SELECT id FROM auth_governance.directory_group WHERE source_id=? AND org_ref='1'",String.class,authority.id());
+        var result=new G(authority,group);groupEmployee(f,result,3,1,true,false);return result;
+    }
+    /** 目录权威变更组资格；旧个人源、组Grant与任务均由产品自行解释。 */
+    public void groupEmployee(F f,G g,long sequence,long version,boolean joined,boolean manager){
+        var person=manager?f.owner():f.member();String aggregate=manager?"2":"1";
+        var employee=new com.lrj.authz.protocol.DirectoryEvents.Employee(aggregate,person.subject(),"ACTIVE",
+            List.of(new com.lrj.authz.protocol.DirectoryEvents.Assignment("1",joined?"1":"2","PRIMARY",false,"2020-01-01",null)),List.of());
+        directoryEvent(g.authority(),sequence,version,com.lrj.authz.protocol.DirectoryEvents.DirectoryAggregateType.EMPLOYEE,aggregate,
+            new com.lrj.authz.protocol.DirectoryEvents.Payload(employee,null,null));
+    }
+    /** 事件遵守微秒协议和连续序列，不能靠调整数据库时钟通过测试。 */
+    private void directoryEvent(DirectoryAuthority a,long sequence,long version,com.lrj.authz.protocol.DirectoryEvents.DirectoryAggregateType type,String aggregate,com.lrj.authz.protocol.DirectoryEvents.Payload payload){
+        runtime.directory().accept(a,new com.lrj.authz.protocol.DirectoryEvents.Event(1,id(),a.source(),a.environment(),a.sourceTenantRef(),sequence,type,aggregate,version,
+            Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS).toString(),null,payload,com.lrj.authz.protocol.DirectoryEvents.payloadHash(type,payload)));
+    }
+    /** 组授权只创建一个动态来源，固定S1范围与原排他截止。 */
+    public Grant groupGrant(F f,G g){
+        return runtime.access().grantGroup(f.login(),f.partition(),id(),g.groupId(),f.oldRole().id(),
+            new Rule(1,"store",List.of(new Clause(Kind.SPECIFIED_STORES,List.of("S1"),false))),id(),Instant.now().minusSeconds(2),Instant.now().plusSeconds(600));
+    }
     private BootstrapCommand person(String tenant,String code){var c=new BootstrapCommand(id(),"mg13",tenant,code,id(),"https://mg13.example",id(),id(),Instant.parse("2020-01-01T00:00:00Z"),null,"mg13",id(),id());runtime.identity().bootstrapEmployee(c);return c;}
     /** 每个测试来源和命令均使用独立UUID。 */
     public static String id(){return UUID.randomUUID().toString();}

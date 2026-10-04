@@ -11,7 +11,7 @@ import { useCommand } from './useCommand'
 import { RoleMigrationTaskPanel, migrationStages } from './RoleMigrationTaskPanel'
 
 const exclusions: Record<string, string> = {
-  UNSUPPORTED_SOURCE: '此来源需按组或审批规则单独处理', GRANT_ROLE_MISMATCH: '已不属于选定旧角色',
+  UNSUPPORTED_SOURCE: '审批来源需要本人重新申请审批后切换', GROUP_UNAVAILABLE: '组已停用、来源隔离或缺少业务时区', GRANT_ROLE_MISMATCH: '已不属于选定旧角色',
   GRANT_NOT_ACTIVE: '授权尚未生效或已撤销', GRANT_NOT_CURRENT: '授权尚未开始', GRANT_EXPIRED: '授权已到期',
   MEMBERSHIP_UNAVAILABLE: '成员状态或代际已失效', SELF_GRANT_DENIED: '不能迁移自己的授权',
   MANAGEMENT_CEILING: '旧版或新版超出当前管理上限', CAPABILITY_UNAVAILABLE: '新版能力未发布或已停用',
@@ -68,7 +68,7 @@ export function RoleMigrationPanel({ oldRole, roles, close }: { oldRole: Role; r
   const resetSelection = () => { setSelected([]); invalidate(); targetControl.current?.focus() }
   return <GovernanceModal open title={`${oldRole.role_code} · v${oldRole.version} 迁移预览`} width={960} onCancel={close} closeDisabled={frozen || taskLocked}>
     {taskId ? <RoleMigrationTaskPanel key={taskId} id={taskId} onLock={setTaskLocked} back={() => { setTaskId(undefined); setShowHistory(true); invalidate(); void history.refetch() }} /> : <>
-    <Alert type="info" showIcon message="先只读核对，再明确创建迁移任务" description="执行时先撤销旧权限并确认撤权，再授予新版本，期间可能短暂无法访问。新增能力走独立授权或审批；组与审批来源单独处理。" />
+    <Alert type="info" showIcon message="先只读核对，再明确创建迁移任务" description="先撤旧并核验真实回执，再授新，期间可能短暂无法访问。组授权保留原组和动态成员资格；审批来源须本人重新申请审批。新增能力走独立授权或审批。" />
     <Button disabled={frozen} style={{ marginTop: 12 }} onClick={() => setShowHistory(value => !value)}>查看已保存迁移任务</Button>
     {showHistory && <section aria-label="已保存迁移任务">
       {history.error ? <Failure error={history.error} retry={() => void history.refetch()} /> : <Table<MigrationTaskSummary> rowKey="id" size="small" loading={history.isFetching} pagination={false} scroll={{ x: 600 }} dataSource={history.data?.items}

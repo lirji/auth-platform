@@ -83,10 +83,10 @@ export const migrationGrants = async (p: Partition, role: string, after?: string
 export const previewRoleMigration = async (body: RoleMigrationRequest, signal?: AbortSignal): Promise<RoleMigrationPreview> =>
   (await apiClient.post('/api/governance/v1/access/role-migration-preview', body, { signal })).data
 
-export interface MigrationTaskItem { id: string; old_grant_id: string; old_version: number; member_id: string; member_generation: number;
+export interface MigrationTaskItem { id: string; old_grant_id: string; old_version: number; member_id: string | null; member_generation: number;
   original_source_id: string; scope: string; scope_rule: ScopeRule | null; scope_hash: string | null; valid_from: string; valid_to: string;
   new_source_id: string; state: string; version: number; reason: string | null; revocation_operation_id: string | null;
-  new_grant: MigrationGrant | null; new_operation_id: string | null; updated_at: string }
+  new_grant: MigrationGrant | null; new_operation_id: string | null; updated_at: string; source_type?: string; group_id?: string | null }
 export interface MigrationTask { id: string; tenant_id: string; application_id: string; environment: string; old_role: Role; new_role: Role;
   state: string; version: number; command_id: string; created_at: string; updated_at: string; items: MigrationTaskItem[];
   completed_count: number; failed_count: number; cancelled_count: number; waiting_count: number }

@@ -12,7 +12,7 @@ public final class RoleMigrationModels {
             String sourceId, Instant validFrom, Instant validTo, GrantState state, long version,
             String groupId, String graphToken, String ruleJson, String scopeHash,
             boolean memberActive, Long membershipVersion, Instant memberValidFrom, Instant memberValidTo,
-            boolean strictPartition) {
+            boolean strictPartition, boolean groupAvailable) {
         /** 复用既有公开投影，内部水位和人员版本不直接泄露。 */
         public Grant grant() { return new Grant(id,tenantId,applicationId,environment,membershipId,generation,
                 roleId,scope,sourceType,sourceId,validFrom,validTo,state,version,graphToken,groupId); }
