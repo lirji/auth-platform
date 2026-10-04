@@ -221,7 +221,7 @@ flowchart LR
     MG18 --> MG19
 ```
 
-- 当前执行：MG00–MG19产品及必要验证DONE（MG09为设计）；MG00–18 Git／精确CI完成，MG18精确CI37172948706 SUCCESS。MG19最终交付待收口，依据[MG19_TEST_RESULT](MG19_TEST_RESULT.md)推进；历史阶段不重开。
+- 当前执行：MG00–MG19产品、必要验证、Git／精确CI全部DONE（MG09为设计）；MG18精确CI37172948706、MG19精确CI37173735107 SUCCESS。完整目标已完成，依据[MG19_TEST_RESULT](MG19_TEST_RESULT.md)及[当前状态](PROGRESS_STATE.md)，历史阶段不重开，不自动生产部署或清理。
 - 阶段 A CONTRACTS 已冻结，MG00 DONE；对应已满足依赖的实施可推进。MG07／09／12／15／17 的业务决策按各阶段就近确定，不需要本轮假装全部已批准。
 - 全部标记 `parallel=no`：共享目录／授权契约、PG 迁移链、Controller、SDK、console 和跨仓声明需要串行集成；本计划不授予并行代理权限。
 - 迁移唯一 Owner 为 Auth 治理后端；Commerce 只维护自有声明、适配和业务数据，不能直接写 Auth 表。

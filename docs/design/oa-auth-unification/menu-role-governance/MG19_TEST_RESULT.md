@@ -1,6 +1,6 @@
 # MG19 定向恢复验收（PASS）
 
-2026-10-03。MG19必要验证DONE，Git／精确CI待正常交付，详见[PROGRESS_STATE](PROGRESS_STATE.md)。2工具／CI源码路径指纹 `1eb333ecd497c6dcc7fc85c6b5ba046a31e360956e60e1da5c90098bc013be27`，验收后逐路径SHA核对一致；Admin使用已验证MG18制品b345095e95897d6650ada2341c8f81dc8922fb45f37038bc18d3ec1e44e6bdd7，不宣称已部署原运行环境。
+2026-10-03。MG19必要验证及Git／精确CI DONE，产品d283ad7171ff8ff224517b2e7818e86542741576正常ff合并／推main，精确[CI37173735107](https://github.com/lirji/auth-platform/actions/runs/37173735107) completed SUCCESS、head完全一致，详见[PROGRESS_STATE](PROGRESS_STATE.md)。2工具／CI源码路径指纹 `1eb333ecd497c6dcc7fc85c6b5ba046a31e360956e60e1da5c90098bc013be27`，验收和CI后逐路径SHA核对一致；Admin使用已验证MG18制品b345095e95897d6650ada2341c8f81dc8922fb45f37038bc18d3ec1e44e6bdd7，不宣称已部署原运行环境。
 
 | 冻结验收 | 实際证据与结果 |
 |---|---|

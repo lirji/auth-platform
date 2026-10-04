@@ -4,7 +4,7 @@
 
 完整设计见 `~/.claude/plans/mock-velvet-mist.md`。
 
-OA、Auth 与业务项目的统一权限改造见 [整体改造计划](docs/design/oa-auth-unification/README.md)。P1 已落地独立治理库、受控身份/成员初始化与读取，以及固定发行方 Access Token/登录身份适配，使用真实 PostgreSQL 和隔离 Casdoor 验证；HTTP 双身份和业务授权仍按后续切片接入。共享 Casdoor 升级尚未执行，兼容发现及门禁见 [升级方案](docs/implementation/oa-auth/phase-1/CASDOOR_COMPATIBILITY_UPGRADE.md)。当前能力和运行方式见 [治理身份模块](auth-platform-governance/README.md)。
+OA、Auth 与业务项目的统一权限改造见[整体计划与当前入口](docs/design/oa-auth-unification/README.md)。菜单／角色／授权治理MG00–MG19已实现并完成必要隔离验证，涵盖实际菜单、差异与影响、受控发布、历史／漂移、角色来源迁移、能力退役、人员核对和人工复核；Git／CI以[治理状态](docs/design/oa-auth-unification/menu-role-governance/PROGRESS_STATE.md)为准。页面入口、认证／图故障和四类回退见[运行手册](docs/design/oa-auth-unification/menu-role-governance/OPERATIONS_RUNBOOK.md)。本轮未部署原5273或生产；真实OA联调及生产运行核验边界单独记录。P1身份基础与配置仍见[治理模块](auth-platform-governance/README.md)，其中P1阶段记录不代表共享实例的当前运行版本。
 
 ## 架构一览
 
@@ -184,4 +184,4 @@ TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh # 部门层级模型 seed 
 
 ## 企业 IAM 分阶段建设
 
-P1已完成，P2应用RBAC与首个商城读取链路全部完成，两仓CI已通过，交付证据见[阶段报告](docs/implementation/oa-auth/phase-2/P2_DELIVERY_RESULT.md)。当前进度以[PROGRESS_STATE](docs/design/oa-auth-unification/PROGRESS_STATE.md)为准；P2交付后暂停，不自动进入P3。控制台最小入口为`/governance`，运行条件见[契约](docs/design/oa-auth-unification/CONTRACTS_P2_PRESENTATION.md)。
+P1已完成，P2应用RBAC与首个商城读取链路全部完成，两仓CI已通过，交付证据见[阶段报告](docs/implementation/oa-auth/phase-2/P2_DELIVERY_RESULT.md)。父计划进度以[PROGRESS_STATE](docs/design/oa-auth-unification/PROGRESS_STATE.md)为准；P2阶段当时交付后暂停，后续进展以整体计划和治理当前状态为准。控制台入口为`/governance`，P2当时运行条件见[契约](docs/design/oa-auth-unification/CONTRACTS_P2_PRESENTATION.md)。
