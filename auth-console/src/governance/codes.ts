@@ -9,7 +9,7 @@ export const RequestState = { SUBMITTED: 'SUBMITTED', IN_REVIEW: 'IN_REVIEW', AP
 export const InvitationState = { PENDING: 'PENDING', ACCEPTED: 'ACCEPTED', REVOKED: 'REVOKED' } as const
 export const MemberKind = { EMPLOYEE: 'EMPLOYEE', PARTNER: 'PARTNER', GUEST: 'GUEST' } as const
 export const requestLabels: Record<string, string> = { SUBMITTED: '已提交，等待流程启动', IN_REVIEW: '审批中', APPROVED: '已批准', REJECTED: '已驳回', CANCELLED: '已取消' }
-export const executionLabels: Record<string, string> = { ...requestLabels, ACTIVE: '已实际生效', PENDING_APPLY: '等待权限生效', APPLY_FAILED: '权限同步失败', EXPIRED: '已到期', UNAVAILABLE: '当前不可用', REVOKING: '正在回收', REVOKED: '本来源已回收' }
+export const executionLabels: Record<string, string> = { ...requestLabels, MIGRATION_WAITING: '已新批准，等待迁移切换', ACTIVE: '已实际生效', PENDING_APPLY: '等待权限生效', APPLY_FAILED: '权限同步失败', EXPIRED: '已到期', UNAVAILABLE: '当前不可用', REVOKING: '正在回收', REVOKED: '本来源已回收' }
 export const ReceiptState = { COMPLETED: 'COMPLETED', PROCESSING: 'PROCESSING', BLOCKED: 'BLOCKED' } as const
 export const GrantState = { PENDING: 'PENDING', ACTIVE: 'ACTIVE', REVOKED: 'REVOKED' } as const
 /** 来源类型决定受益人形状，未知或缺失组元数据不能猜成个人来源。 */

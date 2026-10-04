@@ -72,7 +72,7 @@ export const grantScoped = async (body: GrantCommand): Promise<Grant> => (await 
 
 export interface MigrationGrant extends Omit<Grant, 'member_id'> { member_id: string | null; group_id: string | null }
 export interface RoleMigrationItem { grant: MigrationGrant; scope_rule: ScopeRule | null; scope_hash: string | null;
-  remaining_seconds: number; proposed_source_id: string; eligible: boolean; reasons: string[] }
+  remaining_seconds: number; proposed_source_id: string; eligible: boolean; reasons: string[]; replacement_request_id?: string | null }
 export interface RoleMigrationPreview extends Partition { old_role: Role; new_role: Role; added: string[]; removed: string[]; retained: string[];
   assessed_at: string; view_hash: string; continuity: 'REVOKE_CONFIRM_THEN_GRANT'; projection_status: 'UNKNOWN';
   items: RoleMigrationItem[]; eligible_count: number; excluded_count: number }
@@ -86,13 +86,13 @@ export const previewRoleMigration = async (body: RoleMigrationRequest, signal?: 
 export interface MigrationTaskItem { id: string; old_grant_id: string; old_version: number; member_id: string | null; member_generation: number;
   original_source_id: string; scope: string; scope_rule: ScopeRule | null; scope_hash: string | null; valid_from: string; valid_to: string;
   new_source_id: string; state: string; version: number; reason: string | null; revocation_operation_id: string | null;
-  new_grant: MigrationGrant | null; new_operation_id: string | null; updated_at: string; source_type?: string; group_id?: string | null }
+  new_grant: MigrationGrant | null; new_operation_id: string | null; updated_at: string; source_type?: string; group_id?: string | null; replacement_request_id?: string | null }
 export interface MigrationTask { id: string; tenant_id: string; application_id: string; environment: string; old_role: Role; new_role: Role;
   state: string; version: number; command_id: string; created_at: string; updated_at: string; items: MigrationTaskItem[];
   completed_count: number; failed_count: number; cancelled_count: number; waiting_count: number }
 export interface MigrationTaskSummary { id: string; old_role_id: string; new_role_id: string; state: string; version: number; created_at: string; updated_at: string }
 export interface CreateMigrationTask extends Partition { command_id: string; old_role_id: string; new_role_id: string;
-  grants: { grant_id: string; expected_version: number; valid_to: string; scope_hash: string | null }[] }
+  grants: { grant_id: string; expected_version: number; valid_to: string; scope_hash: string | null; replacement_request_id?: string | null }[] }
 export interface AdvanceMigrationTask extends Partition { command_id: string; item_id: string; expected_version: number }
 export interface CancelMigrationTask extends Partition { command_id: string; expected_version: number }
 const migrationTaskUrl = '/api/governance/v1/access/role-migrations'
@@ -172,10 +172,11 @@ export const catalogDrift = async (candidate: CatalogCandidate, signal?: AbortSi
 export interface RequestPolicy { id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; policy_version: number; role_code: string; role_version: number; capabilities: string[] }
 export interface PolicyConfiguration { policy: RequestPolicy; approver_membership_id: string; approver_generation: number; enabled: boolean }
 export interface PolicyCommand extends Partition { command_id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; approver_membership_id: string; approver_generation: number; policy_version: number }
-export interface AccessRequest { id: string; policy_id: string; role_id: string; capabilities: string[]; scope_rule: ScopeRule; valid_from: string; valid_to: string; reason: string; request_version: number; snapshot_hash: string; state: string; state_version: number; approval_instance_id: string | null; grant_id: string | null }
-export interface RequestExecution { request_id: string; grant_id: string | null; grant_state: string | null; display_state: string; operation_id: string | null; start_state: string; start_attempts: number; start_error: string | null; callback_status: string | null; callback_result: string | null; other_active_grant_count: number }
+export interface AccessRequest { id: string; policy_id: string; role_id: string; capabilities: string[]; scope_rule: ScopeRule; valid_from: string; valid_to: string; reason: string; request_version: number; snapshot_hash: string; state: string; state_version: number; approval_instance_id: string | null; grant_id: string | null; migration_old_grant_id?: string | null; migration_old_version?: number | null; withdrawn?: boolean }
+export interface RequestExecution { request_id: string; grant_id: string | null; grant_state: string | null; display_state: string; operation_id: string | null; start_state: string; start_attempts: number; start_error: string | null; callback_status: string | null; callback_result: string | null; other_active_grant_count: number; grant_version?: number | null }
 export interface RequestNotice { id: string; request_id: string; state_version: number; message_key: string; delivered_at: string }
 export interface SubmitRequest extends Partition { command_id: string; policy_id: string; valid_from: string; valid_to: string; reason: string }
+export interface SubmitMigrationRequest extends Partition { command_id: string; policy_id: string; old_grant_id: string; expected_version: number; reason: string }
 export interface CancelRequest extends Partition { command_id: string; id: string; state_version: number }
 export const requestPolicies = async (p: Partition, after?: string): Promise<Page<RequestPolicy>> => (await apiClient.get('/api/governance/v1/requests/policies', { params: { ...p, after } })).data
 export const managedPolicies = async (p: Partition, after?: string): Promise<Page<PolicyConfiguration>> => (await apiClient.get('/api/governance/v1/access/request-policies', { params: { ...p, after } })).data
@@ -185,6 +186,8 @@ export const requestDetail = async (p: Partition, id: string): Promise<AccessReq
 export const requestExecution = async (p: Partition, id: string): Promise<RequestExecution> => (await apiClient.get(`/api/governance/v1/requests/${id}/execution`, { params: p })).data
 export const requestNotices = async (p: Partition, after?: string): Promise<Page<RequestNotice>> => (await apiClient.get('/api/governance/v1/requests/notifications', { params: { ...p, after } })).data
 export const submitRequest = async (command: SubmitRequest): Promise<AccessRequest> => (await apiClient.post('/api/governance/v1/requests', command)).data
+export const migrationRequestPolicies = async (p: Partition, id: string, after?: string): Promise<Page<RequestPolicy>> => (await apiClient.get(`/api/governance/v1/requests/${id}/role-migration-policies`, { params: { ...p, after } })).data
+export const submitMigrationRequest = async (command: SubmitMigrationRequest): Promise<AccessRequest> => (await apiClient.post('/api/governance/v1/requests/role-migration', command)).data
 export const cancelRequest = async ({ id, ...command }: CancelRequest): Promise<AccessRequest> => (await apiClient.post(`/api/governance/v1/requests/${id}/cancel`, command)).data
 
 export interface InvitationAuthority { issuer: string; max_invitation_seconds: number; max_membership_seconds: number }

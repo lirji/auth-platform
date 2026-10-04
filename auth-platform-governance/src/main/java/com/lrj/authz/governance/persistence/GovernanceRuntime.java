@@ -264,12 +264,12 @@ public final class GovernanceRuntime implements AutoCloseable {
 
     /** 固定角色迁移只读用例复用当前委派、主库和既有事务管理器。 */
     public com.lrj.authz.governance.application.RoleMigrationPreview roleMigrationPreview() {
-        return new com.lrj.authz.governance.application.RoleMigrationPreview(access,portalManagement(),accessMapper,roleMigrationMapper,transaction);
+        return new com.lrj.authz.governance.application.RoleMigrationPreview(access,portalManagement(),accessMapper,roleMigrationMapper,transaction,requests);
     }
 
     /** 显式人类管理命令推进迁移，复用原授权与可靠投影，不在启动时执行。 */
     public com.lrj.authz.governance.application.RoleMigrationTasks roleMigrationTasks(){
-        return new com.lrj.authz.governance.application.RoleMigrationTasks(access,roleMigrationPreview(),accessMapper,roleMigrationMapper,roleMigrationTaskMapper,mapper,transaction);
+        return new com.lrj.authz.governance.application.RoleMigrationTasks(access,roleMigrationPreview(),accessMapper,roleMigrationMapper,roleMigrationTaskMapper,mapper,transaction,requests);
     }
 
     /** 门户复用本进程现有身份与展示装配，组织/应用目录不依赖OA。 */

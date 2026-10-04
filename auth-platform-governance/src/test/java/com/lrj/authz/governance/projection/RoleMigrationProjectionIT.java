@@ -128,4 +128,45 @@ class RoleMigrationProjectionIT {
             .isInstanceOf(org.springframework.dao.DataAccessException.class).hasMessageContaining("reserved migration lineage");
         assertThat(h.jdbc.queryForObject("SELECT count(*) FROM auth_governance.access_grant WHERE tenant_id=?",Integer.class,f.partition().tenantId())).isEqualTo(1);
     }
+
+    /** 新批准来源独立保留，取消旧申请不等同撤销新版批准或其他直接来源。 */
+    @Test void oaMigrationKeepsFreshApprovalOriginalDeadlineAndOtherSource() throws Exception{
+        var f=h.fixture();var oldPolicy=h.oaPolicy(f,f.oldRole());var submitted=h.oaRequest(f,oldPolicy);
+        h.decideOa(f,oldPolicy,submitted,"APPROVED");project(f);
+        var self=new com.lrj.authz.governance.authentication.VerifiedLogin(f.member().issuer(),f.member().subject());
+        var original=h.runtime.requests().owned(self,f.partition(),submitted.id());var old=h.current(f,original.grantId());
+        var policy=h.oaPolicy(f,f.newRole());var replacement=h.runtime.requests().submitMigration(self,f.partition(),id(),policy.id(),old.id(),old.version(),"原截止升级");
+        assertThat(eventuallyAllowed(f,f.capabilities().get(1),"S1")).isTrue();assertThat(replacement.grantId()).isNull();
+        h.decideOa(f,policy,replacement,"APPROVED");assertThat(h.runtime.requests().execution(self,f.partition(),replacement.id()).displayState()).isEqualTo("MIGRATION_WAITING");
+        var raw=h.create(f,old);var selected=raw.grants().getFirst();var input=new Create(raw.tenantId(),raw.applicationId(),raw.environment(),raw.commandId(),raw.oldRoleId(),raw.newRoleId(),
+                List.of(new GrantSelection(selected.grantId(),selected.expectedVersion(),selected.validTo(),selected.scopeHash(),replacement.id())));
+        var task=h.runtime.roleMigrationTasks().create(f.login(),input);task=h.advance(f,task,0);project(f);
+        assertThat(eligible(f,old.id())).isFalse();assertThat(allowed(f,f.capabilities().getFirst(),"S1")).isFalse();
+        task=h.advance(f,task,0);assertThat(task.items().getFirst().state()).isEqualTo("READY_TO_GRANT");task=h.advance(f,task,0);
+        var next=task.items().getFirst().newGrant();assertThat(next.sourceType()).isEqualTo("OA_REQUEST");assertThat(next.sourceId()).isEqualTo(replacement.id()+":single:1");
+        assertThat(next.validTo()).isEqualTo(old.validTo().toString());assertThat(h.scope(next.id())).isEqualTo(h.scope(old.id()));
+        project(f);task=h.advance(f,task,0);assertThat(task.state()).isEqualTo("COMPLETED");
+        assertThat(eventuallyAllowed(f,f.capabilities().getFirst(),"S1")).isTrue();assertThat(allowed(f,f.capabilities().get(1),"S1")).isFalse();assertThat(allowed(f,f.capabilities().getFirst(),"S2")).isFalse();
+        var extra=h.runtime.access().grantScoped(f.login(),f.partition(),id(),f.member().membershipId(),1,f.newRole().id(),ScopeRules.decode(h.scope(old.id())),id(),Instant.now(),old.validTo());project(f);
+        h.runtime.requests().cancel(self,f.partition(),id(),original.id(),original.stateVersion());
+        assertThat(h.current(f,next.id()).state()).isEqualTo(GrantState.ACTIVE);assertThat(eventuallyAllowed(f,f.capabilities().getFirst(),"S1")).isTrue();
+        var current=h.runtime.requests().owned(self,f.partition(),replacement.id());assertThat(current.grantId()).isEqualTo(next.id());
+        h.runtime.requests().cancel(self,f.partition(),id(),current.id(),current.stateVersion());project(f);
+        assertThat(eligible(f,next.id())).isFalse();assertThat(eventuallyAllowed(f,f.capabilities().getFirst(),"S1")).isTrue();
+        h.runtime.access().revoke(f.login(),f.partition(),id(),extra.id(),extra.version());project(f);assertThat(allowed(f,f.capabilities().getFirst(),"S1")).isFalse();
+    }
+
+    /** 真撤旧回执之后的新申请撤回不能由任务补回OA或DIRECT来源。 */
+    @Test void oaApprovalWithdrawnInConfirmedGapNeverGrants() throws Exception{
+        var f=h.fixture();var oldPolicy=h.oaPolicy(f,f.oldRole());var submitted=h.oaRequest(f,oldPolicy);h.decideOa(f,oldPolicy,submitted,"APPROVED");project(f);
+        var self=new com.lrj.authz.governance.authentication.VerifiedLogin(f.member().issuer(),f.member().subject());
+        var original=h.runtime.requests().owned(self,f.partition(),submitted.id());var old=h.current(f,original.grantId());var policy=h.oaPolicy(f,f.newRole());
+        var r=h.runtime.requests().submitMigration(self,f.partition(),id(),policy.id(),old.id(),old.version(),"撤回竞态");h.decideOa(f,policy,r,"APPROVED");
+        var raw=h.create(f,old);var selected=raw.grants().getFirst();var task=h.runtime.roleMigrationTasks().create(f.login(),new Create(raw.tenantId(),raw.applicationId(),raw.environment(),raw.commandId(),raw.oldRoleId(),raw.newRoleId(),List.of(new GrantSelection(selected.grantId(),selected.expectedVersion(),selected.validTo(),selected.scopeHash(),r.id()))));
+        task=h.advance(f,task,0);project(f);task=h.advance(f,task,0);assertThat(task.items().getFirst().revocationOperationId()).isNotBlank();
+        var current=h.runtime.requests().owned(self,f.partition(),r.id());h.runtime.requests().cancel(self,f.partition(),id(),r.id(),current.stateVersion());
+        task=h.advance(f,task,0);assertThat(task.items().getFirst().state()).isEqualTo("FAILED");assertThat(task.items().getFirst().reason()).isEqualTo("OA_APPROVAL_REQUIRED");
+        assertThat(task.items().getFirst().newGrant()).isNull();assertThat(allowed(f,f.capabilities().getFirst(),"S1")).isFalse();
+        assertThat(h.jdbc.queryForObject("SELECT count(*) FROM auth_governance.access_grant WHERE tenant_id=?",Integer.class,f.partition().tenantId())).isEqualTo(1);
+    }
 }

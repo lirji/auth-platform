@@ -6,7 +6,13 @@ import java.util.List;
 public final class RoleMigrationTaskDtos {
     private RoleMigrationTaskDtos() {}
     /** 创建时核对预览所见版本、截止和范围，不能趁等待延长。 */
-    public record GrantSelection(String grantId,long expectedVersion,String validTo,String scopeHash) {}
+    public record GrantSelection(String grantId,long expectedVersion,String validTo,String scopeHash,String replacementRequestId) {
+        /** 普通直接／组命令没有审批关联，保留源码兼容。 */
+        public GrantSelection(String grantId,long expectedVersion,String validTo,String scopeHash){this(grantId,expectedVersion,validTo,scopeHash,null);}
+        /** 旧命令摘要使用record文本；新增空关联字段不能改变既有幂等键语义。 */
+        @Override public String toString(){return "GrantSelection[grantId="+grantId+", expectedVersion="+expectedVersion+
+                ", validTo="+validTo+", scopeHash="+scopeHash+(replacementRequestId==null?"":", replacementRequestId="+replacementRequestId)+"]";}
+    }
     /** 管理员明确固定对象，没有隐含全量或调用方操作者字段。 */
     public record Create(String tenantId,String applicationId,String environment,String commandId,
             String oldRoleId,String newRoleId,List<GrantSelection> grants) {}
@@ -19,7 +25,7 @@ public final class RoleMigrationTaskDtos {
     public record Item(String id,String oldGrantId,long oldVersion,String memberId,long memberGeneration,
             String originalSourceId,String scope,ScopeDtos.Rule scopeRule,String scopeHash,String validFrom,String validTo,
             String newSourceId,String state,long version,String reason,String revocationOperationId,
-            AccessDtos.GrantView newGrant,String newOperationId,String updatedAt,String sourceType,String groupId) {}
+            AccessDtos.GrantView newGrant,String newOperationId,String updatedAt,String sourceType,String groupId,String replacementRequestId) {}
     /** 持久任务详情最多50项，统计覆盖原固定集合。 */
     public record Detail(String id,String tenantId,String applicationId,String environment,
             AccessDtos.RoleView oldRole,AccessDtos.RoleView newRole,String state,long version,String commandId,

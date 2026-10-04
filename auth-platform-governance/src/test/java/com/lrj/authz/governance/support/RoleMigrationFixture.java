@@ -61,6 +61,33 @@ public final class RoleMigrationFixture implements AutoCloseable {
     public Grant current(F f,String id){return runtime.access().state(f.login(),f.partition,null,null).grants().stream().filter(g->g.id().equals(id)).findFirst().orElseThrow();}
     /** SQL范围字节必须保持一致，不只比较解码后的近似规则。 */
     public String scope(String id){return jdbc.queryForObject("SELECT rule_json FROM auth_governance.grant_scope WHERE grant_id=?",String.class,id);}
+    /** 原OA来源通过真实启动消费者及已验签Inbox形成，不手写APPROVED作为批准证明。 */
+    public com.lrj.authz.governance.domain.RequestModels.Policy oaPolicy(F f,RoleVersion role){
+        return runtime.requests().registerPolicy(f.login(),f.partition(),id(),role.id(),
+                new Rule(1,"store",List.of(new Clause(Kind.SPECIFIED_STORES,List.of("S1"),false))),
+                1200,f.owner().membershipId(),1,role.version());
+    }
+    /** 受益人本人普通申请，指定测试窗口仍由产品保存不可变快照。 */
+    public com.lrj.authz.governance.domain.RequestModels.Request oaRequest(F f,com.lrj.authz.governance.domain.RequestModels.Policy policy){
+        return runtime.requests().submit(new VerifiedLogin(f.member().issuer(),f.member().subject()),f.partition(),id(),
+                policy.id(),Instant.now(),Instant.now().plusSeconds(600),"原OA测试授权");
+    }
+    /** 模拟可信OA传输而非直接调用决定方法，结果仍由实际消费者重验。 */
+    public String decideOa(F f,com.lrj.authz.governance.domain.RequestModels.Policy policy,
+                          com.lrj.authz.governance.domain.RequestModels.Request request,String outcome) throws Exception{
+        var gateway=new ApprovalGateway(){
+            public Optional<com.lrj.authz.protocol.ApprovalDtos.Instance> find(com.lrj.authz.protocol.ApprovalDtos.Lookup q){return Optional.empty();}
+            public com.lrj.authz.protocol.ApprovalDtos.Instance start(com.lrj.authz.protocol.ApprovalDtos.Start c){return new com.lrj.authz.protocol.ApprovalDtos.Instance(c.requestId(),c.requestVersion(),c.snapshotHash(),"123");}
+        };
+        runtime.approvalStarts(gateway).step(f.partition());
+        var event=new com.lrj.authz.protocol.ApprovalDtos.Decision(id(),"ACCESS_REQUEST_DECIDED",1,"oa-platform",
+                f.partition().tenantId(),f.partition().applicationId(),f.partition().environment(),request.id(),request.requestVersion(),
+                request.snapshotHash(),"123",policy.id(),policy.policyVersion(),1,outcome,f.owner().membershipId(),1,Instant.now().toString(),id());
+        var json=new com.fasterxml.jackson.databind.ObjectMapper().setPropertyNamingStrategy(com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE);
+        byte[] body=json.writeValueAsBytes(event);String key="k".repeat(43);
+        var signature=com.lrj.authz.protocol.ApprovalSignature.sign(key,"oa-platform",f.partition().environment(),ApprovalInbox.PATH,body,Instant.now());
+        runtime.approvalInbox().receive(f.partition(),key,signature,body);runtime.approvalDecisions().step(f.partition());return event.eventId();
+    }
     /** 真实目录事件产生组与成员；不从SQL伪造成员资格作为图验收输入。 */
     public record G(DirectoryAuthority authority,String groupId) {}
     /** 在本轮UUID企业内注册来源并接受完整的组织、员工事件。 */

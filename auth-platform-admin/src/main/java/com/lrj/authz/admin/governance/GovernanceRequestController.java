@@ -43,6 +43,15 @@ public class GovernanceRequestController {
         return ResponseEntity.accepted().body(GovernanceWeb.body(view(result)));
     }
 
+    /** 新审批仅冻结旧OA来源；202不表示授权已经切换。 */
+    @PostMapping(value="/role-migration",consumes="application/json")
+    public ResponseEntity<JsonNode> migration(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request) throws IOException {
+        var r=AccessWeb.read(request.getInputStream(),SubmitMigration.class);
+        return ResponseEntity.accepted().body(GovernanceWeb.body(view(requests.submitMigration(login,
+                new Partition(r.tenantId(),r.applicationId(),r.environment()),r.commandId(),r.policyId(),
+                r.oldGrantId(),r.expectedVersion(),r.reason()))));
+    }
+
     /** 202表示取消/回收意图已持久化；不能将尚未完成的图回收显示成完成。 */
     @PostMapping(value="/{id}/cancel",consumes="application/json")
     public ResponseEntity<JsonNode> cancel(@AuthenticationPrincipal VerifiedLogin login,@PathVariable("id") String id,HttpServletRequest request) throws IOException {
@@ -64,6 +73,15 @@ public class GovernanceRequestController {
                              @RequestParam("application_id") String app,@RequestParam("environment") String env,
                              @RequestParam(value="after",required=false) String after) {
         var page=requests.policyPage(login,new Partition(tenant,app,env),after);
+        return GovernanceWeb.body(new Page<>(page.items().stream().map(requests::policyView).toList(),page.nextCursor()));
+    }
+
+    /** 本人升级只列真实兼容策略，保留过滤前扫描游标，不暴露审批人目录。 */
+    @GetMapping("/{id}/role-migration-policies")
+    public JsonNode migrationPolicies(@AuthenticationPrincipal VerifiedLogin login,@PathVariable("id") String id,
+            @RequestParam("tenant_id") String tenant,@RequestParam("application_id") String app,
+            @RequestParam("environment") String env,@RequestParam(value="after",required=false) String after){
+        var page=requests.migrationPolicyPage(login,new Partition(tenant,app,env),id,after);
         return GovernanceWeb.body(new Page<>(page.items().stream().map(requests::policyView).toList(),page.nextCursor()));
     }
 
@@ -95,6 +113,6 @@ public class GovernanceRequestController {
     private static View view(Request r) {
         return new View(r.id(),r.policyId(),r.roleId(),AccessValues.read(r.capabilitiesJson()),ScopeRules.decode(r.scopeJson()),
                 r.validFrom().toString(),r.validTo().toString(),r.reason(),r.requestVersion(),r.snapshotHash(),r.state().code(),
-                r.stateVersion(),r.approvalInstanceId(),r.grantId());
+                r.stateVersion(),r.approvalInstanceId(),r.grantId(),r.migrationOldGrantId(),r.migrationOldVersion(),r.withdrawn());
     }
 }

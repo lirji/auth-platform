@@ -22,6 +22,14 @@ public interface RequestMapper {
                   @Param("member") String member, @Param("generation") long generation);
     /** 投递器与生命周期使用的内部查询，仍绑定分区。 */
     Request request(@Param("p") Partition partition, @Param("id") String id);
+    /** 原OA来源必须绑定实际申请，不能凭来源字符串伪造批准。 */
+    Request byGrant(@Param("p") Partition p,@Param("grant") String grant);
+    /** 同原来源／目标角色唯一的当前新批准，不将旧批准当新版批准。 */
+    Request migrationApproved(@Param("p") Partition p,@Param("oldGrant") String oldGrant,@Param("role") String role);
+    /** 同分区有界读取尚未授新的关联申请，原申请撤回时一并停止。 */
+    List<Request> migrationOpen(@Param("p") Partition p,@Param("oldGrant") String oldGrant);
+    /** 新批准与实际迁移Grant同事务绑定，已取消状态不能被恢复。 */
+    int bindMigrationGrant(@Param("p") Partition p,@Param("id") String id,@Param("version") long version,@Param("grant") String grant);
     /** 每个申请唯一启动意图，必须与申请及审计同事务。 */
     int enqueueStart(@Param("id") String id);
     /** 同一代成员待处理申请数量有界。 */

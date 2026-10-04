@@ -30,5 +30,19 @@ public final class RequestModels {
                           String roleId, String capabilitiesJson, String scopeJson, String policyHash,
                           Instant memberValidTo, Instant validFrom, Instant validTo, String reason,
                           long requestVersion, String snapshotHash, State state, long stateVersion,
-                          String approvalInstanceId, String grantId, String commandId) {}
+                          String approvalInstanceId, String grantId, String commandId,
+                          String migrationOldGrantId,Long migrationOldVersion,boolean withdrawn) {
+        /** MyBatis只使用完整快照，旧普通申请构造保持源码兼容。 */
+        @org.apache.ibatis.annotations.AutomapConstructor
+        public Request {}
+        /** 普通申请不关联迁移，也没有撤回事实。 */
+        public Request(String id,String tenantId,String applicationId,String environment,String requesterPrincipal,
+                String membershipId,long generation,String policyId,String roleId,String capabilitiesJson,String scopeJson,
+                String policyHash,Instant memberValidTo,Instant validFrom,Instant validTo,String reason,long requestVersion,
+                String snapshotHash,State state,long stateVersion,String approvalInstanceId,String grantId,String commandId){
+            this(id,tenantId,applicationId,environment,requesterPrincipal,membershipId,generation,policyId,roleId,
+                    capabilitiesJson,scopeJson,policyHash,memberValidTo,validFrom,validTo,reason,requestVersion,snapshotHash,
+                    state,stateVersion,approvalInstanceId,grantId,commandId,null,null,false);
+        }
+    }
 }

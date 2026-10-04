@@ -1,3 +1,4 @@
+import { GrantSourceType } from './codes'
 import { useRef, useState } from 'react'
 import type { RefSelectProps } from 'antd'
 import { Alert, Button, Checkbox, Descriptions, Select, Space, Table, Tag, Typography } from 'antd'
@@ -11,7 +12,7 @@ import { useCommand } from './useCommand'
 import { RoleMigrationTaskPanel, migrationStages } from './RoleMigrationTaskPanel'
 
 const exclusions: Record<string, string> = {
-  UNSUPPORTED_SOURCE: '审批来源需要本人重新申请审批后切换', GROUP_UNAVAILABLE: '组已停用、来源隔离或缺少业务时区', GRANT_ROLE_MISMATCH: '已不属于选定旧角色',
+  UNSUPPORTED_SOURCE: '此来源尚不支持迁移', OA_APPROVAL_REQUIRED: '需要本人新版审批或当前审批资格已失效', GROUP_UNAVAILABLE: '组已停用、来源隔离或缺少业务时区', GRANT_ROLE_MISMATCH: '已不属于选定旧角色',
   GRANT_NOT_ACTIVE: '授权尚未生效或已撤销', GRANT_NOT_CURRENT: '授权尚未开始', GRANT_EXPIRED: '授权已到期',
   MEMBERSHIP_UNAVAILABLE: '成员状态或代际已失效', SELF_GRANT_DENIED: '不能迁移自己的授权',
   MANAGEMENT_CEILING: '旧版或新版超出当前管理上限', CAPABILITY_UNAVAILABLE: '新版能力未发布或已停用',
@@ -61,7 +62,7 @@ export function RoleMigrationPanel({ oldRole, roles, close }: { oldRole: Role; r
     }
     if (!request || !report || !accepted || frozen && !create.unknown) return
     const result = await create.send(commandId => ({ ...partition, command_id: commandId, old_role_id: request.old_role_id, new_role_id: request.new_role_id,
-      grants: report.items.filter(item => item.eligible).map(item => ({ grant_id: item.grant.id, expected_version: item.grant.version, valid_to: item.grant.valid_to, scope_hash: item.scope_hash })) }))
+      grants: report.items.filter(item => item.eligible).map(item => ({ grant_id: item.grant.id, expected_version: item.grant.version, valid_to: item.grant.valid_to, scope_hash: item.scope_hash, replacement_request_id: item.replacement_request_id ?? null })) }))
     if (result) setTaskId(result.id)
   }
   // 清空按钮随即禁用，主动移到仍有效的控件，保留弹层键盘关闭与焦点边界。
@@ -126,6 +127,7 @@ export function RoleMigrationPanel({ oldRole, roles, close }: { oldRole: Role; r
           { key: 'source', label: '原来源', children: `${sourceLabels[row.grant.source_type] ?? row.grant.source_type} · ${row.grant.source_id}` },
           { key: 'scope', label: '固定范围', children: row.scope_rule ? <div style={{ display: 'grid', gap: 4, overflowWrap: 'anywhere' }}><ScopeSummary rule={row.scope_rule} /></div> : '当前企业全部资源' },
           { key: 'valid', label: '原时间窗', children: `${time(row.grant.valid_from)} 至 ${time(row.grant.valid_to)}` },
+          { key: 'approval', label: '新版批准申请', children: row.replacement_request_id ? <Typography.Text copyable>{row.replacement_request_id}</Typography.Text> : row.grant.source_type === GrantSourceType.OA_REQUEST ? '尚无当前有效新版批准' : '此来源无需审批关联' },
           { key: 'next', label: '拟新来源', children: <Typography.Text copyable>{row.proposed_source_id}</Typography.Text> },
         ]} /> }} columns={[
           { title: '成员／组', width: 220, render: (_, row) => <Typography.Text copyable>{row.grant.member_id ?? row.grant.group_id}</Typography.Text> },

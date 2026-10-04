@@ -85,7 +85,7 @@ class RoleMigrationPostgresIT {
         var stale=grant(f,false);jdbc.update("UPDATE auth_governance.membership SET generation=generation+1,version=version+1 WHERE id=?",f.member.membershipId());assertThat(report(f,stale).items().getFirst().reasons()).contains(Exclusion.MEMBERSHIP_UNAVAILABLE);
     }
     @Test void approvalSourceIsReportedAndNeverConvertedToDirect(){
-        var f=fixture();var g=grant(f,false);jdbc.update("UPDATE auth_governance.access_grant SET source_type='OA_REQUEST' WHERE id=?",g.id());String before=facts(f);var r=report(f,g);assertThat(r.items().getFirst().grant().sourceType()).isEqualTo("OA_REQUEST");assertThat(r.items().getFirst().reasons()).contains(Exclusion.UNSUPPORTED_SOURCE);assertThat(facts(f)).isEqualTo(before);
+        var f=fixture();var g=grant(f,false);jdbc.update("UPDATE auth_governance.access_grant SET source_type='OA_REQUEST' WHERE id=?",g.id());String before=facts(f);var r=report(f,g);assertThat(r.items().getFirst().grant().sourceType()).isEqualTo("OA_REQUEST");assertThat(r.items().getFirst().reasons()).contains(Exclusion.OA_APPROVAL_REQUIRED);assertThat(facts(f)).isEqualTo(before);
     }
     @Test void groupSourceKeepsItsRealGroupAndFixedScope(){
         var f=fixture();var authority=new DirectoryAuthority(id(),"mg12-"+id(),"test","1",f.p.tenantId(),f.owner.issuer());runtime.directory().register(authority,"mg12");
@@ -117,6 +117,6 @@ class RoleMigrationPostgresIT {
     @Test void concurrentGrantMutationCannotReturnStaleQualification() throws Exception {
         var f=fixture();var g=grant(f,true);var first=new AtomicBoolean(true);var field=GovernanceRuntime.class.getDeclaredField("roleMigrationMapper");field.setAccessible(true);var real=(RoleMigrationMapper)field.get(runtime);
         var proxy=(RoleMigrationMapper)Proxy.newProxyInstance(RoleMigrationMapper.class.getClassLoader(),new Class<?>[]{RoleMigrationMapper.class},(ignored,method,args)->{var result=method.invoke(real,args);if(method.getName().equals("selected")&&first.getAndSet(false))jdbc.update("UPDATE auth_governance.access_grant SET state='REVOKED',version=version+1 WHERE id=?",g.id());return result;});
-        var roles=GovernanceRuntime.class.getDeclaredField("accessMapper");roles.setAccessible(true);var tx=GovernanceRuntime.class.getDeclaredField("transaction");tx.setAccessible(true);var view=new RoleMigrationPreview(runtime.access(),runtime.portalManagement(),(AccessMapper)roles.get(runtime),proxy,(TransactionTemplate)tx.get(runtime));assertThatThrownBy(()->view.preview(login(f.owner),input(f,f.next,g.id()))).hasMessage("VERSION_CONFLICT");
+        var roles=GovernanceRuntime.class.getDeclaredField("accessMapper");roles.setAccessible(true);var tx=GovernanceRuntime.class.getDeclaredField("transaction");tx.setAccessible(true);var view=new RoleMigrationPreview(runtime.access(),runtime.portalManagement(),(AccessMapper)roles.get(runtime),proxy,(TransactionTemplate)tx.get(runtime),runtime.requests());assertThatThrownBy(()->view.preview(login(f.owner),input(f,f.next,g.id()))).hasMessage("VERSION_CONFLICT");
     }
 }

@@ -25,6 +25,7 @@ public final class RoleMigrationTasks {
     private static final String COMPLETE="COMPLETED";
     private static final String BLOCKED="BLOCKED";
     private final AccessManagement access;
+    private final AccessRequests requests;
     private final RoleMigrationPreview preview;
     private final AccessMapper grants;
     private final RoleMigrationMapper snapshots;
@@ -34,8 +35,8 @@ public final class RoleMigrationTasks {
 
     /** 所有管理副作用共享原治理事务管理器，图网络调用由原可靠投影负责。 */
     public RoleMigrationTasks(AccessManagement access,RoleMigrationPreview preview,AccessMapper grants,
-            RoleMigrationMapper snapshots,RoleMigrationTaskMapper tasks,IdentityMapper commands,TransactionTemplate transaction){
-        this.access=access;this.preview=preview;this.grants=grants;this.snapshots=snapshots;this.tasks=tasks;this.commands=commands;
+            RoleMigrationMapper snapshots,RoleMigrationTaskMapper tasks,IdentityMapper commands,TransactionTemplate transaction,AccessRequests requests){
+        this.requests=requests;this.access=access;this.preview=preview;this.grants=grants;this.snapshots=snapshots;this.tasks=tasks;this.commands=commands;
         tx=new TransactionTemplate(transaction.getTransactionManager());tx.setTimeout(5);tx.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
     }
 
@@ -47,7 +48,7 @@ public final class RoleMigrationTasks {
         var selected=new TreeMap<String,GrantSelection>();
         for(var value:input.grants()){
             if(value==null||value.expectedVersion()<1)throw error(INVALID_ARGUMENT);
-            BootstrapCommand.uuid(value.grantId());instant(value.validTo());
+            BootstrapCommand.uuid(value.grantId());instant(value.validTo());if(value.replacementRequestId()!=null)BootstrapCommand.uuid(value.replacementRequestId());
             if(value.scopeHash()!=null&&!value.scopeHash().matches("[a-f0-9]{64}"))throw error(INVALID_ARGUMENT);
             if(selected.put(value.grantId(),value)!=null)throw error(INVALID_ARGUMENT);
         }
@@ -60,16 +61,17 @@ public final class RoleMigrationTasks {
                 for(var row:rows){
                     var expected=selected.get(row.id());
                     if(row.version()!=expected.expectedVersion()||!row.validTo().equals(instant(expected.validTo()))||!Objects.equals(row.scopeHash(),expected.scopeHash()))throw error(VERSION_CONFLICT);
-                    if(tasks.lineageExists(p,row.id(),input.newRoleId())||tasks.sourceExists(p,row.membershipId(),row.generation(),row.groupId(),source(row.id(),input.newRoleId())))throw error(BINDING_CONFLICT);
+                    if(tasks.lineageExists(p,row.id(),input.newRoleId())||tasks.sourceExists(p,row.membershipId(),row.generation(),row.groupId(),selected.get(row.id()).replacementRequestId()==null?source(row.id(),input.newRoleId()):selected.get(row.id()).replacementRequestId()+":single:1"))throw error(BINDING_CONFLICT);
                 }
                 var report=preview.preview(login,new RoleMigrationDtos.PreviewRequest(p.tenantId(),p.applicationId(),p.environment(),input.oldRoleId(),input.newRoleId(),List.copyOf(selected.keySet())));
                 if(report.excludedCount()!=0)throw error(ACCESS_DENIED);
+                for(var item:report.items())if(!Objects.equals(item.replacementRequestId(),selected.get(item.grant().id()).replacementRequestId()))throw error(BINDING_CONFLICT);
                 if(!rows.equals(snapshots.selected(p,List.copyOf(selected.keySet()))))throw error(VERSION_CONFLICT);
                 var now=snapshots.now();String id=id();
                 var task=new Task(id,p.tenantId(),p.applicationId(),p.environment(),input.oldRoleId(),input.newRoleId(),RUNNING,1,manager.membershipId(),manager.generation(),input.commandId(),now,now);
                 one(tasks.insertTask(task));
                 for(var row:rows){
-                    one(tasks.insertEntry(new Entry(id(),id,p.tenantId(),p.applicationId(),p.environment(),row.id(),row.version(),input.newRoleId(),row.membershipId(),row.generation(),row.sourceId(),row.scope(),row.ruleJson(),row.scopeHash(),row.validFrom(),row.validTo(),originalHash(row),source(row.id(),input.newRoleId()),id(),id(),id(),READY_TO_REVOKE,1,null,null,null,null,now,row.sourceType(),row.groupId())));
+                    one(tasks.insertEntry(new Entry(id(),id,p.tenantId(),p.applicationId(),p.environment(),row.id(),row.version(),input.newRoleId(),row.membershipId(),row.generation(),row.sourceId(),row.scope(),row.ruleJson(),row.scopeHash(),row.validFrom(),row.validTo(),originalHash(row),selected.get(row.id()).replacementRequestId()==null?source(row.id(),input.newRoleId()):selected.get(row.id()).replacementRequestId()+":single:1",id(),id(),id(),READY_TO_REVOKE,1,null,null,null,null,now,row.sourceType(),row.groupId(),selected.get(row.id()).replacementRequestId())));
                 }
                 audit(manager,p,"CREATE_ROLE_MIGRATION",id,1,input.commandId());return id;
             });
@@ -128,6 +130,7 @@ public final class RoleMigrationTasks {
         // 复用最新只读资格规则；仅任务已自行撤旧的阶段忽略预期的REVOKED排除。
         var assessment=preview.preview(login,new RoleMigrationDtos.PreviewRequest(p.tenantId(),p.applicationId(),p.environment(),task.oldRoleId(),task.newRoleId(),List.of(entry.oldGrantId()))).items().getFirst();
         var reasons=assessment.reasons().stream().filter(r->entry.stage()==READY_TO_REVOKE||r!=RoleMigrationDtos.Exclusion.GRANT_NOT_ACTIVE).toList();
+        if(!Objects.equals(assessment.replacementRequestId(),entry.replacementRequestId())){checkpoint(p,entry,FAILED,"OA_APPROVAL_REQUIRED",entry.revokeReceiptId(),entry.newGrantId(),entry.newReceiptId());return;}
         if(!reasons.isEmpty()){checkpoint(p,entry,FAILED,reasons.getFirst().name(),entry.revokeReceiptId(),entry.newGrantId(),entry.newReceiptId());return;}
         switch(entry.stage()){
             case READY_TO_REVOKE -> {
@@ -145,7 +148,7 @@ public final class RoleMigrationTasks {
                 if(tasks.sourceExists(p,entry.memberId(),entry.generation(),entry.groupId(),entry.newSourceId())){checkpoint(p,entry,FAILED,"LINEAGE_CONFLICT",entry.revokeReceiptId(),null,null);return;}
                 var now=snapshots.now();var from=now.isBefore(entry.validFrom())?entry.validFrom():now;
                 if(!from.isBefore(entry.validTo())){checkpoint(p,entry,FAILED,"GRANT_EXPIRED",entry.revokeReceiptId(),null,null);return;}
-                var created=access.grantMigration(login,p,entry,from);
+                var created=entry.replacementRequestId()==null?access.grantMigration(login,p,entry,from):requests.grantMigration(p,entry,from);
                 checkpoint(p,entry,WAIT_NEW_CONFIRM,null,entry.revokeReceiptId(),created.id(),null);
             }
             case WAIT_NEW_CONFIRM -> {
@@ -167,7 +170,7 @@ public final class RoleMigrationTasks {
     private Detail detail(Partition p,Task task){
         var entries=tasks.entries(p,task.id());var ids=entries.stream().map(Entry::newGrantId).filter(Objects::nonNull).toList();
         var current=ids.isEmpty()?Map.<String,Snapshot>of():snapshots.selected(p,ids).stream().collect(Collectors.toMap(Snapshot::id,r->r));
-        var items=entries.stream().map(e->new Item(e.id(),e.oldGrantId(),e.oldVersion(),e.memberId(),e.generation(),e.oldSourceId(),e.scope(),e.ruleJson()==null?null:ScopeRules.decode(e.ruleJson()),e.scopeHash(),e.validFrom().toString(),e.validTo().toString(),e.newSourceId(),e.stage().code(),e.version(),e.reason(),e.revokeReceiptId(),e.newGrantId()!=null&&current.containsKey(e.newGrantId())?grantView(current.get(e.newGrantId()).grant()):null,e.newReceiptId(),e.updatedAt().toString(),e.sourceType(),e.groupId())).toList();
+        var items=entries.stream().map(e->new Item(e.id(),e.oldGrantId(),e.oldVersion(),e.memberId(),e.generation(),e.oldSourceId(),e.scope(),e.ruleJson()==null?null:ScopeRules.decode(e.ruleJson()),e.scopeHash(),e.validFrom().toString(),e.validTo().toString(),e.newSourceId(),e.stage().code(),e.version(),e.reason(),e.revokeReceiptId(),e.newGrantId()!=null&&current.containsKey(e.newGrantId())?grantView(current.get(e.newGrantId()).grant()):null,e.newReceiptId(),e.updatedAt().toString(),e.sourceType(),e.groupId(),e.replacementRequestId())).toList();
         return new Detail(task.id(),p.tenantId(),p.applicationId(),p.environment(),roleView(requireRole(p,task.oldRoleId())),roleView(requireRole(p,task.newRoleId())),task.state(),task.version(),task.commandId(),task.createdAt().toString(),task.updatedAt().toString(),items,entries.stream().filter(e->e.stage()==COMPLETED).count(),entries.stream().filter(e->e.stage()==FAILED).count(),entries.stream().filter(e->e.stage()==CANCELLED).count(),entries.stream().filter(e->!e.stage().terminal()).count());
     }
     private void checkpoint(Partition p,Entry e,Stage stage,String reason,String revoke,String next,String newReceipt){one(tasks.checkpoint(p,e,stage,reason,revoke,next,newReceipt));}

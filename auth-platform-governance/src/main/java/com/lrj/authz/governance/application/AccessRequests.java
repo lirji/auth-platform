@@ -91,6 +91,93 @@ public final class AccessRequests {
         });
     }
 
+    /** 本人新申请升级固定原OA授权；幂等重放不会重新计算剩余期限。 */
+    public Request submitMigration(VerifiedLogin login,Partition p,String command,String policyId,
+                                   String oldGrantId,long expectedVersion,String reason){
+        AccessValues.partition(p);BootstrapCommand.uuid(policyId);BootstrapCommand.uuid(oldGrantId);
+        BootstrapCommand.bounded(reason,1000);if(expectedVersion<1)throw invalid();
+        return tx.execute(status->{
+            var actor=context(login,p,true);
+            String payload=AccessValues.hash(p,actor.membershipId(),actor.membershipGeneration(),policyId,oldGrantId,expectedVersion,reason);
+            String result=command(actor,p,"SUBMIT_ROLE_MIGRATION_REQUEST",command,payload,()->{
+                var old=access.grant(p,oldGrantId);var original=requests.byGrant(p,oldGrantId);
+                if(old==null||old.version()!=expectedVersion||old.state()!=GrantState.ACTIVE
+                        ||!com.lrj.authz.governance.domain.RequestModels.SOURCE_TYPE.equals(old.sourceType())
+                        ||!actor.membershipId().equals(old.membershipId())||actor.membershipGeneration()!=old.generation()
+                        ||original==null||original.state()!=State.APPROVED||original.withdrawn()
+                        ||!old.sourceId().equals(original.id()+":single:"+original.requestVersion()))throw denied();
+                var policy=usablePolicy(p,policyId,actor.membershipId());var role=access.role(p,policy.roleId());
+                var previous=access.role(p,old.roleId());String rule=access.scope(p,oldGrantId);
+                if(!"SCOPED".equals(old.scope())||rule==null||!rule.equals(policy.scopeJson())
+                        ||!previous.roleCode().equals(role.roleCode())||role.version()<=previous.version()
+                        ||!AccessValues.read(previous.capabilitiesJson()).containsAll(AccessValues.read(role.capabilitiesJson())))throw denied();
+                var now=access.now();if(now.isBefore(old.validFrom())||!now.isBefore(old.validTo()))throw denied();
+                var member=identities.membership(actor.membershipId());
+                if(Duration.between(now,old.validTo()).compareTo(Duration.ofSeconds(policy.maxDurationSeconds()))>0
+                        ||member.validTo()!=null&&old.validTo().isAfter(member.validTo()))throw denied();
+                if(requests.pendingCount(p,actor.membershipId(),actor.membershipGeneration())>=20
+                        ||requests.migrationOpen(p,oldGrantId).size()>=20)throw invalid();
+                if(requests.migrationOpen(p,oldGrantId).stream().anyMatch(r->r.roleId().equals(role.id())))throw new GovernanceException(BINDING_CONFLICT);
+                CapabilityUsage.requireCreatable(lifecycles,p.applicationId(),AccessValues.read(role.capabilitiesJson()));
+                String snapshot=AccessValues.hash(payload,actor.principalId(),role.id(),role.capabilitiesJson(),rule,
+                        policy.contentHash(),member.validTo(),now,old.validTo(),1);
+                Request request=new Request(id(),p.tenantId(),p.applicationId(),p.environment(),actor.principalId(),
+                        actor.membershipId(),actor.membershipGeneration(),policy.id(),role.id(),role.capabilitiesJson(),rule,
+                        policy.contentHash(),member.validTo(),now,old.validTo(),reason,1,snapshot,State.SUBMITTED,1,
+                        null,null,command,oldGrantId,expectedVersion,false);
+                one(requests.insertRequest(request));one(requests.enqueueStart(request.id()));
+                audit(actor.membershipId(),p,"SUBMIT_ROLE_MIGRATION_REQUEST",request.id(),1,command);return request.id();
+            });
+            return requests.owned(p,result,actor.membershipId(),actor.membershipGeneration());
+        });
+    }
+
+    /** 新审批必须绑定固定旧来源，当前策略／成员失效不会被旧批准掩盖。 */
+    Request migrationApproval(Partition p,com.lrj.authz.governance.domain.RoleMigrationModels.Snapshot old,String role){
+        var approved=requests.migrationApproved(p,old.id(),role);
+        if(approved==null)return null;
+        try{
+            validateMigration(p,approved,old.grant(),approved.grantId()!=null);
+            return approved;
+        }catch(GovernanceException unavailable){return null;}
+    }
+
+    /** 仅任务在真实旧撤权确认后调用，申请绑定和可靠投影与检查点同事务。 */
+    Grant grantMigration(Partition p,com.lrj.authz.governance.domain.RoleMigrationTaskModels.Entry entry,Instant from){
+        var r=requests.request(p,entry.replacementRequestId());var old=access.grant(p,entry.oldGrantId());
+        if(r==null||r.state()!=State.APPROVED||r.withdrawn()||r.grantId()!=null)throw denied();
+        validateMigration(p,r,old,false);
+        if(!Objects.equals(r.migrationOldVersion(),entry.oldVersion())||!r.id().equals(entry.replacementRequestId())
+                ||!r.roleId().equals(entry.newRoleId())||!r.scopeJson().equals(entry.ruleJson())
+                ||!r.validTo().equals(entry.validTo())||!from.isBefore(r.validTo()))throw denied();
+        var policy=usablePolicy(p,r.policyId(),r.membershipId());
+        Grant g=new Grant(entry.plannedGrantId(),p.tenantId(),p.applicationId(),p.environment(),r.membershipId(),r.generation(),
+                r.roleId(),"SCOPED",com.lrj.authz.governance.domain.RequestModels.SOURCE_TYPE,entry.newSourceId(),
+                from,r.validTo(),GrantState.PENDING,1,null);
+        one(access.insertGrant(g,policy.approverMembershipId()));
+        one(access.insertScope(g,ScopeRules.decode(r.scopeJson()).resourceType(),r.scopeJson(),AccessValues.hash(r.scopeJson())));
+        one(access.enqueue(g.id(),1,"UPSERT"));one(requests.bindMigrationGrant(p,r.id(),r.stateVersion(),g.id()));return g;
+    }
+
+    private void validateMigration(Partition p,Request r,Grant old,boolean alreadyGranted){
+        var original=old==null?null:requests.byGrant(p,old.id());
+        if(old==null||r.migrationOldGrantId()==null||!r.migrationOldGrantId().equals(old.id())||r.migrationOldVersion()==null
+                ||!(old.state()==GrantState.ACTIVE&&old.version()==r.migrationOldVersion()
+                     ||old.state()==GrantState.REVOKED&&old.version()==r.migrationOldVersion()+1)
+                ||!com.lrj.authz.governance.domain.RequestModels.SOURCE_TYPE.equals(old.sourceType())
+                ||!Objects.equals(old.membershipId(),r.membershipId())||old.generation()!=r.generation()
+                ||original==null||original.state()!=State.APPROVED||!alreadyGranted&&original.withdrawn()
+                ||!old.sourceId().equals(original.id()+":single:"+original.requestVersion())
+                ||!r.validTo().equals(old.validTo())||!r.scopeJson().equals(access.scope(p,old.id()))
+                ||!access.memberActive(p,r.membershipId(),r.generation())||!r.validTo().isAfter(access.now()))throw denied();
+        var policy=usablePolicy(p,r.policyId(),r.membershipId());var next=access.role(p,r.roleId());var previous=access.role(p,old.roleId());
+        if(!policy.roleId().equals(r.roleId())||!policy.contentHash().equals(r.policyHash())||!policy.scopeJson().equals(r.scopeJson())
+                ||!next.roleCode().equals(previous.roleCode())||next.version()<=previous.version()
+                ||!AccessValues.read(previous.capabilitiesJson()).containsAll(AccessValues.read(next.capabilitiesJson())))throw denied();
+        var member=identities.membership(r.membershipId());
+        if(member.validTo()!=null&&r.validTo().isAfter(member.validTo())||access.liveCount(p,r.membershipId(),r.generation())>=100)throw denied();
+    }
+
     /** 本人查询没有管理人员目录、他人申请或跨代成员回退路径。 */
     public Request owned(VerifiedLogin login, Partition p, String id) {
         BootstrapCommand.uuid(id); CurrentContext actor=context(login,p,false);
@@ -114,6 +201,24 @@ public final class AccessRequests {
             catch(GovernanceException unavailable){return false;}
         }).toList();
         return new com.lrj.authz.protocol.RequestDtos.Page<>(items,page.size()==100?page.getLast().id():null);
+    }
+
+    /** 本人升级目录过滤真实同编码新版与原范围；空页仍保留扫描游标。 */
+    public com.lrj.authz.protocol.RequestDtos.Page<Policy> migrationPolicyPage(VerifiedLogin login,Partition p,String requestId,String after){
+        var original=owned(login,p,requestId);var old=original.grantId()==null?null:access.grant(p,original.grantId());
+        if(original.state()!=State.APPROVED||original.withdrawn()||old==null||old.state()!=GrantState.ACTIVE
+                ||!com.lrj.authz.governance.domain.RequestModels.SOURCE_TYPE.equals(old.sourceType())
+                ||!old.sourceId().equals(original.id()+":single:"+original.requestVersion())
+                ||!access.memberActive(p,old.membershipId(),old.generation())||!old.validTo().isAfter(access.now()))throw denied();
+        var previous=access.role(p,old.roleId());var rule=access.scope(p,old.id());var page=policyPage(login,p,after);
+        var now=access.now();var items=page.items().stream().filter(policy->{
+            var next=access.role(p,policy.roleId());
+            return previous.roleCode().equals(next.roleCode())&&next.version()>previous.version()
+                    &&AccessValues.read(previous.capabilitiesJson()).containsAll(AccessValues.read(next.capabilitiesJson()))
+                    &&Objects.equals(rule,policy.scopeJson())
+                    &&Duration.between(now,old.validTo()).compareTo(Duration.ofSeconds(policy.maxDurationSeconds()))<=0;
+        }).toList();
+        return new com.lrj.authz.protocol.RequestDtos.Page<>(items,page.nextCursor());
     }
 
     /** 同分区固定角色的显示字段，调用者必须先通过策略目录或管理范围校验。 */
@@ -174,13 +279,17 @@ public final class AccessRequests {
     }
 
     private void settleRequest(Partition p,Request r,String actor,String command,String operation) {
-        if(r.state()==State.CANCELLED || r.state()==State.REJECTED)return;
+        if(r.withdrawn()||r.state()==State.CANCELLED || r.state()==State.REJECTED)return;
+        // 旧Grant已经撤销也要保存撤回事实，否则尚未授新的替代批准仍可能被推进。
+        if(r.grantId()!=null)for(var replacement:requests.migrationOpen(p,r.grantId())){
+            one(requests.cancel(p,replacement.id(),replacement.stateVersion(),State.CANCELLED));requests.stopStart(replacement.id());
+            audit(actor,p,"STOP_LINKED_MIGRATION_REQUEST",replacement.id(),replacement.stateVersion()+1,command);
+        }
         if(r.grantId()!=null) {
             var g=access.grant(p,r.grantId());
             if(g==null || !com.lrj.authz.governance.domain.RequestModels.SOURCE_TYPE.equals(g.sourceType()) || !(r.id()+":single:"+r.requestVersion()).equals(g.sourceId()))
                 throw new GovernanceException(BINDING_CONFLICT);
-            if(g.state()==GrantState.REVOKED)return;
-            one(access.revoke(p,g.id(),g.version()));one(access.enqueue(g.id(),g.version()+1,"DELETE"));
+            if(g.state()!=GrantState.REVOKED){one(access.revoke(p,g.id(),g.version()));one(access.enqueue(g.id(),g.version()+1,"DELETE"));}
             // APPROVED保留审批事实；用户由执行视图区分正在回收和真实回收回执。
             one(requests.cancel(p,r.id(),r.stateVersion(),State.APPROVED));
         } else one(requests.cancel(p,r.id(),r.stateVersion(),State.CANCELLED));
@@ -192,7 +301,7 @@ public final class AccessRequests {
     com.lrj.authz.protocol.ApprovalDtos.Receipt decide(Partition p,com.lrj.authz.protocol.ApprovalDtos.Decision event) {
         var r=requests.request(p,event.requestId());
         var status=com.lrj.authz.protocol.ApprovalDtos.Status.IGNORED;
-        if(r==null || r.state()==State.CANCELLED || r.state()==State.APPROVED || r.state()==State.REJECTED)
+        if(r==null || r.withdrawn() || r.state()==State.CANCELLED || r.state()==State.APPROVED || r.state()==State.REJECTED)
             return new com.lrj.authz.protocol.ApprovalDtos.Receipt(event.eventId(),status.code(),"REQUEST_TERMINAL");
         if(r.state()!=State.IN_REVIEW || !event.approvalInstanceId().equals(r.approvalInstanceId()))
             return new com.lrj.authz.protocol.ApprovalDtos.Receipt(event.eventId(),com.lrj.authz.protocol.ApprovalDtos.Status.REJECTED.code(),"INSTANCE_MISMATCH");
@@ -205,6 +314,11 @@ public final class AccessRequests {
                     || policy==null || !event.policyId().equals(policy.id()) || event.policyVersion()!=policy.policyVersion()
                     || !event.approverMembershipId().equals(policy.approverMembershipId()) || event.approverGeneration()!=policy.approverGeneration()) throw denied();
             usablePolicy(p,r.policyId(),r.membershipId());
+            if(r.migrationOldGrantId()!=null){
+                var old=access.grant(p,r.migrationOldGrantId());
+                validateMigration(p,r,old,false);
+                if(old.state()!=GrantState.ACTIVE)throw denied();
+            }
             if(approved)CapabilityUsage.requireCreatable(lifecycles,p.applicationId(),AccessValues.read(r.capabilitiesJson()));
             var member=identities.membership(r.membershipId());
             if(!access.memberActive(p,r.membershipId(),r.generation()) || !r.validTo().isAfter(access.now())
@@ -214,7 +328,8 @@ public final class AccessRequests {
             approved=false;result="APPROVAL_REVALIDATION_FAILED";
         }
         String grant=null;
-        if(approved) {
+        if(approved&&r.migrationOldGrantId()!=null)result="MIGRATION_APPROVED_PENDING_SWITCH";
+        if(approved&&r.migrationOldGrantId()==null) {
             Grant g=new Grant(id(),p.tenantId(),p.applicationId(),p.environment(),r.membershipId(),r.generation(),r.roleId(),"SCOPED",
                     com.lrj.authz.governance.domain.RequestModels.SOURCE_TYPE,r.id()+":single:"+r.requestVersion(),r.validFrom(),r.validTo(),GrantState.PENDING,1,null);
             one(access.insertGrant(g,policy.approverMembershipId()));

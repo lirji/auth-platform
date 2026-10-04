@@ -33,7 +33,7 @@ public final class RoleMigrationTaskModels {
             String oldSourceId,String scope,String ruleJson,String scopeHash,Instant validFrom,Instant validTo,
             String originalHash,String newSourceId,String plannedGrantId,String revokeCommand,String grantCommand,
             Stage stage,long version,String reason,String revokeReceiptId,String newGrantId,String newReceiptId,
-            Instant updatedAt,String sourceType,String groupId) {}
+            Instant updatedAt,String sourceType,String groupId,String replacementRequestId) {}
     /** 只有真实操作回执及双栅栏当前READY才可报告新授权确认。 */
     public record Confirmation(String status,String operationId) {}
 }

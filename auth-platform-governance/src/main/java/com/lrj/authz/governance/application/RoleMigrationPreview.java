@@ -23,6 +23,7 @@ public final class RoleMigrationPreview {
     private static final String UNKNOWN = "UNKNOWN";
     private static final String SCOPED = "SCOPED";
     private final AccessManagement access;
+    private final AccessRequests requests;
     private final PortalManagement portal;
     private final AccessMapper roles;
     private final RoleMigrationMapper mapper;
@@ -30,8 +31,8 @@ public final class RoleMigrationPreview {
 
     /** 复用本服务主库事务并显式只读，未来执行器不能复用此入口做写入。 */
     public RoleMigrationPreview(AccessManagement access, PortalManagement portal, AccessMapper roles,
-            RoleMigrationMapper mapper, TransactionTemplate transaction) {
-        this.access=access; this.portal=portal; this.roles=roles; this.mapper=mapper;
+            RoleMigrationMapper mapper, TransactionTemplate transaction,AccessRequests requests) {
+        this.requests=requests;this.access=access; this.portal=portal; this.roles=roles; this.mapper=mapper;
         read=new TransactionTemplate(transaction.getTransactionManager()); read.setReadOnly(true); read.setTimeout(5);
         read.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
     }
@@ -72,11 +73,11 @@ public final class RoleMigrationPreview {
             for(var row:current){
                 var reasons=new ArrayList<Exclusion>();
                 if(!row.roleId().equals(old.id()))reasons.add(GRANT_ROLE_MISMATCH);
-                if(!DIRECT_SOURCE.equals(row.sourceType())&&!GROUP_SOURCE.equals(row.sourceType()))reasons.add(UNSUPPORTED_SOURCE);
+                if(!DIRECT_SOURCE.equals(row.sourceType())&&!GROUP_SOURCE.equals(row.sourceType())&&!com.lrj.authz.governance.domain.RequestModels.SOURCE_TYPE.equals(row.sourceType()))reasons.add(UNSUPPORTED_SOURCE);
                 if(row.state()!=GrantState.ACTIVE)reasons.add(GRANT_NOT_ACTIVE);
                 if(now.isBefore(row.validFrom()))reasons.add(GRANT_NOT_CURRENT);
                 if(!now.isBefore(row.validTo()))reasons.add(GRANT_EXPIRED);
-                if(DIRECT_SOURCE.equals(row.sourceType())){
+                if(DIRECT_SOURCE.equals(row.sourceType())||com.lrj.authz.governance.domain.RequestModels.SOURCE_TYPE.equals(row.sourceType())){
                     // 最终评估时钟可能跨过成员期限；不能仅使用稍早快照中的布尔资格。
                     if(!row.memberActive()||row.memberValidFrom()==null||now.isBefore(row.memberValidFrom())
                             ||row.memberValidTo()!=null&&!now.isBefore(row.memberValidTo()))reasons.add(Exclusion.MEMBERSHIP_UNAVAILABLE);
@@ -87,6 +88,9 @@ public final class RoleMigrationPreview {
                     if(!row.groupAvailable())groupReason=GROUP_UNAVAILABLE;
                     if(groupReason!=null)reasons.add(groupReason);
                 }
+                var approval=com.lrj.authz.governance.domain.RequestModels.SOURCE_TYPE.equals(row.sourceType())?requests.migrationApproval(p,row,next.id()):null;
+                if(com.lrj.authz.governance.domain.RequestModels.SOURCE_TYPE.equals(row.sourceType())&&approval==null)reasons.add(OA_APPROVAL_REQUIRED);
+                if(approval!=null&&!approval.equals(requests.migrationApproval(p,row,next.id())))throw new GovernanceException(VERSION_CONFLICT);
                 if(!allowed.containsAll(oldCaps)||!allowed.containsAll(newCaps))reasons.add(MANAGEMENT_CEILING);
                 if(newCaps.stream().anyMatch(c->!definitions.containsKey(c)||definitions.get(c).disabled()))reasons.add(CAPABILITY_UNAVAILABLE);
                 if(!added.isEmpty())reasons.add(REQUIRES_SEPARATE_AUTHORIZATION);
@@ -97,7 +101,7 @@ public final class RoleMigrationPreview {
                 Rule rule=scope(row);
                 if(rule!=null&&newCaps.stream().anyMatch(c->!definitions.containsKey(c)||!rule.resourceType().equals(definitions.get(c).resourceType())))reasons.add(Exclusion.SCOPE_UNSUPPORTED);
                 items.add(new Item(grantView(row.grant()),rule,row.scopeHash(),remaining,
-                        "role-migration:"+row.id()+":"+next.id(),reasons.isEmpty(),reasons));
+                        (approval==null?"role-migration:"+row.id()+":"+next.id():approval.id()+":single:"+approval.requestVersion()),reasons.isEmpty(),reasons,approval==null?null:approval.id()));
             }
             long eligible=items.stream().filter(Item::eligible).count();
             String hash=AccessValues.hash(before.viewHash(),old.contentHash(),next.contentHash(),current.toString(),now.toString());

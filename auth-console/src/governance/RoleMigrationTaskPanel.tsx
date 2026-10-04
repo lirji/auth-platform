@@ -19,7 +19,7 @@ const reasons: Record<string, string> = {
   SELF_GRANT_DENIED: '不能迁移自己的授权', CAPABILITY_UNAVAILABLE: '新版能力未发布或已停用',
   SCOPE_UNSUPPORTED: '目标能力不兼容固定范围', DURATION_EXCEEDS_CEILING: '剩余期限超出管理上限',
   REQUIRES_SEPARATE_AUTHORIZATION: '新增能力须独立授权', STRICT_PARTITION_REQUIRED: '严格分区不可用',
-  UNSUPPORTED_SOURCE: '此来源须单独处理', GROUP_UNAVAILABLE: '组已停用、来源隔离或缺少业务时区', GRANT_ROLE_MISMATCH: '原角色已变更', GRANT_NOT_ACTIVE: '原授权未生效',
+  UNSUPPORTED_SOURCE: '此来源须单独处理', OA_APPROVAL_REQUIRED: '新版批准已撤回、到期或当前资格失效', GROUP_UNAVAILABLE: '组已停用、来源隔离或缺少业务时区', GRANT_ROLE_MISMATCH: '原角色已变更', GRANT_NOT_ACTIVE: '原授权未生效',
   PROJECTION_PROCESSING: '投影仍在处理，可刷新状态后再次推进', PROJECTION_BLOCKED: '投影已阻断，修复依赖后受控重试',
   REVOCATION_PROOF_CHANGED: '原撤权证明变化，需要重新核对', LINEAGE_CONFLICT: '迁移来源已存在，不覆盖原来源',
   NEW_GRANT_CHANGED: '新授权被撤销或变更，任务不会重新创建', TASK_CANCELLED: '已停止后续步骤，已提交效果保留',
@@ -28,7 +28,7 @@ const terminal = new Set<string>([MigrationStage.COMPLETED, MigrationStage.FAILE
 const time = (value: string) => new Date(value).toLocaleString('zh-CN', { hour12: false })
 /** 旧DIRECT响应仍可读；旧节点缺少GROUP元数据时不能伪造第0代个人或继续写入。 */
 const knownSource = (item: MigrationTaskItem) => item.member_id
-  ? item.member_generation > 0 && !item.group_id && (!item.source_type || item.source_type === GrantSourceType.DIRECT)
+  ? item.member_generation > 0 && !item.group_id && ((!item.source_type || item.source_type === GrantSourceType.DIRECT) && !item.replacement_request_id || item.source_type === GrantSourceType.OA_REQUEST && !!item.replacement_request_id)
   : item.member_generation === 0 && !!item.group_id && item.source_type === GrantSourceType.GROUP
 type Action = { kind: typeof MigrationAction.ADVANCE; body: AdvanceMigrationTask } | { kind: typeof MigrationAction.CANCEL; body: CancelMigrationTask }
   | { kind: typeof MigrationAction.RETRY; command: string; stream: 'POLICY' | 'DIRECTORY' }
@@ -75,6 +75,8 @@ export function RoleMigrationTaskPanel({ id, back, onLock }: { id: string; back:
     try {
       const current = await migrationTask(partition, id)
       cache.setQueryData(key, current)
+      // 发请求前的新读取也要核对来源，兼容节点在两次读取间变化时不能继续写入。
+      if (!current.items.every(knownSource)) return
       for (const item of current.items.filter(item => !terminal.has(item.state))) {
         if (stop.current) break
         const result = await command.send(commandId => ({ kind: MigrationAction.ADVANCE, body: { ...partition, command_id: commandId, item_id: item.id, expected_version: item.version } }))
@@ -118,7 +120,8 @@ export function RoleMigrationTaskPanel({ id, back, onLock }: { id: string; back:
         expandable={{ expandedRowRender: item => <Descriptions column={1} size="small" items={[
           { key: 'old', label: '原授权', children: <Typography.Text copyable>{item.old_grant_id}</Typography.Text> },
           { key: 'source', label: '原来源', children: item.original_source_id },
-          { key: 'source-type', label: '来源类型', children: !knownSource(item) ? '来源信息缺失' : item.group_id ? '组授权（当前动态成员资格）' : '直接授权' },
+          { key: 'source-type', label: '来源类型', children: !knownSource(item) ? '来源信息缺失' : item.group_id ? '组授权（当前动态成员资格）' : item.source_type === GrantSourceType.OA_REQUEST ? '审批授权（新版独立批准）' : '直接授权' },
+          { key: 'approval', label: '新版批准申请', children: item.replacement_request_id ? <Typography.Text copyable>{item.replacement_request_id}</Typography.Text> : '此来源无需审批关联' },
           { key: 'scope', label: '固定范围', children: item.scope_rule ? <div style={{ display: 'grid', gap: 4, overflowWrap: 'anywhere' }}><ScopeSummary rule={item.scope_rule} /></div> : '当前企业全部资源' },
           { key: 'valid', label: '原时间窗', children: `${time(item.valid_from)} 至 ${time(item.valid_to)}（不续期）` },
           { key: 'lineage', label: '新来源谱系', children: <Typography.Text copyable>{item.new_source_id}</Typography.Text> },

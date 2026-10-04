@@ -84,4 +84,13 @@ class RoleMigrationTasksPostgresIT {
         }
         assertThat(h.jdbc.queryForObject("SELECT count(*) FROM auth_governance.grant_projection WHERE grant_id=? AND operation='DELETE'",Integer.class,g.id())).isEqualTo(1);
     }
+    @Test void legacyDirectCreationCommandHashSurvivesNullableApprovalExtension(){
+        var f=h.fixture();var g=h.sqlActive(f,true);var input=h.create(f,g);var selected=input.grants().getFirst();
+        String legacy="[GrantSelection[grantId="+selected.grantId()+", expectedVersion="+selected.expectedVersion()+", validTo="+selected.validTo()+", scopeHash="+selected.scopeHash()+"]]";
+        String expected=com.lrj.authz.governance.application.AccessValues.hash(f.partition(),input.oldRoleId(),input.newRoleId(),legacy);
+        var task=h.runtime.roleMigrationTasks().create(f.login(),input);
+        assertThat(h.jdbc.queryForObject("SELECT payload_hash FROM auth_governance.command_record WHERE tenant_id=? AND operation='CREATE_ROLE_MIGRATION' AND command_id=?",String.class,f.partition().tenantId(),input.commandId())).isEqualTo(expected);
+        assertThat(h.runtime.roleMigrationTasks().create(f.login(),input).id()).isEqualTo(task.id());
+    }
+
 }
