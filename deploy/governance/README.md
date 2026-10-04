@@ -2,6 +2,8 @@
 
 本配置将已有 auth-console、auth-platform-admin 和 ReliableProjectionCli 接入原 `deploy/docker-compose.yml` 的 `governance` profile。入口为 `http://localhost:5273/governance`，提供组织/应用选择、角色版本、成员授权、范围、投影状态和审计。使用真实数据库和认证，不在页面内写入示例数据。
 
+2026-10-03 获授权更新后，本机三个治理应用运行 `rev-fd6bf5911981`，均 healthy；治理库已受控升级至 V36。菜单／角色治理、人员核对和人工复核页面已部署，原 v2 目录和授权保持。实际验收、不可变镜像、备份及回退边界见[部署结果](../../docs/deployment/menu-role-governance-docker-20261003.md)。
+
 ## 依赖与数据边界
 
 - Docker Desktop（BuildKit + Compose v2）；首次初始化 CLI 另需 Java 21 与项目 Maven Wrapper。日常镜像构建只需 Docker，后端使用镜像内 Java 21 和仓库 Wrapper。
@@ -31,6 +33,10 @@ bash deploy/governance/run.sh up
 `run.sh up` 先等待管理后端就绪，再通过真实授权码 + PKCE 登录调用幂等的 enable-strict 接口，最后启动投影进程，避免新分区尚未启用时反复失败。
 
 更新到当前仓库源码时执行：
+
+存量数据库若存在候选版本的 pending migration，先完成备份，停止旧 admin／projector，再由候选镜像的 `GovernanceCli bootstrap` 使用原已完成命令幂等应用迁移，验证原业务记录不变后启动应用。容器执行时只把 JDBC 主机转换为 `host.docker.internal`，保留原数据库、账号及命令；不要重跑完整初始化脚本或重发旧清单。以下 `update` 不承担 migration owner，不能跳过这一步。若已有分区因依赖故障 BLOCKED，核对依赖与原 marker 后，通过受审计 `retry-strict` 恢复原投影，再等待 projector 健康；不能直接改数据库状态。
+
+新源码使用新的 revision 镜像标签，通过 `GOVERNANCE_ADMIN_IMAGE`／`GOVERNANCE_CONSOLE_IMAGE` 覆盖本次构建与启动配置；验证成功后再将私密 runtime.env 绑定新标签，保留旧镜像和配置。不要在已验收的 `rev-*` 标签上重建另一版本。
 
 ```bash
 bash deploy/governance/run.sh config  # 静默校验，不输出私密配置
