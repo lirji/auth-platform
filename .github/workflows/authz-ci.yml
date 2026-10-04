@@ -26,6 +26,7 @@ on:
       - 'deploy/governance-commerce-publication*'
       - 'deploy/tests/test_governance_commerce_publication.py'
       - 'deploy/governance-menu-*'
+      - 'deploy/governance-recovery-runtime.py'
       - 'deploy/governance-commerce-menu-export.py'
       - 'deploy/tests/test_governance_commerce_menu_export.py'
       - 'deploy/governance-p7-*'
@@ -69,6 +70,7 @@ on:
       - 'deploy/governance-commerce-publication*'
       - 'deploy/tests/test_governance_commerce_publication.py'
       - 'deploy/governance-menu-*'
+      - 'deploy/governance-recovery-runtime.py'
       - 'deploy/governance-commerce-menu-export.py'
       - 'deploy/tests/test_governance_commerce_menu_export.py'
       - 'deploy/governance-p7-*'
@@ -139,6 +141,7 @@ jobs:
           python3 -m py_compile deploy/governance-integrated-resources-ui.py
           python3 -m py_compile deploy/governance-menu-role-migration-runtime.py
           python3 -m py_compile deploy/governance-menu-role-migration-tasks-runtime.py
+          python3 -m py_compile deploy/governance-recovery-runtime.py deploy/governance-access-review-runtime.py deploy/governance-personnel-impact-runtime.py deploy/governance-menu-capability-lifecycle-runtime.py deploy/governance-menu-capability-retirement-runtime.py
           python3 -m unittest discover -s deploy/tests -p 'test_governance_commerce_publication.py' -v
           python3 -m unittest discover -s deploy/tests -p 'test_governance_commerce_menu_export.py' -v
           python3 -m unittest discover -s deploy/tests -p 'test_governance_catalog_publisher.py' -v

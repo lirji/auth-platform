@@ -4,14 +4,15 @@
 持续完成已批准[PLAN](PLAN.md)的MG00–MG19；独立实例／数据库隔离测试与生产，原业务数据不改，生产部署未授权。
 
 ## 当前状态（2026-10-03）
-- 全计划ACTIVE，MG00–17产品／必要验证／Git DONE；MG17产品3f0c4f896c9c5973e5697a02e2d791ef722d4fcf精确CI37171411863 SUCCESS、28步。
-- MG18产品／必要验证DONE，见[MG18_TEST_RESULT](MG18_TEST_RESULT.md)：256单测、10真实PG／2真实图、50前端与构建、最终20HTTP／5浏览器组／18图实看PASS，21路径指纹184067df8cd88aa55a13c6d9656e7aa529b9dd37a544ea3f953a13a3d20c0b74；Git／精确CI待本片正常交付。
-- MG19 READY，必要依赖完成；定向补IdP／图断连恢复并汇总修正版本、未知发布和任务进程恢复，随后运行手册／最终Git收口，不等待继续。
-- V29–V36已应用禁止编辑；自有21826–21829已关闭。独立18094 IdP、全部专库／证据和7个既有工作树保留。
-- 原Commerce目录／业务Grant／原5273与生产未修改；真实OA引擎未联调，生产运行核验未接入仍UNPROVEN。
+- MG00–MG19产品及必要验证全部DONE，MG09为设计；完整目标只剩MG19最终Git／精确CI收口。各片冻结契约与实际TEST_RESULT保留。
+- MG18产品040ff19eb8cdb2bac37e827cd3b15bf16264566b已正常ff合并／两分支推送，精确[CI37172948706](https://github.com/lirji/auth-platform/actions/runs/37172948706) completed SUCCESS、head完全一致。当前21路径指纹184067df8cd88aa55a13c6d9656e7aa529b9dd37a544ea3f953a13a3d20c0b74；256单测、10PG／2图、50前端／构建、20HTTP／5组／18图实看PASS。
+- MG19必要验证DONE，见[MG19_TEST_RESULT](MG19_TEST_RESULT.md)：22HTTP＋1SQL保护、当前2独立JVM真实PG／图恢复、202单测、四链路真实断TCP／恢复、更高v3修正与未知发布原命令恢复PASS；0原／自有Grant写入。工具／CI源码指纹由MG19_IMPLEMENTATION_EVIDENCE记录。
+- [运行与恢复手册](OPERATIONS_RUNBOOK.md)和[文档地图](../../../doc-map.md)已同步；V21–V36已应用历史不编辑，独立实例／DB方案保持。
+- 自有21826–21830与演练代理已退出。18094 IdP、专库、全部失败／私密证据和7个旧工作树保留，无清理授权。
+- 原Commerce目录／业务Grant／原5273与生产未修改。真实OA引擎、生产运行扫描、生产部署、容量／RTO／RPO不在本轮实测；未接入核验仍UNKNOWN／UNPROVEN，机器自动发布默认关闭。
 
 ## 下一步
-MG18正常提交／ff合并／推送并核对精确CI；同轮继续MG19定向恢复和文档收口。以下为阶段历史，不代表当前等待或状态。
+按已授权正常提交MG19、ff合并／推main，核对精确CI并保存最终交付回执；不重复已完成片，不自动部署或清理。以下为历史记录，不代表当前仍在等待业务决定或环境。
 
 ## 历史记录
 
