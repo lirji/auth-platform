@@ -15,7 +15,7 @@ V29与V30为追加迁移。V29固定计划、来源形状、保留前缀及范�
 | 真实HTTP | mg14a-http-3a277cc981c5，29项PASS。完整撤旧→真实回执→授新→真实回执、同命令、固定原字段、GROUP预览。原业务Grant写入0。 |
 | 实际页面 | 同轮8组PASS：原组形状、缺失来源只读及恢复、提交后响应丢失重试同任务、外部撤权部分失败、503恢复、关闭历史重开、授新后取消仍显示效果、no-store与0运行错误。 |
 | 视觉 | 待处理／部分失败／取消保留效果各1440／390／320，共9图逐张实看；原组、动态资格、范围、截止与回执可读，正文／表格自身滚动，窄屏编号换行，无body溢出。 |
-| 审查与卫生 | 最新code-hygiene无findings，IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS；既有formatter未配置，静态分析器N/A；事务／谱系／错误恢复手工复核。 |
+| 审查与卫生 | 最新code-hygiene无findings，IMPLEMENTATION_COMPLETE_WITH_LIMITATIONS；既有formatter未配置，静态分析器N/A；事务／谱系／错误恢复手工复核。交付时staged diff发现V30末尾一个空行警告；该迁移已实际执行，为保留Flyway校验和不再编辑，仅此非行为格式限制保留。 |
 
 22项产品／测试／工具源指纹为`3347a10fa0858f9518e670d3fc3c1e88c72aa80380db8fcade4b236846c96601`。最终运行后逐文件核对未变化，私密mg14a-evidence／source-fence和日志保存在忽略的.local/menu-role-governance，凭据0600。
 
