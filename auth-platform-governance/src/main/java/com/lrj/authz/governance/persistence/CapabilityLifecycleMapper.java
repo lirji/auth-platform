@@ -10,6 +10,8 @@ public interface CapabilityLifecycleMapper {
     String lockUsage(@Param("app") String application);
     /** 任一已弃用能力都会阻止新引用，历史读取不使用此门禁。 */
     boolean deprecated(@Param("app") String application,@Param("caps") List<String> capabilities);
+    /** 已退役菜单不能通过新的发布重新引用，弃用菜单仍可保留。 */
+    boolean retired(@Param("app") String application,@Param("caps") List<String> capabilities);
     /** 缺行由应用层显式解释为ACTIVE/version0。 */
     Value value(@Param("app") String application,@Param("cap") String capability);
     /** 比较当前版本，在同一应用锁内增加元数据版本。 */

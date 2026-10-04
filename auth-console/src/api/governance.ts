@@ -1,4 +1,5 @@
-import { LifecycleState } from '../governance/codes.ts'
+import { LifecycleState, RetirementProofState } from '../governance/codes.ts'
+import { validateRetirementReport, validateRetirementReferences, validateRetirementReceipt } from '../governance/capabilityRetirement'
 import { apiClient } from './client'
 import { validatePublishedCatalog } from '../governance/publishedCatalog'
 
@@ -22,7 +23,7 @@ export async function accessState(partition: Partition, role?: string, grant?: s
 }
 
 export interface Organization { membership_id: string; tenant_id: string; tenant_code: string; member_kind: string; generation: number }
-export interface PortalApplication extends Presentation { application_id: string; environment: string; management: boolean; entry_state: 'AVAILABLE' | 'NO_ACCESS' | 'UNAVAILABLE' }
+export interface PortalApplication extends Presentation { application_id: string; environment: string; management: boolean; catalog_owner?: boolean; entry_state: 'AVAILABLE' | 'NO_ACCESS' | 'UNAVAILABLE' }
 export interface Page<T> { items: T[]; next_cursor: string | null }
 /** 本人组织来自当前权威成员关系，浏览器不能指定其他主体。 */
 export async function organizations(signal?: AbortSignal): Promise<Organization[]> {
@@ -209,3 +210,36 @@ export const grantExplanation = async (p: Partition, grant: string): Promise<Per
 export const accessAudit = async (p: Partition, after?: string): Promise<Page<AccessAudit>> => (await apiClient.get('/api/governance/v1/access/audit', { params: { ...p, after } })).data
 export const revokeGrant = async (command: RevokeGrant): Promise<RevocationReceipt> => (await apiClient.post('/api/governance/v1/access/strict-revoke', command)).data
 export const revocationReceipt = async (p: Partition, grant: string): Promise<RevocationReceipt> => (await apiClient.get('/api/governance/v1/access/revocation-receipt', { params: { ...p, grant_id: grant } })).data
+
+export interface RetirementCount { kind: string; blocking: number; historical: number }
+export interface RetirementReport { application_id: string; capability: string; lifecycle_state: CapabilityLifecycleState; lifecycle_version: number;
+  manifest_version: number; content_hash: string; presentation_hash: string; complete: boolean; counts: RetirementCount[];
+  proof_state: typeof RetirementProofState[keyof typeof RetirementProofState]; proof_reason: string | null; proof_hash: string | null; proof_valid_until: string | null;
+  eligible: boolean; basis_hash: string; checked_at: string }
+export interface RetirementReference { kind: string; id: string; blocking: boolean; state: string; role_id: string | null; source_type: string | null; valid_to: string | null }
+export interface RetirementReferences { items: RetirementReference[]; next_cursor: string | null; basis_hash: string }
+export interface RetirementCommand { application_id: string; capability: string; expected_version: number; basis_hash: string; reason: string; command_id: string }
+/** 缺元数据必须拒绝，避免把旧服务null或403误判成零引用。 */
+export const capabilityRetirement = async (application_id: string, capability: string): Promise<RetirementReport> => {
+  const r = (await apiClient.get<RetirementReport>('/api/governance/v1/catalog/capability-retirement', { params: { application_id, capability } })).data
+  return validateRetirementReport(r, application_id, capability)
+}
+/** 当前分区独立诊断，不将应用Owner身份转成跨企业明细权限。 */
+export const retirementReferences = async (p: Partition, capability: string, cursor?: string): Promise<RetirementReferences> => {
+  const r = (await apiClient.get<RetirementReferences>('/api/governance/v1/access/capability-retirement', { params: { ...p, capability, cursor } })).data
+  return validateRetirementReferences(r)
+}
+/** 原成功回执与当前墓碑分开验证，未知提交只能原键恢复。 */
+export const retireCapability = async (body: RetirementCommand): Promise<CapabilityLifecycleMutation> => {
+  const r = (await apiClient.post<CapabilityLifecycleMutation>('/api/governance/v1/catalog/capability-retire', body)).data
+  return validateRetirementReceipt(r, body)
+}
+
+export interface OwnerCatalog { application_id: string; manifest_version: number; capabilities: PublishedCapability[] }
+/** Owner元数据不复用需要管理委派的角色／人员读接口。 */
+export const ownerCatalog = async (application_id: string): Promise<OwnerCatalog> => {
+  const r = (await apiClient.get<OwnerCatalog>('/api/governance/v1/catalog/owner-view', { params: { application_id } })).data
+  if (!r || r.application_id !== application_id || !Number.isSafeInteger(r.manifest_version) || !Array.isArray(r.capabilities) || r.capabilities.length > 200
+    || r.capabilities.some(c => !c.code.startsWith(`${application_id}.`) || c.grantable !== false || c.lifecycle_state == null || !Object.values(LifecycleState).includes(c.lifecycle_state))) throw new Error('Owner目录响应无效')
+  return r
+}

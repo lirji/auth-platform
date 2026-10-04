@@ -17,5 +17,5 @@
  <update id="advance">UPDATE auth_governance.application_catalog SET manifest_version=#{version} WHERE application_id=#{id} AND manifest_version=#{previous}</update>
  <insert id="audit">INSERT INTO auth_governance.catalog_audit(id,application_id,operator_ref,operation,manifest_version,command_id)
  VALUES(#{id},#{application},#{operator},#{operation},#{version},#{command})</insert>
- <select id="disabled" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.capability_state WHERE application_id=#{id} AND capability=#{cap} AND disabled)</select>
+ <select id="disabled" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.capability_state WHERE application_id=#{id} AND capability=#{cap} AND disabled) OR EXISTS(SELECT 1 FROM auth_governance.capability_lifecycle WHERE application_id=#{id} AND capability=#{cap} AND state='RETIRED')</select>
 </mapper>

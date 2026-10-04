@@ -106,6 +106,9 @@ public final class ApplicationCatalog {
             if (!existing.contentHash().equals(result.contentHash()) || app.manifestVersion()!=existing.version()) { throw new GovernanceException(VERSION_CONFLICT); }
             return result;
         }
+        // 历史成功命令已在前面只读返回；新菜单引用墓碑不能借目录发布重新启用。
+        var menuCapabilities=manifest.menus().stream().flatMap(m->m.anyOf().stream()).distinct().toList();
+        if(!menuCapabilities.isEmpty()&&lifecycles.retired(app.applicationId(),menuCapabilities))throw new GovernanceException(CAPABILITY_DEPRECATED);
         var base=mapper.snapshot(app.applicationId(),app.manifestVersion());
         var baseShown=mapper.presentation(app.applicationId(),app.manifestVersion());
         requireOne(mapper.insertSnapshot(new Snapshot(app.applicationId(),manifest.manifestVersion(),result.contentHash(),CatalogManifest.json(manifest)),publisherPrincipal));
@@ -288,7 +291,7 @@ public final class ApplicationCatalog {
     }
     /** 弃用只停止新增使用；应用排他锁、连续版本与原命令审计同事务提交。 */
     public com.lrj.authz.protocol.CapabilityLifecycleDtos.Mutation changeLifecycle(VerifiedLogin login,com.lrj.authz.protocol.CapabilityLifecycleDtos.Change input) {
-        if(input==null || input.state()==null || input.expectedVersion()==null || input.expectedVersion()<0 || input.expectedVersion()==Long.MAX_VALUE)throw new GovernanceException(INVALID_ARGUMENT);
+        if(input==null || input.state()==null || input.state()==com.lrj.authz.protocol.CapabilityLifecycleDtos.State.RETIRED || input.expectedVersion()==null || input.expectedVersion()<0 || input.expectedVersion()==Long.MAX_VALUE)throw new GovernanceException(INVALID_ARGUMENT);
         CatalogManifest.code(input.applicationId());CatalogManifest.code(input.capability());BootstrapCommand.uuid(input.commandId());BootstrapCommand.bounded(input.reason(),500);
         return transaction.execute(status -> {
             var app=requireOwner(login,input.applicationId(),true);
@@ -302,7 +305,7 @@ public final class ApplicationCatalog {
                 return new com.lrj.authz.protocol.CapabilityLifecycleDtos.Mutation(lifecycleValue(app.applicationId(),input.capability()),lifecycleReceipt(previous));
             }
             var current=lifecycleValue(app.applicationId(),input.capability());
-            if(current.version()!=input.expectedVersion() || current.state()==input.state())throw new GovernanceException(VERSION_CONFLICT);
+            if(current.state()==com.lrj.authz.protocol.CapabilityLifecycleDtos.State.RETIRED || current.version()!=input.expectedVersion() || current.state()==input.state())throw new GovernanceException(VERSION_CONFLICT);
             var now=java.time.Instant.now();
             requireOne(lifecycles.change(new com.lrj.authz.governance.domain.CapabilityLifecycleModels.Value(app.applicationId(),input.capability(),input.state().code(),current.version()+1,input.reason(),app.ownerPrincipalId(),now),current.version()));
             var receipt=new com.lrj.authz.governance.domain.CapabilityLifecycleModels.Receipt(app.applicationId(),input.commandId(),hash,input.capability(),current.state().code(),input.state().code(),current.version(),current.version()+1,input.reason(),app.ownerPrincipalId(),now);

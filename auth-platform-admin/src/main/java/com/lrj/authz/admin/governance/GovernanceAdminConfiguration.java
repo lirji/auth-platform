@@ -32,7 +32,7 @@ public class GovernanceAdminConfiguration {
                 ? Optional.of(TokenAuthority.from(invitation)) : Optional.empty();
         var publisher = Boolean.TRUE.equals(environment.getProperty("authz.governance.publisher.enabled", Boolean.class, false))
                 ? Optional.of(com.lrj.authz.governance.application.CatalogPublisherSettings.from(props)) : Optional.<com.lrj.authz.governance.application.CatalogPublisherSettings>empty();
-        return new Settings(GovernanceDatabase.from(props), TokenAuthority.from(props), invitationAuthority, com.lrj.authz.governance.application.PortalInvitationAuthority.from(props), com.lrj.authz.governance.application.PortalDiagnosticAuthority.from(props),com.lrj.authz.governance.application.CatalogDrift.from(props),publisher);
+        return new Settings(GovernanceDatabase.from(props), TokenAuthority.from(props), invitationAuthority, com.lrj.authz.governance.application.PortalInvitationAuthority.from(props), com.lrj.authz.governance.application.PortalDiagnosticAuthority.from(props),com.lrj.authz.governance.application.CatalogDrift.from(props),publisher,com.lrj.authz.governance.application.CatalogRetirementProof.from(props));
     }
 
     /** HTTP 服务只 validate 已初始化迁移，不隐式成为 migration owner。 */
@@ -76,5 +76,5 @@ public class GovernanceAdminConfiguration {
         return runtime.publisher(settings.publisher().orElseThrow());
     }
 
-    record Settings(GovernanceDatabase database, TokenAuthority authority, Optional<TokenAuthority> invitationAuthority, java.util.List<com.lrj.authz.governance.application.PortalInvitationAuthority> portalInvitations, java.util.List<com.lrj.authz.governance.application.PortalDiagnosticAuthority> portalDiagnostics,java.util.List<com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration> catalogDeployments,Optional<com.lrj.authz.governance.application.CatalogPublisherSettings> publisher) {}
+    record Settings(GovernanceDatabase database, TokenAuthority authority, Optional<TokenAuthority> invitationAuthority, java.util.List<com.lrj.authz.governance.application.PortalInvitationAuthority> portalInvitations, java.util.List<com.lrj.authz.governance.application.PortalDiagnosticAuthority> portalDiagnostics,java.util.List<com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration> catalogDeployments,Optional<com.lrj.authz.governance.application.CatalogPublisherSettings> publisher,com.lrj.authz.governance.application.CatalogRetirementProof retirementProof) {}
 }

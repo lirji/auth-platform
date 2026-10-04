@@ -45,7 +45,7 @@ export function PublishedCatalogSelector({ catalog, resource, value = [], onChan
           <span className="mono">{cap.code}</span>
         </Checkbox>
         <Space wrap size={4}><Tag>{cap.resource_type}</Tag><Tag color={cap.risk_level === 'HIGH' ? 'warning' : undefined}>{cap.risk_level}</Tag>
-          {cap.disabled && <Tag color="error">已停用</Tag>}{cap.lifecycle_state === LifecycleState.DEPRECATED ? <Tag color="warning">已弃用 · 停止新增</Tag> : !cap.disabled && !cap.grantable && <Tag>超当前委派</Tag>}</Space>
+          {cap.disabled && <Tag color="error">已停用</Tag>}{cap.lifecycle_state === LifecycleState.RETIRED ? <Tag>已最终退役</Tag> : cap.lifecycle_state === LifecycleState.DEPRECATED ? <Tag color="warning">已弃用 · 停止新增</Tag> : !cap.disabled && !cap.grantable && <Tag>超当前委派</Tag>}</Space>
       </div>)}
       {!shown.length && <Typography.Paragraph type="secondary">当前筛选没有能力，请调整菜单或搜索。</Typography.Paragraph>}
     </div>

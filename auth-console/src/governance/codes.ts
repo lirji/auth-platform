@@ -24,4 +24,6 @@ export const MigrationStage = {
 export const MigrationAction = { ADVANCE: 'advance', CANCEL: 'cancel', RETRY: 'retry' } as const
 
 /** 能力生命周期控制新增使用，与紧急停用和授权状态分别建模。 */
-export const LifecycleState = { ACTIVE: 'ACTIVE', DEPRECATED: 'DEPRECATED' } as const
+export const LifecycleState = { ACTIVE: 'ACTIVE', DEPRECATED: 'DEPRECATED', RETIRED: 'RETIRED' } as const
+
+export const RetirementProofState = { PROVEN: 'PROVEN', UNPROVEN: 'UNPROVEN' } as const

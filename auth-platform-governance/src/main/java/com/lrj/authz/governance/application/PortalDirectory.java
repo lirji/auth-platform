@@ -46,13 +46,13 @@ public final class PortalDirectory {
             if (System.nanoTime() >= deadline) throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE);
             try {
                 var view = presentation.current(login, new Partition(tenant, candidate.applicationId(), candidate.environment()));
-                result.add(new Application(candidate.applicationId(), candidate.environment(), candidate.management(), view.menus(), view.capabilityHints(),
+                result.add(new Application(candidate.applicationId(), candidate.environment(), candidate.management(), candidate.catalogOwner(), view.menus(), view.capabilityHints(),
                         view.capabilityHints().isEmpty() ? EntryState.NO_ACCESS : EntryState.AVAILABLE));
             } catch (GovernanceException failure) {
                 if (failure.code() != GovernanceException.Code.DEPENDENCY_UNAVAILABLE
                         && failure.code() != GovernanceException.Code.AUTHZ_STATE_NOT_READY) throw failure;
                 // 只保留已验证的本人关联，业务入口全部关闭；申请/管理进度不能因投影故障而消失。
-                result.add(new Application(candidate.applicationId(), candidate.environment(), candidate.management(), List.of(), List.of(), EntryState.UNAVAILABLE));
+                result.add(new Application(candidate.applicationId(), candidate.environment(), candidate.management(), candidate.catalogOwner(), List.of(), List.of(), EntryState.UNAVAILABLE));
             }
         }
         if (System.nanoTime() >= deadline) throw new GovernanceException(GovernanceException.Code.DEPENDENCY_UNAVAILABLE);
@@ -69,9 +69,15 @@ public final class PortalDirectory {
     /** 只返回本人可选组织，不含任何其他员工目录。 */
     public record Organization(String membershipId, String tenantId, String tenantCode, String memberKind, long generation) {}
     /** 候选关联不是业务准入，是否管理也必须来自当前代际委派。 */
-    public record Candidate(String applicationId, String environment, boolean management) {}
+    public record Candidate(String applicationId, String environment, boolean management,boolean catalogOwner) {
+        /** SQL返回四项事实，显式选择完整构造器，避免兼容重载让目录读取失败。 */
+        @org.apache.ibatis.annotations.AutomapConstructor
+        public Candidate {}
+        /** 旧夹具不包含Owner资格，不默认授予。 */
+        public Candidate(String applicationId,String environment,boolean management){this(applicationId,environment,management,false);}
+    }
     /** 应用卡片只包含当前允许的菜单链接，不发放Token或服务密钥。 */
-    public record Application(String applicationId, String environment, boolean management,
+    public record Application(String applicationId, String environment, boolean management,boolean catalogOwner,
                               List<AccessPresentation.Menu> menus, List<String> capabilityHints, EntryState entryState) {}
     /** 错误不能变成无权限，更不能沿用旧入口；显式状态仅影响展示。 */
     public enum EntryState { AVAILABLE, NO_ACCESS, UNAVAILABLE }

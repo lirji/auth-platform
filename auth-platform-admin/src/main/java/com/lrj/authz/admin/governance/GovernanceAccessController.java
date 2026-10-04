@@ -20,9 +20,26 @@ import java.io.IOException;
 @ConditionalOnProperty(name={"authz.governance.enabled","authz.governance.access.enabled"},havingValue="true")
 @RequestMapping("/api/governance/v1")
 public class GovernanceAccessController {
-    private final AccessManagement access;private final ApplicationCatalog catalog;private final PortalPermissions diagnostics;private final java.util.List<com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration> deployments;
+    private final CapabilityRetirement retirement;private final AccessManagement access;private final ApplicationCatalog catalog;private final PortalPermissions diagnostics;private final java.util.List<com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration> deployments;
     /** 独立开关默认关闭，不改变旧管理工作区。 */
-    public GovernanceAccessController(GovernanceRuntime runtime,GovernanceAdminConfiguration.Settings settings){access=runtime.access();catalog=runtime.catalog();diagnostics=runtime.portalPermissions(settings.portalDiagnostics());deployments=settings.catalogDeployments();}
+    public GovernanceAccessController(GovernanceRuntime runtime,GovernanceAdminConfiguration.Settings settings){retirement=runtime.retirement(settings.retirementProof());access=runtime.access();catalog=runtime.catalog();diagnostics=runtime.portalPermissions(settings.portalDiagnostics());deployments=settings.catalogDeployments();}
+    /** 独立Owner目录入口在最后管理委派退出后仍可用，不返回人员明细。 */
+    @GetMapping("/catalog/owner-view") public ResponseEntity<JsonNode> ownerCatalog(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("application_id") String app) {
+        return ResponseEntity.ok().header("Cache-Control","no-store").body(GovernanceWeb.body(retirement.ownerCatalog(login,app)));
+    }
+    /** Owner汇总只含类别计数，不能借此读取跨企业人员。 */
+    @GetMapping("/catalog/capability-retirement") public ResponseEntity<JsonNode> retirement(@AuthenticationPrincipal VerifiedLogin login,@RequestParam("application_id") String app,@RequestParam String capability) {
+        return ResponseEntity.ok().header("Cache-Control","no-store").body(GovernanceWeb.body(retirement.report(login,app,capability)));
+    }
+    /** 固定引用依据的最终退役；浏览器无法注册或绕过受信运行证明。 */
+    @PostMapping(value="/catalog/capability-retire",consumes="application/json") public ResponseEntity<JsonNode> retire(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request)throws IOException {
+        return ResponseEntity.ok().header("Cache-Control","no-store").body(GovernanceWeb.body(retirement.retire(login,AccessWeb.read(request.getInputStream(),com.lrj.authz.protocol.CapabilityRetirementDtos.Retire.class))));
+    }
+    /** UUID和Owner身份不是人员诊断凭据，明确按当前分区授权。 */
+    @GetMapping("/access/capability-retirement") public ResponseEntity<JsonNode> retirementReferences(@AuthenticationPrincipal VerifiedLogin login,
+            @RequestParam("tenant_id") String tenant,@RequestParam("application_id") String app,@RequestParam String environment,@RequestParam String capability,@RequestParam(required=false) String cursor) {
+        return ResponseEntity.ok().header("Cache-Control","no-store").body(GovernanceWeb.body(diagnostics.retirementReferences(login,new Partition(tenant,app,environment),capability,cursor,retirement)));
+    }
     /** 弃用和恢复仅当前真实Owner可操作，旧成功命令重放不再次改变生命周期。 */
     @PostMapping(value="/catalog/capability-lifecycle",consumes="application/json") public ResponseEntity<JsonNode> lifecycle(@AuthenticationPrincipal VerifiedLogin login,HttpServletRequest request) throws IOException {
         return ResponseEntity.ok().header("Cache-Control","no-store").body(GovernanceWeb.body(catalog.changeLifecycle(login,AccessWeb.read(request.getInputStream(),com.lrj.authz.protocol.CapabilityLifecycleDtos.Change.class))));

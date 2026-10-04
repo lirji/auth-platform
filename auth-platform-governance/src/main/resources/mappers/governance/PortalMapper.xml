@@ -34,13 +34,13 @@
  </sql>
  <select id="publishedCatalogBasis" resultType="com.lrj.authz.governance.domain.PortalCatalogModels$PublishedCatalogBasis"><include refid="publishedCatalogBasisQuery"/></select>
  <select id="applications" resultType="com.lrj.authz.governance.application.PortalDirectory$Candidate">
- SELECT a.application_id,a.environment,(d.membership_id IS NOT NULL) management
+ SELECT a.application_id,a.environment,(d.membership_id IS NOT NULL) management,EXISTS(SELECT 1 FROM auth_governance.membership own WHERE own.id=#{member} AND own.principal_id=c.owner_principal_id) catalog_owner
  FROM auth_governance.tenant_application a
  JOIN auth_governance.application_catalog c ON c.application_id=a.application_id AND c.manifest_version &gt; 0
  LEFT JOIN auth_governance.access_delegation d ON d.tenant_id=a.tenant_id AND d.application_id=a.application_id
  AND d.environment=a.environment AND d.membership_id=#{member} AND d.generation=#{generation} AND d.enabled
  WHERE a.tenant_id=#{tenant} AND a.enabled AND (a.application_id,a.environment) &gt; (#{application},#{environment})
- AND (d.membership_id IS NOT NULL OR EXISTS (
+ AND (EXISTS(SELECT 1 FROM auth_governance.membership own WHERE own.id=#{member} AND own.principal_id=c.owner_principal_id) OR d.membership_id IS NOT NULL OR EXISTS (
  SELECT 1 FROM auth_governance.access_grant g WHERE g.tenant_id=a.tenant_id AND g.application_id=a.application_id AND g.environment=a.environment
  AND ((g.membership_id=#{member} AND g.generation=#{generation}) OR (g.source_type='GROUP' AND EXISTS (
  SELECT 1 FROM auth_governance.directory_group_member gm WHERE gm.tenant_id=a.tenant_id AND gm.group_id=g.group_id

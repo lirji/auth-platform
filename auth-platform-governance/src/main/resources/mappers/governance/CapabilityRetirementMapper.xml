@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrj.authz.governance.persistence.CapabilityRetirementMapper">
+ <select id="ownerCapabilities" resultType="com.lrj.authz.governance.persistence.CapabilityRetirementMapper$OwnerCapability">
+ SELECT cap-&gt;&gt;'code' code,cap-&gt;&gt;'resource_type' resource_type,cap-&gt;&gt;'risk_level' risk_level,COALESCE(s.disabled,false) disabled,
+ COALESCE(l.state,'ACTIVE') lifecycle_state,COALESCE(l.version,0) lifecycle_version,l.reason lifecycle_reason
+ FROM auth_governance.application_catalog a JOIN auth_governance.application_manifest m ON m.application_id=a.application_id AND m.version=a.manifest_version
+ CROSS JOIN jsonb_array_elements(m.manifest_json::jsonb-&gt;'capabilities') cap
+ LEFT JOIN auth_governance.capability_lifecycle l ON l.application_id=a.application_id AND l.capability=cap-&gt;&gt;'code'
+ LEFT JOIN auth_governance.capability_state s ON s.application_id=a.application_id AND s.capability=cap-&gt;&gt;'code'
+ WHERE a.application_id=#{app} ORDER BY cap-&gt;&gt;'code'
+ </select>
+ <select id="basis" resultType="com.lrj.authz.governance.persistence.CapabilityRetirementMapper$Row">
+ WITH refs AS MATERIALIZED (SELECT * FROM auth_governance.retirement_references(#{app},#{cap})),
+ limited AS (SELECT * FROM refs ORDER BY kind,id,COALESCE(tenant_id,''),COALESCE(environment,'') LIMIT 10000),
+ counts AS (SELECT kind,count(*) FILTER(WHERE blocking) blocking,count(*) FILTER(WHERE NOT blocking) historical FROM refs GROUP BY kind)
+ SELECT (SELECT count(*) FROM refs) total,
+ COALESCE((SELECT md5(string_agg(kind||':'||id||':'||COALESCE(tenant_id,'')||':'||COALESCE(environment,'')||':'||blocking||':'||fingerprint,'|' ORDER BY kind,id,COALESCE(tenant_id,''),COALESCE(environment,''))) FROM limited),md5('')) reference_hash,
+ COALESCE((SELECT jsonb_agg(to_jsonb(c) ORDER BY kind)::text FROM counts c),'[]') counts_json,clock_timestamp()::text checked_at
+ </select>
+ <select id="references" resultType="com.lrj.authz.protocol.CapabilityRetirementDtos$Reference">
+ SELECT kind,id,blocking,state,role_id,source_type,valid_to::text FROM auth_governance.retirement_references(#{p.applicationId},#{cap})
+ WHERE tenant_id=#{p.tenantId} AND environment=#{p.environment} AND (kind,id)&gt;(#{kind},#{after}) ORDER BY kind,id LIMIT 101
+ </select>
+ <select id="exitBasis" resultType="string"><choose><when test="kind == 'DELEGATION'">
+ SELECT to_jsonb(d)::text FROM auth_governance.access_delegation d WHERE d.tenant_id=#{p.tenantId} AND d.application_id=#{p.applicationId} AND d.environment=#{p.environment} AND d.membership_id=#{id}
+ </when><otherwise>SELECT to_jsonb(p)::text FROM auth_governance.request_policy p WHERE p.tenant_id=#{p.tenantId} AND p.application_id=#{p.applicationId} AND p.environment=#{p.environment} AND p.id=#{id}</otherwise></choose></select>
+ <update id="disableReference"><choose><when test="kind == 'DELEGATION'">
+ UPDATE auth_governance.access_delegation SET enabled=false WHERE tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment} AND membership_id=#{id} AND enabled
+ </when><otherwise>UPDATE auth_governance.request_policy SET enabled=false WHERE tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment} AND id=#{id} AND enabled</otherwise></choose></update>
+ <insert id="exitAudit">INSERT INTO auth_governance.retirement_reference_exit(tenant_id,application_id,environment,kind,target_id,command_id,operator_ref,reason,before_hash,after_hash)
+ VALUES(#{p.tenantId},#{p.applicationId},#{p.environment},#{kind},#{id},#{command},#{operator},#{reason},#{before},#{after})</insert>
+ <insert id="evidence">INSERT INTO auth_governance.capability_retirement_evidence(application_id,command_id,capability,lifecycle_version,manifest_version,content_hash,presentation_hash,basis_hash,proof_hash,proof_json,valid_until)
+ VALUES(#{app},#{command},#{cap},#{version},#{manifest},#{content},#{presentation},#{basis},#{proof},#{json},#{until}::timestamptz)</insert>
+</mapper>

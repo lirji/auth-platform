@@ -5,14 +5,17 @@ public final class CapabilityLifecycleDtos {
     private CapabilityLifecycleDtos() {}
     /** 协议使用固定code，数据库不持久化ordinal。 */
     public enum State {
-        ACTIVE("ACTIVE"), DEPRECATED("DEPRECATED");
+        ACTIVE("ACTIVE"), DEPRECATED("DEPRECATED"), RETIRED("RETIRED");
         private final String code;
         State(String code){this.code=code;}
         /** 对外及持久化稳定值。 */
         public String code(){return code;}
     }
     /** 操作者从当前真实登录取得，调用方只能提交目标、版本和原因。 */
-    public record Change(String applicationId,String capability,State state,Long expectedVersion,String reason,String commandId) {}
+    public record Change(String applicationId,String capability,State state,Long expectedVersion,String reason,String commandId) {
+        /** 最终退役有独立依据契约，不能经普通弃用／恢复输入绕过。 */
+        public Change {if(state==State.RETIRED)throw new IllegalArgumentException("普通生命周期命令不能最终退役");}
+    }
     /** 缺行的初始状态版本0，没有虚构的操作者或时间。 */
     public record Value(String applicationId,String capability,State state,long version,String reason,String changedBy,String updatedAt) {}
     /** 原命令结果固定保存，后续恢复不改变原弃用事实。 */

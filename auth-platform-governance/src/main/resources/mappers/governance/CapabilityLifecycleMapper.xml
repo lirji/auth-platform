@@ -4,6 +4,8 @@
  <select id="lockUsage" resultType="string">SELECT application_id FROM auth_governance.application_catalog WHERE application_id=#{app} FOR SHARE</select>
  <select id="deprecated" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.capability_lifecycle WHERE application_id=#{app} AND state&lt;&gt;'ACTIVE' AND capability IN
   <foreach collection="caps" item="cap" open="(" separator="," close=")">#{cap}</foreach>)</select>
+ <select id="retired" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.capability_lifecycle WHERE application_id=#{app} AND state='RETIRED' AND capability IN
+  <foreach collection="caps" item="cap" open="(" separator="," close=")">#{cap}</foreach>)</select>
  <select id="value" resultType="com.lrj.authz.governance.domain.CapabilityLifecycleModels$Value">SELECT application_id,capability,state,version,reason,changed_by,updated_at FROM auth_governance.capability_lifecycle WHERE application_id=#{app} AND capability=#{cap}</select>
  <update id="change"><choose><when test="before == 0">
   INSERT INTO auth_governance.capability_lifecycle(application_id,capability,state,version,reason,changed_by,updated_at)

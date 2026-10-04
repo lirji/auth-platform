@@ -71,6 +71,16 @@ class PortalPostgresIT {
         assertThat(portal.organizations(login(a))).isEmpty();
         assertThatThrownBy(() -> portal.applications(login(a), a.tenantId(), null)).hasMessage("MEMBERSHIP_UNAVAILABLE");
     }
+    @Test void ownerDirectorySurvivesLastDelegationExitWithoutPromotingOrdinaryMember() {
+        var owner=person(id(),"tenant-"+id());var member=person(owner.tenantId(),owner.tenantCode());var p=application(owner);
+        var role=runtime.access().createRole(login(owner),p,id(),"reader",1,List.of(p.applicationId()+".read"));
+        runtime.access().grant(login(owner),p,id(),member.membershipId(),1,role.id(),"TENANT_ALL",id(),Instant.now(),Instant.now().plusSeconds(300));
+        var exit=runtime.retirementExit();var hash=exit.inspect(p,RetirementReferenceExit.Kind.DELEGATION,owner.membershipId());
+        exit.exit(p,RetirementReferenceExit.Kind.DELEGATION,owner.membershipId(),hash,"portal-ops",id(),"核对退出后的Owner目录");
+        var portal=portal((c,cap,r)->false);
+        assertThat(portal.applications(login(owner),owner.tenantId(),null).items()).singleElement().satisfies(a->{assertThat(a.catalogOwner()).isTrue();assertThat(a.management()).isFalse();assertThat(a.menus()).isEmpty();});
+        assertThat(portal.applications(login(member),owner.tenantId(),null).items()).singleElement().satisfies(a->{assertThat(a.catalogOwner()).isFalse();assertThat(a.management()).isFalse();});
+    }
     @Test void boundedCursorCannotReplayDataFromAnotherOrganization() {
         var a = person(id(), "tenant-" + id());
         var b = new BootstrapCommand(id(), "portal-test", id(), "tenant-" + id(), a.principalId(), a.issuer(), a.subject(), id(), a.validFrom(), null, "portal", id(), id());

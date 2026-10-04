@@ -70,6 +70,16 @@ public final class PortalPermissions {
         record(actor,p,IMPACT,null,Outcome.ALLOWED);
         return result;
     }
+    /** 分区引用明细需独立诊断资格，Owner汇总不隐式授予此读取权限。 */
+    public com.lrj.authz.protocol.CapabilityRetirementDtos.References retirementReferences(VerifiedLogin login,Partition p,String capability,String cursor,CapabilityRetirement retirement) {
+        String operation="READ_RETIREMENT_REFERENCES",actor=authorize(login,p,operation,capability);
+        var before=identity.contextForLogin(login.issuer(),login.subject(),p.tenantId(),null);
+        var result=retirement.references(p,capability,cursor);String latest=authorize(login,p,operation,capability);
+        var after=identity.contextForLogin(login.issuer(),login.subject(),p.tenantId(),before.membershipGeneration());
+        if(!before.membershipId().equals(after.membershipId())||before.membershipVersion()!=after.membershipVersion()||before.principalVersion()!=after.principalVersion())throw new GovernanceException(VERSION_CONFLICT);
+        if(!actor.equals(latest))throw new GovernanceException(VERSION_CONFLICT);
+        record(actor,p,operation,capability,Outcome.ALLOWED);return result;
+    }
     private String authorize(VerifiedLogin login,Partition p,String operation,String target) {
         AccessValues.partition(p);String actor=identity.principalForLogin(login.issuer(),login.subject()).id();
         try {

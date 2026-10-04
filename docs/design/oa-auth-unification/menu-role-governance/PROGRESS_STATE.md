@@ -1,28 +1,20 @@
 # 菜单与角色授权治理实施状态
 
 ## 目标
-持续执行已确认的 [PLAN](PLAN.md) 和 [唯一任务表](IMPLEMENTATION_SLICES.md)，持续完成阶段 A–F；不把一个切片完成等同全部完成。
+持续完成已批准[PLAN](PLAN.md)的MG00–MG19；独立实例／数据库隔离测试与生产，原业务数据不改，生产部署未授权。
 
-## 当前状态
-- 用户已要求开始实施，计划 APPROVED。
-- MG00 DONE：阶段 A [CONTRACTS](CONTRACTS.md) 已冻结并核对原快照／展示／权限边界。
-- MG01 DONE：结构化声明／导航／固定提交导出和双工具一致性已验证（见 MG01_TEST_RESULT）。
-- MG02 DONE：完整菜单差异／非法候选发布保护，198单测、14真PG、真实Owner HTTP和三宽度弹层通过（见 MG02_TEST_RESULT）。
-- MG03 DONE：独立诊断影响／有界联合分页／全量去重统计，202单测、34真PG、18真实HTTP和三宽度组件验收通过（见 MG03_TEST_RESULT）。
-- MG03提交e7c8cb8已正常合并／推送main，精确CI37103092332 SUCCESS。
-- MG04 DONE：来源／原回执／历史，205单测／19真PG／13真实HTTP／4组组件交互与三宽度截图PASS（见 MG04_TEST_RESULT）；提交2548922已任务分支及main正常推送，精确CI37103806264 SUCCESS。
-- MG05 DONE：固定预览／双摘要与独立影响／单向旧写门禁，206单测／32真PG／36 HTTP与CLI／5组页面／三宽度视觉PASS（见 MG05_TEST_RESULT）。提交973c94f已任务分支／main推送，精确CI37105196879 SUCCESS。
-- MG06 DONE：只读来源／部署声明漂移及具体差异，208单测／19真PG／35前端／3工具／18真实HTTP／5页面组／三宽度视觉通过（见MG06_TEST_RESULT）；提交e9f9e3a已任务分支／main正常推送，精确CI37106012842 SUCCESS；MG07 DONE、MG08 DONE、MG09设计DONE、MG10 DONE、MG11 DONE、MG12 DONE、MG13 DONE（Git／CI SUCCESS）、MG14 DONE（GROUP与OA必要验收PASS，Git／CI见当前记录）、MG15 DONE（Git／精确CI SUCCESS）、MG16–MG19 TODO。
-- MG07 DONE：281单测＋2真PG图，Commerce3单测／完整构建／实际22HTTP及固定SDK109b1ed源码和嵌套制品通过；生产方109b1ed、消费方8da6f4b已main正常推送（见MG07_TEST_RESULT）。Auth109b1ed精确CI37107379738 SUCCESS；Commerce8da6f4b精确CI37107505687／37107501809 SUCCESS。
-- Auth原目录 feat/menu-role-governance-a（074bfed基线）；Commerce原目录 feat/menu-catalog-source（c9eb50c基线）。
-- 生产部署未授权／未执行；原本机目录／业务Grant未写入。
-
-- MG08 DONE：5导航规则／4目录工具／类型构建／25真实HTTP／15浏览器组／36路由三宽度公开DTO回归／14图实看PASS（见MG08_TEST_RESULT）。Commerce57804ef已任务分支／main正常推送，精确CI37109049960／37109045619 SUCCESS；Auth验收工具／进度2f644e7已main正常推送。
+## 当前状态（2026-10-03）
+- 全计划ACTIVE。MG00–15产品／必要验证／Git已完成，MG14-B精确CI37165468352 SUCCESS。
+- MG16产品及必要验证DONE，见[MG16_TEST_RESULT](MG16_TEST_RESULT.md)：256单测、最新36真实PG／5真实图、此前未变化13迁移PG、41前端单测／当前构建、最终27HTTP／6浏览器组／12当前截图实际查看PASS。源指纹21e7fa8a7ea2a68b2815e99ae3d789c75d805475d1d2e88c070246253e13cdf8。
+- MG16 Git／精确CI待交付记录；不得把本地产品PASS当远端CI成功。
+- MG17_CONTRACT FROZEN，产品READY；MG18／MG19产品TODO。
+- V32／33／34已成功应用，禁止修改；独立18094 IdP保留，当前自有21824／21825已停止，全部证据／专库及7个既有工作树保留。
+- 运行证明仍是签名契约夹具，生产核验器未接入时UNPROVEN；原Commerce目录／业务Grant／原5273与生产未修改。
 
 ## 下一步
-MG12产品／必要验证／Git DONE，见[MG12_TEST_RESULT](MG12_TEST_RESULT.md)：245单测、13真实PG、43支持HTTP（16项MG12）、8组实际页面、当前9图实看及六类表逐行不变通过。产品8b9addeb254eb057baadefea078216f424d096fe已正常合并／推送main，精确CI37132652622 completed SUCCESS。MG13产品／必要验证DONE，见[MG13_TEST_RESULT](MG13_TEST_RESULT.md)：249单测／25真PG／6真实图、28 HTTP／6页面组／9当前图，另43 HTTP／8组预览共享回归及9图通过；21路径指纹10a69fdc941f15d460b7e2b7687bc435c55cc43514546a6f6db805c0764210f0。所有owned Admin／Vite已退出，产品271941777ea7892022ee786dad529e12462713d2已正常合并／推送main，精确CI37135722188 completed SUCCESS。MG14 GROUP与OA必要验收DONE，MG15产品／必要验证／Git DONE，精确CI37137909570 completed SUCCESS；MG16–MG19仍TODO，全计划ACTIVE。用户对推荐迁移顺序回复“继续”，已说明按先撤旧／确认撤权／再授新的解释，不承诺访问不中断。
+正常提交／ff合并／推送MG16到main并核对精确CI，随后直接实现[MG17_CONTRACT](MG17_CONTRACT.md)和MG18／19，不等待继续。MG17按已确认人工诊断／负责人复核，不自动岗位授予；OA升级保持新审批与原截止。以下保留阶段历史，不代表当前等待或状态。
 
-D-ENV仍为独立权限实例／数据库。MG12不增加新中间件；非扩权DIRECT首先支持，新增能力走独立授权／审批，组和OA来源交MG14。实际Grant迁移或生产部署未在本片执行。
+## 历史记录
 
 ## 验证记录
 MG00：结构化声明、差异类别、非法变化、双哈希、分区诊断权限、发布幂等和旧写路径门禁、UNKNOWN运行状态及UI验收均有正式规则；文档链接／diff检查无阻断。产品验证从MG01开始，不引用历史CI为本轮证明。
@@ -55,4 +47,16 @@ MG14-A产品593653920a8ffae2eb78485ad7d70f76aba3fe37和格式限制文档a13a02b
 
 MG14-B产品／必要验证DONE，见[MG14B_TEST_RESULT](MG14B_TEST_RESULT.md)：251单测／62真PG／13真实图、最新类型构建、最终mg14b-http-e85f4b288762的31HTTP／7页面组／12当前图实看PASS。26源指纹2e6a82f564f4b4d3ff74941cd9e3bd54c966570ac8a12369cd21ea8bd87512ab；无BLOCKING卫生项，四ADVISORY人工复核。原业务Grant写入0，自有21821／21822／21823已退出。真实OA引擎未联调，外部OA是签名HTTP契约夹具，实际Auth Inbox／consumer、PG和图真实执行。失败证据保留。
 
-父MG14产品／必要验证DONE，MG14-B Git／精确CI待本次交付。下一MG16引用退出与退役，MG17–19仍TODO；全目标ACTIVE，不等待用户再次确认或输入继续。上方MG14 IN_PROGRESS／待答／运行中段落为各阶段历史。
+父MG14产品／必要验证DONE，MG14-B产品0a2a7e988793aaf429c6f551420fc0149fede940已正常提交／ff合并／两分支推送；精确CI37165468352 completed SUCCESS（精确head0a2a7e9，28步骤成功）。下一MG16引用退出与退役，MG17–19仍TODO；全目标ACTIVE，不等待用户再次确认或输入继续。上方MG14 IN_PROGRESS／待答／运行中段落为各阶段历史。
+
+## MG16 实施过程历史（已被当前状态取代）
+
+契约已冻结且源码／页面／平台运维单向退出工具已实现，仍IN_PROGRESS。第六轮251单测／19真实PG通过之后补充了V34审计与真实图专项；第七轮编译失败已修复。第八轮真实PG／图专项在连接池初始化阶段全部连接超时，未到迁移或业务断言，不能引用第六轮作为当前全版本PASS。最新admin打包和UI第三轮构建exit0通过；没有活动测试session。V32／V33已应用不得编辑，V34尚无成功应用证据。Docker只读查询及专用PG直接SQL均超时，原服务不重启。独立HTTP／页面／图验收待环境恢复，受信运行证明仍为签名契约夹具，不是实际部署扫描。MG17依赖MG14及已确认D-HR，允许先冻结其人工诊断契约；MG18／19必要依赖不跳过。
+
+MG17人工诊断契约已冻结于[MG17_CONTRACT](MG17_CONTRACT.md)，产品仍TODO。明确受信事件原子保存必要前后内容、旧事件不复活、当前／历史来源及同步UNKNOWN、独立诊断双重核验和真图最终访问验收。MG16等待期间新补5项独立签名信任边界单测，当前完整后端单测256项（20／27／155／54）actual exit0 PASS。签名契约夹具可用不代表生产运行核验已接入；真实集成HOLD不被单测覆盖。
+
+环境恢复检查mg16-environment-d4787f0c实际SQL／Docker／独立IdP均PASS；查询确认V32／V33成功、V34未应用。MG16恢复IN_PROGRESS，第九轮当前PG／真实图专项已开始；此前环境HOLD为历史，不重启原服务。
+
+第九轮33真实PG全部通过，V34实际成功应用后禁止编辑；3生命周期真图通过，新增退役真图发现验收夹具在退出委派后漏等待策略栅栏收敛，整轮FAIL。补充明确“减少意图仍需真实图收敛”的阻断断言及退役后其他能力继续ALLOW证明，第十轮必要专项执行中，不放宽产品门禁或断言。
+
+第十一轮actual exit0／BUILD SUCCESS：256单测、33真实PG、5真实图全部PASS，含迁移间隙、停止委派投影阻断、真实撤权回执、最终退役拒绝与保留能力ALLOW。原失败全部保留。前端41单测及受影响4项最新重验、第五轮构建PASS；当前重新打包并启动MG16隔离HTTP／页面首轮。

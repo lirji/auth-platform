@@ -28,6 +28,12 @@ test('database menu names require bounded complete unique display pairs',()=>{
 test('deprecation metadata is distinct, bounded and cannot remain grantable',()=>{
  const c=catalog();c.lifecycle_owner=true;c.capabilities=c.capabilities.map(cap=>({...cap,lifecycle_state:'ACTIVE',lifecycle_version:0,lifecycle_reason:null}));assert.equal(validatePublishedCatalog(c,p).lifecycle_owner,true);
  c.capabilities[0]={...c.capabilities[0],lifecycle_state:'DEPRECATED',lifecycle_version:1,lifecycle_reason:'停止新增',grantable:false};assert.match(roleScopeEligibility(role([c.capabilities[0].code]),c).reason,/弃用/);
- for(const override of [{lifecycle_state:'RETIRED'},{lifecycle_version:-1},{lifecycle_version:0},{lifecycle_reason:''},{lifecycle_reason:'x'.repeat(501)},{grantable:true}])assert.throws(()=>validatePublishedCatalog({...c,capabilities:[{...c.capabilities[0],...override},...c.capabilities.slice(1)]},p));
+ for(const override of [{lifecycle_state:'UNKNOWN'},{lifecycle_version:-1},{lifecycle_version:0},{lifecycle_reason:''},{lifecycle_reason:'x'.repeat(501)},{grantable:true}])assert.throws(()=>validatePublishedCatalog({...c,capabilities:[{...c.capabilities[0],...override},...c.capabilities.slice(1)]},p));
  const legacy=catalog();assert.equal(validatePublishedCatalog(legacy,p).capabilities[0].lifecycle_state,undefined);assert.throws(()=>validatePublishedCatalog({...legacy,lifecycle_owner:true},p));
+})
+
+test('retired tombstone remains readable but cannot create a new authorization',()=>{
+ const c=catalog();c.capabilities[0]={...c.capabilities[0],lifecycle_state:'RETIRED',lifecycle_version:2,lifecycle_reason:'全部退出后退役',grantable:false};
+ assert.equal(validatePublishedCatalog(c,p).capabilities[0].lifecycle_state,'RETIRED');assert.match(roleScopeEligibility(role([c.capabilities[0].code]),c).reason,/退役/);
+ assert.throws(()=>validatePublishedCatalog({...c,capabilities:[{...c.capabilities[0],grantable:true},...c.capabilities.slice(1)]},p));
 })
