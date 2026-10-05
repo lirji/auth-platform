@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-W00–W04验证DONE；W04本地门禁PASS、两仓Git/精确CI待交付。W05 READY，后续W06/W07依次执行。全任务未完成。最终Git与CI事实以Auth私密 `.local/wms-auth-integration/delivery-result.json` 为准；缺失或未通过不能称已合入主线。
+W00–W05验证DONE；W04 Auth 8189b13/CI37246323217已发布，WMS876b13c/CI37246311489仍运行。W05本地PASS、逻辑提交中；W06 READY，后续W07依次执行。全任务未完成。最终Git与CI事实以Auth私密 `.local/wms-auth-integration/delivery-result.json` 为准；缺失或未通过不能称已合入主线。
 
 ## 已完成
 
@@ -18,11 +18,13 @@ W00–W04验证DONE；W04本地门禁PASS、两仓Git/精确CI待交付。W05 RE
 - W04前端39文件84项全套、类型/build通过。完整Java原303项有1启动失败；保留原失败及第二轮失败。用户要求继续后正常Docker恢复，135原容器ID/镜像/挂载/运行状态与36原运行服务健康核对，未删除卷/镜像。该失败案例专项150.2秒PASS，144 default必需检查PASS，test-support补验PASS。不声称整条reactor一次通过。
 - W04有界Review通过。自动hygiene宽泛规则误分类测试/HTTP/原生Promise/有限资源类型，逐条审查按用户禁止机械常量化规范处理，原结果保留；无仓库格式化器的限制见[验证记录](W04_TEST_RESULT.md)。
 
+- W05：23身份/SQL+34动作+4PDA浏览器+5导航浏览器+10写撤权+15故障/读撤权PASS；21安全/8Owner HTTP/147门禁/10UI与构建PASS，8图已看。见[验证记录](W05_TEST_RESULT.md)。
+
 ## 未完成
 
-- W04两仓完整逻辑提交、精确CI与main正常发布。
-- W05内部机器发行方严格隔离与真实入出库/PDA；W06独立审批/应用和调拨源目标；W07跨Docker HTTPS、实际本机运行/故障/回退和最终交付。
+- W04 WMS精确CI/main发布；W05逻辑提交、精确CI/main发布。
+- W06独立审批/应用和调拨源目标；W07跨Docker HTTPS、实际本机运行/故障/回退和最终交付。
 
 ## 下一步
 
-复用两个feat/wms-central-authorization分支及WMS工作树 `/Users/liruijun/.local/share/git-worktrees/wms-platform/central-authorization`。W04交付后连续W05，不要求重复继续，不重新创建组织身份。正常Docker恢复已执行，勿重复重启。临时caffeinate session68556仅本任务；旧宿主fixture/Vite已停止，后续按当前切片启动自己的验收。
+复用两个feat/wms-central-authorization分支及WMS工作树 `/Users/liruijun/.local/share/git-worktrees/wms-platform/central-authorization`。W04交付后连续W05，不要求重复继续，不重新创建组织身份。正常Docker恢复已执行，勿重复重启。临时caffeinate session68556仅本任务；W05自有fixture/Vite结束验证后正常停止，再为W06启动独立fixture；运行JAR先复制冻结，不重用target运行中的可变归档。

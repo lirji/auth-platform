@@ -4,9 +4,11 @@ import argparse
 from datetime import datetime, timedelta, timezone
 import importlib.util
 import json
+import hashlib
 import os
 from pathlib import Path
 import secrets
+import shutil
 import socket
 import subprocess
 import time
@@ -40,11 +42,17 @@ def main():
     relevant = list((wms / 'wms-security/src/main').rglob('*'))
     if not security.is_file() or security.stat().st_mtime < max(file.stat().st_mtime for file in relevant if file.is_file()):
         raise RuntimeError('需要先成功构建当前WMS安全源码')
+    artifacts = run / 'artifacts'; artifacts.mkdir(mode=0o700)
+    artifact_digests = {}
     for service in ['inventory', 'inbound', 'outbound', 'fulfillment', 'serial-registry']:
         jar = wms / ('wms-' + service) / 'target' / ('wms-' + service + '-0.1.0-SNAPSHOT.jar')
         with zipfile.ZipFile(jar) as archive:
             if archive.read('BOOT-INF/lib/wms-security-0.1.0-SNAPSHOT.jar') != security.read_bytes():
                 raise RuntimeError('WMS服务包含旧安全制品：' + service)
+        # Boot会延迟读取嵌套类；运行中重新打包target会破坏进程，先冻结独立制品再启动。
+        target = artifacts / jar.name; shutil.copyfile(jar, target); target.chmod(0o600)
+        artifact_digests[service] = hashlib.sha256(target.read_bytes()).hexdigest()
+    p.private(run / 'artifact-digests.json', json.dumps(artifact_digests, indent=2))
     uid = lambda: str(uuid.uuid4())
     stamp = lambda seconds: (datetime.now(timezone.utc) + timedelta(seconds=seconds)).isoformat().replace('+00:00', 'Z')
     admin = Path('auth-platform-admin/target/auth-platform-admin-0.1.0-SNAPSHOT.jar').resolve()
@@ -127,7 +135,8 @@ def main():
             '--env-file', str(run / 'mysql.env'), '-p', '127.0.0.1:' + str(mysql_port) + ':3306', 'mysql:8.4.11'], check=True, stdout=subprocess.DEVNULL)
 
         def mysql(statement):
-            result = subprocess.run(['docker', 'exec', '-i', container, 'sh', '-c', 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot --batch --skip-column-names'],
+            # MySQL镜像初始化期间有仅Unix socket的临时服务器；TCP就绪才表示最终实例已可用。
+            result = subprocess.run(['docker', 'exec', '-i', container, 'sh', '-c', 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -h127.0.0.1 --protocol=TCP -uroot --batch --skip-column-names'],
                 input=statement, text=True, capture_output=True, timeout=15)
             if result.returncode: raise RuntimeError('专属WMS测试数据库不可用')
             return result.stdout.strip()
@@ -139,12 +148,13 @@ def main():
         p.private(run / 'database.json', json.dumps({'container': container, 'port': mysql_port, 'password': mysql_password}))
         services = [('inventory', 18183, 'com.lrj.wms.inventory.masterdata.SeedLocal'), ('inbound', 18181, 'com.lrj.wms.inbound.seed.SeedInbound'),
                     ('outbound', 18182, 'com.lrj.wms.outbound.seed.SeedOutbound'), ('fulfillment', 18185, 'com.lrj.wms.fulfillment.seed.SeedFulfillment'),
+                    ('serial-registry', 18184, None),
                     ]
         environments = {}
         for name, port, seed in services:
             db = 'wms_' + name.replace('-', '_')
             mysql('CREATE DATABASE ' + db + ' CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;')
-            jar = wms / ('wms-' + name) / 'target' / ('wms-' + name + '-0.1.0-SNAPSHOT.jar')
+            jar = artifacts / ('wms-' + name + '-0.1.0-SNAPSHOT.jar')
             url = 'jdbc:mysql://127.0.0.1:' + str(mysql_port) + '/' + db + '?allowPublicKeyRetrieval=true&useSSL=false'
             env_name = 'SERIAL' if name == 'serial-registry' else name.upper().replace('-', '_')
             env = {**os.environ, 'WMS_' + env_name + '_JDBC_URL': url,
@@ -152,6 +162,12 @@ def main():
                    'WMS_HTTP_PORT': str(port), 'WMS_OIDC_ISSUER': p.ISSUER, 'WMS_OIDC_CLIENT_ID': p.CLIENT,
                    'WMS_IAM_ENABLED': 'true', 'WMS_IAM_CONFIGURATION': str(state_root / 'runtime' / (name + '.properties'))}
             environments[name] = {key: value for key, value in env.items() if key.startswith('WMS_')}
+            if name == 'serial-registry':
+                # 保留既有序列号Owner白名单；机器发行方只作用于内部协议，业务中央身份仍被拒绝。
+                env.update(WMS_SERIAL_ALLOWED_SUBJECTS='inventory-worker', WMS_INTERNAL_OIDC_ISSUER='http://localhost:8000',
+                           WMS_INTERNAL_OIDC_CLIENT_ID='wms-platform', WMS_INTERNAL_OIDC_JWK_SET_URI='http://localhost:8000/.well-known/jwks',
+                           WMS_INTERNAL_OIDC_ALLOWED_SUBJECTS='inventory-worker')
+                environments[name] = {key: value for key, value in env.items() if key.startswith('WMS_')}
             if seed:
                 with (run / (name + '-seed.log')).open('w') as log:
                     result = subprocess.run(['java', '-Xmx256m', '-Dloader.main=' + seed, '-cp', str(jar), 'org.springframework.boot.loader.launch.PropertiesLauncher'],
