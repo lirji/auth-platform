@@ -20,10 +20,12 @@ public class WorkspaceController {
 
     private final WorkspaceRegistry registry;
 
+    /** 显式绑定 WorkspaceController 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public WorkspaceController(WorkspaceRegistry registry) {
         this.registry = registry;
     }
 
+    /** 沿用当前可信身份过滤已登记工作区，不能把配置存在直接当作访问允许。 */
     @GetMapping("/workspaces")
     public WorkspacesResponse list(@AuthenticationPrincipal Jwt jwt) {
         List<WorkspaceView> items =

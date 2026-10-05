@@ -19,10 +19,12 @@ public class WorkspaceInterceptor implements HandlerInterceptor {
 
     private final WorkspaceRegistry registry;
 
+    /** 显式绑定 WorkspaceInterceptor 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public WorkspaceInterceptor(WorkspaceRegistry registry) {
         this.registry = registry;
     }
 
+    /** 在管理请求执行前验证并绑定工作区，客户端选择本身不能授予访问资格。 */
     @Override
     public boolean preHandle(
             HttpServletRequest request, HttpServletResponse response, Object handler)
@@ -55,6 +57,7 @@ public class WorkspaceInterceptor implements HandlerInterceptor {
         }
     }
 
+    /** 请求结束清理线程工作区绑定，避免线程复用把前一身份或目标带入后续请求。 */
     @Override
     public void afterCompletion(
             HttpServletRequest request,

@@ -44,6 +44,7 @@ public final class RoleMigrationDtos {
             boolean eligible,
             List<Exclusion> reasons,
             String replacementRequestId) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Item {
             reasons = List.copyOf(reasons);
         }
@@ -66,6 +67,7 @@ public final class RoleMigrationDtos {
             List<Item> items,
             long eligibleCount,
             long excludedCount) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Preview {
             added = List.copyOf(added);
             removed = List.copyOf(removed);

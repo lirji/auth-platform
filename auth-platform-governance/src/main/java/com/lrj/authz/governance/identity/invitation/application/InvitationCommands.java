@@ -20,6 +20,7 @@ public final class InvitationCommands {
 
     /** 操作范围来自受控配置，不能从接受请求或创建命令中选择企业/负责人。 */
     public record Authority(String operatorRef, String tenantId, String sponsorMembershipId) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Authority {
             BootstrapCommand.bounded(operatorRef, 160);
             BootstrapCommand.uuid(tenantId);
@@ -39,6 +40,7 @@ public final class InvitationCommands {
             Instant expiresAt,
             Instant membershipValidTo,
             String reason) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Issue {
             BootstrapCommand.uuid(commandId);
             BootstrapCommand.uuid(invitationId);
@@ -76,6 +78,7 @@ public final class InvitationCommands {
                     reason);
         }
 
+        /** 只生成既有脱敏诊断表示，不能把登录、服务凭据或邀请秘密带入日志。 */
         @Override
         public String toString() {
             return "InvitationIssue[proof=redacted]";
@@ -89,6 +92,7 @@ public final class InvitationCommands {
             Authority authority,
             long expectedVersion,
             String reason) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Revoke {
             BootstrapCommand.uuid(commandId);
             BootstrapCommand.uuid(invitationId);

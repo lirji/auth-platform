@@ -164,5 +164,6 @@ public final class ReliableAuthorization {
         if (System.nanoTime() >= deadline) throw new GovernanceException(DEPENDENCY_UNAVAILABLE);
     }
 
+    /** 保留当前严格判权读取到的候选授权与围栏快照，后续检查不能拼入另一观察版本。 */
     private record Candidates(List<GrantPath> grants, Instant now) {}
 }

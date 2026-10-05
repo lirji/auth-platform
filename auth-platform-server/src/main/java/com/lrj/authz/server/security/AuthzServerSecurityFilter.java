@@ -23,6 +23,7 @@ public class AuthzServerSecurityFilter extends OncePerRequestFilter {
 
     private final AuthzServerSecurityProperties props;
 
+    /** 显式绑定 AuthzServerSecurityFilter 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public AuthzServerSecurityFilter(AuthzServerSecurityProperties props) {
         // fail-fast：enabled=true 但 token 为空是配置错误，拒绝启动（而非运行期才所有请求 401）。
         if (props.isEnabled() && (props.getToken() == null || props.getToken().isBlank())) {

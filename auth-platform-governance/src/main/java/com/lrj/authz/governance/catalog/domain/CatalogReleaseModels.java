@@ -21,6 +21,7 @@ public final class CatalogReleaseModels {
             this.code = code;
         }
 
+        /** 返回稳定的持久化与协议编码，调用方不能用枚举序号或异常文本判断业务结果。 */
         @com.fasterxml.jackson.annotation.JsonValue
         public String code() {
             return code;
@@ -56,6 +57,7 @@ public final class CatalogReleaseModels {
 
     /** 老版本无来源仍在历史页里显示，不回填伪造的发布时间／提交。 */
     public record History(List<Release> items, Long nextBeforeVersion) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public History {
             items = List.copyOf(items);
         }

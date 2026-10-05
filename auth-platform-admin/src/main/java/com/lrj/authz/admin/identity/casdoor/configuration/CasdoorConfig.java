@@ -19,11 +19,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class CasdoorConfig {
 
+    /** 用既有身份提供方配置装配客户端，HTTP输入不能替换机密或目标地址。 */
     @Bean
     public CasdoorClient casdoorClient(CasdoorProperties props) {
         return new CasdoorClient(props);
     }
 
+    /** 将身份同步绑定既有默认图引擎和删除预算，避免跨工作区写入。 */
     @Bean
     public GroupSyncService groupSyncService(
             CasdoorClient client,

@@ -158,6 +158,7 @@ public class GovernanceAdminConfiguration {
         return runtime.publisher(settings.publisher().orElseThrow());
     }
 
+    /** 管理端包内组合配置；HTTP入口共享同一数据库与身份权威，保留包内可见性。 */
     record Settings(
             GovernanceDatabase database,
             TokenAuthority authority,

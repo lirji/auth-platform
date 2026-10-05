@@ -51,6 +51,7 @@ public final class PortalDtos {
                     false);
         }
 
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public PublishedCatalog {
             menus = List.copyOf(menus);
             capabilities = List.copyOf(capabilities);
@@ -66,6 +67,7 @@ public final class PortalDtos {
             List<String> anyOf,
             String label,
             Integer position) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public PublishedMenu {
             anyOf = List.copyOf(anyOf);
         }
@@ -100,6 +102,7 @@ public final class PortalDtos {
     /** 资源名来自实际清单，允许范围只来自协议绑定，不伪造业务实例目录。 */
     public record PublishedResourceType(
             String code, boolean scopeSupported, List<ScopeDtos.Kind> allowedScopeKinds) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public PublishedResourceType {
             allowedScopeKinds = List.copyOf(allowedScopeKinds);
         }

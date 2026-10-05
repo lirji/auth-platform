@@ -7,6 +7,7 @@ public record RelationshipFilter(String resourceType, String resourceId, String 
         return new RelationshipFilter(resource.type(), resource.id(), null);
     }
 
+    /** 用明确类型、身份及原过滤字段建立 RelationshipFilter，不能仅从标识推断访问资格。 */
     public static RelationshipFilter of(String resourceType, String resourceId, String relation) {
         return new RelationshipFilter(resourceType, resourceId, relation);
     }

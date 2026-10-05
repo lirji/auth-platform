@@ -152,6 +152,7 @@ public final class InvitationCli {
         throw invalid();
     }
 
+    /** 邀请CLI的封闭动作集合，参数解析不能将未知动作降级为默认写操作。 */
     private enum Action {
         ISSUE("issue"),
         REVOKE("revoke");

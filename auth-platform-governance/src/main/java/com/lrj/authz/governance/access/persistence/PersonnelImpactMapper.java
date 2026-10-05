@@ -15,6 +15,7 @@ public interface PersonnelImpactMapper {
     /** 最多10000行参与摘要，完整计数单独计算，不拿第一页替代全部。 */
     record Basis(long total, String hash) {}
 
+    /** 读取{@code auth_governance}、{@code orgs}、{@code employee}，保持原参数绑定与SQL集中在持久化边界。沿用原分页或批量上限，不把第一页当作全量事实。 */
     Basis basis(@Param("p") Partition p, @Param("member") String member);
 
     /** 只读取本人必要目录投影，绝不返回登录字段。 */
@@ -26,12 +27,14 @@ public interface PersonnelImpactMapper {
             String factsJson,
             boolean historyMissing) {}
 
+    /** 读取{@code auth_governance}，保持原参数绑定与SQL集中在持久化边界。沿用原分页或批量上限，不把第一页当作全量事实。 */
     List<DirectoryRow> directories(@Param("p") Partition p, @Param("member") String member);
 
     /** 冲突原因去重且有界，无原消息正文。 */
     record SourceRow(
             String sourceId, long lastSequence, boolean quarantined, String conflictReasons) {}
 
+    /** 读取{@code auth_governance}，保持原参数绑定与SQL集中在持久化边界。沿用原分页或批量上限，不把第一页当作全量事实。 */
     List<SourceRow> directorySources(@Param("p") Partition p);
 
     /** 稳定来源／序号复合游标，历史内容不替代当前目录。 */
@@ -48,6 +51,7 @@ public interface PersonnelImpactMapper {
             String afterJson,
             String occurredAt) {}
 
+    /** 读取{@code changes}，保持原参数绑定与SQL集中在持久化边界。沿用原分页或批量上限，不把第一页当作全量事实。 */
     List<ChangeRow> changes(
             @Param("p") Partition p,
             @Param("member") String member,
@@ -63,6 +67,7 @@ public interface PersonnelImpactMapper {
             String periodsJson,
             boolean groupActive) {}
 
+    /** 读取{@code auth_governance}，保持原参数绑定与SQL集中在持久化边界。沿用原分页或批量上限，不把第一页当作全量事实。 */
     List<GroupRow> relations(
             @Param("p") Partition p,
             @Param("member") String member,

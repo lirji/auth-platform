@@ -20,18 +20,22 @@ public class AuthzServerSecurityProperties {
     /** 期望的 Bearer token；enabled=true 时必须非空。 */
     private String token = "";
 
+    /** 返回本实例保存的配置启用条件，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public boolean isEnabled() {
         return enabled;
     }
 
+    /** 由受治理配置绑定启用条件，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
+    /** 返回本实例保存的配置服务凭据，保持既有凭据装配边界，调用方不能将其写入诊断日志。 */
     public String getToken() {
         return token;
     }
 
+    /** 由受治理配置绑定服务凭据，保持既有凭据装配边界，调用方不能将其写入诊断日志。 */
     public void setToken(String token) {
         this.token = token;
     }

@@ -21,6 +21,7 @@ import java.util.*;
 
 /** 单条短事务导入，进程中断可重放；墓碑拒绝优先，不能用旧完整快照覆盖新撤权。 */
 public final class MigrationImport {
+    /** 保留已冻结迁移来源内容，导入只能按既有证据规则产生候选结果。 */
     public record Item(
             String sourceId,
             long sourceVersion,
@@ -33,6 +34,7 @@ public final class MigrationImport {
             boolean deny,
             String reason) {}
 
+    /** 原迁移批次的不可变输入集合，重复导入必须保持来源与批次语义一致。 */
     public record Batch(
             String unitId,
             long sequence,
@@ -47,6 +49,7 @@ public final class MigrationImport {
     private final TransactionTemplate tx;
     private final IdentityMapper audit;
 
+    /** 显式绑定 MigrationImport 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public MigrationImport(
             MigrationMapper mapper,
             AccessManagement access,

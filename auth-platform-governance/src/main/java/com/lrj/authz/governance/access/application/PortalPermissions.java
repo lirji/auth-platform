@@ -25,6 +25,7 @@ public final class PortalPermissions {
             AUDIT = "READ_ACCESS_AUDIT",
             IMPACT = "READ_CATALOG_IMPACT";
 
+    /** 诊断响应的原有限结果集合，缺失或未知事实不能被解释成允许。 */
     private enum Outcome {
         ALLOWED("ALLOWED"),
         DENIED("DENIED");

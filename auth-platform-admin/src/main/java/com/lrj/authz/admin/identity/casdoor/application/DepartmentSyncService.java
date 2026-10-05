@@ -35,18 +35,22 @@ public class DepartmentSyncService {
     /** 一轮允许的最大 DELETE 数; 超过则中止整轮。<0 表示不限制。 */
     private final int deleteThreshold;
 
+    /** 显式绑定 DepartmentSyncService 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public DepartmentSyncService(CasdoorClient casdoor, AuthzEngine engine) {
         this(casdoor, engine, -1);
     }
 
+    /** 显式绑定 DepartmentSyncService 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public DepartmentSyncService(CasdoorClient casdoor, AuthzEngine engine, int deleteThreshold) {
         this.casdoor = casdoor;
         this.engine = engine;
         this.deleteThreshold = deleteThreshold;
     }
 
+    /** 部门同步的实际差异摘要，预览与执行计数不能替代当前图的真实写入结果。 */
     public record SyncSummary(int departments, int added, int removed) {}
 
+    /** 沿用原身份同步预览、差异与删除阈值规则，不能把未知来源当作空目录删除。 */
     public synchronized SyncSummary sync() {
         CasdoorClient.DepartmentSnapshot snap = casdoor.departmentSnapshot();
         Set<String> depts = new LinkedHashSet<>(snap.deptIds());

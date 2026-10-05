@@ -27,6 +27,7 @@ public final class CapabilityRetirementDtos {
             String applicationId,
             long manifestVersion,
             List<PortalDtos.PublishedCapability> capabilities) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public OwnerCatalog {
             capabilities = List.copyOf(capabilities);
         }
@@ -62,6 +63,7 @@ public final class CapabilityRetirementDtos {
             boolean eligible,
             String basisHash,
             String checkedAt) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Report {
             counts = List.copyOf(counts);
         }
@@ -79,6 +81,7 @@ public final class CapabilityRetirementDtos {
 
     /** 游标同时绑定完整依据；其他企业数据不进入本页。 */
     public record References(List<Reference> items, String nextCursor, String basisHash) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public References {
             items = List.copyOf(items);
         }

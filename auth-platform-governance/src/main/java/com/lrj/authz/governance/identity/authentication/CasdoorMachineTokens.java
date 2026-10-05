@@ -16,8 +16,10 @@ public final class CasdoorMachineTokens {
     private static final int MAX_TOKEN_BYTES = 32_768;
     private final Map<Key, Entry> entries;
 
+    /** 机器认证缓存键绑定原可信槽位与令牌身份，不允许不同发行方或机器主体复用认证结果。 */
     private record Key(String issuer, String clientId) {}
 
+    /** 保存已验证机器认证的有界缓存条目；有效期与来源变化按原规则核对，不缓存执行授权。 */
     private record Entry(MachineTokenAuthority authority, CasdoorAccessTokenVerifier verifier) {}
 
     /** 开启机器入口时核对固定发行方契约，不自动登记SERVICE或发布目录。 */

@@ -14,6 +14,7 @@ public final class CatalogGuardModels {
     /** 新请求不在旧Manifest内追加发布来源或主体。 */
     public record PreviewInput(
             Manifest manifest, Source source, String reason, Decision decision, Impact impact) {
+        /** 保留当前预览记录绑定的候选内容，发布时不能另行构造不同命令语义。 */
         public Candidate candidate() {
             return new Candidate(manifest, source, reason, decision);
         }

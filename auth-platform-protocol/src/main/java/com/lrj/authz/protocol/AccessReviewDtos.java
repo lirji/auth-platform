@@ -29,6 +29,7 @@ public final class AccessReviewDtos {
         }
     }
 
+    /** 封闭审查条目状态；保持原稳定码和合法决策语义，未知码不能默认完成。 */
     public enum ItemState {
         PENDING("PENDING"),
         INVESTIGATE("INVESTIGATE"),
@@ -54,6 +55,7 @@ public final class AccessReviewDtos {
         }
     }
 
+    /** 封闭审查任务状态；任务终态不替代各条目与撤权回执的实际完成证据。 */
     public enum TaskState {
         RUNNING("RUNNING"),
         NEEDS_INVESTIGATION("NEEDS_INVESTIGATION"),

@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Param;
 
 /** 迁移检查点和授权效果共用治理事务；导入工具不直接写业务Grant表。 */
 public interface MigrationMapper {
+    /** 迁移单元与来源的持久化回执，幂等重放不能覆盖原来源证据。 */
     record Row(
             String unitId,
             String sourceId,

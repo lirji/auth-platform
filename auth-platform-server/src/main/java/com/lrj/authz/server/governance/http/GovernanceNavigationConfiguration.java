@@ -50,5 +50,6 @@ public class GovernanceNavigationConfiguration {
         return runtime.navigation(settings.graph());
     }
 
+    /** 导航提示的原调用方允许集合，提示不能替代业务执行授权。 */
     record NavigationSettings(Set<String> callers) {}
 }

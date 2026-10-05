@@ -40,18 +40,22 @@ public class GroupSyncService {
     /** 一轮允许的最大 DELETE 数; 超过则中止整轮。<0 表示不限制。 */
     private final int deleteThreshold;
 
+    /** 显式绑定 GroupSyncService 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public GroupSyncService(CasdoorClient casdoor, AuthzEngine engine) {
         this(casdoor, engine, -1);
     }
 
+    /** 显式绑定 GroupSyncService 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public GroupSyncService(CasdoorClient casdoor, AuthzEngine engine, int deleteThreshold) {
         this.casdoor = casdoor;
         this.engine = engine;
         this.deleteThreshold = deleteThreshold;
     }
 
+    /** 组同步的实际差异摘要，拒绝或部分失败不能被展示成完整同步成功。 */
     public record SyncSummary(int groups, int added, int removed) {}
 
+    /** 沿用原身份同步预览、差异与删除阈值规则，不能把未知来源当作空目录删除。 */
     public synchronized SyncSummary sync() {
         Map<String, Set<String>> desired = casdoor.groupMembers();
         Set<String> groups = new LinkedHashSet<>(casdoor.groupNames());

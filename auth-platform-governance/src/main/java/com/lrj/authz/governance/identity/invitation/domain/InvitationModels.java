@@ -42,6 +42,7 @@ public final class InvitationModels {
             String acceptedMembershipId,
             Long acceptedGeneration,
             Instant acceptedAt) {
+        /** 只生成既有脱敏诊断表示，不能把登录、服务凭据或邀请秘密带入日志。 */
         @Override
         public String toString() {
             return "Invitation[id=" + id + ",state=" + state.code() + ",proof=redacted]";

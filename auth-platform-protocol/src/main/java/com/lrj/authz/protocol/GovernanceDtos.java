@@ -21,6 +21,7 @@ public final class GovernanceDtos {
 
     /** 列表是有界快照，traceId 由服务端生成；接口没有创建成员的副作用。 */
     public record MembershipsResponse(List<MembershipView> memberships, String traceId) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public MembershipsResponse {
             memberships = List.copyOf(memberships);
         }
@@ -42,6 +43,7 @@ public final class GovernanceDtos {
 
     /** 原文证明不得进入默认日志输出。 */
     public record AcceptInvitationRequest(String invitationId, String token) {
+        /** 只生成既有脱敏诊断表示，不能把登录、服务凭据或邀请秘密带入日志。 */
         @Override
         public String toString() {
             return "AcceptInvitationRequest[proof=redacted]";

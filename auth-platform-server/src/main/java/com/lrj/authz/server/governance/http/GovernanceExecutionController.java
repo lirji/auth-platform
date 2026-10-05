@@ -34,6 +34,7 @@ public class GovernanceExecutionController {
     private final ExecutionAuthorization executions;
     private final GovernanceExecutionConfiguration.ExecutionSettings settings;
 
+    /** 显式绑定 GovernanceExecutionController 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public GovernanceExecutionController(
             InternalContextService contexts,
             ExecutionAuthorization executions,

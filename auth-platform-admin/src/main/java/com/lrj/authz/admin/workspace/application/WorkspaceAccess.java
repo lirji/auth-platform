@@ -19,6 +19,7 @@ public final class WorkspaceAccess {
 
     private WorkspaceAccess() {}
 
+    /** 按原成员组织与平台操作者规则判断工作区访问，选择工作区不产生额外授权。 */
     public static boolean allowed(Jwt jwt, WorkspaceProperties.Item workspace) {
         if (jwt == null || workspace == null) {
             return false;
@@ -30,6 +31,7 @@ public final class WorkspaceAccess {
         return orgsOf(workspace).contains(owner);
     }
 
+    /** 过滤已登记工作区，只返回当前可信登录满足既有访问规则的项目。 */
     public static List<WorkspaceProperties.Item> visible(
             Jwt jwt, List<WorkspaceProperties.Item> all) {
         List<WorkspaceProperties.Item> out = new ArrayList<>();
@@ -41,10 +43,12 @@ public final class WorkspaceAccess {
         return out;
     }
 
+    /** 沿用原平台操作资格判断，不能把任意内部成员自动当作平台管理员。 */
     public static boolean isPlatformOperator(Jwt jwt, String owner) {
         return hasAuthority(jwt, "authz-admin") && "built-in".equals(owner);
     }
 
+    /** 从受治理工作区配置解析原所有者，不能从请求参数推断组织归属。 */
     public static String owner(Jwt jwt) {
         if (jwt == null) {
             return "";
@@ -53,6 +57,7 @@ public final class WorkspaceAccess {
         return owner == null ? "" : owner.trim();
     }
 
+    /** 按既有认证声明与规范化规则检查资格，不能扩大不同组织的授权。 */
     public static boolean hasAuthority(Jwt jwt, String shortName) {
         if (jwt == null) {
             return false;
@@ -72,6 +77,7 @@ public final class WorkspaceAccess {
         return false;
     }
 
+    /** 合并当前工作区配置的组织条件，保持原单组织与组织集合的兼容语义。 */
     public static Set<String> orgsOf(WorkspaceProperties.Item workspace) {
         Set<String> orgs = new LinkedHashSet<>();
         if (workspace.getOrganization() != null && !workspace.getOrganization().isBlank()) {
@@ -87,6 +93,7 @@ public final class WorkspaceAccess {
         return orgs;
     }
 
+    /** 沿用原身份规范化规则，资格比较不能在不同入口采用不同表示。 */
     public static String normalizeId(String raw) {
         return raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
     }

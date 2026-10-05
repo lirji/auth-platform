@@ -707,5 +707,6 @@ public final class AccessManagement {
         if (count != 1) throw new GovernanceException(VERSION_CONFLICT);
     }
 
+    /** 当前管理身份与成员代际快照，事务内授权变更继续复核同一可信操作者。 */
     private record Manager(CurrentContext context, Delegation delegation) {}
 }

@@ -93,12 +93,14 @@ public class GovernanceRequestMetrics extends OncePerRequestFilter {
     @RestControllerAdvice(annotations = GovernanceWeb.Endpoint.class)
     @ConditionalOnProperty(name = "authz.governance.enabled", havingValue = "true")
     public static class OutcomeAdvice implements ResponseBodyAdvice<Object> {
+        /** 只对原治理响应类型安装结果指标转换，不能改变旧接口响应语义。 */
         @Override
         public boolean supports(
                 MethodParameter parameter, Class<? extends HttpMessageConverter<?>> converter) {
             return true;
         }
 
+        /** 在保持原响应body的同时记录有限结果标签，未知输入不能制造高基数指标。 */
         @Override
         public Object beforeBodyWrite(
                 Object body,

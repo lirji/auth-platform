@@ -34,6 +34,7 @@ public final class CapabilityRetirement {
     private final CatalogRetirementProof proofs;
     private final TransactionTemplate tx;
 
+    /** 能力退出分析的原依据快照，执行退出时必须复核原引用与版本。 */
     private record Analysis(Report report, CatalogRetirementProof.Result proof) {}
 
     /** 同一专用治理库／事务，不在事务内调用部署端网络。 */

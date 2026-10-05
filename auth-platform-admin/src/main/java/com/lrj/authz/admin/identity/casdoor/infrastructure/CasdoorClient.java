@@ -23,6 +23,7 @@ public class CasdoorClient {
     private final CasdoorProperties props;
     private final ObjectMapper mapper = new ObjectMapper();
 
+    /** 显式绑定 CasdoorClient 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public CasdoorClient(CasdoorProperties props) {
         this.props = props;
         this.rest =

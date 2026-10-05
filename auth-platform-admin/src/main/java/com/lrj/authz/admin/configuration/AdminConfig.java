@@ -9,9 +9,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+/** 管理端引擎组合根；默认目标与工作区路由分开绑定，避免工作区请求写入错误图目标。 */
 @Configuration
 public class AdminConfig {
 
+    /** 固定提供未绑定工作区时的既有默认引擎，路由不能另造隐式目标。 */
     @Bean
     @Qualifier("defaultAuthzEngine")
     public AuthzEngine defaultAuthzEngine(WorkspaceRegistry registry) {

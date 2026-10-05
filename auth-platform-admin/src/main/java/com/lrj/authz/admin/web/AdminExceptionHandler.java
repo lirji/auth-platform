@@ -16,10 +16,12 @@ public class AdminExceptionHandler {
 
     private final WorkspaceRegistry workspaces;
 
+    /** 显式绑定 AdminExceptionHandler 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public AdminExceptionHandler(WorkspaceRegistry workspaces) {
         this.workspaces = workspaces;
     }
 
+    /** 将图依赖不可用转换成原故障响应，不能伪造判权成功或暴露内部堆栈。 */
     @ExceptionHandler(ResourceAccessException.class)
     public ResponseEntity<Map<String, String>> spiceDbUnreachable(ResourceAccessException e) {
         String id = workspaces.currentId();

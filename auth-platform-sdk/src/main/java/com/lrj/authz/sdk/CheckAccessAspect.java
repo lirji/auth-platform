@@ -11,17 +11,20 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 
 /** @CheckAccess 的环绕切面: 判权不通过则抛 AccessDeniedException。 */
+/** 消费方权限注解适配；先按当前可信主体判权再执行方法，自调用等绕过代理的路径仍须显式判权。 */
 @Aspect
 public class CheckAccessAspect {
 
     private final AuthzEngine engine;
     private final SubjectResolver subjectResolver;
 
+    /** 显式绑定 CheckAccessAspect 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public CheckAccessAspect(AuthzEngine engine, SubjectResolver subjectResolver) {
         this.engine = engine;
         this.subjectResolver = subjectResolver;
     }
 
+    /** 在受保护方法执行前按既有主体解析与资源规则判权，拒绝时不执行业务副作用。 */
     @Around("@annotation(checkAccess)")
     public Object around(ProceedingJoinPoint pjp, CheckAccess checkAccess) throws Throwable {
         SubjectRef subject = subjectResolver.currentSubject();

@@ -30,50 +30,62 @@ public class CasdoorProperties {
     /** 一轮组同步允许的最大 DELETE 数; 超过则中止整轮不写 (防 Casdoor 拉取不全导致大面积撤权)。<0=不限制。 */
     private int deleteThreshold = 1000;
 
+    /** 返回本实例保存的配置启用条件，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public boolean isEnabled() {
         return enabled;
     }
 
+    /** 由受治理配置绑定启用条件，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
+    /** 返回本实例保存的配置身份提供方地址，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public String getBaseUrl() {
         return baseUrl;
     }
 
+    /** 由受治理配置绑定身份提供方地址，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
     }
 
+    /** 返回本实例保存的配置客户端标识，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public String getClientId() {
         return clientId;
     }
 
+    /** 由受治理配置绑定客户端标识，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public void setClientId(String clientId) {
         this.clientId = clientId;
     }
 
+    /** 返回本实例保存的配置客户端秘密，保持既有凭据装配边界，调用方不能将其写入诊断日志。 */
     public String getClientSecret() {
         return clientSecret;
     }
 
+    /** 由受治理配置绑定客户端秘密，保持既有凭据装配边界，调用方不能将其写入诊断日志。 */
     public void setClientSecret(String clientSecret) {
         this.clientSecret = clientSecret;
     }
 
+    /** 返回本实例保存的配置组织条件，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public String getOrganization() {
         return organization;
     }
 
+    /** 由受治理配置绑定组织条件，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public void setOrganization(String organization) {
         this.organization = organization;
     }
 
+    /** 返回本实例保存的配置组织集合，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public List<String> getOrganizations() {
         return organizations;
     }
 
+    /** 由受治理配置绑定组织集合，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public void setOrganizations(List<String> organizations) {
         this.organizations = organizations;
     }
@@ -85,42 +97,52 @@ public class CasdoorProperties {
                 : List.of(organization);
     }
 
+    /** 返回本实例保存的配置主体字段，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public String getSubjectField() {
         return subjectField;
     }
 
+    /** 由受治理配置绑定主体字段，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public void setSubjectField(String subjectField) {
         this.subjectField = subjectField;
     }
 
+    /** 返回本实例保存的配置对账开关，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public boolean isReconcileEnabled() {
         return reconcileEnabled;
     }
 
+    /** 由受治理配置绑定对账开关，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public void setReconcileEnabled(boolean reconcileEnabled) {
         this.reconcileEnabled = reconcileEnabled;
     }
 
+    /** 返回本实例保存的配置部门同步开关，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public boolean isDepartmentSyncEnabled() {
         return departmentSyncEnabled;
     }
 
+    /** 由受治理配置绑定部门同步开关，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public void setDepartmentSyncEnabled(boolean departmentSyncEnabled) {
         this.departmentSyncEnabled = departmentSyncEnabled;
     }
 
+    /** 返回本实例保存的配置对账周期，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public long getReconcileIntervalMs() {
         return reconcileIntervalMs;
     }
 
+    /** 由受治理配置绑定对账周期，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public void setReconcileIntervalMs(long reconcileIntervalMs) {
         this.reconcileIntervalMs = reconcileIntervalMs;
     }
 
+    /** 返回本实例保存的配置删除阈值，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public int getDeleteThreshold() {
         return deleteThreshold;
     }
 
+    /** 由受治理配置绑定删除阈值，不同装配入口沿用同一配置来源，不能接受请求输入暗中覆盖。 */
     public void setDeleteThreshold(int deleteThreshold) {
         this.deleteThreshold = deleteThreshold;
     }

@@ -11,6 +11,7 @@ import java.util.Map;
 public final class CatalogPublisherPolicy {
     private CatalogPublisherPolicy() {}
 
+    /** 机器发布策略中的固定应用与发布者规则，不接受从上传清单中推断发布资格。 */
     private record Entry(String route, List<String> anyOf) {}
 
     /** 完整能力定义和有业务意义的菜单保持；纯分组父级和展示不成为权限。 */

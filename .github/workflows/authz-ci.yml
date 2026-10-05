@@ -44,7 +44,9 @@ on:
       - 'deploy/tests/test_governance_p7*'
       - 'compatibility/boot4-sdk/**'
       - 'auth-console/**'
-      - 'scripts/format-*.py'
+      - 'scripts/*.py'
+      - 'scripts/tests/**'
+      - 'compatibility/public-api-baseline.json'
       - '.editorconfig'
       - 'pom.xml'
       - 'mvnw'
@@ -94,7 +96,9 @@ on:
       - 'deploy/tests/test_governance_p7*'
       - 'compatibility/boot4-sdk/**'
       - 'auth-console/**'
-      - 'scripts/format-*.py'
+      - 'scripts/*.py'
+      - 'scripts/tests/**'
+      - 'compatibility/public-api-baseline.json'
       - '.editorconfig'
       - 'pom.xml'
       - 'mvnw'
@@ -133,6 +137,8 @@ jobs:
           java-version: '21'
           cache: maven
       - run: python3 scripts/format-java.py --check
+      - run: python3 scripts/check-module-packages.py
+      - run: python3 -m unittest discover -s scripts/tests -p 'test_*.py'
       - run: sudo apt-get update && sudo apt-get install -y libxml2-utils
       - run: python3 scripts/format-xml.py --check
       - name: Create isolated governance database owner
@@ -142,6 +148,7 @@ jobs:
           CREATE DATABASE auth_gov_p1_test_ci OWNER governance_ci;
           SQL
       - run: ./mvnw -B -Pgovernance-it verify
+      - run: python3 scripts/check-public-api.py
         env:
           GOVERNANCE_TEST_DB_URL: jdbc:postgresql://127.0.0.1:5432/auth_gov_p1_test_ci
           GOVERNANCE_TEST_DB_USER: governance_ci
@@ -233,6 +240,6 @@ jobs:
       - name: Check portal browser harness syntax
         run: |
           for script in deploy/governance-menu-*.mjs deploy/governance-p5-*.mjs deploy/governance-p6-catalog.mjs deploy/governance-ce05-campaigns.mjs deploy/governance-ce05-segments.mjs deploy/governance-ce05-coupon-deliveries-ui.mjs deploy/governance-integrated-resources-*.mjs deploy/governance-permission-pages.mjs deploy/governance-commerce-publication-*.mjs; do node --check "$script"; done
-          node --test auth-console/tests/governance-context.test.mjs auth-console/tests/governance-published-catalog.test.mjs auth-console/tests/governance-catalog-model.test.mjs auth-console/tests/governance-catalog-impact.test.mjs auth-console/tests/governance-catalog-history.test.mjs auth-console/tests/governance-catalog-guard.test.mjs auth-console/tests/governance-catalog-drift.test.mjs
+          node --test auth-console/tests/*.test.mjs
       - name: Build governance console
         run: pnpm --dir auth-console install --frozen-lockfile && pnpm --dir auth-console format:check && pnpm --dir auth-console build

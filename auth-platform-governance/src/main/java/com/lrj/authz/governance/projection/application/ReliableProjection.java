@@ -290,5 +290,6 @@ public final class ReliableProjection {
         if (count != 1) throw new GovernanceException(VERSION_CONFLICT);
     }
 
+    /** 投影领取时的原围栏工作快照，旧执行器不能用该快照覆盖新租约或代际。 */
     private record Work(Step result, Operation operation) {}
 }

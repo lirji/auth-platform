@@ -30,6 +30,7 @@ public class WorkspaceRegistry {
     private final AuthzEngine defaultEngine;
     private final ThreadLocal<BoundWorkspace> current = new ThreadLocal<>();
 
+    /** 显式绑定 WorkspaceRegistry 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public WorkspaceRegistry(WorkspaceProperties properties, AdminSpiceDbProperties spicedb) {
         this.defaultEngine =
                 new SpiceDbAuthzEngine(
@@ -76,14 +77,17 @@ public class WorkspaceRegistry {
         }
     }
 
+    /** 返回当前注册表绑定的默认引擎，不能按用户输入重新创建信任目标。 */
     public AuthzEngine defaultEngine() {
         return defaultEngine;
     }
 
+    /** 返回既有配置登记的工作区；是否可见仍由请求身份过滤。 */
     public List<BoundWorkspace> all() {
         return List.copyOf(workspaces.values());
     }
 
+    /** 只定位既有登记的工作区，未知标识不能回退默认目标。 */
     public BoundWorkspace require(String rawId, Jwt jwt) {
         String id = WorkspaceAccess.normalizeId(rawId);
         if (id.isEmpty()) {
@@ -102,25 +106,30 @@ public class WorkspaceRegistry {
         return bound;
     }
 
+    /** 将已验证工作区绑定到当前线程，业务入口不能混用不同目标引擎。 */
     public void bind(String rawId, Authentication authentication) {
         Jwt jwt = jwtOf(authentication);
         current.set(require(rawId, jwt));
     }
 
+    /** 清理当前线程的工作区绑定，后续请求必须重新验证和选择目标。 */
     public void clear() {
         current.remove();
     }
 
+    /** 根据当前请求已绑定工作区路由，避免同一用例误写另一图目标。 */
     public AuthzEngine currentEngine() {
         BoundWorkspace bound = current.get();
         return bound == null ? defaultEngine : bound.engine();
     }
 
+    /** 返回当前请求的工作区身份，用于一致路由与可关联审计。 */
     public String currentId() {
         BoundWorkspace bound = current.get();
         return bound == null ? DEFAULT_ID : bound.item().getId();
     }
 
+    /** 只从既有认证对象取得JWT，未认证上下文不能被解释成合法登录。 */
     public static Jwt jwtOf(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
             return jwt;
@@ -128,5 +137,6 @@ public class WorkspaceRegistry {
         return null;
     }
 
+    /** 当前线程已验证工作区的绑定快照，请求结束必须清理，不能跨请求继承目标。 */
     public record BoundWorkspace(WorkspaceProperties.Item item, AuthzEngine engine) {}
 }

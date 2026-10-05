@@ -333,15 +333,18 @@ public final class SpiceDbProjectionGraph implements ProjectionGraph, StrictGrap
         private Flow.Subscription subscription;
         private int received;
 
+        /** 返回本交换的有界收集结果，调用方继续等待完整body而非只有响应头。 */
         public CompletionStage<byte[]> getBody() {
             return delegate.getBody();
         }
 
+        /** 绑定当前交换的订阅，预算越界只取消这次响应，避免影响独立请求。 */
         public void onSubscribe(Flow.Subscription subscription) {
             this.subscription = subscription;
             delegate.onSubscribe(subscription);
         }
 
+        /** 逐批核对原响应字节预算，超限时取消收集并保留既有故障语义。 */
         public void onNext(List<ByteBuffer> items) {
             for (ByteBuffer item : items) {
                 received += item.remaining();
@@ -354,10 +357,12 @@ public final class SpiceDbProjectionGraph implements ProjectionGraph, StrictGrap
             delegate.onNext(items);
         }
 
+        /** 将响应订阅失败传递给等待方，不能用空body掩盖传输故障。 */
         public void onError(Throwable failure) {
             delegate.onError(failure);
         }
 
+        /** 仅在原响应订阅结束后完成收集，避免返回未完整接收的协议内容。 */
         public void onComplete() {
             delegate.onComplete();
         }

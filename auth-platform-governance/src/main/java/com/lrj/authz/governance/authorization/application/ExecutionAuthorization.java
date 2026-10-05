@@ -190,6 +190,7 @@ public final class ExecutionAuthorization {
     private final ReliableAuthorization access;
     private final TransactionTemplate tx;
 
+    /** 显式绑定 ExecutionAuthorization 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public ExecutionAuthorization(
             ExecutionMapper mapper, ReliableAuthorization access, TransactionTemplate tx) {
         this.mapper = mapper;
@@ -672,6 +673,7 @@ public final class ExecutionAuthorization {
                 .toList();
     }
 
+    /** 保留执行引用复核的原授权路径，引用有效期不代替实时身份与授权检查。 */
     private record Paths(String directoryId, long directoryEpoch, List<Alternative> alternatives) {}
 
     private static Reference reference(ExecutionMapper.Row row) {

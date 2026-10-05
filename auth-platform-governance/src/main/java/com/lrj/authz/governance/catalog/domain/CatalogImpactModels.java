@@ -47,6 +47,7 @@ public final class CatalogImpactModels {
             Long directoryAppliedEpoch,
             boolean sourceQuarantined,
             List<String> disabledCapabilities) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Fences {
             disabledCapabilities = List.copyOf(disabledCapabilities);
         }
@@ -60,6 +61,7 @@ public final class CatalogImpactModels {
             List<String> capabilities,
             long activeGrantCount,
             long pendingGrantCount) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Role {
             capabilities = List.copyOf(capabilities);
         }
@@ -107,6 +109,7 @@ public final class CatalogImpactModels {
             List<Source> sources,
             List<Policy> policies,
             Cursor nextCursor) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Report {
             roles = List.copyOf(roles);
             sources = List.copyOf(sources);

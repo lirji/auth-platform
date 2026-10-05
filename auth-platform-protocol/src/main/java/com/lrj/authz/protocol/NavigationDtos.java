@@ -50,6 +50,7 @@ public final class NavigationDtos {
             String state,
             List<Menu> menus,
             List<String> capabilityHints) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public View {
             menus = menus == null ? null : List.copyOf(menus);
             capabilityHints = capabilityHints == null ? null : List.copyOf(capabilityHints);

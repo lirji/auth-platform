@@ -9,5 +9,6 @@ import com.lrj.authz.protocol.SubjectRef;
  */
 @FunctionalInterface
 public interface SubjectResolver {
+    /** 从当前请求的可信身份上下文解析主体，不能从业务参数推断登录身份。 */
     SubjectRef currentSubject();
 }

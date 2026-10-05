@@ -33,6 +33,7 @@ public final class CatalogModels {
             List<String> anyOf,
             String label,
             Integer position) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Menu {
             anyOf = anyOf == null ? null : List.copyOf(anyOf);
         }
@@ -57,6 +58,7 @@ public final class CatalogModels {
             long manifestVersion,
             List<Capability> capabilities,
             List<Menu> menus) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Manifest {
             capabilities = capabilities == null ? null : List.copyOf(capabilities);
             menus = menus == null ? null : List.copyOf(menus);
@@ -73,6 +75,7 @@ public final class CatalogModels {
     /** 修改前后均保留完整菜单，字段按固定顺序返回以便审查。 */
     public record MenuChange(
             String code, ChangeKind kind, Menu before, Menu after, List<String> fields) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public MenuChange {
             fields = List.copyOf(fields);
         }
@@ -103,6 +106,7 @@ public final class CatalogModels {
             List<CatalogViolation> violations,
             boolean publishable,
             List<String> affectedCapabilities) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Preview {
             added = List.copyOf(added);
             retained = List.copyOf(retained);

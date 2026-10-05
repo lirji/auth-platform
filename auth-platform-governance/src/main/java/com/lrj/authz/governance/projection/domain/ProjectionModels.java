@@ -96,6 +96,7 @@ public final class ProjectionModels {
 
     /** 图关系在规划事务内固定，执行器不能随新marker重新解释旧内容。 */
     public record Payload(List<GrantChange> grants, List<RelationshipUpdate> relationships) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Payload {
             grants = List.copyOf(grants);
             relationships = List.copyOf(relationships);

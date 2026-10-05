@@ -22,6 +22,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
     WorkspaceProperties.class
 })
 public class AuthPlatformAdminApplication {
+    /** 启动当前应用组合根，治理与旧接口按已有配置启用，不能隐式迁移其他运行目标。 */
     public static void main(String[] args) {
         SpringApplication.run(AuthPlatformAdminApplication.class, args);
     }

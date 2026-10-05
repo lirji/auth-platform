@@ -25,6 +25,7 @@ public final class ScopeModels {
             FenceModels.Stamp stamp,
             List<Alternative> alternatives,
             Instant validUntil) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Evaluation {
             alternatives = List.copyOf(alternatives);
         }

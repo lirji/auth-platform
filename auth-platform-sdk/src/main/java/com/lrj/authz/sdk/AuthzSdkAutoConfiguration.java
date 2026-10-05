@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Bean;
         matchIfMissing = true)
 public class AuthzSdkAutoConfiguration {
 
+    /** 在当前组合根绑定既有判权目标与超时预算，不能隐式回退其他引擎。 */
     @Bean
     @ConditionalOnMissingBean
     public AuthzEngine authzEngine(AuthzClientProperties props) {
@@ -30,6 +31,7 @@ public class AuthzSdkAutoConfiguration {
                 props.getReadTimeout());
     }
 
+    /** 装配已配置引擎的注解拦截器，使判权入口与宿主上下文保持一致。 */
     @Bean
     @ConditionalOnClass(name = "org.aspectj.lang.ProceedingJoinPoint")
     @ConditionalOnBean(SubjectResolver.class)

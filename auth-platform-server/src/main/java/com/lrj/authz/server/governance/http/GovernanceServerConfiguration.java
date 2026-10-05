@@ -40,5 +40,6 @@ public class GovernanceServerConfiguration {
         return new InternalContextService(settings.callers(), runtime.identity());
     }
 
+    /** 判权组合根的包内数据库与调用方配置，不能由控制器输入覆盖信任来源。 */
     record Settings(GovernanceDatabase database, List<CallerService> callers) {}
 }

@@ -8,6 +8,7 @@ public final class IdentityModels {
 
     /** 持久化/协议稳定代码，不使用 ordinal 或隐式枚举名称。 */
     public interface DbCode {
+        /** 返回稳定的持久化与协议编码，调用方不能用枚举序号或异常文本判断业务结果。 */
         String code();
     }
 

@@ -574,6 +574,7 @@ public final class DirectoryGovernance {
         return UUID.randomUUID().toString();
     }
 
+    /** 目录冲突的固定隔离原因集合，记录来源问题而不掩盖为成功应用。 */
     private enum Reason {
         EVENT_CHANGED("EVENT_CHANGED"),
         SEQUENCE_CHANGED("SEQUENCE_CHANGED"),
@@ -595,6 +596,7 @@ public final class DirectoryGovernance {
         return new Conflict(reason);
     }
 
+    /** 携带原目录冲突原因供统一隔离处理，不能将冲突事实当作已成功投影。 */
     private static final class Conflict extends RuntimeException {
         private final Reason reason;
 

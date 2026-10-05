@@ -337,6 +337,7 @@ public final class ApplicationCatalog {
                 impact);
     }
 
+    /** 机器发布预览的包内回执，发布继续使用已锁定候选与依据，不扩大公开调用边界。 */
     record MachinePreview(
             com.lrj.authz.governance.catalog.domain.CatalogPublisherModels.Eligibility eligibility,
             Preview preview,
@@ -560,6 +561,7 @@ public final class ApplicationCatalog {
             throw new GovernanceException(VERSION_CONFLICT);
     }
 
+    /** 目录变更的原版本与依据快照，预览与发布不能混用不同观察版本。 */
     private record Basis(
             String contentHash,
             String presentationHash,

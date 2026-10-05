@@ -47,5 +47,6 @@ public class GovernanceExecutionConfiguration {
                 Set.copyOf(callers), scope.owners().getOrDefault("commerce", Set.of()));
     }
 
+    /** 执行引用入口的原调用方与资源允许集合，机器请求不能任意重新指定用户或资源类型。 */
     record ExecutionSettings(Set<String> callers, Set<String> resources) {}
 }

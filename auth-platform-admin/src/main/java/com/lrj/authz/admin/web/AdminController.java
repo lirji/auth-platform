@@ -47,6 +47,7 @@ public class AdminController {
         this(engine, audit, null);
     }
 
+    /** 显式绑定 AdminController 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     @Autowired
     public AdminController(AuthzEngine engine, AuditStore audit, WorkspaceRegistry workspaces) {
         this.engine = engine;

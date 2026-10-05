@@ -57,6 +57,7 @@ public final class DirectoryEvents {
             boolean leader,
             String validFrom,
             String validTo) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Assignment {
             sourceId(id);
             sourceId(orgId);
@@ -68,6 +69,7 @@ public final class DirectoryEvents {
     /** 汇报线只投影源事实，不表示经理拥有下属的任何业务权限。 */
     public record ReportingLine(
             String id, String managerEmployeeId, String type, String validFrom, String validTo) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public ReportingLine {
             sourceId(id);
             sourceId(managerEmployeeId);
@@ -83,6 +85,7 @@ public final class DirectoryEvents {
             String status,
             List<Assignment> assignments,
             List<ReportingLine> reportingLines) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Employee {
             sourceId(employeeId);
             if (userId != null) {
@@ -112,6 +115,7 @@ public final class DirectoryEvents {
 
     /** 父关系保持源 ID；完整树及环检查属于消费事务，不能在 DTO 中猜测。 */
     public record Organization(String orgId, String parentId, String status) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Organization {
             sourceId(orgId);
             if (parentId != null) {
@@ -127,6 +131,7 @@ public final class DirectoryEvents {
     /** BEGIN/END 声明包含自身的序号边界，摘要只覆盖中间业务事件，避免递归摘要。 */
     public record Snapshot(
             long startSequence, long endSequence, long expectedCount, String contentHash) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Snapshot {
             if (startSequence < 1
                     || endSequence <= startSequence
@@ -139,6 +144,7 @@ public final class DirectoryEvents {
 
     /** 三种载荷恰有一种；事件类型还会校验对应关系，避免类型混淆。 */
     public record Payload(Employee employee, Organization organization, Snapshot snapshot) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Payload {
             if ((employee == null ? 0 : 1)
                             + (organization == null ? 0 : 1)
@@ -164,6 +170,7 @@ public final class DirectoryEvents {
             String snapshotId,
             Payload payload,
             String payloadHash) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Event {
             if (schemaVersion != SCHEMA_VERSION
                     || partitionSequence < 1
@@ -306,10 +313,13 @@ public final class DirectoryEvents {
         }
     }
 
+    /** 目录事件的确定性编码端口；持久化和重放必须沿用同一编码版本与字段语义。 */
     private interface Encoding {
+        /** 复用冻结的确定性事件编码，摘要、重放与落库必须使用同一表示。 */
         void write(Encoder out) throws IOException;
     }
 
+    /** 将已冻结目录事件交给原编码器，摘要不能改用不同的JSON表示。 */
     private record Encoder(DataOutputStream data) {
         void text(String value) throws IOException {
             if (value == null) {

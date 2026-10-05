@@ -29,6 +29,7 @@ public class CasdoorSyncController {
     private final ObjectProvider<DepartmentSyncService> deptSyncProvider;
     private final String webhookSecret;
 
+    /** 显式绑定 CasdoorSyncController 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public CasdoorSyncController(
             ObjectProvider<GroupSyncService> syncProvider,
             ObjectProvider<DepartmentSyncService> deptSyncProvider,

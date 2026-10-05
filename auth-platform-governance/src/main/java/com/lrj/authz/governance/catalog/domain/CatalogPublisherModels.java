@@ -23,6 +23,7 @@ public final class CatalogPublisherModels {
             this.code = code;
         }
 
+        /** 返回稳定的持久化与协议编码，调用方不能用枚举序号或异常文本判断业务结果。 */
         @com.fasterxml.jackson.annotation.JsonValue
         public String code() {
             return code;
@@ -46,6 +47,7 @@ public final class CatalogPublisherModels {
             this.code = code;
         }
 
+        /** 返回稳定的持久化与协议编码，调用方不能用枚举序号或异常文本判断业务结果。 */
         @com.fasterxml.jackson.annotation.JsonValue
         public String code() {
             return code;
@@ -87,6 +89,7 @@ public final class CatalogPublisherModels {
 
     /** 列表有界；不能把第一页当作完整委派清单。 */
     public record Delegations(List<Delegation> items) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Delegations {
             items = List.copyOf(items);
         }

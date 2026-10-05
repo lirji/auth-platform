@@ -19,6 +19,7 @@ public class JdbcAuditStore implements AuditStore {
     private final JdbcTemplate jdbc;
     private final int retentionMaxRows;
 
+    /** 显式绑定 JdbcAuditStore 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public JdbcAuditStore(JdbcTemplate jdbc, int retentionMaxRows) {
         this.jdbc = jdbc;
         this.retentionMaxRows = retentionMaxRows;
@@ -33,6 +34,7 @@ public class JdbcAuditStore implements AuditStore {
                 )""");
     }
 
+    /** 记录当前操作审计并沿用既有保留预算，不能在后续读取时临时编造历史。 */
     @Override
     public void record(String actor, String action, String detail) {
         jdbc.update(
@@ -50,6 +52,7 @@ public class JdbcAuditStore implements AuditStore {
         }
     }
 
+    /** 按原倒序与调用数量读取既有审计，内存与数据库实现保持同一结果契约。 */
     @Override
     public List<AuditRecord> recent(int limit) {
         return jdbc.query(

@@ -41,6 +41,7 @@ public class AuditConfig {
         return new HikariDataSource(cfg);
     }
 
+    /** 明确使用已配置的持久化审计目标，失败不能静默回退易失内存。 */
     @Bean
     @ConditionalOnProperty(
             prefix = "authz.audit",
@@ -50,6 +51,7 @@ public class AuditConfig {
         return new JdbcAuditStore(new JdbcTemplate(auditDataSource), props.getRetentionMaxRows());
     }
 
+    /** 仅在原明确关闭持久化条件下使用有界易失审计，不能声称可跨重启保存。 */
     @Bean
     @ConditionalOnProperty(
             prefix = "authz.audit",

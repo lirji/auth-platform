@@ -45,6 +45,7 @@ public final class CatalogRetirementProof {
     /** 配置目录／目标／公钥由宿主控制，文件内容每次重读以响应部署失效。 */
     public record Authority(
             String applicationId, Set<String> deploymentTargets, Path proofFile, PublicKey key) {
+        /** 在不可变契约构造边界沿用既有字段校验、集合快照或默认值，保持各创建入口语义一致。 */
         public Authority {
             deploymentTargets = Set.copyOf(deploymentTargets);
         }

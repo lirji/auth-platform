@@ -37,6 +37,7 @@ public final class PersonnelImpact {
         this.tx = tx;
     }
 
+    /** 人员影响查询的复合位置，来源与序号一起续读，避免把第一页误当作全部历史。 */
     private record Position(String source, long sequence, String grant) {}
 
     /** 仅PortalPermissions调用；不存在与跨租户统一拒绝，不以空报告泄露人员存在性。 */

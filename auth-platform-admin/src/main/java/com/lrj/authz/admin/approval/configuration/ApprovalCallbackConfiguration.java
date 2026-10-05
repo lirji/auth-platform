@@ -100,6 +100,7 @@ public class ApprovalCallbackConfiguration {
     /** 避免record默认打印密钥。 */
     public record CallbackSettings(
             boolean enabled, Partition partition, String key, boolean allowLoopback) {
+        /** 只生成既有脱敏诊断表示，不能把登录、服务凭据或邀请秘密带入日志。 */
         @Override
         public String toString() {
             return "CallbackSettings[credentials=redacted]";

@@ -29,6 +29,7 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
     private final RestClient rest;
     private final ObjectMapper mapper = new ObjectMapper();
 
+    /** 显式绑定 SpiceDbAuthzEngine 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public SpiceDbAuthzEngine(String baseUrl, String presharedKey) {
         this(
                 baseUrl,
@@ -61,6 +62,7 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
                         .build();
     }
 
+    /** 将主体、资源和一致性要求交给已绑定的判权目标，未知失败不能解释为允许。 */
     @Override
     public boolean check(
             SubjectRef subject, String permission, ResourceRef resource, Consistency consistency) {
@@ -73,6 +75,7 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         return hasPermission(resp, "check");
     }
 
+    /** 复用既有批量判权协议与一致性要求，调用方仍须按关联位置消费各项结果。 */
     @Override
     public Map<ResourceRef, Boolean> checkBulk(
             SubjectRef subject,
@@ -137,6 +140,7 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         return HAS_PERMISSION.equals(ship);
     }
 
+    /** 在当前主体与权限条件下查询资源，不能把缺失结果扩张成无范围访问。 */
     @Override
     public List<String> lookupResources(
             SubjectRef subject, String permission, String resourceType, Consistency consistency) {
@@ -167,6 +171,7 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         return ids;
     }
 
+    /** 按给定资源与权限查询主体，查询结果不替代后续实际操作的授权检查。 */
     @Override
     public List<SubjectRef> lookupSubjects(
             ResourceRef resource, String permission, String subjectType, Consistency consistency) {
@@ -185,6 +190,7 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         return subjects;
     }
 
+    /** 通过当前引擎的关系写入入口提交变更，返回令牌供后续一致性读取使用。 */
     @Override
     public ZedTokenView writeRelationships(List<RelationshipUpdate> updates) {
         List<Map<String, Object>> jsonUpdates = new ArrayList<>();
@@ -202,6 +208,7 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         return new ZedTokenView(requireToken(resp, "writtenAt", "write"));
     }
 
+    /** 按原关系过滤器提交删除，不能在失败时推断授权来源已经撤销完成。 */
     @Override
     public ZedTokenView deleteRelationships(RelationshipFilter filter) {
         Map<String, Object> f = new LinkedHashMap<>();
@@ -216,11 +223,13 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         return new ZedTokenView(requireToken(resp, "deletedAt", "delete"));
     }
 
+    /** 读取当前已绑定图目标的模式，不能从另一个工作区推断本目标的权限结构。 */
     @Override
     public String readSchema() {
         return post("/v1/schema/read", Map.of()).path("schemaText").asText("");
     }
 
+    /** 沿用引擎的资源关系展开契约，诊断结果不能被当作执行授权回执。 */
     @Override
     public String expand(ResourceRef resource, String permission, Consistency consistency) {
         Map<String, Object> body = new LinkedHashMap<>();
@@ -230,6 +239,7 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         return post("/v1/permissions/expand", body).toString();
     }
 
+    /** 保留原关系过滤条件与一致性模式读取事实，不把查询作为额外写入权威。 */
     @Override
     public List<Relationship> readRelationships(RelationshipFilter filter) {
         Map<String, Object> f = new LinkedHashMap<>();

@@ -29,6 +29,7 @@ public class AuthzController {
     private final com.fasterxml.jackson.databind.ObjectMapper mapper =
             new com.fasterxml.jackson.databind.ObjectMapper();
 
+    /** 显式绑定 AuthzController 的协作对象与配置，后续实例操作必须沿用同一组依赖与生命周期。 */
     public AuthzController(
             AuthzEngine engine,
             ZedTokenWatermark watermark,
@@ -40,6 +41,7 @@ public class AuthzController {
         this.watermarkEnabled = watermarkEnabled;
     }
 
+    /** 将主体、资源和一致性要求交给已绑定的判权目标，未知失败不能解释为允许。 */
     @PostMapping("/check")
     public CheckResponse check(@RequestBody CheckRequest req) {
         boolean allowed =
@@ -51,6 +53,7 @@ public class AuthzController {
         return new CheckResponse(allowed);
     }
 
+    /** 复用既有批量判权协议与一致性要求，调用方仍须按关联位置消费各项结果。 */
     @PostMapping("/check-bulk")
     public CheckBulkResponse checkBulk(@RequestBody CheckBulkRequest req) {
         Map<ResourceRef, Boolean> map =
@@ -77,6 +80,7 @@ public class AuthzController {
         return new CheckBulkResponse(results);
     }
 
+    /** 在当前主体与权限条件下查询资源，不能把缺失结果扩张成无范围访问。 */
     @PostMapping("/lookup-resources")
     public LookupResourcesResponse lookupResources(@RequestBody LookupResourcesRequest req) {
         return new LookupResourcesResponse(
@@ -87,6 +91,7 @@ public class AuthzController {
                         toConsistency(req.consistency())));
     }
 
+    /** 按给定资源与权限查询主体，查询结果不替代后续实际操作的授权检查。 */
     @PostMapping("/lookup-subjects")
     public LookupSubjectsResponse lookupSubjects(@RequestBody LookupSubjectsRequest req) {
         return new LookupSubjectsResponse(
@@ -97,6 +102,7 @@ public class AuthzController {
                         toConsistency(req.consistency())));
     }
 
+    /** 绑定原关系写入请求并交给现有引擎，保持旧接口令牌与错误契约。 */
     @PostMapping("/relationships")
     public TokenResponse write(@RequestBody WriteRequest req) {
         String token = engine.writeRelationships(req.updates()).token();
@@ -104,6 +110,7 @@ public class AuthzController {
         return new TokenResponse(token);
     }
 
+    /** 绑定原关系删除请求并交给现有引擎，保持旧接口令牌与错误契约。 */
     @PostMapping("/relationships/delete")
     public TokenResponse delete(@RequestBody DeleteRequest req) {
         String token = engine.deleteRelationships(req.filter()).token();
@@ -111,11 +118,13 @@ public class AuthzController {
         return new TokenResponse(token);
     }
 
+    /** 保留旧协议的模式读取入口，配置目标与错误行为由现有引擎负责。 */
     @org.springframework.web.bind.annotation.GetMapping("/schema")
     public Map<String, String> schema() {
         return Map.of("schema", engine.readSchema());
     }
 
+    /** 沿用引擎的资源关系展开契约，诊断结果不能被当作执行授权回执。 */
     @PostMapping("/expand")
     public com.fasterxml.jackson.databind.JsonNode expand(@RequestBody ExpandRequest req) {
         try {
@@ -127,6 +136,7 @@ public class AuthzController {
         }
     }
 
+    /** 保留原关系过滤条件与一致性模式读取事实，不把查询作为额外写入权威。 */
     @PostMapping("/relationships/read")
     public ReadRelationshipsResponse readRelationships(@RequestBody DeleteRequest req) {
         return new ReadRelationshipsResponse(engine.readRelationships(req.filter()));

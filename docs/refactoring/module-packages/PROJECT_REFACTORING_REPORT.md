@@ -34,7 +34,7 @@
 | A04 | server 判权/导航/范围/执行适配与配置；core 规则/资源审查 | DONE |
 | A05 | SDK 内部 HTTP/校验/组合职责和公开门面、protocol 契约审查 | DONE |
 | A06 | auth-console 与 portal 功能、共享和壳层结构审查与有界调整 | DONE |
-| A07 | 全模块中文原因注释、类型/状态、配置、错误/日志、SQL/事务与有证据优化 | TODO |
+| A07 | 全模块中文原因注释、类型/状态、配置、错误/日志、SQL/事务与有证据优化 | DONE |
 | A08 | 必要真实 PostgreSQL/图/身份/投影/legacy/Boot4/门户 CI、兼容/卫生终审与正常 main 交付 | TODO |
 
 每批先给精确类/消费者映射与影响，再编译、相关测试、资源/namespace、差异检查。生产逻辑优化先补特征/回归测试；失败不推进下一批。分批正常提交，完整验收后按持续授权正常合入推 main；不强推、不混入其他工作、不执行本次未授权的部署。
@@ -61,3 +61,5 @@ A04：27 类/测试迁移，340 Java 的保留字面量词法比较仅有已审�
 A05：响应收集/取消实现归` sdk.internal.http.BoundedResponseBodies`；公开SDK9类和protocol公开类型ABI逐声明核对PASS，私有BoundedBody不属于公开契约。14个中央HTTP测试在抽取前通过，新增精确65536字节/超1字节/后续交换可用特征测试保留；抽取后全reactor332测试失败/错误/跳过0。core两类图适配与protocol已发布类型保留凝聚，未机械添加空层。
 
 A06：53个控制台源迁入按功能组织的页面/模型/组件及app shell；仅相对引用/已知测试/文档路径变化，TypeScript AST声明逐文件一致，路由语义不改。50原生测试、类型/build/格式、114脚本与目录检查PASS。首次LoginPage目录index导入漏同步由tsc检出，修正后全检查通过。门户原结构保留，运行catalog精确字节不变。
+
+A07：281方法/59类型中文原因说明与全模块规范/结构/ABI审查完成，341 Java可执行词法与A07基线完全一致；唯一实际行为改动是前端同步事件竞态，先真实React复现两项失败、再修复并两项通过。332 Java/50console/29portal/114部署脚本/7结构ABI测试、类型/build/格式/契约检查PASS，原技能真实差异CLI零finding，仅Java格式命令发现限制。详见[代码审查](CODE_QUALITY_REVIEW.md)。A08完整真实CI与交付仍进行中。

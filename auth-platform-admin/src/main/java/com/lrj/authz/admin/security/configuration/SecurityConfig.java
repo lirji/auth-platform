@@ -32,6 +32,7 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
+    /** 沿原安全配置绑定认证与路由边界，缺失配置不能静默变成匿名管理。 */
     @Bean
     public SecurityFilterChain filterChain(
             HttpSecurity http, JwtAuthenticationConverter jwtAuthenticationConverter)

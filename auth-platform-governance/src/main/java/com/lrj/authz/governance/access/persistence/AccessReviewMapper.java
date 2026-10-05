@@ -49,6 +49,7 @@ public interface AccessReviewMapper {
     /** 创建任务和每项固定输入与命令、审计同事务。 */
     int insertTask(@Param("t") Task task);
 
+    /** 写入{@code auth_governance}，保持原参数绑定与SQL集中在持久化边界。 */
     int insertEntry(@Param("e") Entry entry);
 
     /** 条目CAS不能覆盖并发决定，原快照由触发器禁止修改。 */
