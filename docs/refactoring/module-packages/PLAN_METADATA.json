@@ -1,0 +1,43 @@
+{
+  "goal": "Both Auth and WMS: fine package organization, formatting and Claude skill quality optimization",
+  "claude_skill": "/Users/liruijun/.claude/skills/project-refactoring/SKILL.md",
+  "wms_worktree": "/Users/liruijun/.local/share/git-worktrees/wms-platform/central-authorization",
+  "wms_candidate": "e7c329466bd726823819436f7475ef88dacfc5a5",
+  "wms_ci": 37269556033,
+  "auth_base": "b644dcd01a68c6fa1cb5ab5ce28b57ba531ccb27",
+  "phase_gates": {
+    "baseline": "PASS",
+    "test_protection": "PASS"
+  },
+  "hard_constraints": [
+    "Auth HTTP/JSON/error/schema/SQL/graph/TTL/strict revocation and ownership unchanged",
+    "Published protocol/SDK facade FQCN retained for WMS and other consumers",
+    "Small core cohort remains cohesive rather than fabricated layers",
+    "No deployment, no shared data mutations or automatic grant/credential renewal",
+    "Preserve ignored private snapshots, catalog.json runtime mount, old worktrees and original WMS user files"
+  ],
+  "slices": [
+    "A00 baseline/plan/protection",
+    "A01 deterministic Java/XML/two frontend formatting and CI",
+    "A02 governance feature responsibilities with private cohorts",
+    "A03 admin identity/governance HTTP/config/CLI responsibilities",
+    "A04 authorization server adapters/config and core review",
+    "A05 SDK internal responsibilities and public facade compatibility",
+    "A06 auth-console/portal feature and shared structure review",
+    "A07 all-module Chinese rationale/types/errors/SQL/transaction/logic audit and characterized fixes",
+    "A08 full real PG/graph/identity/projection/legacy/Boot4/portal CI, hygiene, documentation and main delivery"
+  ],
+  "change_sets": {
+    "A01": {
+      "allowFormattingChurn": true,
+      "approvedDependencies": [
+        "google-java-format",
+        "prettier"
+      ],
+      "reason": "explicit user requested formatting in both projects"
+    },
+    "A02_A08": {
+      "allowFormattingChurn": false
+    }
+  }
+}
