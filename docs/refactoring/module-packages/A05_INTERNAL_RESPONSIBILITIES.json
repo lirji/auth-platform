@@ -1,0 +1,11 @@
+{
+  "id": "A05",
+  "base": "069317ee20ce2b0540e6b44f360db7b57158fbdd",
+  "scope": "公开SDK9类及protocol32类全名、公开方法保留；将真实有界响应订阅实现移入sdk.internal.http，不添加透传门面。core2类保持同一图适配协作。",
+  "characterization": "CentralAccessClientTest 14项在抽取之前PASS，精确65536/超出1字节/后续交换恢复；已有流式停滞/Scope预算/身份关联测试保留。",
+  "compatibility": "Removed private nested CentralAccessClient.BoundedBody only; added internal implementation factory; public SDK facade unchanged",
+  "new_types": [
+    "com.lrj.authz.sdk.internal.http.BoundedResponseBodies"
+  ],
+  "classes": {}
+}

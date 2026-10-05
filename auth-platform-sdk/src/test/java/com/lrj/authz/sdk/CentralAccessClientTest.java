@@ -60,6 +60,20 @@ class CentralAccessClientTest {
         server.stop(0);
     }
 
+    /** 原字节预算包括合法尾部空白；越界失败不能污染后续独立判权交换。 */
+    @Test
+    void exactResponseBudgetIsAcceptedAndOverflowDoesNotPoisonTheNextCheck() throws Exception {
+        String good = json.writeValueAsString(decision(request, "ALLOW"));
+        String exact = good + " ".repeat(65536 - good.getBytes(StandardCharsets.UTF_8).length);
+        response.set(exact);
+        assertThat(client.check("user-token", request).decision()).isEqualTo("ALLOW");
+        response.set(exact + " ");
+        assertThatThrownBy(() -> client.check("user-token", request))
+                .isInstanceOf(CentralAccessException.class);
+        response.set(good);
+        assertThat(client.check("user-token", request).decision()).isEqualTo("ALLOW");
+    }
+
     private Decision decision(Check r, String result) {
         return new Decision(
                 "1",

@@ -32,7 +32,7 @@
 | A02 | governance 按业务能力细分模型、应用、持久化、适配与配置；保留私有协作 | DONE |
 | A03 | admin 管理、身份同步、审计、治理 HTTP/CLI/配置职责 | DONE |
 | A04 | server 判权/导航/范围/执行适配与配置；core 规则/资源审查 | DONE |
-| A05 | SDK 内部 HTTP/校验/组合职责和公开门面、protocol 契约审查 | TODO |
+| A05 | SDK 内部 HTTP/校验/组合职责和公开门面、protocol 契约审查 | DONE |
 | A06 | auth-console 与 portal 功能、共享和壳层结构审查与有界调整 | TODO |
 | A07 | 全模块中文原因注释、类型/状态、配置、错误/日志、SQL/事务与有证据优化 | TODO |
 | A08 | 必要真实 PostgreSQL/图/身份/投影/legacy/Boot4/门户 CI、兼容/卫生终审与正常 main 交付 | TODO |
@@ -57,3 +57,5 @@ A02：166 类/测试迁移，340 Java 的保留字面量词法比较仅有已审
 A03：59 类/测试迁移，340 Java 的保留字面量词法比较仅有已审查FQCN替换；没有扩大可见性或改写方法体。331单测、格式、资源namespace、目录、diff检查PASS；真实运行与全面卫生在A08另验。
 
 A04：27 类/测试迁移，340 Java 的保留字面量词法比较仅有已审查FQCN替换；没有扩大可见性或改写方法体。331单测、格式、资源namespace、目录、diff检查PASS；真实运行与全面卫生在A08另验。
+
+A05：响应收集/取消实现归` sdk.internal.http.BoundedResponseBodies`；公开SDK9类和protocol公开类型ABI逐声明核对PASS，私有BoundedBody不属于公开契约。14个中央HTTP测试在抽取前通过，新增精确65536字节/超1字节/后续交换可用特征测试保留；抽取后全reactor332测试失败/错误/跳过0。core两类图适配与protocol已发布类型保留凝聚，未机械添加空层。

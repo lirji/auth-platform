@@ -10,12 +10,10 @@ import com.lrj.authz.protocol.ScopeResourceBindings;
 
 import java.net.*;
 import java.net.http.*;
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.Flow;
 
 /** 可信双身份中央检查客户端；独立Jackson2避免宿主Boot3/4消息转换差异。 */
 public final class CentralAccessClient {
@@ -544,7 +542,11 @@ public final class CentralAccessClient {
                                             JSON.writeValueAsBytes(request)))
                             .build();
             // HttpRequest超时不足以约束已收响应头后的body停滞；总期限覆盖完整响应并取消在途交换。
-            pending = http.sendAsync(built, ignored -> new BoundedBody(maximumBytes));
+            pending =
+                    http.sendAsync(
+                            built,
+                            com.lrj.authz.sdk.internal.http.BoundedResponseBodies.handler(
+                                    maximumBytes));
             var response = pending.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
             if (response.statusCode() == 403)
                 throw new AccessDeniedException("CENTRAL_ACCESS_DENIED");
@@ -612,47 +614,5 @@ public final class CentralAccessClient {
 
     private static CentralAccessException unavailable() {
         return new CentralAccessException(503);
-    }
-
-    /** 限制响应字节数，恶意/损坏服务不能用无限body占用内存；HttpClient请求超时覆盖订阅完成。 */
-    private static final class BoundedBody implements HttpResponse.BodySubscriber<byte[]> {
-        private final HttpResponse.BodySubscriber<byte[]> delegate =
-                HttpResponse.BodySubscribers.ofByteArray();
-        private Flow.Subscription subscription;
-        private int received;
-        private final int maximum;
-
-        BoundedBody(int maximum) {
-            this.maximum = maximum;
-        }
-
-        public CompletionStage<byte[]> getBody() {
-            return delegate.getBody();
-        }
-
-        public void onSubscribe(Flow.Subscription subscription) {
-            this.subscription = subscription;
-            delegate.onSubscribe(subscription);
-        }
-
-        public void onNext(List<ByteBuffer> items) {
-            for (ByteBuffer item : items) {
-                received += item.remaining();
-                if (received > maximum) {
-                    subscription.cancel();
-                    delegate.onError(unavailable());
-                    return;
-                }
-            }
-            delegate.onNext(items);
-        }
-
-        public void onError(Throwable failure) {
-            delegate.onError(failure);
-        }
-
-        public void onComplete() {
-            delegate.onComplete();
-        }
     }
 }
