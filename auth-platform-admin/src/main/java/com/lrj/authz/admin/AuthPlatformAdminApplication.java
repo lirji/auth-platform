@@ -1,6 +1,8 @@
 package com.lrj.authz.admin;
 
-import com.lrj.authz.admin.workspace.WorkspaceProperties;
+import com.lrj.authz.admin.configuration.AdminSpiceDbProperties;
+import com.lrj.authz.admin.security.configuration.AdminSecurityProperties;
+import com.lrj.authz.admin.workspace.configuration.WorkspaceProperties;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

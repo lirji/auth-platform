@@ -4,13 +4,13 @@
     {
       "repository": "auth-platform",
       "revision": "a70197089d6ff2f3e0fd57523bf1454a5867c4b0",
-      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/AdminController.java",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/web/AdminController.java",
       "sha256": "ecb5c7e9b9b9208b48cf46d526175f7276d459a64cb9d292077aa19afc551f88"
     },
     {
       "repository": "auth-platform",
       "revision": "a70197089d6ff2f3e0fd57523bf1454a5867c4b0",
-      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/CasdoorSyncController.java",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/web/CasdoorSyncController.java",
       "sha256": "46f808cd8c3f4078ca1a03c691bca4c8badd4eadedc263817ce42f451e699ce8"
     },
     {
@@ -22,7 +22,7 @@
     {
       "repository": "auth-platform",
       "revision": "a70197089d6ff2f3e0fd57523bf1454a5867c4b0",
-      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/GovernanceAccessController.java",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/http/GovernanceAccessController.java",
       "sha256": "c7354fb3df10380c11905ab85f4b8a947b17f61c0c5500d488d8943ecbd07c43"
     },
     {

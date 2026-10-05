@@ -24,10 +24,10 @@
 | `auth-platform-sdk/src/test/java/com/lrj/authz/sdk/RemoteAuthzEngineTest.java` | `parseCheckBulk` 基数、乱序、重复、陌生资源、resource/allowed 缺失与类型错误 | 单 `check` 的私有 `requireAllowed` 实际 HTTP 路径；请求一致性/Bearer；其余 7 方法响应边界 |
 | `auth-platform-server/src/test/java/com/lrj/authz/server/AuthzControllerWatermarkTest.java` | fresh 无 token：无水位回 full、写后用水位、caller token 优先、flag off | delete 推水位、其余 consistency mode、全部 facade、bulk map 缺项、写 token 异常、并发 |
 | `auth-platform-server/src/test/java/com/lrj/authz/server/AuthzServerSecurityFilterTest.java` | flag off、非 `/v1`、缺/错/正确 token、空配置 fail-fast | `Bearer` 语法边界、`/v1` 精确路径、chain 是否确实未执行、401 body/content type |
-| `auth-platform-admin/src/test/java/com/lrj/authz/admin/casdoor/GroupSyncServiceTest.java` | 增删差量、忽略嵌套 group、删除熔断、幂等 | threshold 等号、读取过滤器精确值、Casdoor 已删除 group 的陈旧 tuple |
-| `auth-platform-admin/src/test/java/com/lrj/authz/admin/casdoor/DepartmentSyncServiceTest.java` | 新树 member/parent/admin、删除熔断 | 幂等、换 parent、删 parent/admin、过滤错误 relation、threshold 等号 |
-| `auth-platform-admin/src/test/java/com/lrj/authz/admin/casdoor/CasdoorGroupIdsTest.java` | 组织前缀、碰撞、非法字符 | 大小写是否应归一（业务待验证） |
-| `auth-platform-admin/src/test/java/com/lrj/authz/admin/JdbcAuditStoreTest.java` | 自建表、写读、actor、limit、retention、重开 | 并发 retention（非本轮 P0） |
+| `auth-platform-admin/src/test/java/com/lrj/authz/admin/identity/casdoor/application/GroupSyncServiceTest.java` | 增删差量、忽略嵌套 group、删除熔断、幂等 | threshold 等号、读取过滤器精确值、Casdoor 已删除 group 的陈旧 tuple |
+| `auth-platform-admin/src/test/java/com/lrj/authz/admin/identity/casdoor/application/DepartmentSyncServiceTest.java` | 新树 member/parent/admin、删除熔断 | 幂等、换 parent、删 parent/admin、过滤错误 relation、threshold 等号 |
+| `auth-platform-admin/src/test/java/com/lrj/authz/admin/identity/casdoor/infrastructure/CasdoorGroupIdsTest.java` | 组织前缀、碰撞、非法字符 | 大小写是否应归一（业务待验证） |
+| `auth-platform-admin/src/test/java/com/lrj/authz/admin/audit/persistence/JdbcAuditStoreTest.java` | 自建表、写读、actor、limit、retention、重开 | 并发 retention（非本轮 P0） |
 | 无 | core、AOP、完整 server/admin controller、Casdoor HTTP、ReconcileJob、InMemoryAuditStore、protocol | 全部为缺口 |
 
 ## 拟落地测试类与精确位置
@@ -40,12 +40,12 @@
 4. `auth-platform-server/src/test/java/com/lrj/authz/server/AuthzControllerFacadeTest.java`
 5. `auth-platform-server/src/test/java/com/lrj/authz/server/ZedTokenWatermarkTest.java`
 6. `auth-platform-server/src/test/java/com/lrj/authz/server/AuthzServerSecurityFilterBoundaryTest.java`
-7. `auth-platform-admin/src/test/java/com/lrj/authz/admin/AdminControllerTest.java`
-8. `auth-platform-admin/src/test/java/com/lrj/authz/admin/InMemoryAuditStoreTest.java`
-9. `auth-platform-admin/src/test/java/com/lrj/authz/admin/casdoor/CasdoorClientTest.java`
-10. `auth-platform-admin/src/test/java/com/lrj/authz/admin/casdoor/ReconcileJobTest.java`
-11. `auth-platform-admin/src/test/java/com/lrj/authz/admin/casdoor/CasdoorSyncControllerTest.java`
-12. `auth-platform-admin/src/test/java/com/lrj/authz/admin/casdoor/SyncServiceBoundaryTest.java`
+7. `auth-platform-admin/src/test/java/com/lrj/authz/admin/web/AdminControllerTest.java`
+8. `auth-platform-admin/src/test/java/com/lrj/authz/admin/audit/persistence/InMemoryAuditStoreTest.java`
+9. `auth-platform-admin/src/test/java/com/lrj/authz/admin/identity/casdoor/infrastructure/CasdoorClientTest.java`
+10. `auth-platform-admin/src/test/java/com/lrj/authz/admin/identity/casdoor/application/ReconcileJobTest.java`
+11. `auth-platform-admin/src/test/java/com/lrj/authz/admin/identity/casdoor/web/CasdoorSyncControllerTest.java`
+12. `auth-platform-admin/src/test/java/com/lrj/authz/admin/identity/casdoor/application/SyncServiceBoundaryTest.java`
 13. `auth-platform-protocol/src/test/java/com/lrj/authz/protocol/ProtocolValueObjectsTest.java`
 
 ## 运行命令

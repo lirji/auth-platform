@@ -18,7 +18,7 @@
   },
   "reports": [
     {
-      "suite": "com.lrj.authz.admin.AdminControllerTest",
+      "suite": "com.lrj.authz.admin.web.AdminControllerTest",
       "kind": "surefire",
       "tests": 10,
       "failures": 0,
@@ -26,7 +26,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.admin.AdminExceptionHandlerTest",
+      "suite": "com.lrj.authz.admin.web.AdminExceptionHandlerTest",
       "kind": "surefire",
       "tests": 1,
       "failures": 0,
@@ -34,7 +34,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.admin.InMemoryAuditStoreTest",
+      "suite": "com.lrj.authz.admin.audit.persistence.InMemoryAuditStoreTest",
       "kind": "surefire",
       "tests": 3,
       "failures": 0,
@@ -42,7 +42,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.admin.JdbcAuditStoreTest",
+      "suite": "com.lrj.authz.admin.audit.persistence.JdbcAuditStoreTest",
       "kind": "surefire",
       "tests": 4,
       "failures": 0,
@@ -50,7 +50,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.admin.casdoor.CasdoorClientTest",
+      "suite": "com.lrj.authz.admin.identity.casdoor.infrastructure.CasdoorClientTest",
       "kind": "surefire",
       "tests": 7,
       "failures": 0,
@@ -58,7 +58,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.admin.casdoor.CasdoorGroupIdsTest",
+      "suite": "com.lrj.authz.admin.identity.casdoor.infrastructure.CasdoorGroupIdsTest",
       "kind": "surefire",
       "tests": 7,
       "failures": 0,
@@ -66,7 +66,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.admin.casdoor.CasdoorSyncControllerTest",
+      "suite": "com.lrj.authz.admin.identity.casdoor.web.CasdoorSyncControllerTest",
       "kind": "surefire",
       "tests": 6,
       "failures": 0,
@@ -74,7 +74,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.admin.casdoor.DepartmentSyncServiceTest",
+      "suite": "com.lrj.authz.admin.identity.casdoor.application.DepartmentSyncServiceTest",
       "kind": "surefire",
       "tests": 2,
       "failures": 0,
@@ -82,7 +82,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.admin.casdoor.GroupSyncServiceTest",
+      "suite": "com.lrj.authz.admin.identity.casdoor.application.GroupSyncServiceTest",
       "kind": "surefire",
       "tests": 4,
       "failures": 0,
@@ -90,7 +90,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.admin.casdoor.ReconcileJobTest",
+      "suite": "com.lrj.authz.admin.identity.casdoor.application.ReconcileJobTest",
       "kind": "surefire",
       "tests": 3,
       "failures": 0,
@@ -98,7 +98,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.admin.casdoor.SyncServiceBoundaryTest",
+      "suite": "com.lrj.authz.admin.identity.casdoor.application.SyncServiceBoundaryTest",
       "kind": "surefire",
       "tests": 2,
       "failures": 0,
@@ -106,7 +106,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.admin.workspace.WorkspaceAccessTest",
+      "suite": "com.lrj.authz.admin.workspace.application.WorkspaceAccessTest",
       "kind": "surefire",
       "tests": 4,
       "failures": 0,
@@ -114,7 +114,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.admin.workspace.WorkspaceInterceptorTest",
+      "suite": "com.lrj.authz.admin.workspace.web.WorkspaceInterceptorTest",
       "kind": "surefire",
       "tests": 1,
       "failures": 0,

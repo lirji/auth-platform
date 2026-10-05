@@ -263,15 +263,15 @@ ReBAC role mapping 不替代现有 scope 门禁。迁移先以 auth-service `Eff
 
 #### Admin/Casdoor（修改现有）
 
-- `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/CasdoorProperties.java` / `CasdoorProperties`
+- `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/configuration/CasdoorProperties.java` / `CasdoorProperties`
   - 增加多 tenant/organization mapping、group namespace、分页、dry-run/delete-enabled/max-change、锁配置。
-- `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/CasdoorClient.java` / `CasdoorClient.groupMembers/groupNames/shortName`
+- `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/infrastructure/CasdoorClient.java` / `CasdoorClient.groupMembers/groupNames/shortName`
   - 保留完整 owner/path 信息并分页；输出“本轮完整成功”状态，不能部分失败当空集。
-- `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/GroupSyncService.java` / `GroupSyncService.sync`
+- `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/application/GroupSyncService.java` / `GroupSyncService.sync`
   - 拆为 fetch desired / read direct current / diff / apply；current 改用 `readRelationships` 直接元组；支持 user 与 group#member；去除仅靠 JVM synchronized 的并发假设。
-- `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/ReconcileJob.java` / `ReconcileJob.reconcile`
+- `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/application/ReconcileJob.java` / `ReconcileJob.reconcile`
   - 使用分布式锁/leader；记录 runId、source version、结果指标。
-- `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/CasdoorSyncController.java` / `CasdoorSyncController.sync/webhook`
+- `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/web/CasdoorSyncController.java` / `CasdoorSyncController.sync/webhook`
   - 增加 dry-run；webhook 升级 timestamp+nonce+HMAC，触发异步/合并 reconcile，避免请求线程长跑。
 - `auth-platform-admin/src/main/resources/application.yml`
   - 增加完整 Casdoor/reconcile/RBAC snapshot/role mapping 示例，默认 delete=false。

@@ -75,31 +75,31 @@
     {
       "repository": "auth",
       "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
-      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/AdminController.java",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/web/AdminController.java",
       "sha256": "ecb5c7e9b9b9208b48cf46d526175f7276d459a64cb9d292077aa19afc551f88"
     },
     {
       "repository": "auth",
       "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
-      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/GroupSyncService.java",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/application/GroupSyncService.java",
       "sha256": "604030c625c701651bcf2e190fcac8a09c9de459eb3ffe61e6d3997d15b18649"
     },
     {
       "repository": "auth",
       "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
-      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/DepartmentSyncService.java",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/application/DepartmentSyncService.java",
       "sha256": "36016a88482bcdd9eff3d67ea3148ce14cd6fe120ed740511541a60766127a5a"
     },
     {
       "repository": "auth",
       "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
-      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/workspace/WorkspaceRoutingEngine.java",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/workspace/application/WorkspaceRoutingEngine.java",
       "sha256": "926b778776afb53b65ff20a729087278fb059f457b671af7b4daf79c8c5ec693"
     },
     {
       "repository": "auth",
       "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
-      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/JdbcAuditStore.java",
+      "path": "auth-platform-admin/src/main/java/com/lrj/authz/admin/audit/persistence/JdbcAuditStore.java",
       "sha256": "2bd2869a3f9cb5447a4778537ce3e3cda473ccafd732bc9c60c3be7200cbf5fd"
     },
     {

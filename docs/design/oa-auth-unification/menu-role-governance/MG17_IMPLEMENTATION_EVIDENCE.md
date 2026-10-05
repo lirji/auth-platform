@@ -26,7 +26,7 @@
 - `auth-console/src/pages/GovernancePersonnelPage.tsx`
 - `auth-console/src/router/routes.tsx`
 - `auth-console/tests/governance-personnel-impact.test.mjs`
-- `auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/GovernanceAccessController.java`
+- `auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/http/GovernanceAccessController.java`
 - `auth-platform-governance/src/main/java/com/lrj/authz/governance/directory/application/DirectoryGovernance.java`
 - `auth-platform-governance/src/main/java/com/lrj/authz/governance/directory/application/DirectoryJson.java`
 - `auth-platform-governance/src/main/java/com/lrj/authz/governance/access/application/PersonnelFacts.java`

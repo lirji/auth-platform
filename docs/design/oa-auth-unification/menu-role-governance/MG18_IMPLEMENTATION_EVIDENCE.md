@@ -27,7 +27,7 @@
 - `auth-console/src/pages/GovernanceReviewsPage.tsx`
 - `auth-console/src/router/routes.tsx`
 - `auth-console/tests/governance-access-review.test.mjs`
-- `auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/GovernanceReviewController.java`
+- `auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/http/GovernanceReviewController.java`
 - `auth-platform-governance/src/main/java/com/lrj/authz/governance/access/application/AccessReviews.java`
 - `auth-platform-governance/src/main/java/com/lrj/authz/governance/access/application/PortalPermissions.java`
 - `auth-platform-governance/src/main/java/com/lrj/authz/governance/access/domain/AccessReviewModels.java`

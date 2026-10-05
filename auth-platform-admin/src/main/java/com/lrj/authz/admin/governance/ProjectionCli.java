@@ -1,5 +1,6 @@
 package com.lrj.authz.admin.governance;
 
+import com.lrj.authz.admin.governance.infrastructure.GovernanceGraph;
 import com.lrj.authz.governance.access.domain.AccessModels.Partition;
 import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
 import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;

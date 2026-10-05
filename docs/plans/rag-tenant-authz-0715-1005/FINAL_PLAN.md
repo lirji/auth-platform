@@ -190,9 +190,9 @@ Casdoor groups -> auth-platform-admin reconcile
 | langchain4j-platform | `edge-gateway/src/main/java/com/lrj/platform/edge/CasdoorSecurityProperties.java` | 现有 properties，计划增加 mode |
 | langchain4j-platform | `edge-gateway/src/main/java/com/lrj/platform/edge/CasdoorTokenExchangeFilter.java` | `filter`、`exchangeAndForward` |
 | langchain4j-platform | `edge-gateway/src/main/java/com/lrj/platform/edge/CasdoorDecoderConfig.java` | `casdoorJwtDecoder` |
-| auth-platform | `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/CasdoorClient.java` | `groupMembers`、`groupNames`（计划改为显式 organization 参数） |
-| auth-platform | `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/GroupSyncService.java` | `sync` |
-| auth-platform | `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/CasdoorProperties.java` | 现有 properties，计划增加 organizations/安全阈值 |
+| auth-platform | `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/infrastructure/CasdoorClient.java` | `groupMembers`、`groupNames`（计划改为显式 organization 参数） |
+| auth-platform | `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/application/GroupSyncService.java` | `sync` |
+| auth-platform | `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/configuration/CasdoorProperties.java` | 现有 properties，计划增加 organizations/安全阈值 |
 | auth-platform | `auth-platform-sdk/src/main/java/com/lrj/authz/sdk/RemoteAuthzEngine.java` | `checkBulk`，并复用现有 `readRelationships` |
 
 配置、部署与测试文件的精确路径列在 §8.1–§8.5；实现 Agent 开始前应以本表为主索引，不应另造并行入口。
@@ -366,7 +366,7 @@ space:<tenant>_default#viewer@group:<tenant>_<configuredGroup>#member
 - 计划新增 `knowledge-service/src/test/java/com/lrj/platform/knowledge/KnowledgeQueryServiceAuthzTest.java`。
 - 扩展 `knowledge-service/src/test/java/com/lrj/platform/knowledge/authz/RealKnowledgeAuthzTest.java` 与 `KnowledgeAuthzIntegrationTest.java`。
 - 扩展 `edge-gateway/src/test/java/com/lrj/platform/edge/CasdoorTokenExchangeFilterTest.java` 与 `CasdoorJwksIntegrationTest.java`。
-- 计划新增 auth-platform 的 `auth-platform-admin/src/test/java/com/lrj/authz/admin/casdoor/GroupSyncServiceTest.java` 与 `auth-platform-sdk/src/test/java/com/lrj/authz/sdk/RemoteAuthzEngineTest.java`。
+- 计划新增 auth-platform 的 `auth-platform-admin/src/test/java/com/lrj/authz/admin/identity/casdoor/application/GroupSyncServiceTest.java` 与 `auth-platform-sdk/src/test/java/com/lrj/authz/sdk/RemoteAuthzEngineTest.java`。
 - `langchain4j-platform/deploy/docker-compose.yml` 给 knowledge 注入 RAG_AUTHZ/AUTHZ_SERVER，给 edge 注入 Casdoor mode；auth-platform 服务当前不在该 compose 内，必须写清外部地址/启动依赖。
 - `langchain4j-platform/deploy/helm/platform/values.yaml` 增加非敏感 URL/mode，`templates/secret.yaml` 与 `templates/externalsecret-sample.yaml` 增加 `AUTHZ_SERVER_TOKEN`、Casdoor secret；避免把 service credential 注入所有不需要的服务，优先 knowledge 专属 Secret。
 - 计划新增 `langchain4j-platform/deploy/smoke-rag-tenant-authz.sh`，见 test-plan。

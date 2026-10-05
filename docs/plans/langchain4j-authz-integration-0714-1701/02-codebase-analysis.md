@@ -228,11 +228,11 @@ AP core/sdk/server/admin 当前仓库内没有对应 Java `src/test` 文件，�
 - `auth-platform-server/pom.xml`
 - `auth-platform-server/src/main/java/com/lrj/authz/server/AuthzController.java`
 - `auth-platform-server/src/main/resources/application.yml`
-- `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/CasdoorClient.java`
-- `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/CasdoorProperties.java`
-- `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/GroupSyncService.java`
-- `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/ReconcileJob.java`
-- `auth-platform-admin/src/main/java/com/lrj/authz/admin/casdoor/CasdoorSyncController.java`
+- `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/infrastructure/CasdoorClient.java`
+- `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/configuration/CasdoorProperties.java`
+- `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/application/GroupSyncService.java`
+- `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/application/ReconcileJob.java`
+- `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/web/CasdoorSyncController.java`
 - `auth-platform-admin/src/main/resources/application.yml`
 - `auth-platform-core/src/main/resources/schemas/knowledge.zed`、`auth-platform-core/src/main/resources/schemas/his.zed`（当前能力基本足够，预计不改；列入兼容检查是因为生产只能发布完整合并 schema，禁止单独覆盖）
 - `deploy/spicedb-smoke.sh`、`deploy/server-smoke.sh`、`deploy/docker-compose.yml`、`dev.sh`

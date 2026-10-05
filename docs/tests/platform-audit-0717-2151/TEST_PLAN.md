@@ -327,7 +327,7 @@ class SpiceDbAuthzEngineTest {
 
 ### 3.2 CasdoorSyncControllerTest
 
-放置路径：`auth-platform-admin/src/test/java/com/lrj/authz/admin/casdoor/CasdoorSyncControllerTest.java`
+放置路径：`auth-platform-admin/src/test/java/com/lrj/authz/admin/identity/casdoor/web/CasdoorSyncControllerTest.java`
 
 锁定行为：feature bean 缺失的 409、手动同步、webhook secret fail-closed、可选部门调用。直接 new controller，不测 Spring Security matcher（那需要 context/IT）。
 
@@ -425,7 +425,7 @@ class CasdoorSyncControllerTest {
 
 ### 3.3 SyncServiceBoundaryTest
 
-放置路径：`auth-platform-admin/src/test/java/com/lrj/authz/admin/casdoor/SyncServiceBoundaryTest.java`
+放置路径：`auth-platform-admin/src/test/java/com/lrj/authz/admin/identity/casdoor/application/SyncServiceBoundaryTest.java`
 
 锁定行为：删除数恰等阈值允许；读取 filter 必须限定 type/id/relation；部门换父在一次 write batch 同时 TOUCH 新边与 DELETE 旧边。
 
@@ -602,7 +602,7 @@ class ProtocolValueObjectsTest {
 
 ### 3.5 CasdoorClientTest
 
-放置路径：`auth-platform-admin/src/test/java/com/lrj/authz/admin/casdoor/CasdoorClientTest.java`
+放置路径：`auth-platform-admin/src/test/java/com/lrj/authz/admin/identity/casdoor/infrastructure/CasdoorClientTest.java`
 
 锁定行为：loopback HTTP 下验证 Basic auth、实际 query、单/多 org、subjectField、去重、group owner、部门父子和管理员解析。缺 data 与跨 org 错误行为只 TODO。
 
@@ -769,7 +769,7 @@ class CasdoorClientTest {
 
 ### 3.6 ReconcileJobTest
 
-放置路径：`auth-platform-admin/src/test/java/com/lrj/authz/admin/casdoor/ReconcileJobTest.java`
+放置路径：`auth-platform-admin/src/test/java/com/lrj/authz/admin/identity/casdoor/application/ReconcileJobTest.java`
 
 锁定行为：组先执行、可选部门随后执行；无部门 bean 不报错；第一阶段异常后不误执行第二阶段。明确这是编排，不证明跨阶段事务。
 
@@ -846,15 +846,15 @@ class ReconcileJobTest {
 
 ### 3.7 AdminControllerTest
 
-放置路径：`auth-platform-admin/src/test/java/com/lrj/authz/admin/AdminControllerTest.java`
+放置路径：`auth-platform-admin/src/test/java/com/lrj/authz/admin/web/AdminControllerTest.java`
 
 锁定行为：grant/revoke 的 operation、userset、actor 和 audit detail；所有管理读取强一致；engine 失败没有虚假审计。审计自身失败后的分布式部分成功只列 issue。
 
 ```java
 package com.lrj.authz.admin;
 
-import com.lrj.authz.admin.AdminDtos.CheckRequest;
-import com.lrj.authz.admin.AdminDtos.GrantRequest;
+import com.lrj.authz.admin.web.AdminDtos.CheckRequest;
+import com.lrj.authz.admin.web.AdminDtos.GrantRequest;
 import com.lrj.authz.protocol.AuthzEngine;
 import com.lrj.authz.protocol.Consistency;
 import com.lrj.authz.protocol.Relationship;
@@ -1004,7 +1004,7 @@ class AdminControllerTest {
 
 ### 3.8 InMemoryAuditStoreTest
 
-放置路径：`auth-platform-admin/src/test/java/com/lrj/authz/admin/InMemoryAuditStoreTest.java`
+放置路径：`auth-platform-admin/src/test/java/com/lrj/authz/admin/audit/persistence/InMemoryAuditStoreTest.java`
 
 锁定行为：确定性地验证容量/顺序/归一；并发仅锁定上限与记录完整性，不写容易抖动的“恰好保留哪 N 条”。
 
