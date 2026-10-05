@@ -31,4 +31,6 @@ A07真实差异的技能卫生CLI最终 `IMPLEMENTATION_COMPLETE_WITH_LIMITATION
 
 事务、唯一约束、锁顺序、投影marker/租约/READY、Owner、身份代际、撤权和TTL保持；异常与日志转换未改。没有新增表/迁移、MQ、缓存或运行依赖，没有改公开错误体系，也没有自动续发凭据。旧审计构造式DDL及容量策略属于原有持久化实现，本轮没有修改其建表或保留语义。
 
-A08真实PostgreSQL/图/身份/投影、legacy/Boot4、两个精确候选CI及正常main交付仍须完成；本地检查不能代替这些验收，也不能代表本次重新部署。
+A08 最新真实验收：候选 `9cbb3de` / Auth CI [37275565423](https://github.com/lirji/auth-platform/actions/runs/37275565423) 全成功；JUnit 去重为332单测、325真实PostgreSQL/身份/图/投影集成、1 Boot4，0失败/错误/跳过。50控制台测试、真实HTTP/邀请/RBAC步骤与构建成功；Portal `bf7a521` / CI [37274913888](https://github.com/lirji/auth-platform/actions/runs/37274913888) 的29测试/镜像构建成功，后续仅CI夹具配置与回归修改，构建输入不变。本机真实旧版IdP拒绝1项PASS，首次元数据超时保留，未放宽2秒预算或断言。结构/ABI/CI配置归属共9脚本回归通过。
+
+完整任务卫生使用原技能引擎、不可变已格式化Git基线与公开252 Java/53前端路径和导入映射，零finding、零阻断，未豁免格式churn；Java格式命令自动发现限制保留，实际check已执行。主分支发布及精确main双CI结果随交付回执核对；本轮没有重新部署，运行镜像仍属于先前W07交付。

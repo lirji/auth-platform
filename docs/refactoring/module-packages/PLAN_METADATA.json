@@ -2,8 +2,8 @@
   "goal": "Both Auth and WMS: fine package organization, formatting and Claude skill quality optimization",
   "claude_skill": "/Users/liruijun/.claude/skills/project-refactoring/SKILL.md",
   "wms_worktree": "/Users/liruijun/.local/share/git-worktrees/wms-platform/central-authorization",
-  "wms_candidate": "e7c329466bd726823819436f7475ef88dacfc5a5",
-  "wms_ci": 37269556033,
+  "wms_candidate": "a1df34826c40a4ee2500175c2e169d0d44374faf",
+  "wms_ci": "https://github.com/lirji/wms-platform/actions/runs/37275190238",
   "auth_base": "b644dcd01a68c6fa1cb5ab5ce28b57ba531ccb27",
   "phase_gates": {
     "baseline": "PASS",

@@ -1,6 +1,6 @@
 # Auth 模块包结构、格式与代码规范重构
 
-用户已明确同时覆盖 Auth 与 WMS。WMS 在独立任务树完成 R00–R11，R12 正在核对完整 CI；本报告负责 Auth，不能以 WMS 完成代替两个项目全部完成。采用同一组 Claude project-refactoring、backend-implementation 与开发规范，连续实施。
+用户已明确同时覆盖 Auth 与 WMS。本报告负责 Auth：A00–A08 实施与候选验收已完成，main 的精确提交门禁随 Git 交付另行核对。WMS 在既有任务树完成 R00–R11，R12 正在执行完整 CI；两个项目全部交付前整体任务保持进行中。采用 Claude project-refactoring、backend-implementation 与开发规范。
 
 ## 基线与保护
 
@@ -8,7 +8,7 @@
 
 本次基线 Maven reactor test 实际运行 331 项，失败、错误、跳过均为 0，基线与测试保护 Gate PASS。原精确提交的 Auth/Portal CI 已成功；新增源码的真实 PostgreSQL/图/投影/身份等验收仍需重新执行，不能继承旧结论。
 
-保留现有私密配置、预算、备份、旧工作树及 WMS 原目录的 55 个用户文件和未提交 Driver。只改当前任务源与验证入口，不重部署、不操作共享数据、不自动续发 Token 或 Grant。门户 `public/config/catalog.json` 是现有运行挂载，按字节保护，格式器只处理人工源文件。
+保留现有私密配置、预算、备份、旧工作树及 WMS 原目录的用户文件和未提交 Driver。终审核对发现原 WMS main 已正常快进到 `2efa151`、进度文件与早期快照不同；其余 54 个保护文件相同，本任务保留当前 55 文件状态，不回退或覆盖。只改当前任务源与验证入口，不重部署、不操作共享数据、不自动续发 Token 或 Grant。门户 `public/config/catalog.json` 是现有运行挂载，按字节保护，格式器只处理人工源文件。
 
 ## 问题与目标
 
@@ -35,7 +35,7 @@
 | A05 | SDK 内部 HTTP/校验/组合职责和公开门面、protocol 契约审查 | DONE |
 | A06 | auth-console 与 portal 功能、共享和壳层结构审查与有界调整 | DONE |
 | A07 | 全模块中文原因注释、类型/状态、配置、错误/日志、SQL/事务与有证据优化 | DONE |
-| A08 | 必要真实 PostgreSQL/图/身份/投影/legacy/Boot4/门户 CI、兼容/卫生终审与正常 main 交付 | IN_PROGRESS |
+| A08 | 必要真实 PostgreSQL/图/身份/投影/legacy/Boot4/门户 CI、兼容/卫生终审；Git 精确 main 门禁独立记录 | VALIDATED |
 
 每批先给精确类/消费者映射与影响，再编译、相关测试、资源/namespace、差异检查。生产逻辑优化先补特征/回归测试；失败不推进下一批。分批正常提交，完整验收后按持续授权正常合入推 main；不强推、不混入其他工作、不执行本次未授权的部署。
 
@@ -48,9 +48,9 @@
 
 ## 当前进度与恢复
 
-A00 基线和测试保护 PASS，331 Java单测、两个前端构建及29门户测试通过。A01已完成340 Java、34 XML、两个前端及控制台原生测试格式整理，固定Google Java Format1.37.0/Prettier3.9.9，仅新增开发工具。331 Java、50控制台、29门户、114脚本测试，以及类型/build/格式/目录检查PASS；不可变Git基线用同一工具独立整理后逐文件与当前源码完全一致，Java逻辑/XML语义/SQL/图/挂载配置不变。两份pnpm锁只有Prettier新增。实际技能CLI原结果保留，规范化基线使用原引擎零阻断；限制为命令发现器不识别独立Java格式CLI，真实格式检查已执行；下载超时60秒为有界工具参数的提示，已审查。用户已确认两个项目，无需再次确认范围；先完成 WMS R12 再连续执行 Auth A01–A08。根 `CODEX_PROGRESS.md` 是忽略的本地恢复记录；基线、原始失败及后续每批结果保存于 `.local/refactoring-module-packages-auth/`。
+A00 基线和测试保护 PASS，331 Java单测、两个前端构建及29门户测试通过。A01已完成340 Java、34 XML、两个前端及控制台原生测试格式整理，固定Google Java Format1.37.0/Prettier3.9.9，仅新增开发工具。331 Java、50控制台、29门户、114脚本测试，以及类型/build/格式/目录检查PASS；不可变Git基线用同一工具独立整理后逐文件与当前源码完全一致，Java逻辑/XML语义/SQL/图/挂载配置不变。两份pnpm锁只有Prettier新增。实际技能CLI原结果保留，规范化基线使用原引擎零阻断；限制为命令发现器不识别独立Java格式CLI，真实格式检查已执行；下载超时60秒为有界工具参数的提示，已审查。用户已确认两个项目，无需再次确认范围；按两个项目现有切片推进，不重跑已完成的历史迁移脚本。根 `CODEX_PROGRESS.md` 是忽略的本地恢复记录；基线、原始失败及后续每批结果保存于 `.local/refactoring-module-packages-auth/`。
 
-当前整体目标 IN_PROGRESS，不能报告两个项目已全部完成。
+当前 Auth 候选已通过完整验收，两个项目的精确 main 门禁和整体交付继续推进。以下分批记录保留各阶段当时的状态，最新结论以末尾 A08 为准。
 
 A02：166 类/测试迁移，340 Java 的保留字面量词法比较仅有已审查FQCN替换；没有扩大可见性或改写方法体。331单测、格式、资源namespace、目录、diff检查PASS；真实运行与全面卫生在A08另验。
 
@@ -65,3 +65,7 @@ A06：53个控制台源迁入按功能组织的页面/模型/组件及app shell�
 A07：281方法/59类型中文原因说明与全模块规范/结构/ABI审查完成，341 Java可执行词法与A07基线完全一致；唯一实际行为改动是前端同步事件竞态，先真实React复现两项失败、再修复并两项通过。332 Java/50console/29portal/114部署脚本/7结构ABI测试、类型/build/格式/契约检查PASS，原技能真实差异CLI零finding，仅Java格式命令发现限制。详见[代码审查](CODE_QUALITY_REVIEW.md)。A08完整真实CI与交付仍进行中。
 
 A08 首轮候选 `bf7a521`：Portal CI [37274913888](https://github.com/lirji/auth-platform/actions/runs/37274913888) 成功；Auth CI [37274913832](https://github.com/lirji/auth-platform/actions/runs/37274913832) 在真实治理数据库验证失败。新增 ABI 步骤误接收了原 Maven 步骤的 `env`，22 个数据库测试类因缺少隔离连接配置而初始化失败，尚未执行业务断言。已把环境变量归还 Maven 步骤，并补充配置归属回归检查和成功/失败均归档 JUnit 报告；没有改变数据库约束、测试断言或生产源码。原始失败保留；修复后的完整 CI、兼容终审及 main 交付继续执行，不能用 Portal 单独成功声明完成。
+
+A08 最新验收：修复候选 `9cbb3de` 的 Auth CI [37275565423](https://github.com/lirji/auth-platform/actions/runs/37275565423) 全部成功。真实 JUnit 报告按类/方法去重：332 单测、325 PostgreSQL/身份/图/投影集成测试、1 Boot 4 兼容测试，失败/错误/跳过均为 0；HTTP 边界、邀请、真实应用 RBAC、50 控制台测试和构建步骤也成功。Portal 候选 `bf7a521` 的 29 测试及源码镜像构建成功，后续修复未改变这些构建输入；交付后的 main 再核验两个精确 SHA 流水线。
+
+本机显式 legacy profile 使用既有隔离身份命名空间，只读真实 v4.3.0 元数据，原拒绝断言 1 项通过。首次 2 秒元数据超时的日志/XML 保留；随后真实元数据返回 200/v4.3.0 后再验证成功，没有改超时、断言、凭据或发行方。170 公开类型逐声明、39 SQL/6 图模式/2 运行配置字节、所有私有协作边界及旧工作树终审核对通过。原技能引擎在不可变格式化 Git 基线上只重定位已批准的 252 Java 和 53 前端路径/导入，完整增量零 finding、零阻断；不修改引擎或放宽格式 churn。唯一限制是独立 Java 格式命令的自动发现，实际固定版本 check 已通过。完整原始证据和后续 Git/精确 main 回执保留在忽略目录；本轮没有重新部署。
