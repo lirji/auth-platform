@@ -1,5 +1,8 @@
 package com.lrj.authz.server;
 
+import com.lrj.authz.server.legacy.configuration.SpiceDbProperties;
+import com.lrj.authz.server.security.AuthzServerSecurityProperties;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;

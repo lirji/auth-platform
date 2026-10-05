@@ -226,7 +226,7 @@ AP core/sdk/server/admin 当前仓库内没有对应 Java `src/test` 文件，�
 - `auth-platform-sdk/src/main/java/com/lrj/authz/sdk/AuthzSdkAutoConfiguration.java`
 - `auth-platform-sdk/src/main/java/com/lrj/authz/sdk/CheckAccessAspect.java`
 - `auth-platform-server/pom.xml`
-- `auth-platform-server/src/main/java/com/lrj/authz/server/AuthzController.java`
+- `auth-platform-server/src/main/java/com/lrj/authz/server/legacy/web/AuthzController.java`
 - `auth-platform-server/src/main/resources/application.yml`
 - `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/infrastructure/CasdoorClient.java`
 - `auth-platform-admin/src/main/java/com/lrj/authz/admin/identity/casdoor/configuration/CasdoorProperties.java`

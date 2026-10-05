@@ -57,19 +57,19 @@
     {
       "repository": "auth",
       "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
-      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/AuthzServerSecurityFilter.java",
+      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/security/AuthzServerSecurityFilter.java",
       "sha256": "9e167e94e0031f4b1a2d041c97186f858761c705b435e2978fe5bed9d526d66f"
     },
     {
       "repository": "auth",
       "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
-      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/AuthzController.java",
+      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/legacy/web/AuthzController.java",
       "sha256": "f566c6e767ebca26a230d85d48f09a9d9ce21f17156227228a7121396a73ea21"
     },
     {
       "repository": "auth",
       "source_ref": "c07741a3398baeef32694ee7273612aaa64dd80d",
-      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/ZedTokenWatermark.java",
+      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/legacy/web/ZedTokenWatermark.java",
       "sha256": "3d5f0bf395469a931b00bb431849fb0346c97e1b18339a225e6ad7dd94e625aa"
     },
     {

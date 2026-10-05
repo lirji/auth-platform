@@ -258,7 +258,7 @@ ReBAC role mapping 不替代现有 scope 门禁。迁移先以 auth-service `Eff
   - 拒绝 null/blank resource ID；允许配置 consistency；保持参数名契约并补测试。
 - `auth-platform-server/pom.xml`、`auth-platform-server/src/main/resources/application.yml`
   - 引入 server 安全依赖/属性；health 放行，`/v1/**` 仅 service credential/mTLS 网络身份可用；credential 至少区分 check/read 与 relationship-write，并限制可写 resource type/relation。
-- `auth-platform-server/src/main/java/com/lrj/authz/server/AuthzController.java` / `check/checkBulk/lookupResources/lookupSubjects/write/delete/schema/expand/readRelationships`
+- `auth-platform-server/src/main/java/com/lrj/authz/server/legacy/web/AuthzController.java` / `check/checkBulk/lookupResources/lookupSubjects/write/delete/schema/expand/readRelationships`
   - 业务方法契约不变；补入参校验、批量上限和安全测试。
 
 #### Admin/Casdoor（修改现有）

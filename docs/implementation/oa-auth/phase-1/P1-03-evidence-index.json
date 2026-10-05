@@ -26,8 +26,8 @@
     "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/GovernanceDtos.java": "5957c8ee3e881cf26d499a7764fd1d66bfbd5f0ed5d6dcedd5dd974c21c56313",
     "auth-platform-server/pom.xml": "798fb76ff736965d859550b4e2b22e2b548f3a677512ac76fd7e03fde92867b5",
     "auth-platform-server/src/main/java/com/lrj/authz/server/AuthPlatformServerApplication.java": "a01d0c6c4160b46dea48e905234a8f25d16bcb911239c5ba6501118f7642af09",
-    "auth-platform-server/src/main/java/com/lrj/authz/server/governance/GovernanceContextController.java": "72c36ceb6a2d4b9f7c0b5819784da38adc912d83f3acc9bd4faacd472fa001c8",
-    "auth-platform-server/src/main/java/com/lrj/authz/server/governance/GovernanceServerConfiguration.java": "c8d7597135462b6c680c06d71adac2f398a214893176ff29669065387356335d",
+    "auth-platform-server/src/main/java/com/lrj/authz/server/governance/context/web/GovernanceContextController.java": "72c36ceb6a2d4b9f7c0b5819784da38adc912d83f3acc9bd4faacd472fa001c8",
+    "auth-platform-server/src/main/java/com/lrj/authz/server/governance/http/GovernanceServerConfiguration.java": "c8d7597135462b6c680c06d71adac2f398a214893176ff29669065387356335d",
     "auth-platform-server/src/main/resources/application.yml": "d9b6330295ed155f5a74e7b77bfc34bd1b93fd9918d55a40b50138ba870b4d7b",
     "deploy/governance-context-smoke.py": "614dd12b069b1bfc4a585ab894fec946f2982461e26a0fc7d399a157536d4b6a"
   },

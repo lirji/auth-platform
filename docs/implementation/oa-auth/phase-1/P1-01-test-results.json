@@ -170,7 +170,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.server.AuthzControllerFacadeTest",
+      "suite": "com.lrj.authz.server.legacy.web.AuthzControllerFacadeTest",
       "kind": "surefire",
       "tests": 7,
       "failures": 0,
@@ -178,7 +178,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.server.AuthzControllerWatermarkTest",
+      "suite": "com.lrj.authz.server.legacy.web.AuthzControllerWatermarkTest",
       "kind": "surefire",
       "tests": 4,
       "failures": 0,
@@ -186,7 +186,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.server.AuthzServerSecurityFilterBoundaryTest",
+      "suite": "com.lrj.authz.server.security.AuthzServerSecurityFilterBoundaryTest",
       "kind": "surefire",
       "tests": 2,
       "failures": 0,
@@ -194,7 +194,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.server.AuthzServerSecurityFilterTest",
+      "suite": "com.lrj.authz.server.security.AuthzServerSecurityFilterTest",
       "kind": "surefire",
       "tests": 6,
       "failures": 0,
@@ -202,7 +202,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.server.ZedTokenWatermarkTest",
+      "suite": "com.lrj.authz.server.legacy.web.ZedTokenWatermarkTest",
       "kind": "surefire",
       "tests": 2,
       "failures": 0,

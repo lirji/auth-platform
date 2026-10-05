@@ -1088,7 +1088,7 @@ class InMemoryAuditStoreTest {
 
 ### 3.9 AuthzControllerFacadeTest
 
-放置路径：`auth-platform-server/src/test/java/com/lrj/authz/server/AuthzControllerFacadeTest.java`
+放置路径：`auth-platform-server/src/test/java/com/lrj/authz/server/legacy/web/AuthzControllerFacadeTest.java`
 
 锁定行为：直接 new controller，逐字段验证九个 facade 的端口调用和结果形状；特别验证请求顺序及 full/minimize 转换。bulk 漏项只留 TODO。
 
@@ -1103,14 +1103,14 @@ import com.lrj.authz.protocol.RelationshipUpdate;
 import com.lrj.authz.protocol.ResourceRef;
 import com.lrj.authz.protocol.SubjectRef;
 import com.lrj.authz.protocol.ZedTokenView;
-import com.lrj.authz.server.AuthzDtos.CheckBulkRequest;
-import com.lrj.authz.server.AuthzDtos.CheckRequest;
-import com.lrj.authz.server.AuthzDtos.ConsistencyDto;
-import com.lrj.authz.server.AuthzDtos.DeleteRequest;
-import com.lrj.authz.server.AuthzDtos.ExpandRequest;
-import com.lrj.authz.server.AuthzDtos.LookupResourcesRequest;
-import com.lrj.authz.server.AuthzDtos.LookupSubjectsRequest;
-import com.lrj.authz.server.AuthzDtos.WriteRequest;
+import com.lrj.authz.server.legacy.web.AuthzDtos.CheckBulkRequest;
+import com.lrj.authz.server.legacy.web.AuthzDtos.CheckRequest;
+import com.lrj.authz.server.legacy.web.AuthzDtos.ConsistencyDto;
+import com.lrj.authz.server.legacy.web.AuthzDtos.DeleteRequest;
+import com.lrj.authz.server.legacy.web.AuthzDtos.ExpandRequest;
+import com.lrj.authz.server.legacy.web.AuthzDtos.LookupResourcesRequest;
+import com.lrj.authz.server.legacy.web.AuthzDtos.LookupSubjectsRequest;
+import com.lrj.authz.server.legacy.web.AuthzDtos.WriteRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -1230,7 +1230,7 @@ class AuthzControllerFacadeTest {
 
 ### 3.10 ZedTokenWatermarkTest
 
-放置路径：`auth-platform-server/src/test/java/com/lrj/authz/server/ZedTokenWatermarkTest.java`
+放置路径：`auth-platform-server/src/test/java/com/lrj/authz/server/legacy/web/ZedTokenWatermarkTest.java`
 
 锁定行为：空 token 不覆盖、并发读到的只能是完整提交 token。测试刻意不把“最后调度到的线程”解释成最新 revision。
 
@@ -1296,7 +1296,7 @@ class ZedTokenWatermarkTest {
 
 ### 3.11 AuthzServerSecurityFilterBoundaryTest
 
-放置路径：`auth-platform-server/src/test/java/com/lrj/authz/server/AuthzServerSecurityFilterBoundaryTest.java`
+放置路径：`auth-platform-server/src/test/java/com/lrj/authz/server/security/AuthzServerSecurityFilterBoundaryTest.java`
 
 锁定行为：401 不进入 chain，错误体稳定且不回显 token；仅精确 `Bearer ` 大小写/空格语法被接受。
 

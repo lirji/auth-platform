@@ -1,0 +1,39 @@
+{
+  "id": "A04",
+  "base": "72ef5514b198eeb469d72951eeba9e68042905ad",
+  "scope": "旧判权HTTP/配置、安全、中央Access、上下文、观测职责；core两类为实际图客户端协作保持根包。根SpringBoot扫描入口保留。",
+  "private_cohorts": {
+    "governance.http": "scope/execution/navigation/server Settings与使用者同包，不扩大包内类型",
+    "governance.access": "AccessSettings与对应控制器同包",
+    "governance.observability": "指标OUTCOME/operation与实际指标测试同包"
+  },
+  "classes": {
+    "com.lrj.authz.server.AuthzServerSecurityFilter": "com.lrj.authz.server.security.AuthzServerSecurityFilter",
+    "com.lrj.authz.server.AuthzServerSecurityProperties": "com.lrj.authz.server.security.AuthzServerSecurityProperties",
+    "com.lrj.authz.server.SpiceDbProperties": "com.lrj.authz.server.legacy.configuration.SpiceDbProperties",
+    "com.lrj.authz.server.ZedTokenWatermark": "com.lrj.authz.server.legacy.web.ZedTokenWatermark",
+    "com.lrj.authz.server.AuthzDtos": "com.lrj.authz.server.legacy.web.AuthzDtos",
+    "com.lrj.authz.server.AuthzController": "com.lrj.authz.server.legacy.web.AuthzController",
+    "com.lrj.authz.server.AuthzConfig": "com.lrj.authz.server.legacy.configuration.AuthzConfig",
+    "com.lrj.authz.server.governance.GovernanceServerConfiguration": "com.lrj.authz.server.governance.http.GovernanceServerConfiguration",
+    "com.lrj.authz.server.governance.GovernanceExecutionController": "com.lrj.authz.server.governance.http.GovernanceExecutionController",
+    "com.lrj.authz.server.governance.GovernanceRequestMetrics": "com.lrj.authz.server.governance.observability.GovernanceRequestMetrics",
+    "com.lrj.authz.server.governance.GovernanceScopeConfiguration": "com.lrj.authz.server.governance.http.GovernanceScopeConfiguration",
+    "com.lrj.authz.server.governance.GovernanceScopeController": "com.lrj.authz.server.governance.http.GovernanceScopeController",
+    "com.lrj.authz.server.governance.GovernanceAccessConfiguration": "com.lrj.authz.server.governance.access.GovernanceAccessConfiguration",
+    "com.lrj.authz.server.governance.GovernanceAccessController": "com.lrj.authz.server.governance.access.GovernanceAccessController",
+    "com.lrj.authz.server.governance.GovernanceContextController": "com.lrj.authz.server.governance.context.web.GovernanceContextController",
+    "com.lrj.authz.server.governance.GovernanceNavigationController": "com.lrj.authz.server.governance.http.GovernanceNavigationController",
+    "com.lrj.authz.server.governance.GovernanceNavigationConfiguration": "com.lrj.authz.server.governance.http.GovernanceNavigationConfiguration",
+    "com.lrj.authz.server.governance.GovernanceExecutionConfiguration": "com.lrj.authz.server.governance.http.GovernanceExecutionConfiguration",
+    "com.lrj.authz.server.ZedTokenWatermarkTest": "com.lrj.authz.server.legacy.web.ZedTokenWatermarkTest",
+    "com.lrj.authz.server.AuthzServerSecurityFilterBoundaryTest": "com.lrj.authz.server.security.AuthzServerSecurityFilterBoundaryTest",
+    "com.lrj.authz.server.AuthzControllerFacadeTest": "com.lrj.authz.server.legacy.web.AuthzControllerFacadeTest",
+    "com.lrj.authz.server.AuthzControllerWatermarkTest": "com.lrj.authz.server.legacy.web.AuthzControllerWatermarkTest",
+    "com.lrj.authz.server.AuthzServerSecurityFilterTest": "com.lrj.authz.server.security.AuthzServerSecurityFilterTest",
+    "com.lrj.authz.server.governance.GovernanceScopeControllerTest": "com.lrj.authz.server.governance.http.GovernanceScopeControllerTest",
+    "com.lrj.authz.server.governance.GovernanceRequestMetricsTest": "com.lrj.authz.server.governance.observability.GovernanceRequestMetricsTest",
+    "com.lrj.authz.server.governance.GovernanceExecutionControllerTest": "com.lrj.authz.server.governance.http.GovernanceExecutionControllerTest",
+    "com.lrj.authz.server.governance.GovernanceNavigationControllerTest": "com.lrj.authz.server.governance.http.GovernanceNavigationControllerTest"
+  }
+}

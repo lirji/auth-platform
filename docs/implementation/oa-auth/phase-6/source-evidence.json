@@ -16,7 +16,7 @@
     {
       "repository": "auth-platform",
       "revision": "a70197089d6ff2f3e0fd57523bf1454a5867c4b0",
-      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/AuthzController.java",
+      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/legacy/web/AuthzController.java",
       "sha256": "f566c6e767ebca26a230d85d48f09a9d9ce21f17156227228a7121396a73ea21"
     },
     {
@@ -28,7 +28,7 @@
     {
       "repository": "auth-platform",
       "revision": "a70197089d6ff2f3e0fd57523bf1454a5867c4b0",
-      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/governance/GovernanceAccessController.java",
+      "path": "auth-platform-server/src/main/java/com/lrj/authz/server/governance/access/GovernanceAccessController.java",
       "sha256": "9e0274385678d569d754ecc10c2aa30afdcf4ccde52ff09f2201c269e7fa881d"
     },
     {
