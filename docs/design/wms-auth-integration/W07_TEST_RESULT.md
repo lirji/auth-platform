@@ -4,6 +4,8 @@
 
 当前产品源：Auth dd04404/CI37249142702 SUCCESS，WMS 0f62d41/CI37249068115全部Java/console/profile SUCCESS，均正常发布main；W07仅运行/工具/验证/文档/CI增量，没有Java或UI产品源码变更。四源码镜像从这两产品源构建，以私密candidate-images.json的不可变ID实际部署。配置/脚本工作树指纹另由delivery-fence记录。
 
+W07 首次门户 CI37254822484 的新增镜像步骤继承了 project-portal 工作目录，因找不到根 deploy/.env.example 失败；已显式设置根工作目录，失败日志保留。最终精确提交、重验结果和 main 发布事实以私密 delivery-result.json 为准，不将首次失败改写为成功。
+
 | 验证 | 实际结果与边界 |
 |---|---|
 | 当前镜像/HTTPS | 四源码构建PASS；隔离Docker18项可信CA、未知CA/错误主机名拒绝、5独立凭据、UID10001/600、越仓/撤权/故障PASS |
