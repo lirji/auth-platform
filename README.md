@@ -187,3 +187,5 @@ TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh # 部门层级模型 seed 
 ## 企业 IAM 分阶段建设
 
 P1已完成，P2应用RBAC与首个商城读取链路全部完成，两仓CI已通过，交付证据见[阶段报告](docs/implementation/oa-auth/phase-2/P2_DELIVERY_RESULT.md)。父计划进度以[PROGRESS_STATE](docs/design/oa-auth-unification/PROGRESS_STATE.md)为准；P2阶段当时交付后暂停，后续进展以整体计划和治理当前状态为准。控制台入口为`/governance`，P2当时运行条件见[契约](docs/design/oa-auth-unification/CONTRACTS_P2_PRESENTATION.md)。
+
+WMS中央权限使用独立local-wms→ENT-DEMO绑定，原本机WMS控制台18180与治理管理5273。权限资源、机器期限和实际运行见[WMS Runtime](docs/design/wms-auth-integration/RUNTIME_SPEC.md)与[验收记录](docs/design/wms-auth-integration/W07_TEST_RESULT.md)。

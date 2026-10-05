@@ -9,6 +9,8 @@ on:
       - 'deploy/benefit-platform-provision.sh'
       - 'deploy/governance-test-db.py'
       - 'deploy/governance-wms-*.py'
+      - 'deploy/docker-compose.yml'
+      - 'deploy/governance/wms-*'
       - 'deploy/tests/test_governance_wms_provision.py'
       - 'deploy/governance-context-smoke.py'
       - 'deploy/governance-publisher-runtime.py'
@@ -55,6 +57,8 @@ on:
       - 'deploy/benefit-platform-provision.sh'
       - 'deploy/governance-test-db.py'
       - 'deploy/governance-wms-*.py'
+      - 'deploy/docker-compose.yml'
+      - 'deploy/governance/wms-*'
       - 'deploy/tests/test_governance_wms_provision.py'
       - 'deploy/governance-context-smoke.py'
       - 'deploy/governance-publisher-runtime.py'
@@ -138,7 +142,8 @@ jobs:
       - name: Validate onboarding scripts
         run: |
           python3 -m unittest discover -s deploy/tests -p 'test_governance_wms_provision.py' -v
-          python3 -m py_compile deploy/governance-wms-provision.py deploy/governance-wms-identity-smoke.py deploy/governance-wms-runtime-smoke.py deploy/governance-wms-failure-smoke.py deploy/governance-wms-enterprise-smoke.py deploy/governance-wms-actions-smoke.py deploy/governance-wms-action-revoke-smoke.py deploy/governance-wms-controls-smoke.py
+          python3 -m py_compile deploy/governance-wms-provision.py deploy/governance-wms-identity-smoke.py deploy/governance-wms-runtime-smoke.py deploy/governance-wms-failure-smoke.py deploy/governance-wms-enterprise-smoke.py deploy/governance-wms-actions-smoke.py deploy/governance-wms-action-revoke-smoke.py deploy/governance-wms-controls-smoke.py deploy/governance-wms-docker-prepare.py deploy/governance-wms-docker-smoke.py deploy/governance-wms-machine-provision.py deploy/governance-wms-machine-smoke.py
+          bash -n deploy/governance/wms-private-init.sh
           python3 -m unittest discover -s deploy/tests -p 'test_commerce_contract.py' -v
           python3 -m unittest discover -s deploy/tests -p 'test_governance_p6*.py' -v
           python3 -m unittest discover -s deploy/tests -p 'test_governance_segments*.py' -v

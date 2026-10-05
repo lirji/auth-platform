@@ -15,6 +15,7 @@ on:
       - 'deploy/postgres-init/**'
       - 'deploy/governance/**'
       - 'auth-platform-admin/Dockerfile'
+      - 'auth-platform-server/Dockerfile'
       - 'auth-console/Dockerfile'
       - 'auth-console/.dockerignore'
       - 'auth-console/nginx.conf'
@@ -35,6 +36,7 @@ on:
       - 'deploy/postgres-init/**'
       - 'deploy/governance/**'
       - 'auth-platform-admin/Dockerfile'
+      - 'auth-platform-server/Dockerfile'
       - 'auth-console/Dockerfile'
       - 'auth-console/.dockerignore'
       - 'auth-console/nginx.conf'
@@ -79,6 +81,9 @@ jobs:
           bash -n deploy/governance/run.sh
           docker compose --env-file deploy/.env.example --env-file deploy/platform-ports.env -f deploy/docker-compose.yml config --quiet
           docker compose --env-file deploy/.env.example --env-file deploy/platform-ports.env -f deploy/docker-compose.yml --profile governance config --quiet
+          docker compose --env-file deploy/.env.example --env-file deploy/platform-ports.env -f deploy/docker-compose.yml --profile wms-auth config --quiet
       - name: Build governance images from source without private configuration
         working-directory: .
         run: bash deploy/governance/run.sh build
+      - name: Build WMS authorization image from source without private configuration
+        run: docker compose --env-file deploy/.env.example --env-file deploy/platform-ports.env -f deploy/docker-compose.yml --profile wms-auth build governance-wms-server
