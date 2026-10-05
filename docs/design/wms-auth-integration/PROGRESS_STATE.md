@@ -2,29 +2,24 @@
 
 ## 任务目标
 
-连续完成WMS只读、入出库/PDA、盘点调整与调拨的Auth集中权限接入、实际本机运行和正常Git交付。组织local-wms明确绑定ENT-DEMO；生产部署不在范围。
+连续完成W00–W07，local-wms绑定ENT-DEMO。WMS保留数据所有权；Auth管理成员/角色/权限/范围。生产不在范围。
 
 ## 当前状态
 
-W00–W05验证DONE；W04 Auth 8189b13/CI37246323217已发布，WMS876b13c/CI37246311489仍运行。W05本地PASS、逻辑提交中；W06 READY，后续W07依次执行。全任务未完成。最终Git与CI事实以Auth私密 `.local/wms-auth-integration/delivery-result.json` 为准；缺失或未通过不能称已合入主线。
+W00–W06本地验证完成，W07准备本机Runtime。Auth W04/W05分别8189b13/be49acc已精确CI通过并正常发布。WMS W04 876b13c/CI37246311489实际FAIL于旧序列登记进程测试，尚未发布；W05 fd722b4本地提交、W06累计CI必须全通过才正常合入main。所有后续Git事实以私密delivery-result.json为准，不把本地PASS当远程CI成功。
 
 ## 已完成
 
-- W00：8602电商实际未启用IAM，5273治理不控制该实例；原WMS55文件与分支/HEAD保护，Driver/ERP不处理。
-- W01：206单元、13SDK HTTP、2真实PG/图IT；Auth协议实现b2d2414，含检查点main7712d26/CI37213811393已发布。
-- W02：94操作/43scope→49能力/16菜单，生成与漂移检查；WMS实现411d3db，含检查点远端main17048d5/CI37213828874已发布。
-- W03：独立local-wms/ENT-DEMO、PKCE wms-central、五独立服务身份/私密配置；Auth main b66f735/CI37219575766已发布。
-- W04：逐动作资源范围、本人接口、中央菜单/深链/按钮/子查询。最新隔离71a5c4d2296a的19身份/SQL+5浏览器+7企业-only后端+1企业-only浏览器+2撤权+9故障撤权PASS；真实页面已查看。工具reader-a与enterprise-only来源已撤销。
-- W04前端39文件84项全套、类型/build通过。完整Java原303项有1启动失败；保留原失败及第二轮失败。用户要求继续后正常Docker恢复，135原容器ID/镜像/挂载/运行状态与36原运行服务健康核对，未删除卷/镜像。该失败案例专项150.2秒PASS，144 default必需检查PASS，test-support补验PASS。不声称整条reactor一次通过。
-- W04有界Review通过。自动hygiene宽泛规则误分类测试/HTTP/原生Promise/有限资源类型，逐条审查按用户禁止机械常量化规范处理，原结果保留；无仓库格式化器的限制见[验证记录](W04_TEST_RESULT.md)。
-
-- W05：23身份/SQL+34动作+4PDA浏览器+5导航浏览器+10写撤权+15故障/读撤权PASS；21安全/8Owner HTTP/147门禁/10UI与构建PASS，8图已看。见[验证记录](W05_TEST_RESULT.md)。
+- W00–W03的协议/目录/组织/身份已发布，固定SDK源7712d26。94操作/43源scope→49能力/16菜单，权限hash不变。
+- W04真实身份/SQL/企业-only/菜单深链/故障撤权与84UI通过，完整Java启动失败原记录保留，正常Docker恢复后专项及144门禁通过。135原容器/36运行服务恢复，勿再次重启。
+- W05真实23身份/SQL+34动作+4PDA/5导航+10写撤权+15故障读撤权，安全21/Owner HTTP8/147门禁/UI10构建通过，8图实看；详见[W05_TEST_RESULT](W05_TEST_RESULT.md)。
+- W06真实23身份/SQL、94控制（原DRAFT检查点恢复）、5PKCE浏览器、4控制来源撤权；MySQL盘点/调拨6项、安全21、UI10构建通过。完整49能力复核补齐写按钮，源/目的绑定Owner仓。详见[W06_TEST_RESULT](W06_TEST_RESULT.md)。9张最终图实看，2额外视觉来源已撤销；原旧Token两项403、5导航和9当前故障读撤权PASS。
 
 ## 未完成
 
-- W04 WMS精确CI/main发布；W05逻辑提交、精确CI/main发布。
-- W06独立审批/应用和调拨源目标；W07跨Docker HTTPS、实际本机运行/故障/回退和最终交付。
+- W06逻辑提交/累计CI与Git发布。WMS原失败SHA不能直接发布。
+- W07当前Docker源码镜像/TLS/独立凭据、原库备份、实际本机更新/故障/旧机器兼容/回退、最终交付。
 
 ## 下一步
 
-复用两个feat/wms-central-authorization分支及WMS工作树 `/Users/liruijun/.local/share/git-worktrees/wms-platform/central-authorization`。W04交付后连续W05，不要求重复继续，不重新创建组织身份。正常Docker恢复已执行，勿重复重启。临时caffeinate session68556仅本任务；W05自有fixture/Vite结束验证后正常停止，再为W06启动独立fixture；运行JAR先复制冻结，不重用target运行中的可变归档。
+复用两个feat/wms-central-authorization分支及既有WMS任务树，不动原dirty工作/Driver/ERP。完成W06视觉来源撤销和当前浏览器，再提交并正常推累计CI。W07复用唯一Compose体系，SDK只HTTPS，UID10001+600分服务卷，不取消TLS/放宽HTTP。当前本机尚未切换，生产未授权。原fixture与v2 helper/Vite结束验收后正常停止；原测试DB/证据/工作树保留。根CODEX_PROGRESS包含具体session与私密恢复入口。
