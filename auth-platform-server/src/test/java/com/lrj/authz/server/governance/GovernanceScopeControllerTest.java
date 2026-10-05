@@ -4,10 +4,13 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.*;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.domain.FenceModels.Stamp;
-import com.lrj.authz.governance.domain.ScopeModels.Evaluation;
-import com.lrj.authz.protocol.*;
+import com.lrj.authz.governance.authorization.application.ReliableAuthorization;
+import com.lrj.authz.governance.authorization.domain.ScopeModels.Evaluation;
+import com.lrj.authz.governance.context.application.CallerService;
+import com.lrj.authz.governance.context.application.InternalContextService;
+import com.lrj.authz.governance.projection.domain.FenceModels.Stamp;
+import com.lrj.authz.protocol.CentralAccessDtos;
+import com.lrj.authz.protocol.GovernanceDtos;
 import com.lrj.authz.protocol.ScopeAccessDtos.*;
 import com.lrj.authz.protocol.ScopeDtos.*;
 

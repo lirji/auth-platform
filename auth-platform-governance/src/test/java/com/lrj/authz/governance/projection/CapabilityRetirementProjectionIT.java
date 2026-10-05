@@ -5,14 +5,19 @@ import static com.lrj.authz.governance.support.RoleMigrationFixture.id;
 import static org.assertj.core.api.Assertions.*;
 
 import com.lrj.authz.core.SpiceDbProjectionGraph;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.domain.ProjectionModels.*;
-import com.lrj.authz.governance.support.*;
+import com.lrj.authz.governance.access.application.CapabilityRetirement;
+import com.lrj.authz.governance.catalog.application.CatalogRetirementProof;
+import com.lrj.authz.governance.migration.application.RetirementReferenceExit;
+import com.lrj.authz.governance.projection.domain.ProjectionModels.*;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.support.RetirementProofFixture;
+import com.lrj.authz.governance.support.RoleMigrationFixture;
 import com.lrj.authz.governance.support.RoleMigrationFixture.F;
-import com.lrj.authz.protocol.*;
 import com.lrj.authz.protocol.CapabilityLifecycleDtos.*;
 import com.lrj.authz.protocol.CapabilityLifecycleDtos.State;
 import com.lrj.authz.protocol.CapabilityRetirementDtos.*;
+import com.lrj.authz.protocol.GovernanceDtos;
+import com.lrj.authz.protocol.ScopeDtos;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;

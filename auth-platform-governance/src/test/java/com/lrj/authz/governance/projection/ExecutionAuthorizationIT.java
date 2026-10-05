@@ -4,16 +4,24 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.lrj.authz.core.SpiceDbProjectionGraph;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.authentication.VerifiedLogin;
-import com.lrj.authz.governance.domain.AccessModels.*;
-import com.lrj.authz.governance.domain.CatalogModels.*;
-import com.lrj.authz.governance.domain.ProjectionModels.*;
-import com.lrj.authz.governance.persistence.*;
-import com.lrj.authz.protocol.*;
+import com.lrj.authz.governance.access.domain.AccessModels.*;
+import com.lrj.authz.governance.catalog.domain.CatalogModels.*;
+import com.lrj.authz.governance.context.application.CallerService;
+import com.lrj.authz.governance.identity.application.BootstrapCommand;
+import com.lrj.authz.governance.identity.authentication.VerifiedLogin;
+import com.lrj.authz.governance.migration.application.MigrationImport;
+import com.lrj.authz.governance.projection.domain.ProjectionModels.*;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.AccessValues;
+import com.lrj.authz.protocol.CentralAccessDtos;
 import com.lrj.authz.protocol.ExecutionAccessDtos.*;
 import com.lrj.authz.protocol.GovernanceDtos.AccessContext;
+import com.lrj.authz.protocol.ScopeAccessDtos;
+import com.lrj.authz.protocol.ScopeDtos;
 import com.lrj.authz.protocol.ScopeDtos.*;
+import com.lrj.authz.protocol.ScopeResourceBindings;
 
 import org.junit.jupiter.api.*;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -236,7 +244,7 @@ class ExecutionAuthorizationIT {
             var batch =
                     new MigrationImport.Batch(
                             unit, 1, "a".repeat(64), "b".repeat(64), partition, List.of(item));
-            com.lrj.authz.governance.persistence.MigrationMapper.Row imported;
+            com.lrj.authz.governance.migration.persistence.MigrationMapper.Row imported;
             try (var workers = java.util.concurrent.Executors.newFixedThreadPool(2)) {
                 var gate = new java.util.concurrent.CountDownLatch(1);
                 var first =
@@ -1853,16 +1861,16 @@ class ExecutionAuthorizationIT {
                         r.reliableProjector(graph)
                                 .step(
                                         partition,
-                                        com.lrj.authz.governance.domain.ProjectionModels.Kind
-                                                .POLICY,
+                                        com.lrj.authz.governance.projection.domain.ProjectionModels
+                                                .Kind.POLICY,
                                         id()))
                 .isEqualTo(Step.READY);
         assertThat(
                         r.reliableProjector(graph)
                                 .step(
                                         partition,
-                                        com.lrj.authz.governance.domain.ProjectionModels.Kind
-                                                .DIRECTORY,
+                                        com.lrj.authz.governance.projection.domain.ProjectionModels
+                                                .Kind.DIRECTORY,
                                         id()))
                 .isEqualTo(Step.READY);
     }

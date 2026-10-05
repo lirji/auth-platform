@@ -1,12 +1,15 @@
 package com.lrj.authz.admin.governance;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.authentication.VerifiedLogin;
-import com.lrj.authz.governance.domain.AccessModels.Partition;
-import com.lrj.authz.governance.domain.RequestModels.*;
-import com.lrj.authz.governance.persistence.GovernanceRuntime;
-import com.lrj.authz.governance.web.*;
+import com.lrj.authz.governance.access.application.AccessRequests;
+import com.lrj.authz.governance.access.domain.AccessModels.Partition;
+import com.lrj.authz.governance.approval.domain.RequestModels.*;
+import com.lrj.authz.governance.authorization.application.ScopeRules;
+import com.lrj.authz.governance.identity.authentication.VerifiedLogin;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.AccessValues;
+import com.lrj.authz.governance.shared.web.AccessWeb;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 import com.lrj.authz.protocol.RequestDtos.*;
 
 import jakarta.servlet.http.HttpServletRequest;

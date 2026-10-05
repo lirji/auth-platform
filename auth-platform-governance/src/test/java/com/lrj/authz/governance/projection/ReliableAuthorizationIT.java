@@ -4,15 +4,26 @@ import static org.assertj.core.api.Assertions.*;
 
 import com.lrj.authz.core.SpiceDbAuthzEngine;
 import com.lrj.authz.core.SpiceDbProjectionGraph;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.authentication.VerifiedLogin;
-import com.lrj.authz.governance.domain.AccessModels.*;
-import com.lrj.authz.governance.domain.CatalogModels.*;
-import com.lrj.authz.governance.domain.ProjectionModels.*;
-import com.lrj.authz.governance.persistence.*;
-import com.lrj.authz.protocol.*;
+import com.lrj.authz.governance.access.domain.AccessModels.*;
+import com.lrj.authz.governance.catalog.domain.CatalogModels.*;
+import com.lrj.authz.governance.directory.application.DirectoryAuthority;
+import com.lrj.authz.governance.identity.application.BootstrapCommand;
+import com.lrj.authz.governance.identity.authentication.VerifiedLogin;
+import com.lrj.authz.governance.projection.domain.ProjectionModels.*;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.AccessValues;
+import com.lrj.authz.governance.shared.application.GovernanceException;
+import com.lrj.authz.protocol.AuthzEngine;
+import com.lrj.authz.protocol.Consistency;
+import com.lrj.authz.protocol.DirectoryEvents;
 import com.lrj.authz.protocol.GovernanceDtos.AccessContext;
+import com.lrj.authz.protocol.ProjectionGraph;
+import com.lrj.authz.protocol.ResourceRef;
 import com.lrj.authz.protocol.ScopeDtos.*;
+import com.lrj.authz.protocol.StrictGraphReader;
+import com.lrj.authz.protocol.SubjectRef;
 
 import org.junit.jupiter.api.*;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -185,16 +196,16 @@ class ReliableAuthorizationIT {
                         runtime.reliableProjector(graph)
                                 .step(
                                         f.p,
-                                        com.lrj.authz.governance.domain.ProjectionModels.Kind
-                                                .POLICY,
+                                        com.lrj.authz.governance.projection.domain.ProjectionModels
+                                                .Kind.POLICY,
                                         id()))
                 .isEqualTo(Step.READY);
         assertThat(
                         runtime.reliableProjector(graph)
                                 .step(
                                         f.p,
-                                        com.lrj.authz.governance.domain.ProjectionModels.Kind
-                                                .DIRECTORY,
+                                        com.lrj.authz.governance.projection.domain.ProjectionModels
+                                                .Kind.DIRECTORY,
                                         id()))
                 .isEqualTo(Step.READY);
     }
@@ -1083,8 +1094,8 @@ class ReliableAuthorizationIT {
                         runtime.reliableProjector(graph)
                                 .step(
                                         other,
-                                        com.lrj.authz.governance.domain.ProjectionModels.Kind
-                                                .POLICY,
+                                        com.lrj.authz.governance.projection.domain.ProjectionModels
+                                                .Kind.POLICY,
                                         id()))
                 .isEqualTo(Step.READY);
         assertThatThrownBy(
@@ -1172,8 +1183,8 @@ class ReliableAuthorizationIT {
                         runtime.reliableProjector(graph)
                                 .step(
                                         f.p,
-                                        com.lrj.authz.governance.domain.ProjectionModels.Kind
-                                                .POLICY,
+                                        com.lrj.authz.governance.projection.domain.ProjectionModels
+                                                .Kind.POLICY,
                                         id()))
                 .isEqualTo(Step.BLOCKED);
         assertThat(runtime.access().revocationReceipt(f.login, f.p, g.id()).status())
@@ -1183,13 +1194,13 @@ class ReliableAuthorizationIT {
                         f.login,
                         f.p,
                         id(),
-                        com.lrj.authz.governance.domain.ProjectionModels.Kind.POLICY);
+                        com.lrj.authz.governance.projection.domain.ProjectionModels.Kind.POLICY);
         assertThat(
                         runtime.reliableProjector(graph)
                                 .step(
                                         f.p,
-                                        com.lrj.authz.governance.domain.ProjectionModels.Kind
-                                                .POLICY,
+                                        com.lrj.authz.governance.projection.domain.ProjectionModels
+                                                .Kind.POLICY,
                                         id()))
                 .isEqualTo(Step.BLOCKED);
     }

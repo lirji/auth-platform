@@ -1,6 +1,6 @@
 package com.lrj.authz.admin.governance;
 
-import com.lrj.authz.governance.authentication.CasdoorAccessTokenVerifier;
+import com.lrj.authz.governance.identity.authentication.CasdoorAccessTokenVerifier;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.*;

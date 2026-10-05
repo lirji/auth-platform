@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lrj.authz.governance.persistence.RoleMigrationTaskMapper">
+<mapper namespace="com.lrj.authz.governance.access.persistence.RoleMigrationTaskMapper">
   <sql id="partition">tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment}</sql>
   <sql id="taskColumns">id,tenant_id,application_id,environment,old_role_id,new_role_id,state,version,created_by,created_generation,command_id,created_at,updated_at</sql>
   <sql id="entryColumns">id,task_id,tenant_id,application_id,environment,old_grant_id,old_version,new_role_id,member_id,generation,old_source_id,scope,rule_json,scope_hash,valid_from,valid_to,original_hash,new_source_id,planned_grant_id,revoke_command,grant_command,stage,version,reason,revoke_receipt_id,new_grant_id,new_receipt_id,updated_at,source_type,group_id,replacement_request_id</sql>
-  <select id="task" resultType="com.lrj.authz.governance.domain.RoleMigrationTaskModels$Task">
+  <select id="task" resultType="com.lrj.authz.governance.access.domain.RoleMigrationTaskModels$Task">
   SELECT <include refid="taskColumns"/> FROM auth_governance.role_migration_task WHERE <include refid="partition"/> AND id=#{id}<if test="lock"> FOR UPDATE</if>
  </select>
-  <select id="tasks" resultType="com.lrj.authz.governance.domain.RoleMigrationTaskModels$Task">
+  <select id="tasks" resultType="com.lrj.authz.governance.access.domain.RoleMigrationTaskModels$Task">
   SELECT <include refid="taskColumns"/> FROM auth_governance.role_migration_task WHERE <include refid="partition"/> AND id &gt;#{after}
   <if test="oldRole != null">AND old_role_id=#{oldRole}</if> ORDER BY id LIMIT 21
  </select>
-  <select id="entries" resultType="com.lrj.authz.governance.domain.RoleMigrationTaskModels$Entry">
+  <select id="entries" resultType="com.lrj.authz.governance.access.domain.RoleMigrationTaskModels$Entry">
   SELECT <include refid="entryColumns"/> FROM auth_governance.role_migration_item WHERE <include refid="partition"/> AND task_id=#{task} ORDER BY id LIMIT 50
  </select>
   <select id="lineageExists" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.role_migration_item WHERE <include refid="partition"/> AND old_grant_id=#{oldGrant} AND new_role_id=#{newRole})</select>
@@ -31,7 +31,7 @@
    WHEN EXISTS(SELECT 1 FROM auth_governance.role_migration_item WHERE task_id=#{t.id} AND stage IN ('FAILED','CANCELLED')) THEN 'FINISHED_WITH_FAILURES' ELSE 'COMPLETED' END
   </otherwise></choose>
   WHERE <include refid="partition"/> AND id=#{t.id} AND version=#{t.version} AND state='RUNNING'</update>
-  <select id="confirmation" resultType="com.lrj.authz.governance.domain.RoleMigrationTaskModels$Confirmation">
+  <select id="confirmation" resultType="com.lrj.authz.governance.access.domain.RoleMigrationTaskModels$Confirmation">
   SELECT CASE WHEN pp.state='BLOCKED' OR d.state='BLOCKED' THEN 'BLOCKED'
    WHEN g.state=<choose><when test="revoked">'REVOKED'</when><otherwise>'ACTIVE'</otherwise></choose> AND g.version=#{version} AND r.operation_id IS NOT NULL AND o.state='APPLIED'
     AND pr.operation_id IS NOT NULL AND pp.state='READY' AND pp.desired_epoch=pp.applied_epoch

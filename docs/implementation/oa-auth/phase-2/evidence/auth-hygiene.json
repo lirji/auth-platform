@@ -69,7 +69,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessManagement.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/access/application/AccessManagement.java",
       "line": 7,
       "excerpt": "import org.springframework.transaction.support.TransactionTemplate;",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -80,7 +80,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessManagement.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/access/application/AccessManagement.java",
       "line": 16,
       "excerpt": "private final IdentityGovernance identity;private final TransactionTemplate tx;",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -91,7 +91,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessManagement.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/access/application/AccessManagement.java",
       "line": 18,
       "excerpt": "public AccessManagement(AccessMapper mapper,CatalogMapper catalog,IdentityMapper commands,IdentityGovernance identity,TransactionTemplate tx){this.mapper=mapper",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -102,7 +102,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessValues.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/shared/application/AccessValues.java",
       "line": 26,
       "excerpt": "public static String json(List<String> values){try{return JSON.writeValueAsString(capabilities(values));}catch(Exception e){throw new GovernanceException(INVALI",
       "message": "catching Exception/Throwable requires justification"
@@ -113,7 +113,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessValues.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/shared/application/AccessValues.java",
       "line": 28,
       "excerpt": "public static List<String> read(String json){try{return capabilities(Arrays.asList(JSON.readValue(json,String[].class)));}catch(Exception e){throw new Governanc",
       "message": "catching Exception/Throwable requires justification"
@@ -124,7 +124,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ApplicationCatalog.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/catalog/application/ApplicationCatalog.java",
       "line": 8,
       "excerpt": "import org.springframework.transaction.support.TransactionTemplate;",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -135,7 +135,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ApplicationCatalog.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/catalog/application/ApplicationCatalog.java",
       "line": 19,
       "excerpt": "private final TransactionTemplate transaction;",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -146,7 +146,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ApplicationCatalog.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/catalog/application/ApplicationCatalog.java",
       "line": 21,
       "excerpt": "public ApplicationCatalog(CatalogMapper mapper, IdentityMapper identities, IdentityGovernance identity, TransactionTemplate transaction) {",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -157,7 +157,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/CatalogManifest.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/catalog/application/CatalogManifest.java",
       "line": 28,
       "excerpt": "} catch (Exception failure) { throw invalid(); }",
       "message": "catching Exception/Throwable requires justification"
@@ -168,7 +168,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/CatalogManifest.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/catalog/application/CatalogManifest.java",
       "line": 81,
       "excerpt": "catch (Exception failure) { throw invalid(); }",
       "message": "catching Exception/Throwable requires justification"
@@ -179,7 +179,7 @@
       "check": "CODE_HYGIENE",
       "area": "magic-value",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/GrantProjection.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/projection/application/GrantProjection.java",
       "line": 18,
       "excerpt": "AccessValues.partition(p);if(limit<1||limit>50)throw new GovernanceException(INVALID_ARGUMENT);",
       "message": "business-significant number inline; classify as constant / configuration / enum"
@@ -190,7 +190,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/GrantProjection.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/projection/application/GrantProjection.java",
       "line": 7,
       "excerpt": "import org.springframework.transaction.support.TransactionTemplate;",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -201,7 +201,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/GrantProjection.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/projection/application/GrantProjection.java",
       "line": 13,
       "excerpt": "private final DataSource dataSource;private final AccessMapper access;private final ProjectionMapper mapper;private final TransactionTemplate tx;private final A",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -212,7 +212,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/GrantProjection.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/projection/application/GrantProjection.java",
       "line": 15,
       "excerpt": "public GrantProjection(DataSource dataSource,AccessMapper access,ProjectionMapper mapper,TransactionTemplate tx,AuthzEngine graph){this.dataSource=dataSource;th",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -245,7 +245,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/GovernanceRuntime.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/runtime/persistence/GovernanceRuntime.java",
       "line": 32,
       "excerpt": "private TransactionTemplate transaction;",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -256,7 +256,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ProjectionLock.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/projection/persistence/ProjectionLock.java",
       "line": 24,
       "excerpt": "} catch (Exception failure) {",
       "message": "catching Exception/Throwable requires justification"
@@ -267,7 +267,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ProjectionLock.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/projection/persistence/ProjectionLock.java",
       "line": 27,
       "excerpt": "catch (Exception cleanup) { failure.addSuppressed(cleanup); }",
       "message": "catching Exception/Throwable requires justification"
@@ -278,7 +278,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ProjectionLock.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/projection/persistence/ProjectionLock.java",
       "line": 41,
       "excerpt": "} catch (Exception unlock) {",
       "message": "catching Exception/Throwable requires justification"
@@ -289,7 +289,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ProjectionLock.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/projection/persistence/ProjectionLock.java",
       "line": 44,
       "excerpt": "catch (Exception abort) { failure.addSuppressed(abort); }",
       "message": "catching Exception/Throwable requires justification"
@@ -300,7 +300,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ProjectionLock.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/projection/persistence/ProjectionLock.java",
       "line": 47,
       "excerpt": "catch (Exception cleanup) {",
       "message": "catching Exception/Throwable requires justification"
@@ -311,7 +311,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/web/AccessWeb.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/shared/web/AccessWeb.java",
       "line": 18,
       "excerpt": "public static <T>T read(InputStream input,Class<T> type){try{byte[] bytes=input.readNBytes(16385);if(bytes.length>16384)throw invalid();T value=JSON.readValue(b",
       "message": "catching Exception/Throwable requires justification"
@@ -322,7 +322,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/web/AccessWeb.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/shared/web/AccessWeb.java",
       "line": 20,
       "excerpt": "public static Instant instant(String value){try{if(value==null||!value.endsWith(\"Z\"))throw invalid();return Instant.parse(value);}catch(Exception e){throw inval",
       "message": "catching Exception/Throwable requires justification"
@@ -399,7 +399,7 @@
       "check": "REPO_CONVENTION",
       "area": "enum",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/domain/AccessModels.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/access/domain/AccessModels.java",
       "line": 16,
       "excerpt": "GrantState",
       "message": "GrantState overlaps existing Status (.local/p0-baselines/commerce/payment/src/main/java/com/lrj/commerce/payment/charge/api/PaymentApi.java)"

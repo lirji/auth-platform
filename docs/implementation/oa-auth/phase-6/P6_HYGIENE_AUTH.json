@@ -58,7 +58,7 @@
       "check": "CODE_HYGIENE",
       "area": "magic-value",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/application/ExecutionAuthorization.java",
       "line": 18,
       "excerpt": "private static final long MAX_SECONDS = 37 * 86400L + 60;",
       "message": "business-significant number inline; classify as constant / configuration / enum"
@@ -69,7 +69,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/application/ExecutionAuthorization.java",
       "line": 79,
       "excerpt": "private static String write(Object value) { try{return JSON.writeValueAsString(value);}catch(Exception e){throw error(DEPENDENCY_UNAVAILABLE);} }",
       "message": "catching Exception/Throwable requires justification"
@@ -80,7 +80,7 @@
       "check": "CODE_HYGIENE",
       "area": "exception",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/application/ExecutionAuthorization.java",
       "line": 80,
       "excerpt": "private static <T>T read(String value,Class<T> type) { try{return JSON.readValue(value,type);}catch(Exception e){throw error(AUTHZ_STATE_NOT_READY);} }",
       "message": "catching Exception/Throwable requires justification"
@@ -91,7 +91,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/application/ExecutionAuthorization.java",
       "line": 12,
       "excerpt": "import org.springframework.transaction.support.TransactionTemplate;",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -102,7 +102,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/application/ExecutionAuthorization.java",
       "line": 21,
       "excerpt": "private final TransactionTemplate tx;",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -113,7 +113,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/application/ExecutionAuthorization.java",
       "line": 22,
       "excerpt": "public ExecutionAuthorization(ExecutionMapper mapper, ReliableAuthorization access, TransactionTemplate tx) {",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -124,7 +124,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/MigrationImport.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/migration/application/MigrationImport.java",
       "line": 10,
       "excerpt": "import org.springframework.transaction.support.TransactionTemplate;",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -135,7 +135,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/MigrationImport.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/migration/application/MigrationImport.java",
       "line": 18,
       "excerpt": "private final MigrationMapper mapper;private final AccessManagement access;private final AccessMapper grants;private final TransactionTemplate tx;private final ",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"
@@ -146,7 +146,7 @@
       "check": "CODE_HYGIENE",
       "area": "transaction",
       "severity": "ADVISORY",
-      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/MigrationImport.java",
+      "file": "auth-platform-governance/src/main/java/com/lrj/authz/governance/migration/application/MigrationImport.java",
       "line": 19,
       "excerpt": "public MigrationImport(MigrationMapper mapper,AccessManagement access,AccessMapper grants,TransactionTemplate tx,IdentityMapper audit){this.mapper=mapper;this.a",
       "message": "transaction boundary touched: review rollback, remote calls, MQ publication, idempotency and lock scope"

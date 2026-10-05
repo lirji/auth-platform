@@ -1,9 +1,12 @@
 package com.lrj.authz.admin.governance;
 
-import com.lrj.authz.governance.application.GovernanceConfigurationFile;
-import com.lrj.authz.governance.authentication.*;
-import com.lrj.authz.governance.persistence.*;
-import com.lrj.authz.governance.web.GovernanceWeb;
+import com.lrj.authz.governance.identity.authentication.CasdoorAccessTokenVerifier;
+import com.lrj.authz.governance.identity.authentication.CasdoorMachineTokens;
+import com.lrj.authz.governance.identity.authentication.TokenAuthority;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -51,20 +54,22 @@ public class GovernanceAdminConfiguration {
                                 environment.getProperty(
                                         "authz.governance.publisher.enabled", Boolean.class, false))
                         ? Optional.of(
-                                com.lrj.authz.governance.application.CatalogPublisherSettings.from(
-                                        props))
+                                com.lrj.authz.governance.catalog.configuration
+                                        .CatalogPublisherSettings.from(props))
                         : Optional
-                                .<com.lrj.authz.governance.application.CatalogPublisherSettings>
+                                .<com.lrj.authz.governance.catalog.configuration
+                                                .CatalogPublisherSettings>
                                         empty();
         return new Settings(
                 GovernanceDatabase.from(props),
                 TokenAuthority.from(props),
                 invitationAuthority,
-                com.lrj.authz.governance.application.PortalInvitationAuthority.from(props),
-                com.lrj.authz.governance.application.PortalDiagnosticAuthority.from(props),
-                com.lrj.authz.governance.application.CatalogDrift.from(props),
+                com.lrj.authz.governance.portal.authentication.PortalInvitationAuthority.from(
+                        props),
+                com.lrj.authz.governance.access.application.PortalDiagnosticAuthority.from(props),
+                com.lrj.authz.governance.catalog.application.CatalogDrift.from(props),
                 publisher,
-                com.lrj.authz.governance.application.CatalogRetirementProof.from(props));
+                com.lrj.authz.governance.catalog.application.CatalogRetirementProof.from(props));
     }
 
     /** HTTP 服务只 validate 已初始化迁移，不隐式成为 migration owner。 */
@@ -114,9 +119,10 @@ public class GovernanceAdminConfiguration {
                                                             CatalogPublisherBearerFilter.reject(
                                                                     response,
                                                                     new com.lrj.authz.governance
-                                                                            .application
+                                                                            .shared.application
                                                                             .GovernanceException(
                                                                             com.lrj.authz.governance
+                                                                                    .shared
                                                                                     .application
                                                                                     .GovernanceException
                                                                                     .Code
@@ -126,9 +132,10 @@ public class GovernanceAdminConfiguration {
                                                             CatalogPublisherBearerFilter.reject(
                                                                     response,
                                                                     new com.lrj.authz.governance
-                                                                            .application
+                                                                            .shared.application
                                                                             .GovernanceException(
                                                                             com.lrj.authz.governance
+                                                                                    .shared
                                                                                     .application
                                                                                     .GovernanceException
                                                                                     .Code
@@ -146,7 +153,7 @@ public class GovernanceAdminConfiguration {
     /** 开启时才验证主库固定目标；通常启动绝不创建目标或委派。 */
     @Bean
     @ConditionalOnProperty(name = "authz.governance.publisher.enabled", havingValue = "true")
-    com.lrj.authz.governance.application.CatalogPublisher catalogPublisher(
+    com.lrj.authz.governance.catalog.application.CatalogPublisher catalogPublisher(
             Settings settings, GovernanceRuntime runtime) {
         return runtime.publisher(settings.publisher().orElseThrow());
     }
@@ -155,12 +162,15 @@ public class GovernanceAdminConfiguration {
             GovernanceDatabase database,
             TokenAuthority authority,
             Optional<TokenAuthority> invitationAuthority,
-            java.util.List<com.lrj.authz.governance.application.PortalInvitationAuthority>
+            java.util.List<com.lrj.authz.governance.portal.authentication.PortalInvitationAuthority>
                     portalInvitations,
-            java.util.List<com.lrj.authz.governance.application.PortalDiagnosticAuthority>
+            java.util.List<com.lrj.authz.governance.access.application.PortalDiagnosticAuthority>
                     portalDiagnostics,
-            java.util.List<com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration>
+            java.util.List<
+                            com.lrj.authz.governance.catalog.domain.CatalogDriftModels
+                                    .DeploymentDeclaration>
                     catalogDeployments,
-            Optional<com.lrj.authz.governance.application.CatalogPublisherSettings> publisher,
-            com.lrj.authz.governance.application.CatalogRetirementProof retirementProof) {}
+            Optional<com.lrj.authz.governance.catalog.configuration.CatalogPublisherSettings>
+                    publisher,
+            com.lrj.authz.governance.catalog.application.CatalogRetirementProof retirementProof) {}
 }

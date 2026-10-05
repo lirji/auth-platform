@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lrj.authz.governance.persistence.RequestMapper">
+<mapper namespace="com.lrj.authz.governance.approval.persistence.RequestMapper">
   <sql id="partition">tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment}</sql>
   <sql id="policyColumns">id,tenant_id,application_id,environment,role_id,scope_json,max_duration_seconds,approver_membership_id,approver_generation,delegation_hash,policy_version,content_hash,enabled</sql>
   <sql id="requestColumns">id,tenant_id,application_id,environment,requester_principal,membership_id,generation,policy_id,role_id,capabilities_json,scope_json,policy_hash,member_valid_to,valid_from,valid_to,reason,request_version,snapshot_hash,state,state_version,approval_instance_id,grant_id,command_id,migration_old_grant_id,migration_old_version,withdrawn</sql>
@@ -8,19 +8,19 @@
  <foreach collection="capabilities" item="cap" open="(" separator="," close=")">#{cap}</foreach>)</select>
   <insert id="insertPolicy">INSERT INTO auth_governance.request_policy(id,tenant_id,application_id,environment,role_id,scope_json,max_duration_seconds,approver_membership_id,approver_generation,delegation_hash,policy_version,content_hash,enabled,created_by)
  VALUES(#{v.id},#{v.tenantId},#{v.applicationId},#{v.environment},#{v.roleId},#{v.scopeJson},#{v.maxDurationSeconds},#{v.approverMembershipId},#{v.approverGeneration},#{v.delegationHash},#{v.policyVersion},#{v.contentHash},#{v.enabled},#{actor})</insert>
-  <select id="policy" resultType="com.lrj.authz.governance.domain.RequestModels$Policy">SELECT <include refid="policyColumns"/> FROM auth_governance.request_policy WHERE <include refid="partition"/> AND id=#{id}</select>
-  <select id="policies" resultType="com.lrj.authz.governance.domain.RequestModels$Policy">
+  <select id="policy" resultType="com.lrj.authz.governance.approval.domain.RequestModels$Policy">SELECT <include refid="policyColumns"/> FROM auth_governance.request_policy WHERE <include refid="partition"/> AND id=#{id}</select>
+  <select id="policies" resultType="com.lrj.authz.governance.approval.domain.RequestModels$Policy">
  SELECT <include refid="policyColumns"/> FROM auth_governance.request_policy p WHERE <include refid="partition"/>
  AND enabled AND id &gt; #{after} AND approver_membership_id &lt;&gt; #{member}
  AND EXISTS(SELECT 1 FROM auth_governance.membership m WHERE m.id=p.approver_membership_id AND m.generation=p.approver_generation AND m.status='ACTIVE')
  ORDER BY id LIMIT 100
  </select>
   <insert id="insertRequest">INSERT INTO auth_governance.access_request(id,tenant_id,application_id,environment,requester_principal,membership_id,generation,policy_id,role_id,capabilities_json,scope_json,policy_hash,member_valid_to,valid_from,valid_to,reason,request_version,snapshot_hash,state,state_version,approval_instance_id,grant_id,command_id,migration_old_grant_id,migration_old_version,withdrawn) VALUES(#{v.id},#{v.tenantId},#{v.applicationId},#{v.environment},#{v.requesterPrincipal},#{v.membershipId},#{v.generation},#{v.policyId},#{v.roleId},#{v.capabilitiesJson},#{v.scopeJson},#{v.policyHash},#{v.memberValidTo},#{v.validFrom},#{v.validTo},#{v.reason},#{v.requestVersion},#{v.snapshotHash},#{v.state},#{v.stateVersion},#{v.approvalInstanceId},#{v.grantId},#{v.commandId},#{v.migrationOldGrantId},#{v.migrationOldVersion},#{v.withdrawn})</insert>
-  <select id="owned" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND id=#{id} AND membership_id=#{member} AND generation=#{generation}</select>
-  <select id="request" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND id=#{id}</select>
-  <select id="byGrant" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND grant_id=#{grant} LIMIT 1</select>
-  <select id="migrationApproved" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND migration_old_grant_id=#{oldGrant} AND role_id=#{role} AND state='APPROVED' AND NOT withdrawn AND auth_governance.oa_migration_approval_valid(id) ORDER BY id LIMIT 1</select>
-  <select id="migrationOpen" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND migration_old_grant_id=#{oldGrant} AND grant_id IS NULL AND NOT withdrawn AND state IN ('SUBMITTED','IN_REVIEW','APPROVED') ORDER BY id LIMIT 20</select>
+  <select id="owned" resultType="com.lrj.authz.governance.approval.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND id=#{id} AND membership_id=#{member} AND generation=#{generation}</select>
+  <select id="request" resultType="com.lrj.authz.governance.approval.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND id=#{id}</select>
+  <select id="byGrant" resultType="com.lrj.authz.governance.approval.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND grant_id=#{grant} LIMIT 1</select>
+  <select id="migrationApproved" resultType="com.lrj.authz.governance.approval.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND migration_old_grant_id=#{oldGrant} AND role_id=#{role} AND state='APPROVED' AND NOT withdrawn AND auth_governance.oa_migration_approval_valid(id) ORDER BY id LIMIT 1</select>
+  <select id="migrationOpen" resultType="com.lrj.authz.governance.approval.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND migration_old_grant_id=#{oldGrant} AND grant_id IS NULL AND NOT withdrawn AND state IN ('SUBMITTED','IN_REVIEW','APPROVED') ORDER BY id LIMIT 20</select>
   <update id="bindMigrationGrant">UPDATE auth_governance.access_request SET grant_id=#{grant},state_version=state_version+1,updated_at=clock_timestamp() WHERE <include refid="partition"/> AND id=#{id} AND state_version=#{version} AND state='APPROVED' AND NOT withdrawn AND migration_old_grant_id IS NOT NULL AND grant_id IS NULL</update>
   <insert id="enqueueStart">INSERT INTO auth_governance.request_start_outbox(request_id) VALUES(#{id})</insert>
   <select id="pendingCount" resultType="int">SELECT count(*) FROM auth_governance.access_request WHERE <include refid="partition"/> AND membership_id=#{member} AND generation=#{generation} AND state IN ('SUBMITTED','IN_REVIEW') AND valid_to &gt; clock_timestamp()</select>
@@ -99,7 +99,7 @@
  LEFT JOIN auth_governance.projection_grant_receipt rec ON rec.grant_id=g.id AND rec.grant_version=g.version
  WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment} AND r.id=#{id}
  </select>
-  <select id="mine" resultType="com.lrj.authz.governance.domain.RequestModels$Request">
+  <select id="mine" resultType="com.lrj.authz.governance.approval.domain.RequestModels$Request">
  SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/>
  AND membership_id=#{member} AND generation=#{generation} AND id &gt; #{after} ORDER BY id LIMIT 100</select>
   <select id="notices" resultType="com.lrj.authz.protocol.RequestDtos$Notice">

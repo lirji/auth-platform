@@ -1,7 +1,9 @@
 package com.lrj.authz.admin.governance;
 
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.domain.AccessModels.Partition;
+import com.lrj.authz.governance.access.domain.AccessModels.Partition;
+import com.lrj.authz.governance.approval.application.ApprovalInbox;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.shared.application.AccessValues;
 import com.lrj.authz.protocol.ApprovalSignature;
 
 import jakarta.servlet.*;

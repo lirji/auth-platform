@@ -1,8 +1,8 @@
 {
   "baseline": "5882ae1a99a2a5b85b9f34ac4571899af0c30ad7",
   "source_sha256": {
-    "auth-platform-governance/src/main/java/com/lrj/authz/governance/authentication/CasdoorAccessTokenVerifier.java": "cd97c95dd03ebbc8cfcf6d7402d113a1a3f11b006a69a81fe25131f25e9acb09",
-    "auth-platform-governance/src/test/java/com/lrj/authz/governance/authentication/CasdoorAccessTokenVerifierTest.java": "1fb4e4fb19543771de88b255e7d28ac1a259e0fc890f0f65f0ca9064bc2d085c",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/identity/authentication/CasdoorAccessTokenVerifier.java": "cd97c95dd03ebbc8cfcf6d7402d113a1a3f11b006a69a81fe25131f25e9acb09",
+    "auth-platform-governance/src/test/java/com/lrj/authz/governance/identity/authentication/CasdoorAccessTokenVerifierTest.java": "1fb4e4fb19543771de88b255e7d28ac1a259e0fc890f0f65f0ca9064bc2d085c",
     "deploy/governance-p7-rehearsal.py": "0518e0c4a28bdbcfc88f83b16edbe0c41aa192eed722916d4bf3576028a74fd8"
   },
   "unit_tests": 209,

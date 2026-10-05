@@ -1,10 +1,10 @@
 package com.lrj.authz.governance.cli;
 
-import com.lrj.authz.governance.application.BootstrapCommand;
-import com.lrj.authz.governance.application.GovernanceException;
-import com.lrj.authz.governance.domain.IdentityModels.Membership;
-import com.lrj.authz.governance.persistence.GovernanceDatabase;
-import com.lrj.authz.governance.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.identity.application.BootstrapCommand;
+import com.lrj.authz.governance.identity.domain.IdentityModels.Membership;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.GovernanceException;
 
 import java.io.IOException;
 import java.io.PrintWriter;

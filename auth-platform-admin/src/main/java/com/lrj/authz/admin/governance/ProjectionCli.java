@@ -1,9 +1,11 @@
 package com.lrj.authz.admin.governance;
 
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.domain.AccessModels.Partition;
-import com.lrj.authz.governance.persistence.*;
-import com.lrj.authz.governance.web.GovernanceWeb;
+import com.lrj.authz.governance.access.domain.AccessModels.Partition;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.GovernanceException;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 
 /** P2显式单执行者命令，不默认启用后台任务或并发执行器。 */
 public final class ProjectionCli {

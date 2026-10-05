@@ -3,13 +3,19 @@ package com.lrj.authz.governance.graph;
 import static org.assertj.core.api.Assertions.*;
 
 import com.lrj.authz.core.SpiceDbAuthzEngine;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.authentication.VerifiedLogin;
-import com.lrj.authz.governance.domain.AccessModels.*;
-import com.lrj.authz.governance.domain.CatalogModels.*;
-import com.lrj.authz.governance.persistence.*;
-import com.lrj.authz.protocol.*;
+import com.lrj.authz.governance.access.domain.AccessModels.*;
+import com.lrj.authz.governance.catalog.domain.CatalogModels.*;
+import com.lrj.authz.governance.identity.application.BootstrapCommand;
+import com.lrj.authz.governance.identity.authentication.VerifiedLogin;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.AccessValues;
+import com.lrj.authz.protocol.AuthzEngine;
+import com.lrj.authz.protocol.Consistency;
 import com.lrj.authz.protocol.GovernanceDtos.AccessContext;
+import com.lrj.authz.protocol.ResourceRef;
+import com.lrj.authz.protocol.SubjectRef;
 
 import org.junit.jupiter.api.*;
 import org.springframework.jdbc.core.JdbcTemplate;

@@ -1,7 +1,7 @@
 package com.lrj.authz.server.governance;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lrj.authz.governance.web.GovernanceWeb;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;

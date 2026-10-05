@@ -1,11 +1,13 @@
 package com.lrj.authz.admin.governance;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.authentication.VerifiedLogin;
-import com.lrj.authz.governance.domain.AccessModels.Partition;
-import com.lrj.authz.governance.persistence.GovernanceRuntime;
-import com.lrj.authz.governance.web.GovernanceWeb;
+import com.lrj.authz.governance.access.domain.AccessModels.Partition;
+import com.lrj.authz.governance.authorization.application.AccessPresentation;
+import com.lrj.authz.governance.identity.authentication.VerifiedLogin;
+import com.lrj.authz.governance.portal.application.PortalDirectory;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.env.Environment;

@@ -1,12 +1,12 @@
 {
   "auth": {
     ".github/workflows/authz-ci.yml": "ccd34007908f30469c1b1e585f2ea268103ea7ac62c713467f93554953095007",
-    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java": "0b8d04de49e4b1ccbf4e00d7c60888189e48a4f17fd8248b35dadbd2eb11cb48",
-    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/MigrationImport.java": "02a52c36a600237a299349e1e50faac39248d5789b8128e02eb8d271beec7443",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/application/ExecutionAuthorization.java": "0b8d04de49e4b1ccbf4e00d7c60888189e48a4f17fd8248b35dadbd2eb11cb48",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/migration/application/MigrationImport.java": "02a52c36a600237a299349e1e50faac39248d5789b8128e02eb8d271beec7443",
     "auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/MigrationImportCli.java": "0037a9c626f3c498dab1a03f81f8f0b78a3f204d11606599b3109fae64f78abc",
-    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/ExecutionMapper.java": "2b9dfaa640a4fdbce38789bdb59c6ff43ef73a1800ae7e41efec4c3ce8a95e57",
-    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/GovernanceRuntime.java": "6c8e9e5ed9927445bbfd3c2b484ace0c0e6646d56cf8f52a83f04dfd4c4d0165",
-    "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/MigrationMapper.java": "d05f7956c369299e041317c6b83a813d6cbbd38c5535c364a56838689260ef9d",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/persistence/ExecutionMapper.java": "2b9dfaa640a4fdbce38789bdb59c6ff43ef73a1800ae7e41efec4c3ce8a95e57",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/runtime/persistence/GovernanceRuntime.java": "6c8e9e5ed9927445bbfd3c2b484ace0c0e6646d56cf8f52a83f04dfd4c4d0165",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/migration/persistence/MigrationMapper.java": "d05f7956c369299e041317c6b83a813d6cbbd38c5535c364a56838689260ef9d",
     "auth-platform-governance/src/main/resources/db/governance/migration/V18__execution_reference.sql": "a0b96b14a77afd5f105a841fc04ba231edf09452af897de67566c53f67c833d2",
     "auth-platform-governance/src/main/resources/db/governance/migration/V19__migration_ledger.sql": "46ac6432b5c940876e890ed31cb3d83c6609a80c3eb8d3fb3801089d11b43e42",
     "auth-platform-governance/src/main/resources/mappers/governance/ExecutionMapper.xml": "5553062b712c48035b037fabe7cb29472e884103aaf1cc2731e81f2e20a25a43",

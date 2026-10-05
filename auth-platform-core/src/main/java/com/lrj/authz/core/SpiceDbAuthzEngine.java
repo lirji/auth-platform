@@ -3,7 +3,14 @@ package com.lrj.authz.core;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lrj.authz.protocol.*;
+import com.lrj.authz.protocol.AuthzEngine;
+import com.lrj.authz.protocol.Consistency;
+import com.lrj.authz.protocol.Relationship;
+import com.lrj.authz.protocol.RelationshipFilter;
+import com.lrj.authz.protocol.RelationshipUpdate;
+import com.lrj.authz.protocol.ResourceRef;
+import com.lrj.authz.protocol.SubjectRef;
+import com.lrj.authz.protocol.ZedTokenView;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;

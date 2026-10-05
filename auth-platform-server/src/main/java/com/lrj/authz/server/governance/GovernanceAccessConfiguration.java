@@ -1,9 +1,12 @@
 package com.lrj.authz.server.governance;
 
 import com.lrj.authz.core.SpiceDbAuthzEngine;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.authentication.TokenAuthority;
-import com.lrj.authz.governance.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.authorization.application.AccessAuthorization;
+import com.lrj.authz.governance.catalog.application.CatalogManifest;
+import com.lrj.authz.governance.identity.authentication.TokenAuthority;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.GovernanceException;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.*;

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lrj.authz.governance.persistence.CatalogMapper">
+<mapper namespace="com.lrj.authz.governance.catalog.persistence.CatalogMapper">
   <sql id="columns">application_id, owner_principal_id, entry_origin, manifest_version</sql>
   <insert id="register">INSERT INTO auth_governance.application_catalog(application_id,owner_principal_id,entry_origin,created_by)
  VALUES(#{app.applicationId},#{app.ownerPrincipalId},#{app.entryOrigin},#{operator}) ON CONFLICT DO NOTHING</insert>
-  <select id="application" resultType="com.lrj.authz.governance.domain.CatalogModels$Application">SELECT <include refid="columns"/> FROM auth_governance.application_catalog WHERE application_id=#{id}</select>
+  <select id="application" resultType="com.lrj.authz.governance.catalog.domain.CatalogModels$Application">SELECT <include refid="columns"/> FROM auth_governance.application_catalog WHERE application_id=#{id}</select>
   <select id="lockOwner" resultType="string">SELECT p.id FROM auth_governance.login_identity li JOIN auth_governance.principal p ON p.id=li.principal_id
  WHERE li.issuer=#{issuer} AND li.subject=#{subject} AND p.id=#{owner} AND p.kind='HUMAN' AND p.status='ACTIVE' FOR SHARE OF li,p</select>
-  <select id="lockApplication" resultType="com.lrj.authz.governance.domain.CatalogModels$Application">SELECT <include refid="columns"/> FROM auth_governance.application_catalog WHERE application_id=#{id} FOR UPDATE</select>
-  <select id="snapshot" resultType="com.lrj.authz.governance.domain.CatalogModels$Snapshot">SELECT application_id,version,content_hash,manifest_json FROM auth_governance.application_manifest WHERE application_id=#{id} AND version=#{version}</select>
+  <select id="lockApplication" resultType="com.lrj.authz.governance.catalog.domain.CatalogModels$Application">SELECT <include refid="columns"/> FROM auth_governance.application_catalog WHERE application_id=#{id} FOR UPDATE</select>
+  <select id="snapshot" resultType="com.lrj.authz.governance.catalog.domain.CatalogModels$Snapshot">SELECT application_id,version,content_hash,manifest_json FROM auth_governance.application_manifest WHERE application_id=#{id} AND version=#{version}</select>
   <insert id="insertSnapshot">INSERT INTO auth_governance.application_manifest(application_id,version,content_hash,manifest_json,published_by)
  VALUES(#{snapshot.applicationId},#{snapshot.version},#{snapshot.contentHash},#{snapshot.manifestJson},#{publisher})</insert>
-  <select id="presentation" resultType="com.lrj.authz.governance.domain.CatalogModels$PresentationSnapshot">SELECT application_id,version,presentation_hash,presentation_json FROM auth_governance.application_manifest_presentation WHERE application_id=#{id} AND version=#{version}</select>
+  <select id="presentation" resultType="com.lrj.authz.governance.catalog.domain.CatalogModels$PresentationSnapshot">SELECT application_id,version,presentation_hash,presentation_json FROM auth_governance.application_manifest_presentation WHERE application_id=#{id} AND version=#{version}</select>
   <insert id="insertPresentation">INSERT INTO auth_governance.application_manifest_presentation(application_id,version,presentation_hash,presentation_json,published_by)
  VALUES(#{snapshot.applicationId},#{snapshot.version},#{snapshot.presentationHash},#{snapshot.presentationJson},#{publisher})</insert>
   <update id="advance">UPDATE auth_governance.application_catalog SET manifest_version=#{version} WHERE application_id=#{id} AND manifest_version=#{previous}</update>

@@ -1,11 +1,19 @@
 package com.lrj.authz.admin.governance;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.authentication.VerifiedLogin;
-import com.lrj.authz.governance.domain.AccessModels.Partition;
-import com.lrj.authz.governance.persistence.GovernanceRuntime;
-import com.lrj.authz.governance.web.*;
+import com.lrj.authz.governance.access.application.AccessManagement;
+import com.lrj.authz.governance.access.application.CapabilityRetirement;
+import com.lrj.authz.governance.access.application.PersonnelImpact;
+import com.lrj.authz.governance.access.application.PortalPermissions;
+import com.lrj.authz.governance.access.domain.AccessModels.Partition;
+import com.lrj.authz.governance.catalog.application.ApplicationCatalog;
+import com.lrj.authz.governance.catalog.application.CatalogManifest;
+import com.lrj.authz.governance.catalog.application.CatalogPublication;
+import com.lrj.authz.governance.identity.authentication.VerifiedLogin;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.GovernanceException;
+import com.lrj.authz.governance.shared.web.AccessWeb;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 import com.lrj.authz.protocol.AccessDtos.*;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,7 +39,8 @@ public class GovernanceAccessController {
     private final ApplicationCatalog catalog;
     private final PortalPermissions diagnostics;
     private final java.util.List<
-                    com.lrj.authz.governance.domain.CatalogDriftModels.DeploymentDeclaration>
+                    com.lrj.authz.governance.catalog.domain.CatalogDriftModels
+                            .DeploymentDeclaration>
             deployments;
 
     /** 独立开关默认关闭，不改变旧管理工作区。 */
@@ -184,8 +193,8 @@ public class GovernanceAccessController {
                         login,
                         CatalogPublication.read(
                                 request.getInputStream(),
-                                com.lrj.authz.governance.domain.CatalogGuardModels.PreviewInput
-                                        .class),
+                                com.lrj.authz.governance.catalog.domain.CatalogGuardModels
+                                        .PreviewInput.class),
                         diagnostics));
     }
 
@@ -199,8 +208,8 @@ public class GovernanceAccessController {
                         login,
                         CatalogPublication.read(
                                 request.getInputStream(),
-                                com.lrj.authz.governance.domain.CatalogGuardModels.PublishCommand
-                                        .class),
+                                com.lrj.authz.governance.catalog.domain.CatalogGuardModels
+                                        .PublishCommand.class),
                         diagnostics));
     }
 
@@ -214,7 +223,8 @@ public class GovernanceAccessController {
                         login,
                         CatalogPublication.read(
                                 request.getInputStream(),
-                                com.lrj.authz.governance.domain.CatalogGuardModels.Enable.class)));
+                                com.lrj.authz.governance.catalog.domain.CatalogGuardModels.Enable
+                                        .class)));
     }
 
     /** 旧应用缺省模式兼容，启用事实可定位当前原因和命令。 */
@@ -429,9 +439,11 @@ public class GovernanceAccessController {
                 AccessWeb.read(
                         request.getInputStream(),
                         com.lrj.authz.protocol.SafetyDtos.PartitionCommand.class);
-        com.lrj.authz.governance.domain.ProjectionModels.Kind kind;
+        com.lrj.authz.governance.projection.domain.ProjectionModels.Kind kind;
         try {
-            kind = com.lrj.authz.governance.domain.ProjectionModels.Kind.valueOf(r.kind());
+            kind =
+                    com.lrj.authz.governance.projection.domain.ProjectionModels.Kind.valueOf(
+                            r.kind());
         } catch (RuntimeException e) {
             throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);
         }

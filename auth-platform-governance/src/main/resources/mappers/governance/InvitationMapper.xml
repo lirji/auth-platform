@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lrj.authz.governance.persistence.InvitationMapper">
+<mapper namespace="com.lrj.authz.governance.identity.invitation.persistence.InvitationMapper">
   <sql id="invitationColumns">id, tenant_id, sponsor_membership_id, operator_ref, target_issuer, target_subject,
         member_kind, token_hash, expires_at, membership_valid_to, state, version, accepted_membership_id, accepted_generation, accepted_at</sql>
   <select id="now" resultType="java.time.Instant">SELECT clock_timestamp()</select>
-  <select id="lock" resultType="com.lrj.authz.governance.domain.InvitationModels$Invitation">
+  <select id="lock" resultType="com.lrj.authz.governance.identity.invitation.domain.InvitationModels$Invitation">
         SELECT <include refid="invitationColumns"/> FROM auth_governance.invitation WHERE id = #{id} FOR UPDATE
     </select>
   <insert id="insert">
@@ -22,7 +22,7 @@
         UPDATE auth_governance.invitation SET state = 'REVOKED', version = version + 1
         WHERE id = #{id} AND version = #{version} AND state = 'PENDING'
     </update>
-  <select id="lockSponsor" resultType="com.lrj.authz.governance.domain.IdentityModels$Membership">
+  <select id="lockSponsor" resultType="com.lrj.authz.governance.identity.domain.IdentityModels$Membership">
         SELECT m.id, m.tenant_id, m.principal_id, m.member_kind, m.status, m.generation, m.version,
             m.valid_from, m.valid_to, m.sponsor_membership_id
         FROM auth_governance.membership m
@@ -33,11 +33,11 @@
             AND m.valid_from &lt;= clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to &gt; clock_timestamp())
         FOR SHARE OF m, p, t
     </select>
-  <select id="lockActiveHuman" resultType="com.lrj.authz.governance.domain.IdentityModels$Principal">
+  <select id="lockActiveHuman" resultType="com.lrj.authz.governance.identity.domain.IdentityModels$Principal">
         SELECT id, kind, status, version FROM auth_governance.principal
         WHERE id = #{id} AND kind = 'HUMAN' AND status = 'ACTIVE' FOR SHARE
     </select>
-  <select id="lockMember" resultType="com.lrj.authz.governance.domain.IdentityModels$Membership">
+  <select id="lockMember" resultType="com.lrj.authz.governance.identity.domain.IdentityModels$Membership">
         SELECT id, tenant_id, principal_id, member_kind, status, generation, version, valid_from, valid_to, sponsor_membership_id
         FROM auth_governance.membership WHERE principal_id = #{principalId} AND tenant_id = #{tenantId} FOR UPDATE
     </select>

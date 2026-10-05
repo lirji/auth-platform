@@ -1,7 +1,7 @@
 package com.lrj.authz.admin.governance;
 
-import com.lrj.authz.governance.authentication.CasdoorMachineTokens;
-import com.lrj.authz.governance.web.GovernanceWeb;
+import com.lrj.authz.governance.identity.authentication.CasdoorMachineTokens;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;

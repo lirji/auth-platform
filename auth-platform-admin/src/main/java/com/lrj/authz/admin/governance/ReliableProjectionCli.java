@@ -1,10 +1,11 @@
 package com.lrj.authz.admin.governance;
 
 import com.lrj.authz.core.SpiceDbProjectionGraph;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.domain.AccessModels.Partition;
-import com.lrj.authz.governance.domain.ProjectionModels.*;
-import com.lrj.authz.governance.persistence.*;
+import com.lrj.authz.governance.access.domain.AccessModels.Partition;
+import com.lrj.authz.governance.projection.domain.ProjectionModels.*;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
 
 import java.time.Duration;
 import java.util.UUID;

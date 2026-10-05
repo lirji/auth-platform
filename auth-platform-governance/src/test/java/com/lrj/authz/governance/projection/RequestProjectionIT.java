@@ -2,11 +2,16 @@ package com.lrj.authz.governance.projection;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.authentication.VerifiedLogin;
-import com.lrj.authz.governance.domain.AccessModels.*;
-import com.lrj.authz.governance.domain.CatalogModels.*;
-import com.lrj.authz.governance.persistence.*;
+import com.lrj.authz.governance.access.domain.AccessModels.*;
+import com.lrj.authz.governance.approval.application.ApprovalInbox;
+import com.lrj.authz.governance.approval.port.ApprovalGateway;
+import com.lrj.authz.governance.catalog.domain.CatalogModels.*;
+import com.lrj.authz.governance.identity.application.BootstrapCommand;
+import com.lrj.authz.governance.identity.authentication.VerifiedLogin;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.AccessValues;
 
 import org.junit.jupiter.api.*;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -121,7 +126,7 @@ class RequestProjectionIT {
                                 false)));
     }
 
-    private com.lrj.authz.governance.domain.RequestModels.Policy policy(Fixture f) {
+    private com.lrj.authz.governance.approval.domain.RequestModels.Policy policy(Fixture f) {
         return runtime.requests()
                 .registerPolicy(
                         login(f.owner),
@@ -135,15 +140,15 @@ class RequestProjectionIT {
                         1);
     }
 
-    private com.lrj.authz.governance.domain.RequestModels.Request submit(
+    private com.lrj.authz.governance.approval.domain.RequestModels.Request submit(
             Fixture f, String policy, String command, Instant from, Instant to, String reason) {
         return runtime.requests().submit(login(f.member), f.p, command, policy, from, to, reason);
     }
 
     private String approve(
             Fixture f,
-            com.lrj.authz.governance.domain.RequestModels.Policy policy,
-            com.lrj.authz.governance.domain.RequestModels.Request r)
+            com.lrj.authz.governance.approval.domain.RequestModels.Policy policy,
+            com.lrj.authz.governance.approval.domain.RequestModels.Request r)
             throws Exception {
         ApprovalGateway gateway =
                 new ApprovalGateway() {
@@ -220,18 +225,18 @@ class RequestProjectionIT {
                         runtime.reliableProjector(graph)
                                 .step(
                                         f.p,
-                                        com.lrj.authz.governance.domain.ProjectionModels.Kind
-                                                .POLICY,
+                                        com.lrj.authz.governance.projection.domain.ProjectionModels
+                                                .Kind.POLICY,
                                         id()))
-                .isEqualTo(com.lrj.authz.governance.domain.ProjectionModels.Step.READY);
+                .isEqualTo(com.lrj.authz.governance.projection.domain.ProjectionModels.Step.READY);
         assertThat(
                         runtime.reliableProjector(graph)
                                 .step(
                                         f.p,
-                                        com.lrj.authz.governance.domain.ProjectionModels.Kind
-                                                .DIRECTORY,
+                                        com.lrj.authz.governance.projection.domain.ProjectionModels
+                                                .Kind.DIRECTORY,
                                         id()))
-                .isEqualTo(com.lrj.authz.governance.domain.ProjectionModels.Step.READY);
+                .isEqualTo(com.lrj.authz.governance.projection.domain.ProjectionModels.Step.READY);
         var execution = runtime.requests().execution(login(f.member), f.p, r.id());
         assertThat(execution.displayState()).isEqualTo("ACTIVE");
         assertThat(execution.operationId()).isNotBlank();
@@ -307,7 +312,10 @@ class RequestProjectionIT {
                                         .evaluate(context, f.p.applicationId() + ".read", "store"))
                 .hasMessage("AUTHZ_STATE_NOT_READY");
         runtime.reliableProjector(graph)
-                .step(f.p, com.lrj.authz.governance.domain.ProjectionModels.Kind.POLICY, id());
+                .step(
+                        f.p,
+                        com.lrj.authz.governance.projection.domain.ProjectionModels.Kind.POLICY,
+                        id());
         assertThat(runtime.requests().execution(login(f.member), f.p, r.id()).displayState())
                 .isEqualTo("REVOKED");
         assertThat(

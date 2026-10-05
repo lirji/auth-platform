@@ -3,8 +3,13 @@ package com.lrj.authz.server.governance;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.protocol.*;
+import com.lrj.authz.governance.authorization.application.ExecutionAuthorization;
+import com.lrj.authz.governance.context.application.CallerService;
+import com.lrj.authz.governance.context.application.InternalContextService;
+import com.lrj.authz.protocol.CentralAccessDtos;
+import com.lrj.authz.protocol.ExecutionAccessDtos;
+import com.lrj.authz.protocol.ScopeAccessDtos;
+import com.lrj.authz.protocol.ScopeDtos;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -62,7 +67,7 @@ class GovernanceExecutionControllerTest {
                         "merchant");
         var input = new ExecutionAccessDtos.ScopeCheck(UUID.randomUUID().toString(), check);
         request.setContent(
-                com.lrj.authz.governance.web.GovernanceWeb.body(input)
+                com.lrj.authz.governance.shared.web.GovernanceWeb.body(input)
                         .toString()
                         .getBytes(java.nio.charset.StandardCharsets.UTF_8));
         assertThatThrownBy(() -> controller.scope(request)).hasMessage("ACCESS_DENIED");
@@ -74,7 +79,7 @@ class GovernanceExecutionControllerTest {
                         new GovernanceExecutionConfiguration.ExecutionSettings(
                                 Set.of("commerce-p6"), Set.of("store", "merchant")));
         request.setContent(
-                com.lrj.authz.governance.web.GovernanceWeb.body(input)
+                com.lrj.authz.governance.shared.web.GovernanceWeb.body(input)
                         .toString()
                         .getBytes(java.nio.charset.StandardCharsets.UTF_8));
         enabled.scope(request);
@@ -103,7 +108,7 @@ class GovernanceExecutionControllerTest {
         var request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer " + "s".repeat(48));
         byte[] body =
-                com.lrj.authz.governance.web.GovernanceWeb.body(input)
+                com.lrj.authz.governance.shared.web.GovernanceWeb.body(input)
                         .toString()
                         .getBytes(java.nio.charset.StandardCharsets.UTF_8);
         request.setContent(body);
@@ -161,7 +166,7 @@ class GovernanceExecutionControllerTest {
         var request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer " + "s".repeat(48));
         request.setContent(
-                com.lrj.authz.governance.web.GovernanceWeb.body(input)
+                com.lrj.authz.governance.shared.web.GovernanceWeb.body(input)
                         .toString()
                         .getBytes(java.nio.charset.StandardCharsets.UTF_8));
         var restricted =
@@ -180,7 +185,7 @@ class GovernanceExecutionControllerTest {
                                 Set.of("commerce-p6"),
                                 Set.of("store", ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE)));
         request.setContent(
-                com.lrj.authz.governance.web.GovernanceWeb.body(input)
+                com.lrj.authz.governance.shared.web.GovernanceWeb.body(input)
                         .toString()
                         .getBytes(java.nio.charset.StandardCharsets.UTF_8));
         enabled.check(request);

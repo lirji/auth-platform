@@ -5,11 +5,11 @@
   "fingerprint": "d36f01ac18a3eaa1ad80cf46c75ed4c33a357d9c73a3901c04076ce911e9f6d7",
   "files": [
     {
-      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/DirectoryPullConfiguration.java",
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/directory/configuration/DirectoryPullConfiguration.java",
       "sha256": "8dc5bd92eb6d9b822c1b37010b54e278212e6c47d9e3655889c090c7564dff8b"
     },
     {
-      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/DirectoryPullImporter.java",
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/directory/application/DirectoryPullImporter.java",
       "sha256": "6e23473b3f78119d48ca285f0b7a4c73e50110fc49df4d7507bc17dd18c21e37"
     },
     {
@@ -17,11 +17,11 @@
       "sha256": "7ece0e1a5e0516d83acde927423d2ce675c03499099f45290c09d0218109b388"
     },
     {
-      "path": "auth-platform-governance/src/test/java/com/lrj/authz/governance/application/DirectoryPullImporterTest.java",
+      "path": "auth-platform-governance/src/test/java/com/lrj/authz/governance/directory/application/DirectoryPullImporterTest.java",
       "sha256": "245aa2a3f337978ac94e2f5ecd3686b179054238877771c725c68a9d67c4e4fa"
     },
     {
-      "path": "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/DirectoryPostgresIT.java",
+      "path": "auth-platform-governance/src/test/java/com/lrj/authz/governance/runtime/persistence/DirectoryPostgresIT.java",
       "sha256": "00050d274c8dd815cea47f251fcdd2d0f280d97f2e144d741802130a589a2f8a"
     }
   ]

@@ -1,9 +1,9 @@
 package com.lrj.authz.admin.governance;
 
-import com.lrj.authz.governance.application.IdentityGovernance;
-import com.lrj.authz.governance.authentication.CasdoorAccessTokenVerifier;
-import com.lrj.authz.governance.authentication.VerifiedLogin;
-import com.lrj.authz.governance.web.GovernanceWeb;
+import com.lrj.authz.governance.identity.application.IdentityGovernance;
+import com.lrj.authz.governance.identity.authentication.CasdoorAccessTokenVerifier;
+import com.lrj.authz.governance.identity.authentication.VerifiedLogin;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;

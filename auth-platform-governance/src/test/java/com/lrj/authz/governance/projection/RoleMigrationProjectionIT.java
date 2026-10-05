@@ -6,16 +6,22 @@ import static org.assertj.core.api.Assertions.*;
 
 import com.lrj.authz.core.SpiceDbAuthzEngine;
 import com.lrj.authz.core.SpiceDbProjectionGraph;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.domain.AccessModels.*;
-import com.lrj.authz.governance.domain.ProjectionModels.*;
-import com.lrj.authz.governance.persistence.*;
+import com.lrj.authz.governance.access.domain.AccessModels.*;
+import com.lrj.authz.governance.authorization.application.ScopeRules;
+import com.lrj.authz.governance.projection.domain.ProjectionModels.*;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
 import com.lrj.authz.governance.support.RoleMigrationFixture;
 import com.lrj.authz.governance.support.RoleMigrationFixture.F;
-import com.lrj.authz.protocol.*;
+import com.lrj.authz.protocol.AuthzEngine;
+import com.lrj.authz.protocol.Consistency;
 import com.lrj.authz.protocol.GovernanceDtos.AccessContext;
+import com.lrj.authz.protocol.ProjectionGraph;
+import com.lrj.authz.protocol.RelationshipUpdate;
+import com.lrj.authz.protocol.ResourceRef;
 import com.lrj.authz.protocol.RoleMigrationTaskDtos.*;
 import com.lrj.authz.protocol.ScopeDtos.Facts;
+import com.lrj.authz.protocol.SubjectRef;
 
 import org.junit.jupiter.api.*;
 
@@ -511,7 +517,7 @@ class RoleMigrationProjectionIT {
         h.decideOa(f, oldPolicy, submitted, "APPROVED");
         project(f);
         var self =
-                new com.lrj.authz.governance.authentication.VerifiedLogin(
+                new com.lrj.authz.governance.identity.authentication.VerifiedLogin(
                         f.member().issuer(), f.member().subject());
         var original = h.runtime.requests().owned(self, f.partition(), submitted.id());
         var old = h.current(f, original.grantId());
@@ -614,7 +620,7 @@ class RoleMigrationProjectionIT {
         h.decideOa(f, oldPolicy, submitted, "APPROVED");
         project(f);
         var self =
-                new com.lrj.authz.governance.authentication.VerifiedLogin(
+                new com.lrj.authz.governance.identity.authentication.VerifiedLogin(
                         f.member().issuer(), f.member().subject());
         var original = h.runtime.requests().owned(self, f.partition(), submitted.id());
         var old = h.current(f, original.grantId());

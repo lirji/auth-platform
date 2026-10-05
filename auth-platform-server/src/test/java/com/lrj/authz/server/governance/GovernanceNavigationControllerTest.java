@@ -3,7 +3,9 @@ package com.lrj.authz.server.governance;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.lrj.authz.governance.application.*;
+import com.lrj.authz.governance.authorization.application.BusinessNavigation;
+import com.lrj.authz.governance.context.application.CallerService;
+import com.lrj.authz.governance.context.application.InternalContextService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;

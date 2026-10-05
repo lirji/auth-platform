@@ -1,8 +1,11 @@
 package com.lrj.authz.server.governance;
 
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.persistence.*;
-import com.lrj.authz.governance.web.GovernanceWeb;
+import com.lrj.authz.governance.context.application.CallerService;
+import com.lrj.authz.governance.context.application.InternalContextService;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.*;

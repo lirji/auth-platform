@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lrj.authz.governance.persistence.CatalogImpactMapper">
-  <select id="report" resultType="com.lrj.authz.governance.persistence.CatalogImpactMapper$Row">
- WITH basis AS MATERIALIZED (<include refid="com.lrj.authz.governance.persistence.PortalMapper.publishedCatalogBasisQuery"/>),
+<mapper namespace="com.lrj.authz.governance.catalog.persistence.CatalogImpactMapper">
+  <select id="report" resultType="com.lrj.authz.governance.catalog.persistence.CatalogImpactMapper$Row">
+ WITH basis AS MATERIALIZED (<include refid="com.lrj.authz.governance.portal.persistence.PortalMapper.publishedCatalogBasisQuery"/>),
  clock AS (SELECT statement_timestamp() at),
  roles AS MATERIALIZED (
   SELECT r.* FROM auth_governance.role_version r CROSS JOIN basis b

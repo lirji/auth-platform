@@ -1,11 +1,11 @@
 package com.lrj.authz.admin.governance;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lrj.authz.governance.application.PortalPermissions;
-import com.lrj.authz.governance.authentication.VerifiedLogin;
-import com.lrj.authz.governance.domain.AccessModels.Partition;
-import com.lrj.authz.governance.persistence.GovernanceRuntime;
-import com.lrj.authz.governance.web.GovernanceWeb;
+import com.lrj.authz.governance.access.application.PortalPermissions;
+import com.lrj.authz.governance.access.domain.AccessModels.Partition;
+import com.lrj.authz.governance.identity.authentication.VerifiedLogin;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -40,7 +40,8 @@ public class PortalPermissionController {
     public JsonNode catalogImpact(
             @AuthenticationPrincipal VerifiedLogin login, HttpServletRequest request)
             throws IOException {
-        var input = com.lrj.authz.governance.web.CatalogImpactWeb.read(request.getInputStream());
+        var input =
+                com.lrj.authz.governance.shared.web.CatalogImpactWeb.read(request.getInputStream());
         return GovernanceWeb.body(
                 permissions.catalogImpact(
                         login,

@@ -1,8 +1,10 @@
 package com.lrj.authz.admin.governance;
 
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.domain.AccessModels.Partition;
-import com.lrj.authz.governance.persistence.*;
+import com.lrj.authz.governance.access.domain.AccessModels.Partition;
+import com.lrj.authz.governance.approval.infrastructure.HttpApprovalGateway;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
 
 /** 受控配置的单条启动投递器；外部调度调用，不在授权请求线程重试OA。 */
 public final class ApprovalStartCli {

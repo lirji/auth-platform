@@ -24,8 +24,8 @@
   "dependency_source_sha256": {
     "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/ScopeDtos.java": "74ecda9ec5d42f525492e1052ccd659c9409dc7da29ec1f1e1c0978437586b4d",
     "auth-platform-protocol/src/main/java/com/lrj/authz/protocol/ScopeResourceBindings.java": "cb9424da0f6f0fd04c0c4272426192c7e169d94f26315de080ff7682fccb24c7",
-    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ScopeRules.java": "691efa1901c67b98f9d1164134424475af0beb9345aae5834cf0549b682d37f2",
-    "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ExecutionAuthorization.java": "c70812d9bd9c8bb99f6f032d3d853166bd528bf8fe7387e5747fb9c64bfccae5",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/application/ScopeRules.java": "691efa1901c67b98f9d1164134424475af0beb9345aae5834cf0549b682d37f2",
+    "auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/application/ExecutionAuthorization.java": "c70812d9bd9c8bb99f6f032d3d853166bd528bf8fe7387e5747fb9c64bfccae5",
     "auth-platform-governance/src/test/java/com/lrj/authz/governance/projection/ExecutionAuthorizationIT.java": "b65f8d1d56c10189f0869f64b42992aa9d38a3f743c4a3299df0c69e0e70b024"
   },
   "real_combination": {

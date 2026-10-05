@@ -6,13 +6,13 @@
 
 ## 当前事实
 
-- [DirectoryPullImporter](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/DirectoryPullImporter.java) 沿用 OA 权威来源／环境／企业分区，网络拉取在数据库事务外，每页最多 100 事件，本轮有两分钟截止和配置的事件上限。本地连续检查点提交后才确认；重跑先确认已有水位，冲突隔离时来源水位返回未知，不能把来源不可用当成同步成功。
-- [DirectoryGovernance](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/DirectoryGovernance.java) 验证身份绑定、聚合版本和完整快照；手工 SUSPENDED 不被 OA ACTIVE／LEFT 绕过。LEFT 重新加入会增加成员 generation，旧个人 DIRECT／OA 来源不会因重新入职自动对应新代际。GROUP 仍按当前有效组成员代际及任职区间判定，不能将组授权展开为永久个人授权。
+- [DirectoryPullImporter](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/directory/application/DirectoryPullImporter.java) 沿用 OA 权威来源／环境／企业分区，网络拉取在数据库事务外，每页最多 100 事件，本轮有两分钟截止和配置的事件上限。本地连续检查点提交后才确认；重跑先确认已有水位，冲突隔离时来源水位返回未知，不能把来源不可用当成同步成功。
+- [DirectoryGovernance](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/directory/application/DirectoryGovernance.java) 验证身份绑定、聚合版本和完整快照；手工 SUSPENDED 不被 OA ACTIVE／LEFT 绕过。LEFT 重新加入会增加成员 generation，旧个人 DIRECT／OA 来源不会因重新入职自动对应新代际。GROUP 仍按当前有效组成员代际及任职区间判定，不能将组授权展开为永久个人授权。
 - [DirectoryMapper](../../../../auth-platform-governance/src/main/resources/mappers/governance/DirectoryMapper.xml) 的 directory_entry 更新当前 payload_json；Inbox 和版本回执保存版本、摘要等事实，没有保存完整旧人员 payload。因此不能从现有记录还原每次历史调岗的前后部门差异。新增可读变更证据应在受信事件接受事务中记录必要前后事实；既有历史缺失必须如实呈现，不能补造。
-- [LifecycleGovernance](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/LifecycleGovernance.java) 区分租户成员暂停、全局主体暂停和外部成员退出，命令、版本 CAS 与审计同事务。离职人员不等同所有历史 Grant 已逐条 REVOKED；当前身份读取查数据库状态，访问不可用与原来源撤回回执应分别说明。
-- [IdentityGovernance](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/IdentityGovernance.java) 与 [IdentityMapper](../../../../auth-platform-governance/src/main/resources/mappers/governance/IdentityMapper.xml) 在当前登录身份解析时核对主体、企业、成员状态、代际及期限；旧 Token 的身份验证成功不能绕过当前成员检查。实际旧 Token 拒绝仍需本片真实链路验证，不能仅引用源码视为验收通过。
+- [LifecycleGovernance](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/identity/application/LifecycleGovernance.java) 区分租户成员暂停、全局主体暂停和外部成员退出，命令、版本 CAS 与审计同事务。离职人员不等同所有历史 Grant 已逐条 REVOKED；当前身份读取查数据库状态，访问不可用与原来源撤回回执应分别说明。
+- [IdentityGovernance](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/identity/application/IdentityGovernance.java) 与 [IdentityMapper](../../../../auth-platform-governance/src/main/resources/mappers/governance/IdentityMapper.xml) 在当前登录身份解析时核对主体、企业、成员状态、代际及期限；旧 Token 的身份验证成功不能绕过当前成员检查。实际旧 Token 拒绝仍需本片真实链路验证，不能仅引用源码视为验收通过。
 - [LifecycleCli](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/cli/LifecycleCli.java) 是持有专用配置与数据库操作权限的受控运维入口，普通治理管理员没有等价人员写权限。新诊断页面不能顺带提供绕过该边界的暂停／离职接口。
-- [PortalPermissions](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/PortalPermissions.java) 将本人来源与他人诊断分开，他人信息需当前管理委派及独立分区诊断资格，并保留访问审计。[PermissionMapper](../../../../auth-platform-governance/src/main/resources/mappers/governance/PermissionMapper.xml) 的 GROUP_CHECK_REQUIRED 不是逐资源 ALLOW；暂停、旧代际、投影等待、失败和完成撤权不能合并为一个“已回收”标签。
+- [PortalPermissions](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/access/application/PortalPermissions.java) 将本人来源与他人诊断分开，他人信息需当前管理委派及独立分区诊断资格，并保留访问审计。[PermissionMapper](../../../../auth-platform-governance/src/main/resources/mappers/governance/PermissionMapper.xml) 的 GROUP_CHECK_REQUIRED 不是逐资源 ALLOW；暂停、旧代际、投影等待、失败和完成撤权不能合并为一个“已回收”标签。
 
 ## 待决定的 D-HR
 

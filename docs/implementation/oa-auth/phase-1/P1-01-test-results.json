@@ -130,7 +130,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.governance.application.BootstrapCommandTest",
+      "suite": "com.lrj.authz.governance.identity.application.BootstrapCommandTest",
       "kind": "surefire",
       "tests": 2,
       "failures": 0,
@@ -210,7 +210,7 @@
       "skipped": 0
     },
     {
-      "suite": "com.lrj.authz.governance.persistence.IdentityPostgresIT",
+      "suite": "com.lrj.authz.governance.runtime.persistence.IdentityPostgresIT",
       "kind": "failsafe",
       "tests": 11,
       "failures": 0,

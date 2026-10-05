@@ -27,7 +27,7 @@ Auth 基线：`97081bba2566e58d0d914a5c2e2094b3116e2524`。Commerce 只读基线
 | 人员停用、目录来源版本、组织组和代际 | `LifecycleGovernance`、`DirectoryPullImporter`、目录投影 | 补人员变更的治理入口、结果核对和周期复核；不重建目录权威 |
 | 逐请求授权与故障拒绝 | `AccessAuthorization`、可靠投影和 Commerce 中央员工适配 | 补新路径的失败验证和界面状态，不建设长期 ALLOW 缓存 |
 
-关键源码链接：[应用目录](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ApplicationCatalog.java)、[角色授权](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessManagement.java)、[门户管理](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/PortalManagement.java)、[个人菜单](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessPresentation.java)、[目录同步](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/DirectoryPullImporter.java)。
+关键源码链接：[应用目录](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/catalog/application/ApplicationCatalog.java)、[角色授权](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/access/application/AccessManagement.java)、[门户管理](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/portal/application/PortalManagement.java)、[个人菜单](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/application/AccessPresentation.java)、[目录同步](../../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/directory/application/DirectoryPullImporter.java)。
 
 ## 3. 按顺序需要修改优化的内容
 

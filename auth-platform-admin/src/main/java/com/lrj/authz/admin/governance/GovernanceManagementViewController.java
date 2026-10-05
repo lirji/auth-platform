@@ -1,11 +1,11 @@
 package com.lrj.authz.admin.governance;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lrj.authz.governance.application.PortalManagement;
-import com.lrj.authz.governance.authentication.VerifiedLogin;
-import com.lrj.authz.governance.domain.AccessModels.Partition;
-import com.lrj.authz.governance.persistence.GovernanceRuntime;
-import com.lrj.authz.governance.web.GovernanceWeb;
+import com.lrj.authz.governance.access.domain.AccessModels.Partition;
+import com.lrj.authz.governance.identity.authentication.VerifiedLogin;
+import com.lrj.authz.governance.portal.application.PortalManagement;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/governance/v1/access")
 public class GovernanceManagementViewController {
     private final PortalManagement management;
-    private final com.lrj.authz.governance.application.RoleMigrationPreview migrations;
-    private final com.lrj.authz.governance.application.AccessRequests requests;
+    private final com.lrj.authz.governance.access.application.RoleMigrationPreview migrations;
+    private final com.lrj.authz.governance.access.application.AccessRequests requests;
 
     /** 只复用既有治理Runtime，没有独立BFF存储。 */
     public GovernanceManagementViewController(GovernanceRuntime runtime) {
@@ -46,8 +46,9 @@ public class GovernanceManagementViewController {
                         "tenant_id", "application_id", "environment", "old_role_id", "after");
         if (request.getParameterMap().entrySet().stream()
                 .anyMatch(e -> !allowed.contains(e.getKey()) || e.getValue().length != 1))
-            throw new com.lrj.authz.governance.application.GovernanceException(
-                    com.lrj.authz.governance.application.GovernanceException.Code.INVALID_ARGUMENT);
+            throw new com.lrj.authz.governance.shared.application.GovernanceException(
+                    com.lrj.authz.governance.shared.application.GovernanceException.Code
+                            .INVALID_ARGUMENT);
         return ResponseEntity.ok()
                 .header("Cache-Control", "no-store")
                 .body(
@@ -63,7 +64,7 @@ public class GovernanceManagementViewController {
             jakarta.servlet.http.HttpServletRequest request)
             throws java.io.IOException {
         var input =
-                com.lrj.authz.governance.web.AccessWeb.read(
+                com.lrj.authz.governance.shared.web.AccessWeb.read(
                         request.getInputStream(),
                         com.lrj.authz.protocol.RoleMigrationDtos.PreviewRequest.class);
         return ResponseEntity.ok()

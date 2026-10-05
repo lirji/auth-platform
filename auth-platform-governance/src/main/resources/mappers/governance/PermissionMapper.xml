@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lrj.authz.governance.persistence.PermissionMapper">
+<mapper namespace="com.lrj.authz.governance.access.persistence.PermissionMapper">
   <sql id="partition">tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment}</sql>
   <sql id="grantView">
  SELECT g.id grant_id,g.membership_id member_id,g.generation,g.group_id,g.role_id,r.role_code,r.version role_version,r.capabilities_json,
@@ -28,13 +28,13 @@
  LEFT JOIN auth_governance.projection_grant_receipt rec ON rec.grant_id=g.id AND rec.grant_version=g.version
  WHERE g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}
  </sql>
-  <select id="mine" resultType="com.lrj.authz.governance.persistence.PermissionMapper$Row"><include refid="grantView"/>
+  <select id="mine" resultType="com.lrj.authz.governance.access.persistence.PermissionMapper$Row"><include refid="grantView"/>
  AND (g.membership_id=#{member} AND g.generation=#{generation} OR g.source_type='GROUP' AND EXISTS(
  SELECT 1 FROM auth_governance.directory_group_member gm WHERE gm.tenant_id=g.tenant_id AND gm.group_id=g.group_id AND gm.membership_id=#{member} AND gm.generation=#{generation} AND gm.current))
  AND g.id &gt;#{after} ORDER BY g.id LIMIT 101
  </select>
-  <select id="explanation" resultType="com.lrj.authz.governance.persistence.PermissionMapper$Row"><include refid="grantView"/> AND g.id=#{id}</select>
-  <select id="memberHistory" resultType="com.lrj.authz.governance.persistence.PermissionMapper$Row"><include refid="grantView"/>
+  <select id="explanation" resultType="com.lrj.authz.governance.access.persistence.PermissionMapper$Row"><include refid="grantView"/> AND g.id=#{id}</select>
+  <select id="memberHistory" resultType="com.lrj.authz.governance.access.persistence.PermissionMapper$Row"><include refid="grantView"/>
  AND (g.membership_id=#{member} OR g.source_type='GROUP' AND EXISTS(SELECT 1 FROM auth_governance.directory_group_member gm WHERE gm.tenant_id=g.tenant_id AND gm.group_id=g.group_id AND gm.membership_id=#{member}))
  AND g.id &gt;#{after} ORDER BY g.id LIMIT 101
  </select>

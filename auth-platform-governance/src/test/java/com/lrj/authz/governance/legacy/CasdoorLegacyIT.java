@@ -3,9 +3,9 @@ package com.lrj.authz.governance.legacy;
 import static org.assertj.core.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lrj.authz.governance.application.GovernanceException;
-import com.lrj.authz.governance.authentication.CasdoorAccessTokenVerifier;
-import com.lrj.authz.governance.authentication.TokenAuthority;
+import com.lrj.authz.governance.identity.authentication.CasdoorAccessTokenVerifier;
+import com.lrj.authz.governance.identity.authentication.TokenAuthority;
+import com.lrj.authz.governance.shared.application.GovernanceException;
 
 import org.junit.jupiter.api.Test;
 

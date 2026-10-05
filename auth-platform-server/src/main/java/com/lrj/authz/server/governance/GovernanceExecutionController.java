@@ -1,8 +1,12 @@
 package com.lrj.authz.server.governance;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.web.*;
+import com.lrj.authz.governance.authorization.application.ExecutionAuthorization;
+import com.lrj.authz.governance.context.application.CallerService;
+import com.lrj.authz.governance.context.application.InternalContextService;
+import com.lrj.authz.governance.shared.application.GovernanceException;
+import com.lrj.authz.governance.shared.web.AccessWeb;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 import com.lrj.authz.protocol.ExecutionAccessDtos.*;
 import com.lrj.authz.protocol.GovernanceDtos.ResolveRequest;
 

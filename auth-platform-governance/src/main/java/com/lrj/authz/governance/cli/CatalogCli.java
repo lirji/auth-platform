@@ -1,8 +1,13 @@
 package com.lrj.authz.governance.cli;
 
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.authentication.VerifiedLogin;
-import com.lrj.authz.governance.persistence.*;
+import com.lrj.authz.governance.catalog.application.CatalogDrift;
+import com.lrj.authz.governance.catalog.application.CatalogManifest;
+import com.lrj.authz.governance.catalog.application.CatalogPublication;
+import com.lrj.authz.governance.identity.authentication.VerifiedLogin;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.GovernanceException;
 
 import java.io.PrintWriter;
 import java.nio.file.*;
@@ -62,7 +67,7 @@ public final class CatalogCli {
                                     throw new GovernanceException(
                                             GovernanceException.Code.INVALID_ARGUMENT);
                                 output.println(
-                                        com.lrj.authz.governance.web.GovernanceWeb.body(
+                                        com.lrj.authz.governance.shared.web.GovernanceWeb.body(
                                                 runtime.catalog()
                                                         .drift(
                                                                 login,
@@ -70,7 +75,7 @@ public final class CatalogCli {
                                                                 CatalogDrift.from(config))));
                             } else
                                 output.println(
-                                        com.lrj.authz.governance.web.GovernanceWeb.body(
+                                        com.lrj.authz.governance.shared.web.GovernanceWeb.body(
                                                 runtime.catalog()
                                                         .publishSource(
                                                                 login,
@@ -99,7 +104,8 @@ public final class CatalogCli {
                                                             login,
                                                             manifest,
                                                             config.getProperty("catalog.command"));
-                            output.println(com.lrj.authz.governance.web.GovernanceWeb.body(result));
+                            output.println(
+                                    com.lrj.authz.governance.shared.web.GovernanceWeb.body(result));
                         }
                     }
                     default ->

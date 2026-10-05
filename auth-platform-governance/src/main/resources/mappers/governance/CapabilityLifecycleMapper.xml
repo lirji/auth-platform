@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lrj.authz.governance.persistence.CapabilityLifecycleMapper">
+<mapper namespace="com.lrj.authz.governance.access.persistence.CapabilityLifecycleMapper">
   <select id="lockUsage" resultType="string">SELECT application_id FROM auth_governance.application_catalog WHERE application_id=#{app} FOR SHARE</select>
   <select id="deprecated" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.capability_lifecycle WHERE application_id=#{app} AND state&lt;&gt;'ACTIVE' AND capability IN
   <foreach collection="caps" item="cap" open="(" separator="," close=")">#{cap}</foreach>)</select>
   <select id="retired" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.capability_lifecycle WHERE application_id=#{app} AND state='RETIRED' AND capability IN
   <foreach collection="caps" item="cap" open="(" separator="," close=")">#{cap}</foreach>)</select>
-  <select id="value" resultType="com.lrj.authz.governance.domain.CapabilityLifecycleModels$Value">SELECT application_id,capability,state,version,reason,changed_by,updated_at FROM auth_governance.capability_lifecycle WHERE application_id=#{app} AND capability=#{cap}</select>
+  <select id="value" resultType="com.lrj.authz.governance.access.domain.CapabilityLifecycleModels$Value">SELECT application_id,capability,state,version,reason,changed_by,updated_at FROM auth_governance.capability_lifecycle WHERE application_id=#{app} AND capability=#{cap}</select>
   <update id="change">
     <choose>
       <when test="before == 0">
@@ -19,7 +19,7 @@
  </otherwise>
     </choose>
   </update>
-  <select id="receipt" resultType="com.lrj.authz.governance.domain.CapabilityLifecycleModels$Receipt">SELECT application_id,command_id,payload_hash,capability,before_state,after_state,before_version,after_version,reason,actor,created_at
+  <select id="receipt" resultType="com.lrj.authz.governance.access.domain.CapabilityLifecycleModels$Receipt">SELECT application_id,command_id,payload_hash,capability,before_state,after_state,before_version,after_version,reason,actor,created_at
   FROM auth_governance.capability_lifecycle_command WHERE application_id=#{app} AND command_id=#{command}</select>
   <insert id="audit">INSERT INTO auth_governance.capability_lifecycle_command(application_id,command_id,payload_hash,capability,before_state,after_state,before_version,after_version,reason,actor,created_at)
   VALUES(#{v.applicationId},#{v.commandId},#{v.payloadHash},#{v.capability},#{v.beforeState},#{v.afterState},#{v.beforeVersion},#{v.afterVersion},#{v.reason},#{v.actor},#{v.createdAt})</insert>

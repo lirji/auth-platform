@@ -1,8 +1,11 @@
 package com.lrj.authz.governance.cli;
 
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.domain.AccessModels.*;
-import com.lrj.authz.governance.persistence.*;
+import com.lrj.authz.governance.access.domain.AccessModels.*;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.AccessValues;
+import com.lrj.authz.governance.shared.application.GovernanceException;
 
 import java.io.PrintWriter;
 import java.util.List;

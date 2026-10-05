@@ -1,9 +1,9 @@
 package com.lrj.authz.admin.governance;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lrj.authz.governance.application.ApprovalInbox;
-import com.lrj.authz.governance.persistence.GovernanceRuntime;
-import com.lrj.authz.governance.web.GovernanceWeb;
+import com.lrj.authz.governance.approval.application.ApprovalInbox;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 import com.lrj.authz.protocol.ApprovalSignature;
 
 import jakarta.servlet.http.HttpServletRequest;

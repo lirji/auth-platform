@@ -1,10 +1,13 @@
 package com.lrj.authz.admin.governance;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.authentication.VerifiedMachine;
-import com.lrj.authz.governance.domain.CatalogPublisherModels.*;
-import com.lrj.authz.governance.web.GovernanceWeb;
+import com.lrj.authz.governance.catalog.application.CatalogPublication;
+import com.lrj.authz.governance.catalog.application.CatalogPublisher;
+import com.lrj.authz.governance.catalog.application.CatalogPublisherJson;
+import com.lrj.authz.governance.catalog.domain.CatalogPublisherModels.*;
+import com.lrj.authz.governance.identity.authentication.VerifiedMachine;
+import com.lrj.authz.governance.shared.application.GovernanceException;
+import com.lrj.authz.governance.shared.web.GovernanceWeb;
 
 import jakarta.servlet.http.HttpServletRequest;
 

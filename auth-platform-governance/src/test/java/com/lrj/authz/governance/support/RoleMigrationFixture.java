@@ -2,11 +2,17 @@ package com.lrj.authz.governance.support;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.authentication.VerifiedLogin;
-import com.lrj.authz.governance.domain.AccessModels.*;
-import com.lrj.authz.governance.domain.CatalogModels.*;
-import com.lrj.authz.governance.persistence.*;
+import com.lrj.authz.governance.access.domain.AccessModels.*;
+import com.lrj.authz.governance.approval.application.ApprovalInbox;
+import com.lrj.authz.governance.approval.port.ApprovalGateway;
+import com.lrj.authz.governance.catalog.domain.CatalogModels.*;
+import com.lrj.authz.governance.directory.application.DirectoryAuthority;
+import com.lrj.authz.governance.identity.application.BootstrapCommand;
+import com.lrj.authz.governance.identity.authentication.VerifiedLogin;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.AccessValues;
 import com.lrj.authz.protocol.RoleMigrationTaskDtos.*;
 import com.lrj.authz.protocol.ScopeDtos.*;
 
@@ -215,7 +221,8 @@ public final class RoleMigrationFixture implements AutoCloseable {
     }
 
     /** 原OA来源通过真实启动消费者及已验签Inbox形成，不手写APPROVED作为批准证明。 */
-    public com.lrj.authz.governance.domain.RequestModels.Policy oaPolicy(F f, RoleVersion role) {
+    public com.lrj.authz.governance.approval.domain.RequestModels.Policy oaPolicy(
+            F f, RoleVersion role) {
         return runtime.requests()
                 .registerPolicy(
                         f.login(),
@@ -233,8 +240,8 @@ public final class RoleMigrationFixture implements AutoCloseable {
     }
 
     /** 受益人本人普通申请，指定测试窗口仍由产品保存不可变快照。 */
-    public com.lrj.authz.governance.domain.RequestModels.Request oaRequest(
-            F f, com.lrj.authz.governance.domain.RequestModels.Policy policy) {
+    public com.lrj.authz.governance.approval.domain.RequestModels.Request oaRequest(
+            F f, com.lrj.authz.governance.approval.domain.RequestModels.Policy policy) {
         return runtime.requests()
                 .submit(
                         new VerifiedLogin(f.member().issuer(), f.member().subject()),
@@ -249,8 +256,8 @@ public final class RoleMigrationFixture implements AutoCloseable {
     /** 模拟可信OA传输而非直接调用决定方法，结果仍由实际消费者重验。 */
     public String decideOa(
             F f,
-            com.lrj.authz.governance.domain.RequestModels.Policy policy,
-            com.lrj.authz.governance.domain.RequestModels.Request request,
+            com.lrj.authz.governance.approval.domain.RequestModels.Policy policy,
+            com.lrj.authz.governance.approval.domain.RequestModels.Request request,
             String outcome)
             throws Exception {
         var gateway =

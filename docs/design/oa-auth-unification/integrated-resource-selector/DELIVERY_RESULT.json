@@ -45,7 +45,7 @@
     "status": "LOCAL_VALIDATION_PASS",
     "base": "03054fb63f88cc02757d8c838f92a759335b6c87",
     "scope": [
-      "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/PublishedCatalogPostgresIT.java",
+      "auth-platform-governance/src/test/java/com/lrj/authz/governance/shared/persistence/PublishedCatalogPostgresIT.java",
       "TEST_RESULT.md",
       "PROGRESS_STATE.md",
       "IMPLEMENTATION_EVIDENCE.json",

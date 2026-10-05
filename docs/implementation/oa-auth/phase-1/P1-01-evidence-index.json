@@ -24,15 +24,15 @@
       "sha256": "3b18441cc6d6178484237b7a650fa5659c626bdf1faf46509443be2f0285cd76"
     },
     {
-      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/BootstrapCommand.java",
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/identity/application/BootstrapCommand.java",
       "sha256": "ae50c8b0e21e5105d427ae536b94391005bfa5ade6fcd2e16f0cea578f733df7"
     },
     {
-      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/GovernanceException.java",
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/shared/application/GovernanceException.java",
       "sha256": "99cf5dca7de79dbedfbd68c780b30c25f63b00d97439b96e7550b471317f5019"
     },
     {
-      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/application/IdentityGovernance.java",
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/identity/application/IdentityGovernance.java",
       "sha256": "9c76d7fb881f43cc1052d2e2dbac9621438ae0324ca9b57fb70700a19f3b95ba"
     },
     {
@@ -40,19 +40,19 @@
       "sha256": "71a6b25486d716abdecec503198b4286e5524e1783c20c850880af885d421374"
     },
     {
-      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/domain/IdentityModels.java",
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/identity/domain/IdentityModels.java",
       "sha256": "2ca7780672f80429a32deff8454198113a6b03eef2619cf54cc46f1f3d6050ef"
     },
     {
-      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/GovernanceDatabase.java",
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/runtime/persistence/GovernanceDatabase.java",
       "sha256": "729c156cae41ac1e154cf07001cc27e715161aa05cdaea74b0cbec92d30c9234"
     },
     {
-      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/GovernanceRuntime.java",
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/runtime/persistence/GovernanceRuntime.java",
       "sha256": "b6e29a2699a985f7096e97c91b8ccaadedf7dcc6c303077baaee886900bc8997"
     },
     {
-      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/persistence/IdentityMapper.java",
+      "path": "auth-platform-governance/src/main/java/com/lrj/authz/governance/identity/persistence/IdentityMapper.java",
       "sha256": "7f6327f0089a23c71a5138428455c4a724e74df4ae1ba0fcd3e6dd545f4bc791"
     },
     {
@@ -60,11 +60,11 @@
       "sha256": "e94269a966caeece7542241f6f8f45b220f89adee39d7d3c8bd365816f63dbd2"
     },
     {
-      "path": "auth-platform-governance/src/test/java/com/lrj/authz/governance/application/BootstrapCommandTest.java",
+      "path": "auth-platform-governance/src/test/java/com/lrj/authz/governance/identity/application/BootstrapCommandTest.java",
       "sha256": "7082d5d16f87e02c4b0afe5fa5995c45aae03ac2afd9987477f4db3c67c657c8"
     },
     {
-      "path": "auth-platform-governance/src/test/java/com/lrj/authz/governance/persistence/IdentityPostgresIT.java",
+      "path": "auth-platform-governance/src/test/java/com/lrj/authz/governance/runtime/persistence/IdentityPostgresIT.java",
       "sha256": "b22132a37cb3dcadc3e0bcff4d6b9dc981ecbf3bc8ce9efe678de8b5fd462e65"
     }
   ]

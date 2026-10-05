@@ -2,8 +2,15 @@ package com.lrj.authz.compat;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.lrj.authz.protocol.*;
-import com.lrj.authz.sdk.*;
+import com.lrj.authz.protocol.AuthzEngine;
+import com.lrj.authz.protocol.Consistency;
+import com.lrj.authz.protocol.ResourceRef;
+import com.lrj.authz.protocol.SubjectRef;
+import com.lrj.authz.sdk.AccessDeniedException;
+import com.lrj.authz.sdk.CheckAccess;
+import com.lrj.authz.sdk.CheckAccessAspect;
+import com.lrj.authz.sdk.RemoteAuthzEngine;
+import com.lrj.authz.sdk.SubjectResolver;
 import com.sun.net.httpserver.HttpServer;
 
 import org.junit.jupiter.api.Test;

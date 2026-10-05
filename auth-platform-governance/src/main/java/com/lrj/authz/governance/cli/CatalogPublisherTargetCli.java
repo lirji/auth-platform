@@ -1,8 +1,10 @@
 package com.lrj.authz.governance.cli;
 
-import com.lrj.authz.governance.application.*;
-import com.lrj.authz.governance.domain.CatalogPublisherModels.Target;
-import com.lrj.authz.governance.persistence.*;
+import com.lrj.authz.governance.catalog.domain.CatalogPublisherModels.Target;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.governance.runtime.persistence.GovernanceDatabase;
+import com.lrj.authz.governance.runtime.persistence.GovernanceRuntime;
+import com.lrj.authz.governance.shared.application.GovernanceException;
 
 import java.io.PrintWriter;
 
@@ -30,7 +32,7 @@ public final class CatalogPublisherTargetCli {
                                         p.getProperty("publisher.environment")),
                                 p.getProperty("publisher.initialize.operator"),
                                 p.getProperty("publisher.initialize.reason"));
-                output.println(com.lrj.authz.governance.web.GovernanceWeb.body(target));
+                output.println(com.lrj.authz.governance.shared.web.GovernanceWeb.body(target));
                 output.flush();
                 return 0;
             }

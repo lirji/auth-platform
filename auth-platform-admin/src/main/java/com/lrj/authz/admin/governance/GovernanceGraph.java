@@ -1,8 +1,8 @@
 package com.lrj.authz.admin.governance;
 
 import com.lrj.authz.core.SpiceDbAuthzEngine;
-import com.lrj.authz.governance.application.GovernanceException;
-import com.lrj.authz.governance.authentication.TokenAuthority;
+import com.lrj.authz.governance.identity.authentication.TokenAuthority;
+import com.lrj.authz.governance.shared.application.GovernanceException;
 import com.lrj.authz.protocol.AuthzEngine;
 
 import java.net.URI;

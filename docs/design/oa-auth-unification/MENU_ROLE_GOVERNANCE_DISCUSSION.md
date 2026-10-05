@@ -56,10 +56,10 @@
 
 源码入口：
 
-- [ApplicationCatalog.java](../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/ApplicationCatalog.java)：Owner、预览、发布、版本兼容与紧急停用。
-- [AccessManagement.java](../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessManagement.java)：固定角色版本、实际 Grant 和委派边界。
-- [AccessAuthorization.java](../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessAuthorization.java)：决策时的当前状态、能力与授权校验。
-- [AccessPresentation.java](../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/application/AccessPresentation.java)：个人菜单可见性提示及 `any_of`。
+- [ApplicationCatalog.java](../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/catalog/application/ApplicationCatalog.java)：Owner、预览、发布、版本兼容与紧急停用。
+- [AccessManagement.java](../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/access/application/AccessManagement.java)：固定角色版本、实际 Grant 和委派边界。
+- [AccessAuthorization.java](../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/application/AccessAuthorization.java)：决策时的当前状态、能力与授权校验。
+- [AccessPresentation.java](../../../auth-platform-governance/src/main/java/com/lrj/authz/governance/authorization/application/AccessPresentation.java)：个人菜单可见性提示及 `any_of`。
 - [电商实际菜单验收](commerce-menu-directory/TEST_RESULT.md)、[交付结果](commerce-menu-directory/DELIVERY_RESULT.md)：已完成菜单接入的本地验证边界。
 
 ## 5. 菜单与权限变化的处理建议

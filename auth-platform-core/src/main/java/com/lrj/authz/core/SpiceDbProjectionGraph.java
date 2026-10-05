@@ -6,7 +6,11 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lrj.authz.protocol.*;
+import com.lrj.authz.protocol.ProjectionGraph;
+import com.lrj.authz.protocol.RelationshipUpdate;
+import com.lrj.authz.protocol.ResourceRef;
+import com.lrj.authz.protocol.StrictGraphReader;
+import com.lrj.authz.protocol.SubjectRef;
 
 import org.springframework.http.HttpStatus;
 

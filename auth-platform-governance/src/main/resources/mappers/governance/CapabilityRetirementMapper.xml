@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lrj.authz.governance.persistence.CapabilityRetirementMapper">
-  <select id="ownerCapabilities" resultType="com.lrj.authz.governance.persistence.CapabilityRetirementMapper$OwnerCapability">
+<mapper namespace="com.lrj.authz.governance.access.persistence.CapabilityRetirementMapper">
+  <select id="ownerCapabilities" resultType="com.lrj.authz.governance.access.persistence.CapabilityRetirementMapper$OwnerCapability">
  SELECT cap-&gt;&gt;'code' code,cap-&gt;&gt;'resource_type' resource_type,cap-&gt;&gt;'risk_level' risk_level,COALESCE(s.disabled,false) disabled,
  COALESCE(l.state,'ACTIVE') lifecycle_state,COALESCE(l.version,0) lifecycle_version,l.reason lifecycle_reason
  FROM auth_governance.application_catalog a JOIN auth_governance.application_manifest m ON m.application_id=a.application_id AND m.version=a.manifest_version
@@ -10,7 +10,7 @@
  LEFT JOIN auth_governance.capability_state s ON s.application_id=a.application_id AND s.capability=cap-&gt;&gt;'code'
  WHERE a.application_id=#{app} ORDER BY cap-&gt;&gt;'code'
  </select>
-  <select id="basis" resultType="com.lrj.authz.governance.persistence.CapabilityRetirementMapper$Row">
+  <select id="basis" resultType="com.lrj.authz.governance.access.persistence.CapabilityRetirementMapper$Row">
  WITH refs AS MATERIALIZED (SELECT * FROM auth_governance.retirement_references(#{app},#{cap})),
  limited AS (SELECT * FROM refs ORDER BY kind,id,COALESCE(tenant_id,''),COALESCE(environment,'') LIMIT 10000),
  counts AS (SELECT kind,count(*) FILTER(WHERE blocking) blocking,count(*) FILTER(WHERE NOT blocking) historical FROM refs GROUP BY kind)

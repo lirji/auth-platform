@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lrj.authz.governance.persistence.DirectoryMapper">
+<mapper namespace="com.lrj.authz.governance.directory.persistence.DirectoryMapper">
   <sql id="inboxColumns">event_id, partition_sequence, fingerprint, snapshot_id, processed</sql>
   <insert id="insertSource">
         INSERT INTO auth_governance.directory_source(id, source, environment, source_tenant_ref, tenant_id, issuer)
         VALUES (#{id}, #{source}, #{environment}, #{sourceTenantRef}, #{tenantId}, #{issuer}) ON CONFLICT DO NOTHING
     </insert>
-  <select id="lockSource" resultType="com.lrj.authz.governance.domain.DirectoryModels$Source">
+  <select id="lockSource" resultType="com.lrj.authz.governance.directory.domain.DirectoryModels$Source">
         SELECT id, source, environment, source_tenant_ref, tenant_id, issuer, last_sequence, last_fingerprint, quarantined
         FROM auth_governance.directory_source WHERE id = #{id} FOR UPDATE
     </select>
   <select id="lockTenant" resultType="string">
         SELECT id FROM auth_governance.tenant WHERE id = #{id} AND status = 'ACTIVE' FOR SHARE
     </select>
-  <select id="lockHuman" resultType="com.lrj.authz.governance.domain.IdentityModels$Principal">
+  <select id="lockHuman" resultType="com.lrj.authz.governance.identity.domain.IdentityModels$Principal">
         SELECT id, kind, status, version FROM auth_governance.principal WHERE id = #{id} AND kind = 'HUMAN' FOR SHARE
     </select>
-  <select id="event" resultType="com.lrj.authz.governance.domain.DirectoryModels$Inbox">
+  <select id="event" resultType="com.lrj.authz.governance.directory.domain.DirectoryModels$Inbox">
         SELECT <include refid="inboxColumns"/> FROM auth_governance.directory_inbox WHERE source_id = #{source} AND event_id = #{event}
     </select>
-  <select id="sequence" resultType="com.lrj.authz.governance.domain.DirectoryModels$Inbox">
+  <select id="sequence" resultType="com.lrj.authz.governance.directory.domain.DirectoryModels$Inbox">
         SELECT <include refid="inboxColumns"/> FROM auth_governance.directory_inbox WHERE source_id = #{source} AND partition_sequence = #{sequence}
     </select>
   <insert id="insertInbox">
@@ -36,7 +36,7 @@
         INSERT INTO auth_governance.directory_version_receipt(source_id, aggregate_type, aggregate_id, aggregate_version, payload_hash)
         VALUES (#{source}, #{event.aggregateType}, #{event.aggregateId}, #{event.aggregateVersion}, #{event.payloadHash})
     </insert>
-  <select id="entry" resultType="com.lrj.authz.governance.domain.DirectoryModels$Entry">
+  <select id="entry" resultType="com.lrj.authz.governance.directory.domain.DirectoryModels$Entry">
         SELECT source_id, tenant_id, aggregate_type, aggregate_id, aggregate_version, payload_hash, payload_json::text,
             principal_id, membership_id, login_subject FROM auth_governance.directory_entry
         WHERE source_id = #{source} AND aggregate_type = #{type} AND aggregate_id = #{id}
@@ -77,7 +77,7 @@
             WHERE p.id IS NOT NULL AND NOT p.cycle AND p.depth &lt; 64
         ) SELECT EXISTS (SELECT 1 FROM parents WHERE cycle OR depth &gt;= 64)
     </select>
-  <select id="snapshot" resultType="com.lrj.authz.governance.domain.DirectoryModels$Snapshot">
+  <select id="snapshot" resultType="com.lrj.authz.governance.directory.domain.DirectoryModels$Snapshot">
         SELECT source_id, snapshot_id, start_sequence, end_sequence, expected_count, content_hash, begin_seen, end_seen, complete
         FROM auth_governance.directory_snapshot WHERE source_id = #{source} AND snapshot_id = #{id}
     </select>
@@ -90,7 +90,7 @@
         UPDATE auth_governance.directory_snapshot SET begin_seen = begin_seen OR #{begin}, end_seen = end_seen OR NOT #{begin}
         WHERE source_id = #{source} AND snapshot_id = #{id}
     </update>
-  <select id="snapshotEvents" resultType="com.lrj.authz.governance.domain.DirectoryModels$Inbox">
+  <select id="snapshotEvents" resultType="com.lrj.authz.governance.directory.domain.DirectoryModels$Inbox">
         SELECT <include refid="inboxColumns"/> FROM auth_governance.directory_inbox
         WHERE source_id = #{source} AND partition_sequence &gt; #{start} AND partition_sequence &lt; #{end}
         ORDER BY partition_sequence LIMIT 10001
@@ -109,7 +109,7 @@
         WHERE source_id = #{source} AND snapshot_id = #{id} AND partition_sequence = #{end}
             AND aggregate_type = 'SNAPSHOT_END' AND NOT processed
     </update>
-  <select id="following" resultType="com.lrj.authz.governance.domain.DirectoryModels$Inbox">
+  <select id="following" resultType="com.lrj.authz.governance.directory.domain.DirectoryModels$Inbox">
         SELECT <include refid="inboxColumns"/> FROM auth_governance.directory_inbox
         WHERE source_id = #{source} AND partition_sequence &gt; #{after} ORDER BY partition_sequence LIMIT 20001
     </select>

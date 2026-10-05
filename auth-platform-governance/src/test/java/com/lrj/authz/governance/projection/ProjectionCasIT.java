@@ -4,8 +4,14 @@ import static org.assertj.core.api.Assertions.*;
 
 import com.lrj.authz.core.SpiceDbAuthzEngine;
 import com.lrj.authz.core.SpiceDbProjectionGraph;
-import com.lrj.authz.governance.application.GovernanceConfigurationFile;
-import com.lrj.authz.protocol.*;
+import com.lrj.authz.governance.runtime.configuration.GovernanceConfigurationFile;
+import com.lrj.authz.protocol.AuthzEngine;
+import com.lrj.authz.protocol.Consistency;
+import com.lrj.authz.protocol.ProjectionGraph;
+import com.lrj.authz.protocol.RelationshipFilter;
+import com.lrj.authz.protocol.RelationshipUpdate;
+import com.lrj.authz.protocol.ResourceRef;
+import com.lrj.authz.protocol.SubjectRef;
 
 import org.junit.jupiter.api.*;
 

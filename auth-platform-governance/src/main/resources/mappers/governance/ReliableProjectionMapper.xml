@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lrj.authz.governance.persistence.ReliableProjectionMapper">
+<mapper namespace="com.lrj.authz.governance.projection.persistence.ReliableProjectionMapper">
   <sql id="streamColumns">fence_id,policy_id,directory_id,worker_id,lease_generation,lease_until,target_epoch,scan_cursor,batch_counter,confirmed_batch,marker,zed_token,failures,next_attempt_at</sql>
   <sql id="operationColumns">id,fence_id,target_epoch,batch_no,expected_marker,payload_json,content_hash,after_cursor,last_batch,state,attempts,created_by,lease_generation</sql>
   <sql id="targetTable">
@@ -17,31 +17,31 @@
  SELECT id,id FROM auth_governance.directory_fence WHERE id=#{t.fenceId} AND tenant_id=#{t.partition.tenantId}
  </otherwise></choose> ON CONFLICT DO NOTHING
  </insert>
-  <select id="claim" resultType="com.lrj.authz.governance.domain.ProjectionModels$Stream" affectData="true" flushCache="true">
+  <select id="claim" resultType="com.lrj.authz.governance.projection.domain.ProjectionModels$Stream" affectData="true" flushCache="true">
  UPDATE auth_governance.projection_stream SET worker_id=#{worker},lease_generation=lease_generation+1,
  lease_until=clock_timestamp()+interval '15 seconds',updated_at=clock_timestamp()
  WHERE fence_id=#{id} AND lease_until &lt;=clock_timestamp() AND next_attempt_at &lt;=clock_timestamp() AND failures &lt; 5
  RETURNING <include refid="streamColumns"/>
  </select>
-  <select id="owned" resultType="com.lrj.authz.governance.domain.ProjectionModels$Stream">
+  <select id="owned" resultType="com.lrj.authz.governance.projection.domain.ProjectionModels$Stream">
  SELECT <include refid="streamColumns"/> FROM auth_governance.projection_stream
  WHERE fence_id=#{lease.fenceId} AND worker_id=#{lease.workerId} AND lease_generation=#{lease.leaseGeneration} AND lease_until &gt;clock_timestamp() FOR UPDATE
  </select>
-  <select id="fence" resultType="com.lrj.authz.governance.domain.FenceModels$Fence">
+  <select id="fence" resultType="com.lrj.authz.governance.projection.domain.FenceModels$Fence">
  SELECT id,desired_epoch,applied_epoch,state,zed_token FROM <include refid="targetTable"/> WHERE id=#{t.fenceId}
  </select>
-  <select id="pending" resultType="com.lrj.authz.governance.domain.ProjectionModels$Operation">
+  <select id="pending" resultType="com.lrj.authz.governance.projection.domain.ProjectionModels$Operation">
  SELECT <include refid="operationColumns"/> FROM auth_governance.projection_operation WHERE fence_id=#{id} AND state='PENDING'
  </select>
-  <select id="operation" resultType="com.lrj.authz.governance.domain.ProjectionModels$Operation">
+  <select id="operation" resultType="com.lrj.authz.governance.projection.domain.ProjectionModels$Operation">
  SELECT <include refid="operationColumns"/> FROM auth_governance.projection_operation WHERE fence_id=#{fence} AND id=#{id}
  </select>
-  <select id="grants" resultType="com.lrj.authz.governance.domain.ProjectionModels$GrantChange">
+  <select id="grants" resultType="com.lrj.authz.governance.projection.domain.ProjectionModels$GrantChange">
  SELECT id,version,membership_id,generation,(state IN ('PENDING','ACTIVE') AND valid_to &gt;clock_timestamp()) AS present,group_id
  FROM auth_governance.access_grant WHERE tenant_id=#{t.partition.tenantId} AND application_id=#{t.partition.applicationId}
  AND environment=#{t.partition.environment} AND id &gt; #{after} ORDER BY id LIMIT 51
  </select>
-  <select id="groups" resultType="com.lrj.authz.governance.domain.ProjectionModels$GroupChange">
+  <select id="groups" resultType="com.lrj.authz.governance.projection.domain.ProjectionModels$GroupChange">
  SELECT gm.id,gm.group_id,gm.membership_id,gm.generation,
  (gm.current AND dg.active AND NOT src.quarantined AND src.business_zone IS NOT NULL
  AND m.generation=gm.generation AND m.status='ACTIVE' AND u.status='ACTIVE' AND t.status='ACTIVE') present

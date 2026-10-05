@@ -1,7 +1,7 @@
 package com.lrj.authz.governance.support;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lrj.authz.governance.application.CatalogRetirementProof;
+import com.lrj.authz.governance.catalog.application.CatalogRetirementProof;
 import com.lrj.authz.protocol.CapabilityRetirementDtos.Report;
 
 import java.nio.file.*;
