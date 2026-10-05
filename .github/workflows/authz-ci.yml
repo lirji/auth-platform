@@ -148,11 +148,12 @@ jobs:
           CREATE DATABASE auth_gov_p1_test_ci OWNER governance_ci;
           SQL
       - run: ./mvnw -B -Pgovernance-it verify
-      - run: python3 scripts/check-public-api.py
+        # 隔离数据库凭据属于真实集成测试步骤，插入其他检查时不能改变其归属。
         env:
           GOVERNANCE_TEST_DB_URL: jdbc:postgresql://127.0.0.1:5432/auth_gov_p1_test_ci
           GOVERNANCE_TEST_DB_USER: governance_ci
           GOVERNANCE_TEST_DB_PASSWORD: isolated-ci-fixture
+      - run: python3 scripts/check-public-api.py
       - name: Validate onboarding scripts
         run: |
           python3 -m unittest discover -s deploy/tests -p 'test_governance_wms_provision.py' -v
@@ -243,3 +244,12 @@ jobs:
           node --test auth-console/tests/*.test.mjs
       - name: Build governance console
         run: pnpm --dir auth-console install --frozen-lockfile && pnpm --dir auth-console format:check && pnpm --dir auth-console build
+      - name: Preserve test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auth-test-reports
+          path: |
+            auth-platform-*/target/surefire-reports/
+            auth-platform-*/target/failsafe-reports/
+            compatibility/boot4-sdk/target/surefire-reports/

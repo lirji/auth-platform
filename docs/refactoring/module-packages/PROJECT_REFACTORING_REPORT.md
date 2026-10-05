@@ -35,7 +35,7 @@
 | A05 | SDK 内部 HTTP/校验/组合职责和公开门面、protocol 契约审查 | DONE |
 | A06 | auth-console 与 portal 功能、共享和壳层结构审查与有界调整 | DONE |
 | A07 | 全模块中文原因注释、类型/状态、配置、错误/日志、SQL/事务与有证据优化 | DONE |
-| A08 | 必要真实 PostgreSQL/图/身份/投影/legacy/Boot4/门户 CI、兼容/卫生终审与正常 main 交付 | TODO |
+| A08 | 必要真实 PostgreSQL/图/身份/投影/legacy/Boot4/门户 CI、兼容/卫生终审与正常 main 交付 | IN_PROGRESS |
 
 每批先给精确类/消费者映射与影响，再编译、相关测试、资源/namespace、差异检查。生产逻辑优化先补特征/回归测试；失败不推进下一批。分批正常提交，完整验收后按持续授权正常合入推 main；不强推、不混入其他工作、不执行本次未授权的部署。
 
@@ -63,3 +63,5 @@ A05：响应收集/取消实现归` sdk.internal.http.BoundedResponseBodies`；�
 A06：53个控制台源迁入按功能组织的页面/模型/组件及app shell；仅相对引用/已知测试/文档路径变化，TypeScript AST声明逐文件一致，路由语义不改。50原生测试、类型/build/格式、114脚本与目录检查PASS。首次LoginPage目录index导入漏同步由tsc检出，修正后全检查通过。门户原结构保留，运行catalog精确字节不变。
 
 A07：281方法/59类型中文原因说明与全模块规范/结构/ABI审查完成，341 Java可执行词法与A07基线完全一致；唯一实际行为改动是前端同步事件竞态，先真实React复现两项失败、再修复并两项通过。332 Java/50console/29portal/114部署脚本/7结构ABI测试、类型/build/格式/契约检查PASS，原技能真实差异CLI零finding，仅Java格式命令发现限制。详见[代码审查](CODE_QUALITY_REVIEW.md)。A08完整真实CI与交付仍进行中。
+
+A08 首轮候选 `bf7a521`：Portal CI [37274913888](https://github.com/lirji/auth-platform/actions/runs/37274913888) 成功；Auth CI [37274913832](https://github.com/lirji/auth-platform/actions/runs/37274913832) 在真实治理数据库验证失败。新增 ABI 步骤误接收了原 Maven 步骤的 `env`，22 个数据库测试类因缺少隔离连接配置而初始化失败，尚未执行业务断言。已把环境变量归还 Maven 步骤，并补充配置归属回归检查和成功/失败均归档 JUnit 报告；没有改变数据库约束、测试断言或生产源码。原始失败保留；修复后的完整 CI、兼容终审及 main 交付继续执行，不能用 Portal 单独成功声明完成。
