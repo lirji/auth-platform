@@ -4,6 +4,8 @@
 
 2026-10-03 获授权更新后，本机三个治理应用运行 `rev-fd6bf5911981`，均 healthy；治理库已受控升级至 V36。菜单／角色治理、人员核对和人工复核页面已部署，原 v2 目录和授权保持。实际验收、不可变镜像、备份及回退边界见[部署结果](../../docs/deployment/menu-role-governance-docker-20261003.md)。
 
+2026-10-05 当前实例已部署 Auth e4d14eb 与 WMS 562f90f，11 个应用 healthy。上述 fd6bf5911981 记录是历史基线；当前八个应用 JVM 使用 128 MiB 堆与私密原生分配预算。日常调和必须保留私密 compose.runtime-budget.yml／compose.wms-native-budget.yml 和不可变镜像绑定，按[当前部署维护命令](../../docs/deployment/auth-wms-refactor-docker-20261005.md)执行。通用 run.sh 命令不自动加载这些预算 overlay，本实例不重跑初始化或权限续发。
+
 ## 依赖与数据边界
 
 - Docker Desktop（BuildKit + Compose v2）；首次初始化 CLI 另需 Java 21 与项目 Maven Wrapper。日常镜像构建只需 Docker，后端使用镜像内 Java 21 和仓库 Wrapper。

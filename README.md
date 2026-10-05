@@ -4,9 +4,9 @@
 
 完整设计见 `~/.claude/plans/mock-velvet-mist.md`。
 
-OA、Auth 与业务项目的统一权限改造见[整体计划与当前入口](docs/design/oa-auth-unification/README.md)。菜单／角色／授权治理MG00–MG19已实现并完成必要隔离验证，涵盖实际菜单、差异与影响、受控发布、历史／漂移、角色来源迁移、能力退役、人员核对和人工复核；Git／CI以[治理状态](docs/design/oa-auth-unification/menu-role-governance/PROGRESS_STATE.md)为准。页面入口、认证／图故障和四类回退见[运行手册](docs/design/oa-auth-unification/menu-role-governance/OPERATIONS_RUNBOOK.md)。后续获授权的[本机 Docker 部署](docs/deployment/menu-role-governance-docker-20261003.md)已将5273更新至rev-fd6bf5911981，三应用healthy；生产部署、真实OA联调及生产运行核验仍待接入。P1身份基础与配置仍见[治理模块](auth-platform-governance/README.md)，其中P1阶段记录不代表共享实例的当前运行版本。
+OA、Auth 与业务项目的统一权限改造见[整体计划与当前入口](docs/design/oa-auth-unification/README.md)。菜单／角色／授权治理MG00–MG19已实现并完成必要隔离验证，涵盖实际菜单、差异与影响、受控发布、历史／漂移、角色来源迁移、能力退役、人员核对和人工复核；Git／CI以[治理状态](docs/design/oa-auth-unification/menu-role-governance/PROGRESS_STATE.md)为准。页面入口、认证／图故障和四类回退见[运行手册](docs/design/oa-auth-unification/menu-role-governance/OPERATIONS_RUNBOOK.md)。2026-10-03 的[治理 Docker 部署](docs/deployment/menu-role-governance-docker-20261003.md)保留为历史记录。2026-10-05 已将 Auth e4d14eb 与 WMS 562f90f 的重构版本部署到原本机 Docker，11 个应用 healthy，权限／页面／数据核验通过，见[当前部署与维护说明](docs/deployment/auth-wms-refactor-docker-20261005.md)；生产部署、真实OA联调及生产运行核验仍待接入。P1身份基础与配置仍见[治理模块](auth-platform-governance/README.md)，其中P1阶段记录不代表共享实例的当前运行版本。
 
-WMS 的下一批集中权限接入见[任务与切片](docs/design/wms-auth-integration/IMPLEMENTATION_SLICES.md)和[当前状态](docs/design/wms-auth-integration/PROGRESS_STATE.md)。精确仓库资源与真实源目录先行，组织/企业映射需明确后才导入成员和切换业务鉴权。
+WMS 集中权限接入已完成，独立组织 local-wms 明确绑定 ENT-DEMO；切片与历史验收见[任务计划](docs/design/wms-auth-integration/IMPLEMENTATION_SLICES.md)和[接入状态](docs/design/wms-auth-integration/PROGRESS_STATE.md)。当前已部署的重构版本与实际运行验证见[Docker 部署结果](docs/deployment/auth-wms-refactor-docker-20261005.md)。
 
 ## 架构一览
 
@@ -98,7 +98,9 @@ WMS 的下一批集中权限接入见[任务与切片](docs/design/wms-auth-inte
 >
 > 跨项目治理授权页面使用新增 `governance` profile：控制台、治理管理后端及授权投影任务均在 Docker 运行，入口 `http://localhost:5273/governance`。首次私密配置、固定本地库、启动/重启命令和电商接管边界见 [本地治理 Docker 说明](deploy/governance/README.md)。
 >
-> 更新到当前源码执行 `bash deploy/governance/run.sh update`；该命令先构建后端 reactor 与控制台，再更新治理容器。`restart` 仅复用已构建镜像。部署同步验证与依赖边界见 [Docker 部署同步报告](docs/deployment/containerization-report.md)。
+> 当前已初始化本机实例绑定精确镜像及私密资源预算，维护须保留 Auth 与 WMS overlay，见[2026-10-05 部署说明](docs/deployment/auth-wms-refactor-docker-20261005.md)。以下通用脚本说明不替代该实例的配置组合。
+>
+> 通用环境更新到当前源码执行 `bash deploy/governance/run.sh update`；该命令先构建后端 reactor 与控制台，再更新治理容器。`restart` 仅复用已构建镜像。部署同步验证与依赖边界见 [Docker 部署同步报告](docs/deployment/containerization-report.md)。
 
 ```bash
 # 新环境：复制 deploy/.env.example 为 deploy/.env，替换 CHANGE_ME；
@@ -176,9 +178,11 @@ TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh # 部门层级模型 seed 
 
 ## WMS 本地接入
 
+以下 provision 为旧发行方案；当前本机无需重复初始化或续发，实际登录和维护以[2026-10-05 部署报告](docs/deployment/auth-wms-refactor-docker-20261005.md)为准。
+
 `deploy/wms-platform-provision.py` 幂等开通独立应用 `wms-platform`，OAuth client_id 为 `wms-platform`。JWT-Custom 将 `properties.enterprise_id` / `properties.warehouses` 映射为顶层声明；演示企业 `ENT-DEMO`，运营账号 `wms-ops` 可见 `WH-A,WH-B`。凭据写入调用方指定的 0600 文件，不进仓库。
 
-从 WMS 目录执行 `WMS_IAM_CREDENTIALS="$PWD/deploy/.env.casdoor.json" python3 ../auth-platform/deploy/wms-platform-provision.py`。控制台 `.env` 使用 issuer `http://localhost:8000` 与 client_id `wms-platform`，门户入口为 Docker 控制台 `:18180/login`；本地 Vite `:4181` 仅作开发，不进能力页。
+从 WMS 目录执行 `WMS_IAM_CREDENTIALS="$PWD/deploy/.env.casdoor.json" python3 ../auth-platform/deploy/wms-platform-provision.py`。该旧发行方案的控制台 `.env` 使用 issuer `http://localhost:8000` 与 client_id `wms-platform`；当前已部署的人类中央权限控制台改用 `http://localhost:18090` / `wms-central`，旧发行方案仅保留内部机器链，门户入口为 Docker 控制台 `:18180/login`；本地 Vite `:4181` 仅作开发，不进能力页。
 
 ## OA 本地接入
 
@@ -188,7 +192,7 @@ TENANT=demo APPLY=1 bash deploy/dept-authz-fixture.sh # 部门层级模型 seed 
 
 P1已完成，P2应用RBAC与首个商城读取链路全部完成，两仓CI已通过，交付证据见[阶段报告](docs/implementation/oa-auth/phase-2/P2_DELIVERY_RESULT.md)。父计划进度以[PROGRESS_STATE](docs/design/oa-auth-unification/PROGRESS_STATE.md)为准；P2阶段当时交付后暂停，后续进展以整体计划和治理当前状态为准。控制台入口为`/governance`，P2当时运行条件见[契约](docs/design/oa-auth-unification/CONTRACTS_P2_PRESENTATION.md)。
 
-WMS中央权限使用独立local-wms→ENT-DEMO绑定，原本机WMS控制台18180与治理管理5273。权限资源、机器期限和实际运行见[WMS Runtime](docs/design/wms-auth-integration/RUNTIME_SPEC.md)与[验收记录](docs/design/wms-auth-integration/W07_TEST_RESULT.md)。
+WMS中央权限使用独立local-wms→ENT-DEMO绑定，原本机WMS控制台18180与治理管理5273。权限资源、机器期限和实际运行见[WMS Runtime](docs/design/wms-auth-integration/RUNTIME_SPEC.md)与[W07 验收记录](docs/design/wms-auth-integration/W07_TEST_RESULT.md)；当前重构制品与本机预算见[2026-10-05 部署结果](docs/deployment/auth-wms-refactor-docker-20261005.md)。
 
 ### 源码格式与模块整理
 

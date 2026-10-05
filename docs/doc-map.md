@@ -13,6 +13,17 @@
 
 资料区分设计、实现、隔离环境实测和部署事实。真实OA联调、生产运行核验／部署及容量／RTO／RPO未执行。公开文档只保留连接引用：local/governance-test-db/app（45432／专库）、local/governance-test-idp/management（18094／独立fixture）、local/governance-graph/projection（18544／新UUID）及本机Docker运行说明。实际凭据在既有忽略.local的0600配置中；部署回退配置与备份仅保存到本机私密证据目录，未轮换凭据。
 
+## 2026-10-05 本机部署增量
+
+部署源码基线为 Auth e4d14eb1b764f53419bbda9ee42920d9b0d3920b、WMS 562f90f933edd7e5144aed058179294cab95d892，三项精确源码 CI success。11 应用已部署及运行验证 PASS；本次 Git 仅同步部署文档，实际回执在忽略的 .local/docker-auth-wms-refactor-20261005/DELIVERY_RESULT.json。
+
+| 区域 | 当前事实与说明 |
+|---|---|
+| 不可变镜像、私密 env/预算、健康/PKCE/数据摘要 | [当前 Docker 部署报告](deployment/auth-wms-refactor-docker-20261005.md) |
+| 当前登录、维护、机器期限与回退边界 | [WMS Runtime](design/wms-auth-integration/RUNTIME_SPEC.md)、[治理运行入口](../deploy/governance/README.md)及部署报告 |
+
+源码、契约、数据库结构、依赖和公开 Compose 未改；旧部署与重构报告保留各自测量日期，不代表当前本机镜像。私密 overlay/凭据仅更新本机已管理路径，不进入 Git。
+
 ## WMS中央权限增量
 
 本轮只同步独立local-wms→ENT-DEMO和W00–W07，不改Commerce鉴权或Driver/ERP。

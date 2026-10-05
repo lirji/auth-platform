@@ -2,6 +2,8 @@
 
 范围为已批准的本机 `auth-platform` / `wms-local`。中央组织 `local-wms` 固定绑定业务企业 `ENT-DEMO`，租户 UUID 保存在私密配置。WMS 继续拥有业务数据；Auth 拥有成员、角色、授权与投影。生产不在范围。
 
+2026-10-05 当前部署已切换到 Auth e4d14eb / WMS 562f90f，全部 11 应用 healthy，12 后端／5 Auth／6 WMS 浏览器验收通过。当前不可变制品、128 MiB 堆、原生分配预算及维护配置组合见[部署结果](../../deployment/auth-wms-refactor-docker-20261005.md)。本文下列初始化和续发命令描述 W07 的受控准备流程，本次没有再次执行；当前机器 JWT 已过期且没有续发。
+
 ## 进程与连接
 
 | 连接 ID / 组件 | 地址与依赖 | 持久化与配置 |
@@ -82,7 +84,7 @@ WMS readiness 为各服务 `/actuator/health/readiness`，Auth server 为可信 
 
 现有 admin/projector 已更新到 Auth W06 精确 CI 通过的源版本，console为回环Graph转发配置正常重建，镜像/静态制品不变；IdP/graph实例保留。原wms-local六个应用已切换上述源码镜像并healthy。两MySQL镜像及业务数据卷相同，142表行数/摘要相同；两初始化目录挂载指向同字节任务源码。实际管理页角色/范围授予/严格撤权和既有持续projector已验收。当前浏览器、Git/CI的终态见 [W07验证](W07_TEST_RESULT.md) 和 [进度](PROGRESS_STATE.md)。
 
-本机共享VM出现内存回收停顿，当前五WMS进程由私密WMS_RUNTIME_ENV设置 `WMS_APP_JAVA_OPTS=-Xms64m -Xmx256m`。原较高预算保存在私密回退env；改变预算或承载数据量后需重新验证，不推导容量承诺。
+该阶段曾以 `WMS_APP_JAVA_OPTS=-Xms64m -Xmx256m` 控制五个 WMS JVM，随后 W07 私密预算继续调整；这些是历史阶段记录。2026-10-05 最终八个本任务后端统一为 `-Xms32m -Xmx128m -XX:ActiveProcessorCount=2` 与 `MALLOC_ARENA_MAX=2`，实际权限与页面重验 PASS。旧配置保留于私密回退证据；未来预算或数据量变化需重新验证，不推导容量承诺。
 
 ## 受控Graph连接绑定
 
