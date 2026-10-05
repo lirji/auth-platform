@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.CatalogImpactMapper">
- <select id="report" resultType="com.lrj.authz.governance.persistence.CatalogImpactMapper$Row">
+  <select id="report" resultType="com.lrj.authz.governance.persistence.CatalogImpactMapper$Row">
  WITH basis AS MATERIALIZED (<include refid="com.lrj.authz.governance.persistence.PortalMapper.publishedCatalogBasisQuery"/>),
  clock AS (SELECT statement_timestamp() at),
  roles AS MATERIALIZED (
   SELECT r.* FROM auth_governance.role_version r CROSS JOIN basis b
   WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
-  AND <choose><when test="caps.size() > 0">EXISTS(SELECT 1 FROM jsonb_array_elements_text(r.capabilities_json::jsonb) cap WHERE cap.value IN
+  AND <choose><when test="caps.size() &gt; 0">EXISTS(SELECT 1 FROM jsonb_array_elements_text(r.capabilities_json::jsonb) cap WHERE cap.value IN
    <foreach collection="caps" item="cap" open="(" separator="," close=")">#{cap}</foreach>)</when><otherwise>FALSE</otherwise></choose>
  ),
  grants AS MATERIALIZED (

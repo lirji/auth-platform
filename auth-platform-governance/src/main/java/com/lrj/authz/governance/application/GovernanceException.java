@@ -21,9 +21,15 @@ public final class GovernanceException extends RuntimeException {
         RETIREMENT_BLOCKED("RETIREMENT_BLOCKED"),
         DEPENDENCY_UNAVAILABLE("DEPENDENCY_UNAVAILABLE");
         private final String value;
-        Code(String value) { this.value = value; }
+
+        Code(String value) {
+            this.value = value;
+        }
+
         /** 对外稳定编码，不依赖 Java 枚举名称。 */
-        public String value() { return value; }
+        public String value() {
+            return value;
+        }
     }
 
     private final Code code;
@@ -35,5 +41,7 @@ public final class GovernanceException extends RuntimeException {
     }
 
     /** 边界仅序列化代码，内部异常由受控诊断渠道处理。 */
-    public Code code() { return code; }
+    public Code code() {
+        return code;
+    }
 }

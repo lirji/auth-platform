@@ -5,6 +5,7 @@ import com.lrj.authz.governance.application.GovernanceException;
 import com.lrj.authz.governance.domain.IdentityModels.Membership;
 import com.lrj.authz.governance.persistence.GovernanceDatabase;
 import com.lrj.authz.governance.persistence.GovernanceRuntime;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -23,7 +24,9 @@ public final class GovernanceCli {
         PrintWriter output = new PrintWriter(System.out, true);
         PrintWriter error = new PrintWriter(System.err, true);
         int exit = run(args, output, error);
-        if (exit != 0) { System.exit(exit); }
+        if (exit != 0) {
+            System.exit(exit);
+        }
     }
 
     /** 可验证的 CLI 边界；不打印配置、命令原文、Token 或数据库异常。 */
@@ -34,11 +37,17 @@ public final class GovernanceCli {
             }
             Properties database = privateProperties(Path.of(args[1]));
             Properties input = privateProperties(Path.of(args[2]));
-            try (GovernanceRuntime runtime = GovernanceRuntime.open(GovernanceDatabase.from(database), "bootstrap".equals(args[0]))) {
+            try (GovernanceRuntime runtime =
+                    GovernanceRuntime.open(
+                            GovernanceDatabase.from(database), "bootstrap".equals(args[0]))) {
                 if ("bootstrap".equals(args[0])) {
                     writeMember(output, runtime.identity().bootstrapEmployee(command(input)));
                 } else {
-                    for (Membership member : runtime.identity().membershipsForLogin(input.getProperty("issuer"), input.getProperty("subject"))) {
+                    for (Membership member :
+                            runtime.identity()
+                                    .membershipsForLogin(
+                                            input.getProperty("issuer"),
+                                            input.getProperty("subject"))) {
                         writeMember(output, member);
                     }
                 }
@@ -59,26 +68,48 @@ public final class GovernanceCli {
 
     private static BootstrapCommand command(Properties input) {
         String until = input.getProperty("valid.to", "");
-        return new BootstrapCommand(input.getProperty("command.id"), input.getProperty("operator.ref"),
-                input.getProperty("tenant.id"), input.getProperty("tenant.code"), input.getProperty("principal.id"),
-                input.getProperty("issuer"), input.getProperty("subject"), input.getProperty("membership.id"),
-                Instant.parse(input.getProperty("valid.from")), until.isBlank() ? null : Instant.parse(until),
-                input.getProperty("source.system"), input.getProperty("source.tenant.ref"), input.getProperty("source.subject.ref"));
+        return new BootstrapCommand(
+                input.getProperty("command.id"),
+                input.getProperty("operator.ref"),
+                input.getProperty("tenant.id"),
+                input.getProperty("tenant.code"),
+                input.getProperty("principal.id"),
+                input.getProperty("issuer"),
+                input.getProperty("subject"),
+                input.getProperty("membership.id"),
+                Instant.parse(input.getProperty("valid.from")),
+                until.isBlank() ? null : Instant.parse(until),
+                input.getProperty("source.system"),
+                input.getProperty("source.tenant.ref"),
+                input.getProperty("source.subject.ref"));
     }
 
     private static Properties privateProperties(Path path) throws IOException {
-        if (Files.isSymbolicLink(path) || !Files.isRegularFile(path)
-                || !Files.getPosixFilePermissions(path).equals(Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE))) {
+        if (Files.isSymbolicLink(path)
+                || !Files.isRegularFile(path)
+                || !Files.getPosixFilePermissions(path)
+                        .equals(
+                                Set.of(
+                                        PosixFilePermission.OWNER_READ,
+                                        PosixFilePermission.OWNER_WRITE))) {
             throw new GovernanceException(GovernanceException.Code.INVALID_ARGUMENT);
         }
         Properties input = new Properties();
-        try (var reader = Files.newBufferedReader(path)) { input.load(reader); }
+        try (var reader = Files.newBufferedReader(path)) {
+            input.load(reader);
+        }
         return input;
     }
 
     private static void writeMember(PrintWriter output, Membership member) {
-        output.printf("%s %s %s %s generation=%d version=%d%n", member.id(), member.tenantId(),
-                member.memberKind(), member.status(), member.generation(), member.version());
+        output.printf(
+                "%s %s %s %s generation=%d version=%d%n",
+                member.id(),
+                member.tenantId(),
+                member.memberKind(),
+                member.status(),
+                member.generation(),
+                member.version());
         output.flush();
     }
 }

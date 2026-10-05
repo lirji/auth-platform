@@ -24,8 +24,7 @@ public final class CasdoorGroupIds {
 
     private static final Pattern SAFE = Pattern.compile("[A-Za-z0-9][A-Za-z0-9-]*");
 
-    private CasdoorGroupIds() {
-    }
+    private CasdoorGroupIds() {}
 
     /**
      * 租户化 group 对象 id：{@code <organization>_<group>}。
@@ -47,7 +46,11 @@ public final class CasdoorGroupIds {
         }
         if (!SAFE.matcher(value).matches()) {
             throw new IllegalArgumentException(
-                    "casdoor group id: " + field + "=\"" + value + "\" 含非法字符（v1 仅允许 [A-Za-z0-9-]、"
+                    "casdoor group id: "
+                            + field
+                            + "=\""
+                            + value
+                            + "\" 含非法字符（v1 仅允许 [A-Za-z0-9-]、"
                             + "首位字母数字）；含 '_'/'/'/空白等会造成租户前缀歧义，需 v2 转义编码，当前 fail-closed 拒绝");
         }
         return value;

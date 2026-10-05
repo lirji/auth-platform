@@ -2,6 +2,7 @@ package com.lrj.authz.admin.casdoor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.springframework.web.client.RestClient;
 
 import java.util.HashMap;
@@ -23,10 +24,12 @@ public class CasdoorClient {
 
     public CasdoorClient(CasdoorProperties props) {
         this.props = props;
-        this.rest = RestClient.builder()
-                .baseUrl(props.getBaseUrl())
-                .defaultHeaders(h -> h.setBasicAuth(props.getClientId(), props.getClientSecret()))
-                .build();
+        this.rest =
+                RestClient.builder()
+                        .baseUrl(props.getBaseUrl())
+                        .defaultHeaders(
+                                h -> h.setBasicAuth(props.getClientId(), props.getClientSecret()))
+                        .build();
     }
 
     /**
@@ -57,7 +60,8 @@ public class CasdoorClient {
     }
 
     /** 拉取一个 org 的用户,聚合组成员;可选顺带收集 username -> subject 映射(部门管理员解析用)。 */
-    private void collectGroupMembers(String org, Map<String, Set<String>> members, Map<String, String> nameToSubject) {
+    private void collectGroupMembers(
+            String org, Map<String, Set<String>> members, Map<String, String> nameToSubject) {
         for (JsonNode u : get("/api/get-users?owner=" + org).path("data")) {
             String name = u.path("name").asText();
             String subject = "name".equals(props.getSubjectField()) ? name : u.path("id").asText();
@@ -112,8 +116,12 @@ public class CasdoorClient {
         return new DepartmentSnapshot(deptIds, members, parents, admins);
     }
 
-    private void collectDepartmentSnapshot(String org, Set<String> deptIds, Map<String, Set<String>> members,
-                                           Map<String, String> parents, Map<String, Set<String>> admins) {
+    private void collectDepartmentSnapshot(
+            String org,
+            Set<String> deptIds,
+            Map<String, Set<String>> members,
+            Map<String, String> parents,
+            Map<String, Set<String>> admins) {
         Map<String, String> nameToSubject = new HashMap<>();
         collectGroupMembers(org, members, nameToSubject);
         for (JsonNode g : get("/api/get-groups?owner=" + org).path("data")) {
@@ -126,7 +134,7 @@ public class CasdoorClient {
             deptIds.add(id);
             String parentRef = g.path("parentId").asText("");
             if (parentRef != null && !parentRef.isBlank()) {
-                parents.put(id, scopedGroupId(parentRef, org));   // <org>/<parent> -> <org>_<parent>
+                parents.put(id, scopedGroupId(parentRef, org)); // <org>/<parent> -> <org>_<parent>
             }
         }
         String suffix = "-admin";
@@ -141,7 +149,8 @@ public class CasdoorClient {
             for (JsonNode uref : role.path("users")) {
                 String ref = uref.asText("");
                 int i = ref.lastIndexOf('/');
-                String uname = i >= 0 ? ref.substring(i + 1) : ref;   // <org>/<username> -> <username>
+                String uname =
+                        i >= 0 ? ref.substring(i + 1) : ref; // <org>/<username> -> <username>
                 String sub = nameToSubject.get(uname);
                 if (sub != null) {
                     admins.computeIfAbsent(deptId, k -> new LinkedHashSet<>()).add(sub);
@@ -151,11 +160,11 @@ public class CasdoorClient {
     }
 
     /** 部门树期望态：全部 department id + 成员/父/管理员映射。 */
-    public record DepartmentSnapshot(Set<String> deptIds,
-                                     Map<String, Set<String>> members,
-                                     Map<String, String> parents,
-                                     Map<String, Set<String>> admins) {
-    }
+    public record DepartmentSnapshot(
+            Set<String> deptIds,
+            Map<String, Set<String>> members,
+            Map<String, String> parents,
+            Map<String, Set<String>> admins) {}
 
     private JsonNode get(String path) {
         String body = rest.get().uri(path).retrieve().body(String.class);

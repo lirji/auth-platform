@@ -1,23 +1,23 @@
-import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Button, Card, Col, Row, Segmented } from 'antd'
-import { useParams } from 'react-router-dom'
-import { apiClient } from '../api/client'
-import { parseZed } from '../domain/zedParser'
-import { PageHeader } from '../components/layout/PageHeader'
-import { EmptyState, ErrorState, PageSkeleton } from '../components/common/AsyncState'
-import { SchemaTypeCard } from '../components/domain/SchemaTypeCard'
-import { wsQueryKey } from '../workspace/keys'
-import { humanizeError } from '../hooks/useAuthz'
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Button, Card, Col, Row, Segmented } from 'antd';
+import { useParams } from 'react-router-dom';
+import { apiClient } from '../api/client';
+import { parseZed } from '../domain/zedParser';
+import { PageHeader } from '../components/layout/PageHeader';
+import { EmptyState, ErrorState, PageSkeleton } from '../components/common/AsyncState';
+import { SchemaTypeCard } from '../components/domain/SchemaTypeCard';
+import { wsQueryKey } from '../workspace/keys';
+import { humanizeError } from '../hooks/useAuthz';
 
 export default function SchemaViewerPage() {
-  const { workspaceId = '' } = useParams()
-  const [view, setView] = useState<'cards' | 'raw'>('cards')
+  const { workspaceId = '' } = useParams();
+  const [view, setView] = useState<'cards' | 'raw'>('cards');
   const q = useQuery({
     queryKey: wsQueryKey(workspaceId, 'schema'),
     queryFn: () => apiClient.get<{ schema: string }>('/admin/schema').then((r) => r.data.schema),
-  })
-  const defs = useMemo(() => (q.data ? parseZed(q.data) : []), [q.data])
+  });
+  const defs = useMemo(() => (q.data ? parseZed(q.data) : []), [q.data]);
 
   return (
     <>
@@ -49,7 +49,11 @@ export default function SchemaViewerPage() {
         <Card>
           <EmptyState
             description="未解析出类型定义(schema 可能为空,或语法超出解析器支持)"
-            extra={<Button type="link" onClick={() => setView('raw')}>查看原始 .zed</Button>}
+            extra={
+              <Button type="link" onClick={() => setView('raw')}>
+                查看原始 .zed
+              </Button>
+            }
           />
         </Card>
       ) : (
@@ -62,5 +66,5 @@ export default function SchemaViewerPage() {
         </Row>
       )}
     </>
-  )
+  );
 }

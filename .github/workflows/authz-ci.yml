@@ -44,12 +44,14 @@ on:
       - 'deploy/tests/test_governance_p7*'
       - 'compatibility/boot4-sdk/**'
       - 'auth-console/**'
+      - 'scripts/format-*.py'
+      - '.editorconfig'
       - 'pom.xml'
       - 'mvnw'
       - '.mvn/**'
       - '.github/workflows/authz-ci.yml'
   push:
-    branches: [main]
+    branches: [main, 'refactor/**']
     paths:
       - 'auth-platform-*/**'
       - 'deploy/risk-*.sh'
@@ -92,6 +94,8 @@ on:
       - 'deploy/tests/test_governance_p7*'
       - 'compatibility/boot4-sdk/**'
       - 'auth-console/**'
+      - 'scripts/format-*.py'
+      - '.editorconfig'
       - 'pom.xml'
       - 'mvnw'
       - '.mvn/**'
@@ -128,6 +132,9 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+      - run: python3 scripts/format-java.py --check
+      - run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+      - run: python3 scripts/format-xml.py --check
       - name: Create isolated governance database owner
         run: |
           docker exec -i '${{ job.services.postgres.id }}' psql -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
@@ -228,4 +235,4 @@ jobs:
           for script in deploy/governance-menu-*.mjs deploy/governance-p5-*.mjs deploy/governance-p6-catalog.mjs deploy/governance-ce05-campaigns.mjs deploy/governance-ce05-segments.mjs deploy/governance-ce05-coupon-deliveries-ui.mjs deploy/governance-integrated-resources-*.mjs deploy/governance-permission-pages.mjs deploy/governance-commerce-publication-*.mjs; do node --check "$script"; done
           node --test auth-console/tests/governance-context.test.mjs auth-console/tests/governance-published-catalog.test.mjs auth-console/tests/governance-catalog-model.test.mjs auth-console/tests/governance-catalog-impact.test.mjs auth-console/tests/governance-catalog-history.test.mjs auth-console/tests/governance-catalog-guard.test.mjs auth-console/tests/governance-catalog-drift.test.mjs
       - name: Build governance console
-        run: pnpm --dir auth-console install --frozen-lockfile && pnpm --dir auth-console build
+        run: pnpm --dir auth-console install --frozen-lockfile && pnpm --dir auth-console format:check && pnpm --dir auth-console build

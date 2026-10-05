@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -32,7 +33,8 @@ public class AuthzServerSecurityFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
+    protected void doFilterInternal(
+            HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
             throws ServletException, IOException {
         if (!props.isEnabled() || !req.getRequestURI().startsWith("/v1/")) {
             chain.doFilter(req, resp);
@@ -40,18 +42,24 @@ public class AuthzServerSecurityFilter extends OncePerRequestFilter {
         }
         String configured = props.getToken();
         String header = req.getHeader("Authorization");
-        String presented = (header != null && header.startsWith("Bearer ")) ? header.substring(7) : null;
-        if (configured == null || configured.isBlank()
-                || presented == null || !constantTimeEquals(configured, presented)) {
+        String presented =
+                (header != null && header.startsWith("Bearer ")) ? header.substring(7) : null;
+        if (configured == null
+                || configured.isBlank()
+                || presented == null
+                || !constantTimeEquals(configured, presented)) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             resp.setContentType("application/json");
-            resp.getWriter().write("{\"error\":\"unauthorized\",\"message\":\"missing or invalid service credential\"}");
+            resp.getWriter()
+                    .write(
+                            "{\"error\":\"unauthorized\",\"message\":\"missing or invalid service credential\"}");
             return;
         }
         chain.doFilter(req, resp);
     }
 
     private static boolean constantTimeEquals(String a, String b) {
-        return MessageDigest.isEqual(a.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8));
+        return MessageDigest.isEqual(
+                a.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8));
     }
 }

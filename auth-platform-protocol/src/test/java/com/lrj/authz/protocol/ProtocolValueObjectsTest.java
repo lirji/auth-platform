@@ -1,8 +1,8 @@
 package com.lrj.authz.protocol;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
 
 class ProtocolValueObjectsTest {
 
@@ -25,10 +25,14 @@ class ProtocolValueObjectsTest {
 
     @Test
     void relationshipHasValueSemantics() {
-        Relationship relationship = new Relationship(
-                ResourceRef.of("document", "d1"), "viewer", SubjectRef.user("u1"));
-        assertThat(relationship).isEqualTo(new Relationship(
-                new ResourceRef("document", "d1"), "viewer", new SubjectRef("user", "u1", null)));
+        Relationship relationship =
+                new Relationship(ResourceRef.of("document", "d1"), "viewer", SubjectRef.user("u1"));
+        assertThat(relationship)
+                .isEqualTo(
+                        new Relationship(
+                                new ResourceRef("document", "d1"),
+                                "viewer",
+                                new SubjectRef("user", "u1", null)));
     }
 
     @Test

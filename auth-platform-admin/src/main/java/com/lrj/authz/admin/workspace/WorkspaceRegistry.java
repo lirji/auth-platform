@@ -3,6 +3,7 @@ package com.lrj.authz.admin.workspace;
 import com.lrj.authz.admin.AdminSpiceDbProperties;
 import com.lrj.authz.core.SpiceDbAuthzEngine;
 import com.lrj.authz.protocol.AuthzEngine;
+
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -21,17 +22,18 @@ public class WorkspaceRegistry {
     public static final String HEADER = "X-Authz-Workspace";
     public static final String DEFAULT_ID = "knowledge";
 
-    private static final List<String> DEFAULT_FEATURES = List.of(
-            "grants", "playground", "schema", "spaces", "sync", "audit");
+    private static final List<String> DEFAULT_FEATURES =
+            List.of("grants", "playground", "schema", "spaces", "sync", "audit");
 
     private final Map<String, BoundWorkspace> workspaces = new LinkedHashMap<>();
     private final AuthzEngine defaultEngine;
     private final ThreadLocal<BoundWorkspace> current = new ThreadLocal<>();
 
     public WorkspaceRegistry(WorkspaceProperties properties, AdminSpiceDbProperties spicedb) {
-        this.defaultEngine = new SpiceDbAuthzEngine(
-                spicedb.getEndpoint(), spicedb.getToken(),
-                spicedb.getConnectTimeout(), spicedb.getReadTimeout());
+        this.defaultEngine =
+                new SpiceDbAuthzEngine(
+                        spicedb.getEndpoint(), spicedb.getToken(),
+                        spicedb.getConnectTimeout(), spicedb.getReadTimeout());
         List<WorkspaceProperties.Item> items = properties.getWorkspaces();
         if (items == null || items.isEmpty()) {
             WorkspaceProperties.Item fallback = new WorkspaceProperties.Item();
@@ -53,9 +55,14 @@ public class WorkspaceRegistry {
             AuthzEngine engine = defaultEngine;
             if (StringUtils.hasText(item.getEndpoint())
                     && !item.getEndpoint().equals(spicedb.getEndpoint())) {
-                String token = StringUtils.hasText(item.getToken()) ? item.getToken() : spicedb.getToken();
-                engine = new SpiceDbAuthzEngine(
-                        item.getEndpoint(), token, spicedb.getConnectTimeout(), spicedb.getReadTimeout());
+                String token =
+                        StringUtils.hasText(item.getToken()) ? item.getToken() : spicedb.getToken();
+                engine =
+                        new SpiceDbAuthzEngine(
+                                item.getEndpoint(),
+                                token,
+                                spicedb.getConnectTimeout(),
+                                spicedb.getReadTimeout());
             }
             item.setId(id);
             if (!StringUtils.hasText(item.getEndpoint())) {
@@ -120,6 +127,5 @@ public class WorkspaceRegistry {
         return null;
     }
 
-    public record BoundWorkspace(WorkspaceProperties.Item item, AuthzEngine engine) {
-    }
+    public record BoundWorkspace(WorkspaceProperties.Item item, AuthzEngine engine) {}
 }

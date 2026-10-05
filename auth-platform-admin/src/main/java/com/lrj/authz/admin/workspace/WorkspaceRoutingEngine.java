@@ -26,25 +26,29 @@ public final class WorkspaceRoutingEngine implements AuthzEngine {
     }
 
     @Override
-    public boolean check(SubjectRef subject, String permission, ResourceRef resource, Consistency consistency) {
+    public boolean check(
+            SubjectRef subject, String permission, ResourceRef resource, Consistency consistency) {
         return engine().check(subject, permission, resource, consistency);
     }
 
     @Override
-    public Map<ResourceRef, Boolean> checkBulk(SubjectRef subject, String permission,
-                                               List<ResourceRef> resources, Consistency consistency) {
+    public Map<ResourceRef, Boolean> checkBulk(
+            SubjectRef subject,
+            String permission,
+            List<ResourceRef> resources,
+            Consistency consistency) {
         return engine().checkBulk(subject, permission, resources, consistency);
     }
 
     @Override
-    public List<String> lookupResources(SubjectRef subject, String permission, String resourceType,
-                                        Consistency consistency) {
+    public List<String> lookupResources(
+            SubjectRef subject, String permission, String resourceType, Consistency consistency) {
         return engine().lookupResources(subject, permission, resourceType, consistency);
     }
 
     @Override
-    public List<SubjectRef> lookupSubjects(ResourceRef resource, String permission, String subjectType,
-                                           Consistency consistency) {
+    public List<SubjectRef> lookupSubjects(
+            ResourceRef resource, String permission, String subjectType, Consistency consistency) {
         return engine().lookupSubjects(resource, permission, subjectType, consistency);
     }
 

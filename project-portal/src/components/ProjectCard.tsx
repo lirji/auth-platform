@@ -1,7 +1,11 @@
-import type { DragEvent, KeyboardEvent } from 'react'
-import type { ProjectEntry, ProjectPresentationStatus, ProjectReachability } from '../catalog/types'
-import { projectLinkAttributes, projectPresentationStatus } from '../catalog/viewModel'
-import { ProjectIcon } from './icons'
+import type { DragEvent, KeyboardEvent } from 'react';
+import type {
+  ProjectEntry,
+  ProjectPresentationStatus,
+  ProjectReachability,
+} from '../catalog/types';
+import { projectLinkAttributes, projectPresentationStatus } from '../catalog/viewModel';
+import { ProjectIcon } from './icons';
 
 const STATUS_LABEL: Record<ProjectPresentationStatus, string> = {
   available: '可用',
@@ -9,7 +13,7 @@ const STATUS_LABEL: Record<ProjectPresentationStatus, string> = {
   unavailable: '当前不可用',
   maintenance: '维护中',
   'coming-soon': '即将开放',
-}
+};
 
 const STATUS_HINT: Record<ProjectPresentationStatus, string | null> = {
   available: null,
@@ -17,9 +21,9 @@ const STATUS_HINT: Record<ProjectPresentationStatus, string | null> = {
   unavailable: '目标项目当前无法访问，将自动重新检测',
   maintenance: '项目正在维护，恢复后可从门户进入',
   'coming-soon': '项目正在建设，开放后可从门户进入',
-}
+};
 
-const DRAG_TYPE = 'text/plain'
+const DRAG_TYPE = 'text/plain';
 
 export function ProjectCard({
   project,
@@ -32,19 +36,19 @@ export function ProjectCard({
   onDragEnd,
   onMoveBy,
 }: {
-  project: ProjectEntry
-  reachability: ProjectReachability
-  dragging: boolean
-  dropTarget: boolean
-  onDragStart: () => void
-  onDragOver: () => void
-  onDrop: (fromId: string) => void
-  onDragEnd: () => void
-  onMoveBy: (delta: number) => void
+  project: ProjectEntry;
+  reachability: ProjectReachability;
+  dragging: boolean;
+  dropTarget: boolean;
+  onDragStart: () => void;
+  onDragOver: () => void;
+  onDrop: (fromId: string) => void;
+  onDragEnd: () => void;
+  onMoveBy: (delta: number) => void;
 }) {
-  const presentationStatus = projectPresentationStatus(project, reachability)
-  const statusHint = STATUS_HINT[presentationStatus]
-  const link = projectLinkAttributes(project, reachability)
+  const presentationStatus = projectPresentationStatus(project, reachability);
+  const statusHint = STATUS_HINT[presentationStatus];
+  const link = projectLinkAttributes(project, reachability);
   const action = link ? (
     <a
       className="project-action"
@@ -59,44 +63,44 @@ export function ProjectCard({
     <span className="project-action project-action--disabled" aria-disabled="true">
       {STATUS_LABEL[presentationStatus]}
     </span>
-  )
+  );
 
   const startDrag = (event: DragEvent<HTMLButtonElement>) => {
-    event.dataTransfer.setData(DRAG_TYPE, project.id)
-    event.dataTransfer.effectAllowed = 'move'
-    const card = event.currentTarget.closest('.project-card')
+    event.dataTransfer.setData(DRAG_TYPE, project.id);
+    event.dataTransfer.effectAllowed = 'move';
+    const card = event.currentTarget.closest('.project-card');
     if (card instanceof HTMLElement) {
       try {
-        event.dataTransfer.setDragImage(card, 48, 32)
+        event.dataTransfer.setDragImage(card, 48, 32);
       } catch {
         // 部分浏览器不允许自定义拖影
       }
     }
-    onDragStart()
-  }
+    onDragStart();
+  };
 
   const over = (event: DragEvent<HTMLElement>) => {
-    event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
-    onDragOver()
-  }
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    onDragOver();
+  };
 
   const drop = (event: DragEvent<HTMLElement>) => {
-    event.preventDefault()
-    const fromId = event.dataTransfer.getData(DRAG_TYPE)
-    if (fromId) onDrop(fromId)
-  }
+    event.preventDefault();
+    const fromId = event.dataTransfer.getData(DRAG_TYPE);
+    if (fromId) onDrop(fromId);
+  };
 
   const onHandleKey = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-      event.preventDefault()
-      onMoveBy(-1)
+      event.preventDefault();
+      onMoveBy(-1);
     }
     if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-      event.preventDefault()
-      onMoveBy(1)
+      event.preventDefault();
+      onMoveBy(1);
     }
-  }
+  };
 
   return (
     <article
@@ -119,9 +123,13 @@ export function ProjectCard({
           >
             <span aria-hidden="true">⋮⋮</span>
           </button>
-          <span className="project-icon" data-icon={project.icon}><ProjectIcon name={project.icon} /></span>
+          <span className="project-icon" data-icon={project.icon}>
+            <ProjectIcon name={project.icon} />
+          </span>
         </div>
-        <span className={`status status--${presentationStatus}`} aria-live="polite">{STATUS_LABEL[presentationStatus]}</span>
+        <span className={`status status--${presentationStatus}`} aria-live="polite">
+          {STATUS_LABEL[presentationStatus]}
+        </span>
       </div>
       <div>
         <p className="project-category">{project.category}</p>
@@ -129,11 +137,15 @@ export function ProjectCard({
         <p className="project-summary">{project.summary}</p>
       </div>
       <ul className="capability-list" aria-label={`${project.name} 的能力`}>
-        {project.capabilities.map((capability) => <li key={capability}>{capability}</li>)}
+        {project.capabilities.map((capability) => (
+          <li key={capability}>{capability}</li>
+        ))}
       </ul>
       {project.tags.length > 0 && (
         <div className="tag-list" aria-label="技术标签">
-          {project.tags.map((tag) => <span key={tag}>{tag}</span>)}
+          {project.tags.map((tag) => (
+            <span key={tag}>{tag}</span>
+          ))}
         </div>
       )}
       {/* 提示区保持挂载，避免定时健康检测打断已经展开的阅读。 */}
@@ -141,23 +153,42 @@ export function ProjectCard({
         <details className="project-details">
           <summary>登录与使用提示</summary>
           <dl className="federation-hints">
-            {project.roleInChain && <div><dt>在链路中</dt><dd>{project.roleInChain}</dd></div>}
-            {project.loginOrgHint && <div><dt>登录组织</dt><dd>{project.loginOrgHint}</dd></div>}
-            {project.ownerTenantHint && <div><dt>货主租户</dt><dd>{project.ownerTenantHint}</dd></div>}
+            {project.roleInChain && (
+              <div>
+                <dt>在链路中</dt>
+                <dd>{project.roleInChain}</dd>
+              </div>
+            )}
+            {project.loginOrgHint && (
+              <div>
+                <dt>登录组织</dt>
+                <dd>{project.loginOrgHint}</dd>
+              </div>
+            )}
+            {project.ownerTenantHint && (
+              <div>
+                <dt>货主租户</dt>
+                <dd>{project.ownerTenantHint}</dd>
+              </div>
+            )}
           </dl>
-          <p className="auth-hint">{project.ownerTenantHint
-            ? '各项目使用各自的登录组织；涉及货主的数据操作须选择同一业务租户。'
-            : '使用目标项目配置的组织账号登录，门户不会代为选择组织。'}</p>
+          <p className="auth-hint">
+            {project.ownerTenantHint
+              ? '各项目使用各自的登录组织；涉及货主的数据操作须选择同一业务租户。'
+              : '使用目标项目配置的组织账号登录，门户不会代为选择组织。'}
+          </p>
           {statusHint && <p className="auth-hint">{statusHint}</p>}
         </details>
       )}
       <div className="project-card__footer">
         <div>
           <span className="target-label">访问地址</span>
-          <span className="target-host" title={project.launchUrl}>{project.displayHost ?? '待配置'}</span>
+          <span className="target-host" title={project.launchUrl}>
+            {project.displayHost ?? '待配置'}
+          </span>
         </div>
         {action}
       </div>
     </article>
-  )
+  );
 }

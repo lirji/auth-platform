@@ -10,28 +10,51 @@ public final class GovernanceDtos {
     public record ResolveRequest(String tenantId, Long expectedMembershipGeneration) {}
 
     /** 只返回当前有效成员的引用与生命周期，不暴露其他人的组织目录。 */
-    public record MembershipView(String membershipId, String tenantId, String memberKind,
-                                 long membershipGeneration, long membershipVersion,
-                                 String validFrom, String validTo) {}
+    public record MembershipView(
+            String membershipId,
+            String tenantId,
+            String memberKind,
+            long membershipGeneration,
+            long membershipVersion,
+            String validFrom,
+            String validTo) {}
 
     /** 列表是有界快照，traceId 由服务端生成；接口没有创建成员的副作用。 */
     public record MembershipsResponse(List<MembershipView> memberships, String traceId) {
-        public MembershipsResponse { memberships = List.copyOf(memberships); }
+        public MembershipsResponse {
+            memberships = List.copyOf(memberships);
+        }
     }
 
     /** 身份上下文不是业务 ALLOW；app/environment/caller 只能来自受控服务绑定。 */
-    public record AccessContext(String principalId, String membershipId, long membershipGeneration,
-                                long membershipVersion, long principalVersion, String tenantId,
-                                String applicationId, String environment, String callerServiceId,
-                                String actorType, String traceId) {}
+    public record AccessContext(
+            String principalId,
+            String membershipId,
+            long membershipGeneration,
+            long membershipVersion,
+            long principalVersion,
+            String tenantId,
+            String applicationId,
+            String environment,
+            String callerServiceId,
+            String actorType,
+            String traceId) {}
 
     /** 原文证明不得进入默认日志输出。 */
     public record AcceptInvitationRequest(String invitationId, String token) {
-        @Override public String toString() { return "AcceptInvitationRequest[proof=redacted]"; }
+        @Override
+        public String toString() {
+            return "AcceptInvitationRequest[proof=redacted]";
+        }
     }
+
     /** 只确认成员结果；调用方仍需独立应用/业务判权。 */
-    public record InvitationAcceptance(String invitationId, String membershipId, long membershipGeneration,
-                                       String membershipStatus, String traceId) {}
+    public record InvitationAcceptance(
+            String invitationId,
+            String membershipId,
+            long membershipGeneration,
+            String membershipStatus,
+            String traceId) {}
 
     /** 错误只公开稳定 code/traceId，不传入 Token、SQL 或内部堆栈。 */
     public record ErrorResponse(String code, String traceId) {}

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.CatalogReleaseMapper">
- <sql id="columns">m.application_id application,m.version,m.content_hash,COALESCE(r.presentation_hash,d.presentation_hash) presentation_hash,m.published_by,
+  <sql id="columns">m.application_id application,m.version,m.content_hash,COALESCE(r.presentation_hash,d.presentation_hash) presentation_hash,m.published_by,
  to_char(m.published_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') published_at,
  r.command_id,r.command_hash,r.source_commit,r.artifact_hash,r.reason,r.decision,r.base_version,r.base_content_hash,r.base_presentation_hash,r.preview_json</sql>
- <sql id="joined">FROM auth_governance.application_manifest m
+  <sql id="joined">FROM auth_governance.application_manifest m
  LEFT JOIN auth_governance.catalog_release r ON r.application_id=m.application_id AND r.version=m.version
  LEFT JOIN auth_governance.application_manifest_presentation d ON d.application_id=m.application_id AND d.version=m.version</sql>
- <select id="history" resultType="com.lrj.authz.governance.persistence.CatalogReleaseMapper$Row">SELECT <include refid="columns"/> <include refid="joined"/>
+  <select id="history" resultType="com.lrj.authz.governance.persistence.CatalogReleaseMapper$Row">SELECT <include refid="columns"/> <include refid="joined"/>
  WHERE m.application_id=#{app} <if test="before != null">AND m.version &lt;#{before}</if> ORDER BY m.version DESC LIMIT #{limit}</select>
- <select id="version" resultType="com.lrj.authz.governance.persistence.CatalogReleaseMapper$Row">SELECT <include refid="columns"/> <include refid="joined"/> WHERE m.application_id=#{app} AND m.version=#{version}</select>
- <select id="command" resultType="com.lrj.authz.governance.persistence.CatalogReleaseMapper$Row">SELECT <include refid="columns"/> <include refid="joined"/> WHERE m.application_id=#{app} AND r.command_id=#{command}</select>
- <insert id="insert">INSERT INTO auth_governance.catalog_release(application_id,version,content_hash,presentation_hash,published_by,command_id,command_hash,
+  <select id="version" resultType="com.lrj.authz.governance.persistence.CatalogReleaseMapper$Row">SELECT <include refid="columns"/> <include refid="joined"/> WHERE m.application_id=#{app} AND m.version=#{version}</select>
+  <select id="command" resultType="com.lrj.authz.governance.persistence.CatalogReleaseMapper$Row">SELECT <include refid="columns"/> <include refid="joined"/> WHERE m.application_id=#{app} AND r.command_id=#{command}</select>
+  <insert id="insert">INSERT INTO auth_governance.catalog_release(application_id,version,content_hash,presentation_hash,published_by,command_id,command_hash,
  source_commit,artifact_hash,reason,decision,base_version,base_content_hash,base_presentation_hash,preview_json)
  VALUES(#{row.application},#{row.version},#{row.contentHash},#{row.presentationHash},#{row.publishedBy},#{row.commandId},#{row.commandHash},
  #{row.sourceCommit},#{row.artifactHash},#{row.reason},#{row.decision},#{row.baseVersion},#{row.baseContentHash},#{row.basePresentationHash},#{row.previewJson})</insert>

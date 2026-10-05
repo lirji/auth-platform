@@ -1,17 +1,17 @@
-import { useQuery } from '@tanstack/react-query'
-import { Button, Card, Table, Tag } from 'antd'
-import { ReloadOutlined } from '@ant-design/icons'
-import { useParams } from 'react-router-dom'
-import { PageHeader } from '../components/layout/PageHeader'
-import { ErrorState } from '../components/common/AsyncState'
-import { audit, type AuditRecord } from '../api/authz'
-import { wsQueryKey } from '../workspace/keys'
+import { useQuery } from '@tanstack/react-query';
+import { Button, Card, Table, Tag } from 'antd';
+import { ReloadOutlined } from '@ant-design/icons';
+import { useParams } from 'react-router-dom';
+import { PageHeader } from '../components/layout/PageHeader';
+import { ErrorState } from '../components/common/AsyncState';
+import { audit, type AuditRecord } from '../api/authz';
+import { wsQueryKey } from '../workspace/keys';
 
-const actionColor = (a: string) => (a === 'grant' ? 'green' : a === 'revoke' ? 'red' : 'blue')
+const actionColor = (a: string) => (a === 'grant' ? 'green' : a === 'revoke' ? 'red' : 'blue');
 
 export default function AuditPage() {
-  const { workspaceId = '' } = useParams()
-  const q = useQuery({ queryKey: wsQueryKey(workspaceId, 'audit'), queryFn: () => audit(200) })
+  const { workspaceId = '' } = useParams();
+  const q = useQuery({ queryKey: wsQueryKey(workspaceId, 'audit'), queryFn: () => audit(200) });
 
   return (
     <>
@@ -39,12 +39,25 @@ export default function AuditPage() {
             columns={[
               { title: '时间', dataIndex: 'at', width: 230 },
               { title: '操作人', dataIndex: 'actor', width: 120 },
-              { title: '动作', dataIndex: 'action', width: 90, render: (a: string) => <Tag color={actionColor(a)}>{a}</Tag> },
-              { title: '关系元组', dataIndex: 'detail', render: (d: string) => <code className="mono" style={{ fontSize: 12 }}>{d}</code> },
+              {
+                title: '动作',
+                dataIndex: 'action',
+                width: 90,
+                render: (a: string) => <Tag color={actionColor(a)}>{a}</Tag>,
+              },
+              {
+                title: '关系元组',
+                dataIndex: 'detail',
+                render: (d: string) => (
+                  <code className="mono" style={{ fontSize: 12 }}>
+                    {d}
+                  </code>
+                ),
+              },
             ]}
           />
         </Card>
       )}
     </>
-  )
+  );
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.IdentityMapper">
-    <select id="currentContext" resultType="com.lrj.authz.governance.domain.IdentityModels$CurrentContext">
+  <select id="currentContext" resultType="com.lrj.authz.governance.domain.IdentityModels$CurrentContext">
         -- 受控发布内需要新语句时点重验成员到期，不能冻结到事务开始时点。
         SELECT p.id AS principal_id, p.version AS principal_version, m.id AS membership_id,
             m.generation AS membership_generation, m.version AS membership_version, m.tenant_id
@@ -14,41 +14,41 @@
             AND m.valid_from &lt;= statement_timestamp()
             AND (m.valid_to IS NULL OR m.valid_to &gt; statement_timestamp())
     </select>
-    <insert id="insertPrincipal">
+  <insert id="insertPrincipal">
         INSERT INTO auth_governance.principal(id, kind, status, version)
         VALUES (#{id}, #{kind}, #{status}, #{version}) ON CONFLICT DO NOTHING
     </insert>
-    <select id="principal" resultType="com.lrj.authz.governance.domain.IdentityModels$Principal">
+  <select id="principal" resultType="com.lrj.authz.governance.domain.IdentityModels$Principal">
         SELECT id, kind, status, version FROM auth_governance.principal WHERE id = #{id}
     </select>
-    <insert id="insertLoginIdentity">
+  <insert id="insertLoginIdentity">
         INSERT INTO auth_governance.login_identity(issuer, subject, principal_id)
         VALUES (#{issuer}, #{subject}, #{principalId}) ON CONFLICT DO NOTHING
     </insert>
-    <select id="loginIdentity" resultType="com.lrj.authz.governance.domain.IdentityModels$LoginIdentity">
+  <select id="loginIdentity" resultType="com.lrj.authz.governance.domain.IdentityModels$LoginIdentity">
         SELECT issuer, subject, principal_id FROM auth_governance.login_identity
         WHERE issuer = #{issuer} AND subject = #{subject}
     </select>
-    <insert id="insertTenant">
+  <insert id="insertTenant">
         INSERT INTO auth_governance.tenant(id, code, status, version)
         VALUES (#{id}, #{code}, #{status}, #{version}) ON CONFLICT DO NOTHING
     </insert>
-    <select id="tenant" resultType="com.lrj.authz.governance.domain.IdentityModels$Tenant">
+  <select id="tenant" resultType="com.lrj.authz.governance.domain.IdentityModels$Tenant">
         SELECT id, code, status, version FROM auth_governance.tenant WHERE id = #{id}
     </select>
-    <insert id="insertMembership">
+  <insert id="insertMembership">
         INSERT INTO auth_governance.membership(id, tenant_id, principal_id, member_kind, status,
             generation, version, valid_from, valid_to, sponsor_membership_id)
         VALUES (#{id}, #{tenantId}, #{principalId}, #{memberKind}, #{status},
             #{generation}, #{version}, #{validFrom}, #{validTo,jdbcType=TIMESTAMP_WITH_TIMEZONE},
             #{sponsorMembershipId,jdbcType=VARCHAR}) ON CONFLICT DO NOTHING
     </insert>
-    <select id="membership" resultType="com.lrj.authz.governance.domain.IdentityModels$Membership">
+  <select id="membership" resultType="com.lrj.authz.governance.domain.IdentityModels$Membership">
         SELECT id, tenant_id, principal_id, member_kind, status, generation, version,
             valid_from, valid_to, sponsor_membership_id
         FROM auth_governance.membership WHERE id = #{id}
     </select>
-    <select id="activeMemberships" resultType="com.lrj.authz.governance.domain.IdentityModels$Membership">
+  <select id="activeMemberships" resultType="com.lrj.authz.governance.domain.IdentityModels$Membership">
         SELECT m.id, m.tenant_id, m.principal_id, m.member_kind, m.status, m.generation, m.version,
             m.valid_from, m.valid_to, m.sponsor_membership_id
         FROM auth_governance.membership m
@@ -60,58 +60,58 @@
             AND (m.valid_to IS NULL OR m.valid_to &gt; CURRENT_TIMESTAMP)
         ORDER BY m.tenant_id, m.id LIMIT 101
     </select>
-    <insert id="insertLegacyBinding">
+  <insert id="insertLegacyBinding">
         INSERT INTO auth_governance.legacy_identity_binding(source_system, source_tenant_ref,
             source_subject_ref, principal_id, membership_id, tenant_id)
         VALUES (#{sourceSystem}, #{sourceTenantRef}, #{sourceSubjectRef}, #{principalId},
             #{membershipId}, #{tenantId}) ON CONFLICT DO NOTHING
     </insert>
-    <select id="legacyBinding" resultType="com.lrj.authz.governance.domain.IdentityModels$LegacyBinding">
+  <select id="legacyBinding" resultType="com.lrj.authz.governance.domain.IdentityModels$LegacyBinding">
         SELECT source_system, source_tenant_ref, source_subject_ref, principal_id, membership_id, tenant_id
         FROM auth_governance.legacy_identity_binding WHERE source_system = #{sourceSystem}
             AND source_tenant_ref = #{sourceTenantRef} AND source_subject_ref = #{sourceSubjectRef}
     </select>
-    <insert id="reserveCommand">
+  <insert id="reserveCommand">
         INSERT INTO auth_governance.command_record(operator_ref, tenant_id, operation, command_id, payload_hash)
         VALUES (#{operatorRef}, #{tenantId}, #{operation}, #{commandId}, #{payloadHash})
         ON CONFLICT DO NOTHING
     </insert>
-    <select id="lockCommand" resultType="com.lrj.authz.governance.persistence.IdentityMapper$CommandRow">
+  <select id="lockCommand" resultType="com.lrj.authz.governance.persistence.IdentityMapper$CommandRow">
         SELECT payload_hash, result_ref, completed FROM auth_governance.command_record
         WHERE operator_ref = #{operatorRef} AND tenant_id = #{tenantId}
             AND operation = #{operation} AND command_id = #{commandId} FOR UPDATE
     </select>
-    <update id="completeCommand">
+  <update id="completeCommand">
         UPDATE auth_governance.command_record SET completed = true, result_ref = #{resultRef}
         WHERE operator_ref = #{operatorRef} AND tenant_id = #{tenantId} AND operation = #{operation}
             AND command_id = #{commandId} AND completed = false
     </update>
-    <insert id="appendAudit">
+  <insert id="appendAudit">
         INSERT INTO auth_governance.audit_event(id, operator_ref, tenant_id, operation, target_id,
             target_version, command_id)
         VALUES (#{id}, #{operatorRef}, #{tenantId}, #{operation}, #{targetId}, #{targetVersion}, #{commandId})
     </insert>
-    <update id="compareAndSetMemberStatus">
+  <update id="compareAndSetMemberStatus">
         UPDATE auth_governance.membership SET status = #{newStatus}, version = version + 1,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = #{id} AND version = #{expectedVersion} AND status = #{oldStatus}
     </update>
-    <update id="suspendMember">
+  <update id="suspendMember">
         UPDATE auth_governance.membership SET status = 'SUSPENDED', version = version + 1,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = #{id} AND tenant_id = #{tenantId} AND version = #{expectedVersion} AND status = 'ACTIVE'
     </update>
-    <update id="suspendPrincipal">
+  <update id="suspendPrincipal">
         UPDATE auth_governance.principal SET status = 'SUSPENDED', version = version + 1
         WHERE id = #{id} AND version = #{expectedVersion} AND status = 'ACTIVE'
     </update>
-    <insert id="appendLifecycleAudit">
+  <insert id="appendLifecycleAudit">
         INSERT INTO auth_governance.audit_event(id, operator_ref, tenant_id, operation, target_id,
             target_version, command_id, reason, previous_status, resulting_status, previous_version)
         VALUES (#{id}, #{operatorRef}, #{tenantId}, #{operation}, #{targetId}, #{targetVersion}, #{commandId},
             #{reason}, #{previousStatus}, #{resultingStatus}, #{previousVersion})
     </insert>
-    <update id="leaveExternalMember">
+  <update id="leaveExternalMember">
         UPDATE auth_governance.membership SET status = 'LEFT', version = version + 1, updated_at = clock_timestamp()
         WHERE id = #{id} AND tenant_id = #{tenantId} AND version = #{expectedVersion} AND status = 'ACTIVE'
             AND member_kind IN ('PARTNER', 'GUEST')

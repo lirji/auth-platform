@@ -1,32 +1,47 @@
 package com.lrj.authz.governance.application;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.lrj.authz.governance.authentication.*;
 import com.lrj.authz.governance.domain.IdentityModels.CurrentContext;
 import com.lrj.authz.protocol.GovernanceDtos.ResolveRequest;
+
+import org.junit.jupiter.api.Test;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.List;
-import org.junit.jupiter.api.Test;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 /** 验证双身份顺序和不可覆盖的调用方绑定；真实数据库语义由 PG IT 证明。 */
 class InternalContextServiceTest {
     private static final String SERVICE = "isolated-fixture-service-credential-32-bytes";
 
-    @Test void rejectsServiceBeforeTouchingUserOrDatabase() throws Exception {
+    @Test
+    void rejectsServiceBeforeTouchingUserOrDatabase() throws Exception {
         var tokens = mock(CasdoorAccessTokenVerifier.class);
         var identity = mock(IdentityGovernance.class);
         var service = new InternalContextService(List.of(caller(tokens)), identity);
-        assertThatThrownBy(() -> service.resolve("invalid", "user-token", new ResolveRequest("tenant", null)))
-                .isInstanceOfSatisfying(GovernanceException.class, ex -> assertThat(ex.code()).isEqualTo(GovernanceException.Code.INVALID_CREDENTIAL));
+        assertThatThrownBy(
+                        () ->
+                                service.resolve(
+                                        "invalid",
+                                        "user-token",
+                                        new ResolveRequest("tenant", null)))
+                .isInstanceOfSatisfying(
+                        GovernanceException.class,
+                        ex ->
+                                assertThat(ex.code())
+                                        .isEqualTo(GovernanceException.Code.INVALID_CREDENTIAL));
         verifyNoInteractions(tokens, identity);
     }
 
-    @Test void resolvesOnlyVerifiedUserAndFixedCallerBinding() throws Exception {
+    @Test
+    void resolvesOnlyVerifiedUserAndFixedCallerBinding() throws Exception {
         var tokens = mock(CasdoorAccessTokenVerifier.class);
         var identity = mock(IdentityGovernance.class);
-        when(tokens.verify("user-token")).thenReturn(new VerifiedLogin("https://issuer.example", "subject"));
+        when(tokens.verify("user-token"))
+                .thenReturn(new VerifiedLogin("https://issuer.example", "subject"));
         when(identity.contextForLogin("https://issuer.example", "subject", "tenant", 2L))
                 .thenReturn(new CurrentContext("principal", 3, "membership", 2, 4, "tenant"));
         var service = new InternalContextService(List.of(caller(tokens)), identity);
@@ -41,19 +56,30 @@ class InternalContextServiceTest {
         verify(identity).contextForLogin("https://issuer.example", "subject", "tenant", 2L);
     }
 
-    @Test void duplicateCredentialsCannotSelectMultipleApplications() throws Exception {
+    @Test
+    void duplicateCredentialsCannotSelectMultipleApplications() throws Exception {
         var tokens = mock(CasdoorAccessTokenVerifier.class);
         var caller = caller(tokens);
-        var other = new CallerService("other", "other-app", "test", caller.credentialHash(), tokens);
-        assertThatThrownBy(() -> new InternalContextService(List.of(caller, other), mock(IdentityGovernance.class)))
+        var other =
+                new CallerService("other", "other-app", "test", caller.credentialHash(), tokens);
+        assertThatThrownBy(
+                        () ->
+                                new InternalContextService(
+                                        List.of(caller, other), mock(IdentityGovernance.class)))
                 .isInstanceOf(GovernanceException.class);
-        var copy = caller.credentialHash(); copy[0] ^= 1;
+        var copy = caller.credentialHash();
+        copy[0] ^= 1;
         assertThat(caller.credentialHash()).isNotEqualTo(copy);
         assertThat(caller.toString()).doesNotContain(SERVICE);
     }
 
     private static CallerService caller(CasdoorAccessTokenVerifier tokens) throws Exception {
-        return new CallerService("registered-service", "registered-app", "test",
-                MessageDigest.getInstance("SHA-256").digest(SERVICE.getBytes(StandardCharsets.UTF_8)), tokens);
+        return new CallerService(
+                "registered-service",
+                "registered-app",
+                "test",
+                MessageDigest.getInstance("SHA-256")
+                        .digest(SERVICE.getBytes(StandardCharsets.UTF_8)),
+                tokens);
     }
 }

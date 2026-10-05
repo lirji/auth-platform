@@ -1,4 +1,4 @@
-import { Select } from 'antd'
+import { Select } from 'antd';
 import {
   OBJECT_TYPES,
   PERMISSIONS,
@@ -6,7 +6,7 @@ import {
   permissionsFor,
   relationsFor,
   type ObjectType,
-} from '../../domain/lexicon'
+} from '../../domain/lexicon';
 
 export function ObjectTypeSelect({
   value,
@@ -14,10 +14,10 @@ export function ObjectTypeSelect({
   exclude,
   id,
 }: {
-  value?: ObjectType
-  onChange: (v: ObjectType) => void
-  exclude?: ObjectType[]
-  id?: string
+  value?: ObjectType;
+  onChange: (v: ObjectType) => void;
+  exclude?: ObjectType[];
+  id?: string;
 }) {
   return (
     <Select<ObjectType>
@@ -26,9 +26,12 @@ export function ObjectTypeSelect({
       onChange={onChange}
       style={{ width: '100%' }}
       placeholder="对象类型"
-      options={OBJECT_TYPES.filter((o) => !exclude?.includes(o.value)).map((o) => ({ value: o.value, label: o.label }))}
+      options={OBJECT_TYPES.filter((o) => !exclude?.includes(o.value)).map((o) => ({
+        value: o.value,
+        label: o.label,
+      }))}
     />
-  )
+  );
 }
 
 export function RelationSelect({
@@ -37,14 +40,14 @@ export function RelationSelect({
   onChange,
   id,
 }: {
-  resourceType?: ObjectType
-  value?: string
-  onChange: (v: string) => void
-  id?: string
+  resourceType?: ObjectType;
+  value?: string;
+  onChange: (v: string) => void;
+  id?: string;
 }) {
   const options = resourceType
     ? relationsFor(resourceType).map((r) => ({ value: r, label: RELATIONS[r]?.label ?? r }))
-    : []
+    : [];
   return (
     <Select
       id={id}
@@ -55,7 +58,7 @@ export function RelationSelect({
       options={options}
       notFoundContent="该对象类型无可授予关系"
     />
-  )
+  );
 }
 
 export function PermissionSelect({
@@ -64,14 +67,14 @@ export function PermissionSelect({
   onChange,
   id,
 }: {
-  resourceType?: ObjectType
-  value?: string
-  onChange: (v: string) => void
-  id?: string
+  resourceType?: ObjectType;
+  value?: string;
+  onChange: (v: string) => void;
+  id?: string;
 }) {
   const options = resourceType
     ? permissionsFor(resourceType).map((p) => ({ value: p, label: PERMISSIONS[p]?.label ?? p }))
-    : []
+    : [];
   return (
     <Select
       id={id}
@@ -81,5 +84,5 @@ export function PermissionSelect({
       placeholder="权限(可判定)"
       options={options}
     />
-  )
+  );
 }

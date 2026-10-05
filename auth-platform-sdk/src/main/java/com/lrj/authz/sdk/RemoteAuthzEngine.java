@@ -3,6 +3,7 @@ package com.lrj.authz.sdk;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lrj.authz.protocol.*;
+
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
@@ -25,7 +26,11 @@ public class RemoteAuthzEngine implements AuthzEngine {
     }
 
     public RemoteAuthzEngine(String serverBaseUrl, String token) {
-        this(serverBaseUrl, token, java.time.Duration.ofSeconds(2), java.time.Duration.ofSeconds(5));
+        this(
+                serverBaseUrl,
+                token,
+                java.time.Duration.ofSeconds(2),
+                java.time.Duration.ofSeconds(5));
     }
 
     /**
@@ -35,15 +40,18 @@ public class RemoteAuthzEngine implements AuthzEngine {
      *                       底层用 JDK HttpClient（连接池化 keep-alive）——SimpleClientHttpRequestFactory 的
      *                       HttpURLConnection 每主机默认仅 5 条持久连接,高并发判权会在建连上排队。
      */
-    public RemoteAuthzEngine(String serverBaseUrl, String token,
-                             java.time.Duration connectTimeout, java.time.Duration readTimeout) {
-        java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
-                .connectTimeout(connectTimeout)
-                .build();
+    public RemoteAuthzEngine(
+            String serverBaseUrl,
+            String token,
+            java.time.Duration connectTimeout,
+            java.time.Duration readTimeout) {
+        java.net.http.HttpClient httpClient =
+                java.net.http.HttpClient.newBuilder().connectTimeout(connectTimeout).build();
         org.springframework.http.client.JdkClientHttpRequestFactory factory =
                 new org.springframework.http.client.JdkClientHttpRequestFactory(httpClient);
         factory.setReadTimeout(readTimeout);
-        RestClient.Builder builder = RestClient.builder().requestFactory(factory).baseUrl(serverBaseUrl);
+        RestClient.Builder builder =
+                RestClient.builder().requestFactory(factory).baseUrl(serverBaseUrl);
         if (token != null && !token.isBlank()) {
             builder = builder.defaultHeaders(h -> h.setBearerAuth(token));
         }
@@ -51,7 +59,8 @@ public class RemoteAuthzEngine implements AuthzEngine {
     }
 
     @Override
-    public boolean check(SubjectRef subject, String permission, ResourceRef resource, Consistency consistency) {
+    public boolean check(
+            SubjectRef subject, String permission, ResourceRef resource, Consistency consistency) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("subject", subject);
         body.put("permission", permission);
@@ -61,7 +70,11 @@ public class RemoteAuthzEngine implements AuthzEngine {
     }
 
     @Override
-    public Map<ResourceRef, Boolean> checkBulk(SubjectRef subject, String permission, List<ResourceRef> resources, Consistency consistency) {
+    public Map<ResourceRef, Boolean> checkBulk(
+            SubjectRef subject,
+            String permission,
+            List<ResourceRef> resources,
+            Consistency consistency) {
         if (resources == null || resources.isEmpty()) {
             return new LinkedHashMap<>();
         }
@@ -82,9 +95,12 @@ public class RemoteAuthzEngine implements AuthzEngine {
     static Map<ResourceRef, Boolean> parseCheckBulk(JsonNode root, List<ResourceRef> resources) {
         JsonNode results = root.path("results");
         if (!results.isArray() || results.size() != resources.size()) {
-            throw new IllegalStateException("check-bulk 响应基数不符: 期望 " + resources.size()
-                    + " 条, 实际 " + (results.isArray() ? String.valueOf(results.size()) : "非数组/缺失")
-                    + " —— 判权结果不可信");
+            throw new IllegalStateException(
+                    "check-bulk 响应基数不符: 期望 "
+                            + resources.size()
+                            + " 条, 实际 "
+                            + (results.isArray() ? String.valueOf(results.size()) : "非数组/缺失")
+                            + " —— 判权结果不可信");
         }
         java.util.Set<ResourceRef> requested = new java.util.HashSet<>(resources);
         Map<ResourceRef, Boolean> parsed = new LinkedHashMap<>();
@@ -120,14 +136,18 @@ public class RemoteAuthzEngine implements AuthzEngine {
     private static boolean requireAllowed(JsonNode item, String op) {
         JsonNode allowed = item.path("allowed");
         if (!allowed.isBoolean()) {
-            throw new IllegalStateException(op + " 响应缺少布尔字段 allowed(实际类型: "
-                    + (allowed.isMissingNode() ? "缺失" : allowed.getNodeType()) + ") —— 判权结果不可信");
+            throw new IllegalStateException(
+                    op
+                            + " 响应缺少布尔字段 allowed(实际类型: "
+                            + (allowed.isMissingNode() ? "缺失" : allowed.getNodeType())
+                            + ") —— 判权结果不可信");
         }
         return allowed.booleanValue();
     }
 
     @Override
-    public List<String> lookupResources(SubjectRef subject, String permission, String resourceType, Consistency consistency) {
+    public List<String> lookupResources(
+            SubjectRef subject, String permission, String resourceType, Consistency consistency) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("subject", subject);
         body.put("permission", permission);
@@ -139,34 +159,49 @@ public class RemoteAuthzEngine implements AuthzEngine {
     }
 
     @Override
-    public List<SubjectRef> lookupSubjects(ResourceRef resource, String permission, String subjectType, Consistency consistency) {
+    public List<SubjectRef> lookupSubjects(
+            ResourceRef resource, String permission, String subjectType, Consistency consistency) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("resource", resource);
         body.put("permission", permission);
         body.put("subjectType", subjectType);
         putConsistency(body, consistency);
         List<SubjectRef> subjects = new ArrayList<>();
-        post("/v1/lookup-subjects", body).path("subjects").forEach(n ->
-                subjects.add(new SubjectRef(n.path("type").asText(), n.path("id").asText(),
-                        n.path("relation").isNull() ? null : n.path("relation").asText(null))));
+        post("/v1/lookup-subjects", body)
+                .path("subjects")
+                .forEach(
+                        n ->
+                                subjects.add(
+                                        new SubjectRef(
+                                                n.path("type").asText(),
+                                                n.path("id").asText(),
+                                                n.path("relation").isNull()
+                                                        ? null
+                                                        : n.path("relation").asText(null))));
         return subjects;
     }
 
     @Override
     public ZedTokenView writeRelationships(List<RelationshipUpdate> updates) {
-        return new ZedTokenView(post("/v1/relationships", Map.of("updates", updates)).path("token").asText(null));
+        return new ZedTokenView(
+                post("/v1/relationships", Map.of("updates", updates)).path("token").asText(null));
     }
 
     @Override
     public ZedTokenView deleteRelationships(RelationshipFilter filter) {
-        return new ZedTokenView(post("/v1/relationships/delete", Map.of("filter", filter)).path("token").asText(null));
+        return new ZedTokenView(
+                post("/v1/relationships/delete", Map.of("filter", filter))
+                        .path("token")
+                        .asText(null));
     }
 
     @Override
     public String readSchema() {
         String resp = rest.get().uri("/v1/schema").retrieve().body(String.class);
         try {
-            return mapper.readTree(resp == null || resp.isBlank() ? "{}" : resp).path("schema").asText("");
+            return mapper.readTree(resp == null || resp.isBlank() ? "{}" : resp)
+                    .path("schema")
+                    .asText("");
         } catch (Exception e) {
             throw new IllegalStateException("auth-platform-server 响应解析失败: " + e.getMessage(), e);
         }
@@ -184,12 +219,24 @@ public class RemoteAuthzEngine implements AuthzEngine {
     @Override
     public List<Relationship> readRelationships(RelationshipFilter filter) {
         List<Relationship> out = new ArrayList<>();
-        post("/v1/relationships/read", Map.of("filter", filter)).path("relationships").forEach(n ->
-                out.add(new Relationship(
-                        new ResourceRef(n.path("resource").path("type").asText(), n.path("resource").path("id").asText()),
-                        n.path("relation").asText(),
-                        new SubjectRef(n.path("subject").path("type").asText(), n.path("subject").path("id").asText(),
-                                n.path("subject").path("relation").isNull() ? null : n.path("subject").path("relation").asText(null)))));
+        post("/v1/relationships/read", Map.of("filter", filter))
+                .path("relationships")
+                .forEach(
+                        n ->
+                                out.add(
+                                        new Relationship(
+                                                new ResourceRef(
+                                                        n.path("resource").path("type").asText(),
+                                                        n.path("resource").path("id").asText()),
+                                                n.path("relation").asText(),
+                                                new SubjectRef(
+                                                        n.path("subject").path("type").asText(),
+                                                        n.path("subject").path("id").asText(),
+                                                        n.path("subject").path("relation").isNull()
+                                                                ? null
+                                                                : n.path("subject")
+                                                                        .path("relation")
+                                                                        .asText(null)))));
         return out;
     }
 
@@ -198,11 +245,13 @@ public class RemoteAuthzEngine implements AuthzEngine {
             return;
         }
         Map<String, Object> dto = new LinkedHashMap<>();
-        dto.put("mode", switch (c.mode()) {
-            case MINIMIZE_LATENCY -> "minimize_latency";
-            case FULLY_CONSISTENT -> "full";
-            case AT_LEAST_AS_FRESH -> "at_least_as_fresh";
-        });
+        dto.put(
+                "mode",
+                switch (c.mode()) {
+                    case MINIMIZE_LATENCY -> "minimize_latency";
+                    case FULLY_CONSISTENT -> "full";
+                    case AT_LEAST_AS_FRESH -> "at_least_as_fresh";
+                });
         if (c.zedToken() != null) {
             dto.put("zedToken", c.zedToken());
         }
@@ -210,11 +259,13 @@ public class RemoteAuthzEngine implements AuthzEngine {
     }
 
     private JsonNode post(String path, Object body) {
-        String resp = rest.post().uri(path)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .body(String.class);
+        String resp =
+                rest.post()
+                        .uri(path)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(body)
+                        .retrieve()
+                        .body(String.class);
         try {
             return mapper.readTree(resp == null || resp.isBlank() ? "{}" : resp);
         } catch (Exception e) {

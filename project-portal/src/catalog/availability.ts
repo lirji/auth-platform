@@ -1,9 +1,9 @@
-import type { ProjectEntry, ProjectReachability } from './types'
+import type { ProjectEntry, ProjectReachability } from './types';
 
-export type AvailabilityResponse = Pick<Response, 'ok'>
-export type AvailabilityRequest = (url: string, init: RequestInit) => Promise<AvailabilityResponse>
+export type AvailabilityResponse = Pick<Response, 'ok'>;
+export type AvailabilityRequest = (url: string, init: RequestInit) => Promise<AvailabilityResponse>;
 
-const DEFAULT_TIMEOUT_MS = 3_500
+const DEFAULT_TIMEOUT_MS = 3_500;
 
 /**
  * 请求目标项目显式开放 CORS 的健康端点，不携带用户凭据。
@@ -14,10 +14,10 @@ export async function probeProjectReachability(
   request: AvailabilityRequest = fetch,
   timeoutMs = DEFAULT_TIMEOUT_MS,
 ): Promise<ProjectReachability> {
-  if (project.status !== 'available' || !project.healthUrl) return 'unchecked'
+  if (project.status !== 'available' || !project.healthUrl) return 'unchecked';
 
-  const controller = new AbortController()
-  const timeout = globalThis.setTimeout(() => controller.abort(), timeoutMs)
+  const controller = new AbortController();
+  const timeout = globalThis.setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await request(project.healthUrl, {
       method: 'GET',
@@ -27,11 +27,11 @@ export async function probeProjectReachability(
       redirect: 'follow',
       referrerPolicy: 'no-referrer',
       signal: controller.signal,
-    })
-    return response.ok ? 'online' : 'offline'
+    });
+    return response.ok ? 'online' : 'offline';
   } catch {
-    return 'offline'
+    return 'offline';
   } finally {
-    globalThis.clearTimeout(timeout)
+    globalThis.clearTimeout(timeout);
   }
 }

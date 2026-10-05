@@ -9,7 +9,11 @@ package com.lrj.authz.protocol;
  * </ul>
  */
 public record Consistency(Mode mode, String zedToken) {
-    public enum Mode { MINIMIZE_LATENCY, AT_LEAST_AS_FRESH, FULLY_CONSISTENT }
+    public enum Mode {
+        MINIMIZE_LATENCY,
+        AT_LEAST_AS_FRESH,
+        FULLY_CONSISTENT
+    }
 
     public static Consistency minimizeLatency() {
         return new Consistency(Mode.MINIMIZE_LATENCY, null);

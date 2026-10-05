@@ -26,9 +26,10 @@ public class CasdoorSyncController {
     private final ObjectProvider<DepartmentSyncService> deptSyncProvider;
     private final String webhookSecret;
 
-    public CasdoorSyncController(ObjectProvider<GroupSyncService> syncProvider,
-                                 ObjectProvider<DepartmentSyncService> deptSyncProvider,
-                                 @Value("${authz.security.webhook-secret:}") String webhookSecret) {
+    public CasdoorSyncController(
+            ObjectProvider<GroupSyncService> syncProvider,
+            ObjectProvider<DepartmentSyncService> deptSyncProvider,
+            @Value("${authz.security.webhook-secret:}") String webhookSecret) {
         this.syncProvider = syncProvider;
         this.deptSyncProvider = deptSyncProvider;
         this.webhookSecret = webhookSecret;
@@ -49,7 +50,8 @@ public class CasdoorSyncController {
     public ResponseEntity<?> syncDepartments() {
         DepartmentSyncService sync = deptSyncProvider.getIfAvailable();
         if (sync == null) {
-            return ResponseEntity.status(409).body(Map.of("error", "authz.casdoor.department-sync-enabled=false"));
+            return ResponseEntity.status(409)
+                    .body(Map.of("error", "authz.casdoor.department-sync-enabled=false"));
         }
         return ResponseEntity.ok(sync.sync());
     }
@@ -59,11 +61,14 @@ public class CasdoorSyncController {
      * SecurityConfig 放行本端点(非用户 token),改用共享密钥头 X-Webhook-Secret 校验(常量时间比较)。
      */
     @PostMapping("/webhook")
-    public ResponseEntity<?> webhook(@RequestHeader(value = "X-Webhook-Secret", required = false) String secret,
-                                     @RequestBody(required = false) String body) {
+    public ResponseEntity<?> webhook(
+            @RequestHeader(value = "X-Webhook-Secret", required = false) String secret,
+            @RequestBody(required = false) String body) {
         if (webhookSecret != null && !webhookSecret.isBlank()) {
-            if (secret == null || !MessageDigest.isEqual(
-                    secret.getBytes(StandardCharsets.UTF_8), webhookSecret.getBytes(StandardCharsets.UTF_8))) {
+            if (secret == null
+                    || !MessageDigest.isEqual(
+                            secret.getBytes(StandardCharsets.UTF_8),
+                            webhookSecret.getBytes(StandardCharsets.UTF_8))) {
                 return ResponseEntity.status(401).body(Map.of("error", "invalid webhook secret"));
             }
         }

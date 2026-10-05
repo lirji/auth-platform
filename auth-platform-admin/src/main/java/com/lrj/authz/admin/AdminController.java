@@ -7,6 +7,7 @@ import com.lrj.authz.protocol.Consistency;
 import com.lrj.authz.protocol.RelationshipUpdate;
 import com.lrj.authz.protocol.ResourceRef;
 import com.lrj.authz.protocol.SubjectRef;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,12 +32,14 @@ import java.util.List;
 @RequestMapping("/admin")
 public class AdminController {
 
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminController.class);
+    private static final org.slf4j.Logger log =
+            org.slf4j.LoggerFactory.getLogger(AdminController.class);
 
     private final AuthzEngine engine;
     private final AuditStore audit;
     private final WorkspaceRegistry workspaces;
-    private final com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+    private final com.fasterxml.jackson.databind.ObjectMapper mapper =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     /** 单测入口：不按工作区隔离审计。 */
     public AdminController(AuthzEngine engine, AuditStore audit) {
@@ -52,17 +55,27 @@ public class AdminController {
 
     /** 授予一条关系 (TOUCH, 幂等)。两段审计见类注释。 */
     @PostMapping("/grants")
-    public TokenResponse grant(@RequestBody GrantRequest req,
-                               @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
-        return writeWithAudit(actor(jwt), "grant", tupleOf(req),
+    public TokenResponse grant(
+            @RequestBody GrantRequest req,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal
+                    org.springframework.security.oauth2.jwt.Jwt jwt) {
+        return writeWithAudit(
+                actor(jwt),
+                "grant",
+                tupleOf(req),
                 RelationshipUpdate.touch(resource(req), req.relation(), subject(req)));
     }
 
     /** 撤销一条关系 (DELETE 单条元组)。两段审计见类注释。 */
     @PostMapping("/grants/revoke")
-    public TokenResponse revoke(@RequestBody GrantRequest req,
-                                @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
-        return writeWithAudit(actor(jwt), "revoke", tupleOf(req),
+    public TokenResponse revoke(
+            @RequestBody GrantRequest req,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal
+                    org.springframework.security.oauth2.jwt.Jwt jwt) {
+        return writeWithAudit(
+                actor(jwt),
+                "revoke",
+                tupleOf(req),
                 RelationshipUpdate.delete(resource(req), req.relation(), subject(req)));
     }
 
@@ -70,7 +83,8 @@ public class AdminController {
      * 两段审计地执行一次单元组写：intent（不捕获，审计挂了则整体 fail-closed 不写）→ 写 SpiceDB →
      * ok（成功）/ fail（失败，best-effort 后重抛原异常）。保证任何 SpiceDB 数据面变更前必有一条 intent 记录。
      */
-    private TokenResponse writeWithAudit(String actor, String action, String tuple, RelationshipUpdate update) {
+    private TokenResponse writeWithAudit(
+            String actor, String action, String tuple, RelationshipUpdate update) {
         String detail = scopedDetail(tuple);
         audit.record(actor, action + ".intent", detail);
         String token;
@@ -95,22 +109,37 @@ public class AdminController {
 
     /** 谁对该资源拥有某权限 (反查主体)。 */
     @GetMapping("/resources/{type}/{id}/subjects")
-    public SubjectsResponse subjects(@PathVariable String type, @PathVariable String id,
-                                     @RequestParam String permission,
-                                     @RequestParam(defaultValue = "user") String subjectType) {
-        List<SubjectView> subjects = engine
-                .lookupSubjects(ResourceRef.of(type, id), permission, subjectType, Consistency.fullyConsistent())
-                .stream().map(s -> new SubjectView(s.type(), s.id())).toList();
+    public SubjectsResponse subjects(
+            @PathVariable String type,
+            @PathVariable String id,
+            @RequestParam String permission,
+            @RequestParam(defaultValue = "user") String subjectType) {
+        List<SubjectView> subjects =
+                engine
+                        .lookupSubjects(
+                                ResourceRef.of(type, id),
+                                permission,
+                                subjectType,
+                                Consistency.fullyConsistent())
+                        .stream()
+                        .map(s -> new SubjectView(s.type(), s.id()))
+                        .toList();
         return new SubjectsResponse(subjects);
     }
 
     /** 某主体对某类型对象拥有某权限的全部对象 (反查资源)。 */
     @GetMapping("/subjects/{type}/{id}/resources")
-    public ResourcesResponse resources(@PathVariable String type, @PathVariable String id,
-                                       @RequestParam String permission,
-                                       @RequestParam String resourceType) {
-        return new ResourcesResponse(engine.lookupResources(
-                SubjectRef.of(type, id), permission, resourceType, Consistency.fullyConsistent()));
+    public ResourcesResponse resources(
+            @PathVariable String type,
+            @PathVariable String id,
+            @RequestParam String permission,
+            @RequestParam String resourceType) {
+        return new ResourcesResponse(
+                engine.lookupResources(
+                        SubjectRef.of(type, id),
+                        permission,
+                        resourceType,
+                        Consistency.fullyConsistent()));
     }
 
     /** 读取授权模型 (.zed schema 文本), 供管控台可视化。 */
@@ -122,11 +151,12 @@ public class AdminController {
     /** 权限调试器: 单条判定。 */
     @PostMapping("/check")
     public CheckResponse check(@RequestBody CheckRequest req) {
-        boolean allowed = engine.check(
-                SubjectRef.of(req.subjectType(), req.subjectId()),
-                req.permission(),
-                ResourceRef.of(req.resourceType(), req.resourceId()),
-                Consistency.fullyConsistent());
+        boolean allowed =
+                engine.check(
+                        SubjectRef.of(req.subjectType(), req.subjectId()),
+                        req.permission(),
+                        ResourceRef.of(req.resourceType(), req.resourceId()),
+                        Consistency.fullyConsistent());
         return new CheckResponse(allowed);
     }
 
@@ -134,8 +164,11 @@ public class AdminController {
     @PostMapping("/expand")
     public com.fasterxml.jackson.databind.JsonNode expand(@RequestBody CheckRequest req) {
         try {
-            return mapper.readTree(engine.expand(
-                    ResourceRef.of(req.resourceType(), req.resourceId()), req.permission(), Consistency.fullyConsistent()));
+            return mapper.readTree(
+                    engine.expand(
+                            ResourceRef.of(req.resourceType(), req.resourceId()),
+                            req.permission(),
+                            Consistency.fullyConsistent()));
         } catch (Exception e) {
             throw new IllegalStateException("expand 解析失败: " + e.getMessage(), e);
         }
@@ -147,12 +180,14 @@ public class AdminController {
             @RequestParam String resourceType,
             @RequestParam(required = false) String resourceId,
             @RequestParam(required = false) String relation) {
-        return engine.readRelationships(com.lrj.authz.protocol.RelationshipFilter.of(resourceType, resourceId, relation));
+        return engine.readRelationships(
+                com.lrj.authz.protocol.RelationshipFilter.of(resourceType, resourceId, relation));
     }
 
     /** 审计日志。带工作区时只返回当前 SpiceDB 工作区写入的记录，避免跨项目串看授予细节。 */
     @GetMapping("/audit")
-    public java.util.List<AuditStore.AuditRecord> auditLog(@RequestParam(defaultValue = "100") int limit) {
+    public java.util.List<AuditStore.AuditRecord> auditLog(
+            @RequestParam(defaultValue = "100") int limit) {
         int cap = Math.max(1, limit);
         if (workspaces == null) {
             return audit.recent(cap);
@@ -160,7 +195,13 @@ public class AdminController {
         String prefix = workspacePrefix();
         return audit.recent(Math.min(500, Math.max(cap * 8, cap))).stream()
                 .filter(r -> r.detail() != null && r.detail().startsWith(prefix))
-                .map(r -> new AuditStore.AuditRecord(r.at(), r.actor(), r.action(), r.detail().substring(prefix.length())))
+                .map(
+                        r ->
+                                new AuditStore.AuditRecord(
+                                        r.at(),
+                                        r.actor(),
+                                        r.action(),
+                                        r.detail().substring(prefix.length())))
                 .limit(cap)
                 .toList();
     }
@@ -182,8 +223,13 @@ public class AdminController {
     }
 
     private static String tupleOf(GrantRequest req) {
-        String subj = req.subjectType() + ":" + req.subjectId()
-                + (req.subjectRelation() != null && !req.subjectRelation().isBlank() ? "#" + req.subjectRelation() : "");
+        String subj =
+                req.subjectType()
+                        + ":"
+                        + req.subjectId()
+                        + (req.subjectRelation() != null && !req.subjectRelation().isBlank()
+                                ? "#" + req.subjectRelation()
+                                : "");
         return req.resourceType() + ":" + req.resourceId() + "#" + req.relation() + "@" + subj;
     }
 
@@ -192,7 +238,11 @@ public class AdminController {
     }
 
     private static SubjectRef subject(GrantRequest req) {
-        return new SubjectRef(req.subjectType(), req.subjectId(),
-                req.subjectRelation() == null || req.subjectRelation().isBlank() ? null : req.subjectRelation());
+        return new SubjectRef(
+                req.subjectType(),
+                req.subjectId(),
+                req.subjectRelation() == null || req.subjectRelation().isBlank()
+                        ? null
+                        : req.subjectRelation());
     }
 }

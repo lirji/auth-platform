@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.RequestMapper">
- <sql id="partition">tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment}</sql>
- <sql id="policyColumns">id,tenant_id,application_id,environment,role_id,scope_json,max_duration_seconds,approver_membership_id,approver_generation,delegation_hash,policy_version,content_hash,enabled</sql>
- <sql id="requestColumns">id,tenant_id,application_id,environment,requester_principal,membership_id,generation,policy_id,role_id,capabilities_json,scope_json,policy_hash,member_valid_to,valid_from,valid_to,reason,request_version,snapshot_hash,state,state_version,approval_instance_id,grant_id,command_id,migration_old_grant_id,migration_old_version,withdrawn</sql>
- <select id="disabledCapabilities" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.capability_state WHERE application_id=#{p.applicationId} AND disabled AND capability IN
+  <sql id="partition">tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment}</sql>
+  <sql id="policyColumns">id,tenant_id,application_id,environment,role_id,scope_json,max_duration_seconds,approver_membership_id,approver_generation,delegation_hash,policy_version,content_hash,enabled</sql>
+  <sql id="requestColumns">id,tenant_id,application_id,environment,requester_principal,membership_id,generation,policy_id,role_id,capabilities_json,scope_json,policy_hash,member_valid_to,valid_from,valid_to,reason,request_version,snapshot_hash,state,state_version,approval_instance_id,grant_id,command_id,migration_old_grant_id,migration_old_version,withdrawn</sql>
+  <select id="disabledCapabilities" resultType="boolean">SELECT EXISTS(SELECT 1 FROM auth_governance.capability_state WHERE application_id=#{p.applicationId} AND disabled AND capability IN
  <foreach collection="capabilities" item="cap" open="(" separator="," close=")">#{cap}</foreach>)</select>
- <insert id="insertPolicy">INSERT INTO auth_governance.request_policy(id,tenant_id,application_id,environment,role_id,scope_json,max_duration_seconds,approver_membership_id,approver_generation,delegation_hash,policy_version,content_hash,enabled,created_by)
+  <insert id="insertPolicy">INSERT INTO auth_governance.request_policy(id,tenant_id,application_id,environment,role_id,scope_json,max_duration_seconds,approver_membership_id,approver_generation,delegation_hash,policy_version,content_hash,enabled,created_by)
  VALUES(#{v.id},#{v.tenantId},#{v.applicationId},#{v.environment},#{v.roleId},#{v.scopeJson},#{v.maxDurationSeconds},#{v.approverMembershipId},#{v.approverGeneration},#{v.delegationHash},#{v.policyVersion},#{v.contentHash},#{v.enabled},#{actor})</insert>
- <select id="policy" resultType="com.lrj.authz.governance.domain.RequestModels$Policy">SELECT <include refid="policyColumns"/> FROM auth_governance.request_policy WHERE <include refid="partition"/> AND id=#{id}</select>
- <select id="policies" resultType="com.lrj.authz.governance.domain.RequestModels$Policy">
+  <select id="policy" resultType="com.lrj.authz.governance.domain.RequestModels$Policy">SELECT <include refid="policyColumns"/> FROM auth_governance.request_policy WHERE <include refid="partition"/> AND id=#{id}</select>
+  <select id="policies" resultType="com.lrj.authz.governance.domain.RequestModels$Policy">
  SELECT <include refid="policyColumns"/> FROM auth_governance.request_policy p WHERE <include refid="partition"/>
  AND enabled AND id &gt; #{after} AND approver_membership_id &lt;&gt; #{member}
  AND EXISTS(SELECT 1 FROM auth_governance.membership m WHERE m.id=p.approver_membership_id AND m.generation=p.approver_generation AND m.status='ACTIVE')
  ORDER BY id LIMIT 100
  </select>
- <insert id="insertRequest">INSERT INTO auth_governance.access_request(id,tenant_id,application_id,environment,requester_principal,membership_id,generation,policy_id,role_id,capabilities_json,scope_json,policy_hash,member_valid_to,valid_from,valid_to,reason,request_version,snapshot_hash,state,state_version,approval_instance_id,grant_id,command_id,migration_old_grant_id,migration_old_version,withdrawn) VALUES(#{v.id},#{v.tenantId},#{v.applicationId},#{v.environment},#{v.requesterPrincipal},#{v.membershipId},#{v.generation},#{v.policyId},#{v.roleId},#{v.capabilitiesJson},#{v.scopeJson},#{v.policyHash},#{v.memberValidTo},#{v.validFrom},#{v.validTo},#{v.reason},#{v.requestVersion},#{v.snapshotHash},#{v.state},#{v.stateVersion},#{v.approvalInstanceId},#{v.grantId},#{v.commandId},#{v.migrationOldGrantId},#{v.migrationOldVersion},#{v.withdrawn})</insert>
- <select id="owned" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND id=#{id} AND membership_id=#{member} AND generation=#{generation}</select>
- <select id="request" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND id=#{id}</select>
- <select id="byGrant" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND grant_id=#{grant} LIMIT 1</select>
- <select id="migrationApproved" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND migration_old_grant_id=#{oldGrant} AND role_id=#{role} AND state='APPROVED' AND NOT withdrawn AND auth_governance.oa_migration_approval_valid(id) ORDER BY id LIMIT 1</select>
- <select id="migrationOpen" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND migration_old_grant_id=#{oldGrant} AND grant_id IS NULL AND NOT withdrawn AND state IN ('SUBMITTED','IN_REVIEW','APPROVED') ORDER BY id LIMIT 20</select>
- <update id="bindMigrationGrant">UPDATE auth_governance.access_request SET grant_id=#{grant},state_version=state_version+1,updated_at=clock_timestamp() WHERE <include refid="partition"/> AND id=#{id} AND state_version=#{version} AND state='APPROVED' AND NOT withdrawn AND migration_old_grant_id IS NOT NULL AND grant_id IS NULL</update>
- <insert id="enqueueStart">INSERT INTO auth_governance.request_start_outbox(request_id) VALUES(#{id})</insert>
- <select id="pendingCount" resultType="int">SELECT count(*) FROM auth_governance.access_request WHERE <include refid="partition"/> AND membership_id=#{member} AND generation=#{generation} AND state IN ('SUBMITTED','IN_REVIEW') AND valid_to &gt; clock_timestamp()</select>
- <update id="exhaustStarts">
+  <insert id="insertRequest">INSERT INTO auth_governance.access_request(id,tenant_id,application_id,environment,requester_principal,membership_id,generation,policy_id,role_id,capabilities_json,scope_json,policy_hash,member_valid_to,valid_from,valid_to,reason,request_version,snapshot_hash,state,state_version,approval_instance_id,grant_id,command_id,migration_old_grant_id,migration_old_version,withdrawn) VALUES(#{v.id},#{v.tenantId},#{v.applicationId},#{v.environment},#{v.requesterPrincipal},#{v.membershipId},#{v.generation},#{v.policyId},#{v.roleId},#{v.capabilitiesJson},#{v.scopeJson},#{v.policyHash},#{v.memberValidTo},#{v.validFrom},#{v.validTo},#{v.reason},#{v.requestVersion},#{v.snapshotHash},#{v.state},#{v.stateVersion},#{v.approvalInstanceId},#{v.grantId},#{v.commandId},#{v.migrationOldGrantId},#{v.migrationOldVersion},#{v.withdrawn})</insert>
+  <select id="owned" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND id=#{id} AND membership_id=#{member} AND generation=#{generation}</select>
+  <select id="request" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND id=#{id}</select>
+  <select id="byGrant" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND grant_id=#{grant} LIMIT 1</select>
+  <select id="migrationApproved" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND migration_old_grant_id=#{oldGrant} AND role_id=#{role} AND state='APPROVED' AND NOT withdrawn AND auth_governance.oa_migration_approval_valid(id) ORDER BY id LIMIT 1</select>
+  <select id="migrationOpen" resultType="com.lrj.authz.governance.domain.RequestModels$Request">SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/> AND migration_old_grant_id=#{oldGrant} AND grant_id IS NULL AND NOT withdrawn AND state IN ('SUBMITTED','IN_REVIEW','APPROVED') ORDER BY id LIMIT 20</select>
+  <update id="bindMigrationGrant">UPDATE auth_governance.access_request SET grant_id=#{grant},state_version=state_version+1,updated_at=clock_timestamp() WHERE <include refid="partition"/> AND id=#{id} AND state_version=#{version} AND state='APPROVED' AND NOT withdrawn AND migration_old_grant_id IS NOT NULL AND grant_id IS NULL</update>
+  <insert id="enqueueStart">INSERT INTO auth_governance.request_start_outbox(request_id) VALUES(#{id})</insert>
+  <select id="pendingCount" resultType="int">SELECT count(*) FROM auth_governance.access_request WHERE <include refid="partition"/> AND membership_id=#{member} AND generation=#{generation} AND state IN ('SUBMITTED','IN_REVIEW') AND valid_to &gt; clock_timestamp()</select>
+  <update id="exhaustStarts">
  WITH expired AS (SELECT o.request_id FROM auth_governance.request_start_outbox o JOIN auth_governance.access_request r ON r.id=o.request_id
  WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
  AND o.state='RUNNING' AND o.attempts=5 AND o.lease_until &lt; clock_timestamp()
  ORDER BY o.request_id LIMIT 100 FOR UPDATE OF o SKIP LOCKED)
  UPDATE auth_governance.request_start_outbox o SET state='DEAD',last_error='OA_START_UNCONFIRMED',updated_at=clock_timestamp()
  FROM expired e WHERE o.request_id=e.request_id</update>
- <insert id="auditStart">INSERT INTO auth_governance.audit_event(id,operator_ref,tenant_id,operation,target_id,target_version,command_id)
+  <insert id="auditStart">INSERT INTO auth_governance.audit_event(id,operator_ref,tenant_id,operation,target_id,target_version,command_id)
  SELECT #{audit},'OA_START_WORKER',tenant_id,'OA_START_BOUND',id,state_version,#{lease} FROM auth_governance.access_request WHERE id=#{id}</insert>
- <select id="claimStart" resultType="string" affectData="true" flushCache="true">
+  <select id="claimStart" resultType="string" affectData="true" flushCache="true">
  WITH candidate AS (
  SELECT o.request_id FROM auth_governance.request_start_outbox o JOIN auth_governance.access_request r ON r.id=o.request_id
  WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
@@ -45,20 +45,20 @@
  lease_until=clock_timestamp()+interval '30 seconds',updated_at=clock_timestamp()
  FROM candidate c WHERE o.request_id=c.request_id RETURNING o.request_id
  </select>
- <update id="finishStart">UPDATE auth_governance.request_start_outbox SET state='DONE',lease_until=NULL,last_error=NULL,updated_at=clock_timestamp()
+  <update id="finishStart">UPDATE auth_governance.request_start_outbox SET state='DONE',lease_until=NULL,last_error=NULL,updated_at=clock_timestamp()
  WHERE request_id=#{id} AND state='RUNNING' AND lease_token=#{lease} AND lease_until &gt; clock_timestamp()</update>
- <update id="failStart">UPDATE auth_governance.request_start_outbox SET state=CASE WHEN attempts=5 THEN 'DEAD' ELSE 'PENDING' END,
+  <update id="failStart">UPDATE auth_governance.request_start_outbox SET state=CASE WHEN attempts=5 THEN 'DEAD' ELSE 'PENDING' END,
  lease_until=NULL,last_error=#{error},next_attempt_at=clock_timestamp()+make_interval(secs=&gt;power(2,attempts)::int),updated_at=clock_timestamp()
  WHERE request_id=#{id} AND state='RUNNING' AND lease_token=#{lease} AND lease_until &gt; clock_timestamp()</update>
- <update id="bindInstance">UPDATE auth_governance.access_request SET approval_instance_id=#{instance},
+  <update id="bindInstance">UPDATE auth_governance.access_request SET approval_instance_id=#{instance},
  state=CASE WHEN state='SUBMITTED' THEN 'IN_REVIEW' ELSE state END,state_version=state_version+1,updated_at=clock_timestamp()
  WHERE <include refid="partition"/> AND id=#{id} AND (approval_instance_id IS NULL OR approval_instance_id=#{instance})</update>
- <update id="decide">UPDATE auth_governance.access_request SET state=#{state},grant_id=#{grant},state_version=state_version+1,updated_at=clock_timestamp()
+  <update id="decide">UPDATE auth_governance.access_request SET state=#{state},grant_id=#{grant},state_version=state_version+1,updated_at=clock_timestamp()
  WHERE <include refid="partition"/> AND id=#{id} AND state_version=#{version} AND state='IN_REVIEW'</update>
- <update id="cancel">UPDATE auth_governance.access_request SET state=#{state},withdrawn=true,state_version=state_version+1,updated_at=clock_timestamp()
+  <update id="cancel">UPDATE auth_governance.access_request SET state=#{state},withdrawn=true,state_version=state_version+1,updated_at=clock_timestamp()
  WHERE <include refid="partition"/> AND id=#{id} AND state_version=#{version} AND state IN ('SUBMITTED','IN_REVIEW','APPROVED')</update>
- <update id="stopStart">UPDATE auth_governance.request_start_outbox SET state='DONE',last_error=NULL,updated_at=clock_timestamp() WHERE request_id=#{id} AND state='PENDING'</update>
- <select id="expired" resultType="string">
+  <update id="stopStart">UPDATE auth_governance.request_start_outbox SET state='DONE',last_error=NULL,updated_at=clock_timestamp() WHERE request_id=#{id} AND state='PENDING'</update>
+  <select id="expired" resultType="string">
  SELECT r.id FROM auth_governance.access_request r LEFT JOIN auth_governance.access_grant g ON g.id=r.grant_id
  WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
  AND NOT r.withdrawn AND (r.state IN ('SUBMITTED','IN_REVIEW') OR (r.state='APPROVED' AND (g.state IN ('PENDING','ACTIVE') OR (g.id IS NULL AND r.migration_old_grant_id IS NOT NULL))))
@@ -68,7 +68,7 @@
  AND m.valid_from &lt;=clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to &gt;clock_timestamp())))
  ORDER BY r.id LIMIT 100
  </select>
- <select id="execution" resultType="com.lrj.authz.protocol.RequestDtos$Execution">
+  <select id="execution" resultType="com.lrj.authz.protocol.RequestDtos$Execution">
  SELECT r.id request_id,g.id grant_id,g.state grant_state,
  CASE WHEN r.state IN ('CANCELLED','REJECTED') AND g.id IS NULL THEN r.state
  WHEN g.id IS NULL AND r.withdrawn THEN 'CANCELLED'
@@ -99,27 +99,27 @@
  LEFT JOIN auth_governance.projection_grant_receipt rec ON rec.grant_id=g.id AND rec.grant_version=g.version
  WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment} AND r.id=#{id}
  </select>
- <select id="mine" resultType="com.lrj.authz.governance.domain.RequestModels$Request">
+  <select id="mine" resultType="com.lrj.authz.governance.domain.RequestModels$Request">
  SELECT <include refid="requestColumns"/> FROM auth_governance.access_request WHERE <include refid="partition"/>
  AND membership_id=#{member} AND generation=#{generation} AND id &gt; #{after} ORDER BY id LIMIT 100</select>
- <select id="notices" resultType="com.lrj.authz.protocol.RequestDtos$Notice">
+  <select id="notices" resultType="com.lrj.authz.protocol.RequestDtos$Notice">
  SELECT n.id,n.request_id,n.state_version,n.message_key,n.delivered_at::text FROM auth_governance.request_site_notice n
  JOIN auth_governance.access_request r ON r.id=n.request_id WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
  AND r.membership_id=#{member} AND r.generation=#{generation} AND n.id &gt; #{after} ORDER BY n.id LIMIT 100</select>
- <update id="exhaustNotices">WITH due AS (SELECT o.id FROM auth_governance.request_notice_outbox o JOIN auth_governance.access_request r ON r.id=o.request_id
+  <update id="exhaustNotices">WITH due AS (SELECT o.id FROM auth_governance.request_notice_outbox o JOIN auth_governance.access_request r ON r.id=o.request_id
  WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment} AND o.state='RUNNING' AND o.attempts=5 AND o.lease_until &lt; clock_timestamp()
  ORDER BY o.id LIMIT 100 FOR UPDATE OF o SKIP LOCKED)
  UPDATE auth_governance.request_notice_outbox o SET state='DEAD',lease_until=NULL FROM due WHERE o.id=due.id</update>
- <select id="claimNotice" resultType="string" affectData="true" flushCache="true">
+  <select id="claimNotice" resultType="string" affectData="true" flushCache="true">
  WITH due AS (SELECT o.id FROM auth_governance.request_notice_outbox o JOIN auth_governance.access_request r ON r.id=o.request_id
  WHERE r.tenant_id=#{p.tenantId} AND r.application_id=#{p.applicationId} AND r.environment=#{p.environment}
  AND o.attempts &lt; 5 AND o.next_attempt_at &lt;=clock_timestamp() AND (o.state='PENDING' OR o.state='RUNNING' AND o.lease_until &lt;clock_timestamp())
  ORDER BY o.next_attempt_at,o.id LIMIT 1 FOR UPDATE OF o SKIP LOCKED)
  UPDATE auth_governance.request_notice_outbox o SET state='RUNNING',attempts=attempts+1,lease_token=#{lease},lease_until=clock_timestamp()+interval '30 seconds'
  FROM due WHERE o.id=due.id RETURNING o.id</select>
- <insert id="insertNotice">INSERT INTO auth_governance.request_site_notice(id,request_id,state_version,message_key)
+  <insert id="insertNotice">INSERT INTO auth_governance.request_site_notice(id,request_id,state_version,message_key)
  SELECT id,request_id,state_version,'REQUEST_PROGRESS_UPDATED' FROM auth_governance.request_notice_outbox WHERE id=#{id} AND state='RUNNING' AND lease_token=#{lease} AND lease_until &gt;clock_timestamp() ON CONFLICT DO NOTHING</insert>
- <update id="finishNotice">UPDATE auth_governance.request_notice_outbox SET state='DONE',lease_until=NULL WHERE id=#{id} AND state='RUNNING' AND lease_token=#{lease} AND lease_until &gt;clock_timestamp()</update>
- <update id="failNotice">UPDATE auth_governance.request_notice_outbox SET state=CASE WHEN attempts=5 THEN 'DEAD' ELSE 'PENDING' END,lease_until=NULL,
+  <update id="finishNotice">UPDATE auth_governance.request_notice_outbox SET state='DONE',lease_until=NULL WHERE id=#{id} AND state='RUNNING' AND lease_token=#{lease} AND lease_until &gt;clock_timestamp()</update>
+  <update id="failNotice">UPDATE auth_governance.request_notice_outbox SET state=CASE WHEN attempts=5 THEN 'DEAD' ELSE 'PENDING' END,lease_until=NULL,
  next_attempt_at=clock_timestamp()+make_interval(secs=&gt;power(2,attempts)::int) WHERE id=#{id} AND state='RUNNING' AND lease_token=#{lease} AND lease_until &gt;clock_timestamp()</update>
 </mapper>

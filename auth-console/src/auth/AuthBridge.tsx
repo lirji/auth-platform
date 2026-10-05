@@ -1,18 +1,18 @@
-import { useEffect } from 'react'
-import { useAuth } from 'react-oidc-context'
-import { useAuthStore } from '../store/authStore'
-import { groupsFromToken, ownerFromToken } from './oidcConfig'
+import { useEffect } from 'react';
+import { useAuth } from 'react-oidc-context';
+import { useAuthStore } from '../store/authStore';
+import { groupsFromToken, ownerFromToken } from './oidcConfig';
 
 /** 把 react-oidc-context 的会话态同步进 authStore 镜像(供 UI/守卫同步读取)。 */
 export default function AuthBridge() {
-  const auth = useAuth()
-  const set = useAuthStore((s) => s.set)
-  const clear = useAuthStore((s) => s.clear)
+  const auth = useAuth();
+  const set = useAuthStore((s) => s.set);
+  const clear = useAuthStore((s) => s.clear);
 
   useEffect(() => {
-    if (auth.isLoading) return
+    if (auth.isLoading) return;
     if (auth.isAuthenticated && auth.user) {
-      const profile = auth.user.profile
+      const profile = auth.user.profile;
       set({
         status: 'authed',
         userId: profile.sub,
@@ -22,11 +22,11 @@ export default function AuthBridge() {
           profile.sub,
         authorities: groupsFromToken(auth.user.access_token),
         owner: ownerFromToken(auth.user.access_token),
-      })
+      });
     } else {
-      clear()
+      clear();
     }
-  }, [auth.isLoading, auth.isAuthenticated, auth.user, set, clear])
+  }, [auth.isLoading, auth.isAuthenticated, auth.user, set, clear]);
 
-  return null
+  return null;
 }

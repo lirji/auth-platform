@@ -15,8 +15,7 @@ import java.util.Set;
  */
 public final class WorkspaceAccess {
 
-    private WorkspaceAccess() {
-    }
+    private WorkspaceAccess() {}
 
     public static boolean allowed(Jwt jwt, WorkspaceProperties.Item workspace) {
         if (jwt == null || workspace == null) {
@@ -29,7 +28,8 @@ public final class WorkspaceAccess {
         return orgsOf(workspace).contains(owner);
     }
 
-    public static List<WorkspaceProperties.Item> visible(Jwt jwt, List<WorkspaceProperties.Item> all) {
+    public static List<WorkspaceProperties.Item> visible(
+            Jwt jwt, List<WorkspaceProperties.Item> all) {
         List<WorkspaceProperties.Item> out = new ArrayList<>();
         for (WorkspaceProperties.Item item : all) {
             if (allowed(jwt, item)) {

@@ -1,11 +1,5 @@
 package com.lrj.authz.admin.casdoor;
 
-import org.junit.jupiter.api.Test;
-import org.mockito.InOrder;
-import org.springframework.beans.factory.ObjectProvider;
-
-import java.util.function.Consumer;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -16,18 +10,27 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
+import org.springframework.beans.factory.ObjectProvider;
+
+import java.util.function.Consumer;
+
 class ReconcileJobTest {
 
     @SuppressWarnings("unchecked")
     private static ObjectProvider<DepartmentSyncService> providerOf(DepartmentSyncService service) {
         ObjectProvider<DepartmentSyncService> provider = mock(ObjectProvider.class);
-        doAnswer(invocation -> {
-            Consumer<DepartmentSyncService> consumer = invocation.getArgument(0);
-            if (service != null) {
-                consumer.accept(service);
-            }
-            return null;
-        }).when(provider).ifAvailable(any());
+        doAnswer(
+                        invocation -> {
+                            Consumer<DepartmentSyncService> consumer = invocation.getArgument(0);
+                            if (service != null) {
+                                consumer.accept(service);
+                            }
+                            return null;
+                        })
+                .when(provider)
+                .ifAvailable(any());
         return provider;
     }
 
@@ -58,8 +61,10 @@ class ReconcileJobTest {
         DepartmentSyncService department = mock(DepartmentSyncService.class);
         when(group.sync()).thenThrow(new IllegalStateException("group failed"));
 
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> new ReconcileJob(group, providerOf(department)).reconcile());
+        IllegalStateException ex =
+                assertThrows(
+                        IllegalStateException.class,
+                        () -> new ReconcileJob(group, providerOf(department)).reconcile());
 
         assertThat(ex).hasMessageContaining("group failed");
         verify(department, never()).sync();

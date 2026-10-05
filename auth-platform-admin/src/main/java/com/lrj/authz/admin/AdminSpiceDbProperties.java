@@ -9,6 +9,7 @@ public class AdminSpiceDbProperties {
     private String endpoint = "http://localhost:8543";
     private String token = "authz_dev_key";
     private java.time.Duration connectTimeout = java.time.Duration.ofSeconds(2);
+
     /** 读超时（admin 读一律 full 一致性 + 同步批量写,给足）。 */
     private java.time.Duration readTimeout = java.time.Duration.ofSeconds(30);
 

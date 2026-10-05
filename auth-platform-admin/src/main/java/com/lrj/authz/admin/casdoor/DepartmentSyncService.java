@@ -6,6 +6,7 @@ import com.lrj.authz.protocol.RelationshipFilter;
 import com.lrj.authz.protocol.RelationshipUpdate;
 import com.lrj.authz.protocol.ResourceRef;
 import com.lrj.authz.protocol.SubjectRef;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,7 @@ public class DepartmentSyncService {
 
     private final CasdoorClient casdoor;
     private final AuthzEngine engine;
+
     /** 一轮允许的最大 DELETE 数; 超过则中止整轮。<0 表示不限制。 */
     private final int deleteThreshold;
 
@@ -42,8 +44,7 @@ public class DepartmentSyncService {
         this.deleteThreshold = deleteThreshold;
     }
 
-    public record SyncSummary(int departments, int added, int removed) {
-    }
+    public record SyncSummary(int departments, int added, int removed) {}
 
     public synchronized SyncSummary sync() {
         CasdoorClient.DepartmentSnapshot snap = casdoor.departmentSnapshot();
@@ -56,17 +57,24 @@ public class DepartmentSyncService {
         List<RelationshipUpdate> deletes = new ArrayList<>();
         for (String d : depts) {
             ResourceRef dept = ResourceRef.of("department", d);
-            diffUserRelation(dept, "member", snap.members().getOrDefault(d, Set.of()), touches, deletes);
-            diffUserRelation(dept, "admin", snap.admins().getOrDefault(d, Set.of()), touches, deletes);
+            diffUserRelation(
+                    dept, "member", snap.members().getOrDefault(d, Set.of()), touches, deletes);
+            diffUserRelation(
+                    dept, "admin", snap.admins().getOrDefault(d, Set.of()), touches, deletes);
             diffParent(dept, snap.parents().get(d), touches, deletes);
         }
 
         // 删除熔断: 超阈值直接中止, 不写任何变更（TOUCH 也不写, 保持整轮"要么全做要么不做"）。
         if (deleteThreshold >= 0 && deletes.size() > deleteThreshold) {
-            log.error("部门同步中止: 本轮 DELETE={} 超过阈值 {} (疑似 Casdoor 拉取不全/误配); 未写入任何变更",
-                    deletes.size(), deleteThreshold);
+            log.error(
+                    "部门同步中止: 本轮 DELETE={} 超过阈值 {} (疑似 Casdoor 拉取不全/误配); 未写入任何变更",
+                    deletes.size(),
+                    deleteThreshold);
             throw new IllegalStateException(
-                    "department sync aborted: delete count " + deletes.size() + " exceeds threshold " + deleteThreshold);
+                    "department sync aborted: delete count "
+                            + deletes.size()
+                            + " exceeds threshold "
+                            + deleteThreshold);
         }
 
         List<RelationshipUpdate> updates = new ArrayList<>(touches);
@@ -74,13 +82,21 @@ public class DepartmentSyncService {
         if (!updates.isEmpty()) {
             engine.writeRelationships(updates);
         }
-        log.info("Casdoor 部门同步: departments={} +{} -{}", depts.size(), touches.size(), deletes.size());
+        log.info(
+                "Casdoor 部门同步: departments={} +{} -{}",
+                depts.size(),
+                touches.size(),
+                deletes.size());
         return new SyncSummary(depts.size(), touches.size(), deletes.size());
     }
 
     /** member/admin 的 user 主体差量。 */
-    private void diffUserRelation(ResourceRef dept, String relation, Set<String> want,
-                                  List<RelationshipUpdate> touches, List<RelationshipUpdate> deletes) {
+    private void diffUserRelation(
+            ResourceRef dept,
+            String relation,
+            Set<String> want,
+            List<RelationshipUpdate> touches,
+            List<RelationshipUpdate> deletes) {
         Set<String> current = directUsers(dept, relation);
         for (String u : want) {
             if (!current.contains(u)) {
@@ -95,15 +111,21 @@ public class DepartmentSyncService {
     }
 
     /** parent 是单值 department 主体：期望态至多一个父; 与当前 direct parent tuple 求差（多余父边一律删）。 */
-    private void diffParent(ResourceRef dept, String wantParentId,
-                            List<RelationshipUpdate> touches, List<RelationshipUpdate> deletes) {
+    private void diffParent(
+            ResourceRef dept,
+            String wantParentId,
+            List<RelationshipUpdate> touches,
+            List<RelationshipUpdate> deletes) {
         Set<String> currentParents = directParents(dept);
         if (wantParentId != null && !currentParents.contains(wantParentId)) {
-            touches.add(RelationshipUpdate.touch(dept, "parent", SubjectRef.of("department", wantParentId)));
+            touches.add(
+                    RelationshipUpdate.touch(
+                            dept, "parent", SubjectRef.of("department", wantParentId)));
         }
         for (String p : currentParents) {
             if (wantParentId == null || !p.equals(wantParentId)) {
-                deletes.add(RelationshipUpdate.delete(dept, "parent", SubjectRef.of("department", p)));
+                deletes.add(
+                        RelationshipUpdate.delete(dept, "parent", SubjectRef.of("department", p)));
             }
         }
     }
@@ -111,7 +133,9 @@ public class DepartmentSyncService {
     /** 读某 department 某 relation 的 direct user 主体 (relation=null)。 */
     private Set<String> directUsers(ResourceRef dept, String relation) {
         Set<String> out = new LinkedHashSet<>();
-        for (Relationship r : engine.readRelationships(RelationshipFilter.of("department", dept.id(), relation))) {
+        for (Relationship r :
+                engine.readRelationships(
+                        RelationshipFilter.of("department", dept.id(), relation))) {
             SubjectRef s = r.subject();
             if ("user".equals(s.type()) && s.relation() == null) {
                 out.add(s.id());
@@ -123,7 +147,9 @@ public class DepartmentSyncService {
     /** 读某 department 的 direct parent (department 主体)。 */
     private Set<String> directParents(ResourceRef dept) {
         Set<String> out = new LinkedHashSet<>();
-        for (Relationship r : engine.readRelationships(RelationshipFilter.of("department", dept.id(), "parent"))) {
+        for (Relationship r :
+                engine.readRelationships(
+                        RelationshipFilter.of("department", dept.id(), "parent"))) {
             SubjectRef s = r.subject();
             if ("department".equals(s.type())) {
                 out.add(s.id());

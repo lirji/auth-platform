@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.ProjectionMapper">
- <sql id="partition">g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}</sql>
- <select id="due" resultType="com.lrj.authz.governance.domain.AccessModels$Projection">
+  <sql id="partition">g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}</sql>
+  <select id="due" resultType="com.lrj.authz.governance.domain.AccessModels$Projection">
  SELECT o.grant_id,o.grant_version,o.operation,o.attempts FROM auth_governance.grant_projection o JOIN auth_governance.access_grant g ON g.id=o.grant_id
  WHERE <include refid="partition"/> AND o.completed=false AND (g.version &lt;&gt; o.grant_version OR (o.attempts &lt; 5 AND o.next_attempt_at &lt;=clock_timestamp()))
  ORDER BY o.created_at,o.grant_id,o.grant_version LIMIT #{limit}
  </select>
- <select id="pending" resultType="int">SELECT count(*) FROM auth_governance.grant_projection o JOIN auth_governance.access_grant g ON g.id=o.grant_id
+  <select id="pending" resultType="int">SELECT count(*) FROM auth_governance.grant_projection o JOIN auth_governance.access_grant g ON g.id=o.grant_id
  WHERE <include refid="partition"/> AND o.completed=false</select>
- <update id="activate">UPDATE auth_governance.access_grant SET state='ACTIVE',zed_token=#{token},updated_at=clock_timestamp()
+  <update id="activate">UPDATE auth_governance.access_grant SET state='ACTIVE',zed_token=#{token},updated_at=clock_timestamp()
  WHERE id=#{id} AND version=#{version} AND state='PENDING'</update>
- <update id="complete">UPDATE auth_governance.grant_projection SET completed=true,last_error=NULL WHERE grant_id=#{id} AND grant_version=#{version} AND completed=false</update>
- <update id="failed">UPDATE auth_governance.grant_projection SET attempts=attempts+1,last_error='DEPENDENCY_UNAVAILABLE',
- next_attempt_at=clock_timestamp() + make_interval(secs => least(60,power(2,attempts+1)::integer))
+  <update id="complete">UPDATE auth_governance.grant_projection SET completed=true,last_error=NULL WHERE grant_id=#{id} AND grant_version=#{version} AND completed=false</update>
+  <update id="failed">UPDATE auth_governance.grant_projection SET attempts=attempts+1,last_error='DEPENDENCY_UNAVAILABLE',
+ next_attempt_at=clock_timestamp() + make_interval(secs =&gt; least(60,power(2,attempts+1)::integer))
  WHERE grant_id=#{id} AND grant_version=#{version} AND completed=false AND attempts &lt; 5</update>
- <select id="eligible" resultType="com.lrj.authz.governance.domain.AccessModels$Grant">
+  <select id="eligible" resultType="com.lrj.authz.governance.domain.AccessModels$Grant">
  SELECT g.id,g.tenant_id,g.application_id,g.environment,g.membership_id,g.generation,g.role_id,g.scope,g.source_type,g.source_id,g.valid_from,g.valid_to,g.state,g.version,g.zed_token,g.group_id
  FROM auth_governance.access_grant g JOIN auth_governance.tenant_application a ON a.tenant_id=g.tenant_id AND a.application_id=g.application_id AND a.environment=g.environment
  JOIN auth_governance.membership m ON m.id=g.membership_id AND m.tenant_id=g.tenant_id AND m.generation=g.generation

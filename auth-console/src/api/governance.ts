@@ -1,248 +1,1075 @@
-import { LifecycleState, RetirementProofState } from '../governance/codes.ts'
-import { validateRetirementReport, validateRetirementReferences, validateRetirementReceipt } from '../governance/capabilityRetirement'
-import { apiClient } from './client'
-import { validatePublishedCatalog } from '../governance/publishedCatalog'
-import { validatePersonnelReport } from '../governance/personnelImpact'
+import { LifecycleState, RetirementProofState } from '../governance/codes.ts';
+import {
+  validateRetirementReport,
+  validateRetirementReferences,
+  validateRetirementReceipt,
+} from '../governance/capabilityRetirement';
+import { apiClient } from './client';
+import { validatePublishedCatalog } from '../governance/publishedCatalog';
+import { validatePersonnelReport } from '../governance/personnelImpact';
 
-export interface Partition { tenant_id: string; application_id: string; environment: string }
-export interface AccessMenu { code: string; parent: string | null; href: string | null; label?: string | null }
-export interface Presentation { menus: AccessMenu[]; capability_hints: string[] }
-export interface Role { id: string; role_code: string; version: number; capabilities: string[] }
-export interface Grant { id: string; member_id: string; member_generation: number; role_id: string; scope: string;
-  source_type: string; source_id: string; valid_from: string; valid_to: string; state: 'PENDING' | 'ACTIVE' | 'REVOKED'; version: number }
-export interface AccessState { roles: Role[]; grants: Grant[]; next_role_cursor: string | null; next_grant_cursor: string | null }
+export interface Partition {
+  tenant_id: string;
+  application_id: string;
+  environment: string;
+}
+export interface AccessMenu {
+  code: string;
+  parent: string | null;
+  href: string | null;
+  label?: string | null;
+}
+export interface Presentation {
+  menus: AccessMenu[];
+  capability_hints: string[];
+}
+export interface Role {
+  id: string;
+  role_code: string;
+  version: number;
+  capabilities: string[];
+}
+export interface Grant {
+  id: string;
+  member_id: string;
+  member_generation: number;
+  role_id: string;
+  scope: string;
+  source_type: string;
+  source_id: string;
+  valid_from: string;
+  valid_to: string;
+  state: 'PENDING' | 'ACTIVE' | 'REVOKED';
+  version: number;
+}
+export interface AccessState {
+  roles: Role[];
+  grants: Grant[];
+  next_role_cursor: string | null;
+  next_grant_cursor: string | null;
+}
 
 /** 只读当前权威快照，不把菜单或旧页面状态作为业务调用凭据。 */
 export async function presentation(partition: Partition): Promise<Presentation> {
-  return (await apiClient.get<Presentation>('/api/governance/v1/me/access', { params: partition })).data
+  return (await apiClient.get<Presentation>('/api/governance/v1/me/access', { params: partition }))
+    .data;
 }
 /** 管理查询仍由后端校验当前成员与委派，普通业务授权不产生管理权。 */
-export async function accessState(partition: Partition, role?: string, grant?: string, signal?: AbortSignal): Promise<AccessState> {
-  return (await apiClient.get<AccessState>('/api/governance/v1/access/state', {
-    params: { ...partition, after_role: role, after_grant: grant }, signal,
-  })).data
+export async function accessState(
+  partition: Partition,
+  role?: string,
+  grant?: string,
+  signal?: AbortSignal,
+): Promise<AccessState> {
+  return (
+    await apiClient.get<AccessState>('/api/governance/v1/access/state', {
+      params: { ...partition, after_role: role, after_grant: grant },
+      signal,
+    })
+  ).data;
 }
 
-export interface Organization { membership_id: string; tenant_id: string; tenant_code: string; member_kind: string; generation: number }
-export interface PortalApplication extends Presentation { application_id: string; environment: string; management: boolean; catalog_owner?: boolean; entry_state: 'AVAILABLE' | 'NO_ACCESS' | 'UNAVAILABLE' }
-export interface Page<T> { items: T[]; next_cursor: string | null }
+export interface Organization {
+  membership_id: string;
+  tenant_id: string;
+  tenant_code: string;
+  member_kind: string;
+  generation: number;
+}
+export interface PortalApplication extends Presentation {
+  application_id: string;
+  environment: string;
+  management: boolean;
+  catalog_owner?: boolean;
+  entry_state: 'AVAILABLE' | 'NO_ACCESS' | 'UNAVAILABLE';
+}
+export interface Page<T> {
+  items: T[];
+  next_cursor: string | null;
+}
 /** 本人组织来自当前权威成员关系，浏览器不能指定其他主体。 */
 export async function organizations(signal?: AbortSignal): Promise<Organization[]> {
-  return (await apiClient.get<Organization[]>('/api/governance/v1/me/organizations', { signal })).data
+  return (await apiClient.get<Organization[]>('/api/governance/v1/me/organizations', { signal }))
+    .data;
 }
 /** 应用候选关联与真实业务入口分开，管理权不会带来业务菜单。 */
-export async function applications(tenant: string, after?: string, signal?: AbortSignal): Promise<Page<PortalApplication>> {
-  return (await apiClient.get<Page<PortalApplication>>('/api/governance/v1/me/applications', { params: { tenant_id: tenant, after }, signal })).data
+export async function applications(
+  tenant: string,
+  after?: string,
+  signal?: AbortSignal,
+): Promise<Page<PortalApplication>> {
+  return (
+    await apiClient.get<Page<PortalApplication>>('/api/governance/v1/me/applications', {
+      params: { tenant_id: tenant, after },
+      signal,
+    })
+  ).data;
 }
 
-export interface Capability { code: string; resource_type: string; risk_level: string; disabled: boolean }
-export interface Management { membership_id: string; generation: number; max_duration_seconds: number; capabilities: Capability[];
-  catalog_owner: boolean; manifest_version: number; policy_state: string; directory_state: string; desired_epoch: number | null; applied_epoch: number | null }
-export type CapabilityLifecycleState = typeof LifecycleState[keyof typeof LifecycleState]
-export interface PublishedCapability extends Capability { grantable: boolean; lifecycle_state?: CapabilityLifecycleState | null; lifecycle_version?: number | null; lifecycle_reason?: string | null }
-export interface PublishedMenu { code: string; parent: string | null; route: string | null; any_of: string[]; label?: string | null; position?: number | null }
-export interface PublishedResourceType { code: string; scope_supported: boolean; allowed_scope_kinds: string[] }
-export interface PublishedCatalog extends Partition { membership_id: string; generation: number; max_duration_seconds: number;
-  manifest_version: number; content_hash: string; view_hash: string; menus: PublishedMenu[]; capabilities: PublishedCapability[]; resource_types: PublishedResourceType[]; lifecycle_owner?: boolean }
+export interface Capability {
+  code: string;
+  resource_type: string;
+  risk_level: string;
+  disabled: boolean;
+}
+export interface Management {
+  membership_id: string;
+  generation: number;
+  max_duration_seconds: number;
+  capabilities: Capability[];
+  catalog_owner: boolean;
+  manifest_version: number;
+  policy_state: string;
+  directory_state: string;
+  desired_epoch: number | null;
+  applied_epoch: number | null;
+}
+export type CapabilityLifecycleState = (typeof LifecycleState)[keyof typeof LifecycleState];
+export interface PublishedCapability extends Capability {
+  grantable: boolean;
+  lifecycle_state?: CapabilityLifecycleState | null;
+  lifecycle_version?: number | null;
+  lifecycle_reason?: string | null;
+}
+export interface PublishedMenu {
+  code: string;
+  parent: string | null;
+  route: string | null;
+  any_of: string[];
+  label?: string | null;
+  position?: number | null;
+}
+export interface PublishedResourceType {
+  code: string;
+  scope_supported: boolean;
+  allowed_scope_kinds: string[];
+}
+export interface PublishedCatalog extends Partition {
+  membership_id: string;
+  generation: number;
+  max_duration_seconds: number;
+  manifest_version: number;
+  content_hash: string;
+  view_hash: string;
+  menus: PublishedMenu[];
+  capabilities: PublishedCapability[];
+  resource_types: PublishedResourceType[];
+  lifecycle_owner?: boolean;
+}
 /** 当前实际清单与委派选项有限返回；写入仍独立回源判权。 */
-export const publishedCatalog = async (p: Partition, signal?: AbortSignal): Promise<PublishedCatalog> =>
-  validatePublishedCatalog((await apiClient.get<PublishedCatalog>('/api/governance/v1/access/published-catalog', { params: p, signal })).data, p)
-export interface CapabilityLifecycleCommand { application_id: string; capability: string; state: CapabilityLifecycleState; expected_version: number; reason: string; command_id: string }
-export interface CapabilityLifecycleMutation { current: { application_id: string; capability: string; state: CapabilityLifecycleState; version: number; reason: string; changed_by: string; updated_at: string };
-  receipt: { command_id: string; application_id: string; capability: string; before_state: CapabilityLifecycleState; after_state: CapabilityLifecycleState; before_version: number; after_version: number; reason: string; actor: string; created_at: string } }
+export const publishedCatalog = async (
+  p: Partition,
+  signal?: AbortSignal,
+): Promise<PublishedCatalog> =>
+  validatePublishedCatalog(
+    (
+      await apiClient.get<PublishedCatalog>('/api/governance/v1/access/published-catalog', {
+        params: p,
+        signal,
+      })
+    ).data,
+    p,
+  );
+export interface CapabilityLifecycleCommand {
+  application_id: string;
+  capability: string;
+  state: CapabilityLifecycleState;
+  expected_version: number;
+  reason: string;
+  command_id: string;
+}
+export interface CapabilityLifecycleMutation {
+  current: {
+    application_id: string;
+    capability: string;
+    state: CapabilityLifecycleState;
+    version: number;
+    reason: string;
+    changed_by: string;
+    updated_at: string;
+  };
+  receipt: {
+    command_id: string;
+    application_id: string;
+    capability: string;
+    before_state: CapabilityLifecycleState;
+    after_state: CapabilityLifecycleState;
+    before_version: number;
+    after_version: number;
+    reason: string;
+    actor: string;
+    created_at: string;
+  };
+}
 /** Owner作用域由后端重新核验，原命令重试保留目标、预期版本及原因。 */
-export const changeCapabilityLifecycle = async (body: CapabilityLifecycleCommand): Promise<CapabilityLifecycleMutation> => {
-  const result = (await apiClient.post<CapabilityLifecycleMutation>('/api/governance/v1/catalog/capability-lifecycle', body)).data
-  if (!result?.current || !result.receipt || result.current.application_id !== body.application_id || result.current.capability !== body.capability
-    || result.receipt.command_id !== body.command_id || result.receipt.application_id !== body.application_id || result.receipt.capability !== body.capability
-    || result.receipt.after_state !== body.state || result.receipt.before_version !== body.expected_version || result.receipt.after_version !== body.expected_version + 1
-    || result.receipt.reason !== body.reason || !Object.values(LifecycleState).includes(result.current.state) || !Number.isSafeInteger(result.current.version)
-    || result.current.version < result.receipt.after_version) throw new Error('能力生命周期变更结果尚未确认，请重试原命令')
-  return result
+export const changeCapabilityLifecycle = async (
+  body: CapabilityLifecycleCommand,
+): Promise<CapabilityLifecycleMutation> => {
+  const result = (
+    await apiClient.post<CapabilityLifecycleMutation>(
+      '/api/governance/v1/catalog/capability-lifecycle',
+      body,
+    )
+  ).data;
+  if (
+    !result?.current ||
+    !result.receipt ||
+    result.current.application_id !== body.application_id ||
+    result.current.capability !== body.capability ||
+    result.receipt.command_id !== body.command_id ||
+    result.receipt.application_id !== body.application_id ||
+    result.receipt.capability !== body.capability ||
+    result.receipt.after_state !== body.state ||
+    result.receipt.before_version !== body.expected_version ||
+    result.receipt.after_version !== body.expected_version + 1 ||
+    result.receipt.reason !== body.reason ||
+    !Object.values(LifecycleState).includes(result.current.state) ||
+    !Number.isSafeInteger(result.current.version) ||
+    result.current.version < result.receipt.after_version
+  )
+    throw new Error('能力生命周期变更结果尚未确认，请重试原命令');
+  return result;
+};
+export interface Member {
+  membership_id: string;
+  generation: number;
+  member_kind: string;
+  valid_to: string | null;
 }
-export interface Member { membership_id: string; generation: number; member_kind: string; valid_to: string | null }
-export interface RoleImpact { role_id: string; previous_role_id: string | null; added: string[]; removed: string[]; referencing_grant_count: number }
-export interface ScopeRule { version: number; resource_type: string; clauses: { kind: string; values: string[]; include_root: boolean }[] }
-export interface RoleCommand extends Partition { command_id: string; role_code: string; role_version: number; capabilities: string[] }
-export interface GrantCommand extends Partition { command_id: string; member_id: string; member_generation: number; role_id: string;
-  scope_rule: ScopeRule; source_id: string; valid_from: string; valid_to: string }
-export const management = async (p: Partition): Promise<Management> => (await apiClient.get('/api/governance/v1/access/management', { params: p })).data
-export const members = async (p: Partition, after?: string): Promise<Page<Member>> => (await apiClient.get('/api/governance/v1/access/members', { params: { ...p, after } })).data
-export const roleImpact = async (p: Partition, role: string): Promise<RoleImpact> => (await apiClient.get('/api/governance/v1/access/role-impact', { params: { ...p, role_id: role } })).data
-export const createRole = async (body: RoleCommand): Promise<Role> => (await apiClient.post('/api/governance/v1/access/roles', body)).data
-export const grantScoped = async (body: GrantCommand): Promise<Grant> => (await apiClient.post('/api/governance/v1/access/scoped-grants', body)).data
+export interface RoleImpact {
+  role_id: string;
+  previous_role_id: string | null;
+  added: string[];
+  removed: string[];
+  referencing_grant_count: number;
+}
+export interface ScopeRule {
+  version: number;
+  resource_type: string;
+  clauses: { kind: string; values: string[]; include_root: boolean }[];
+}
+export interface RoleCommand extends Partition {
+  command_id: string;
+  role_code: string;
+  role_version: number;
+  capabilities: string[];
+}
+export interface GrantCommand extends Partition {
+  command_id: string;
+  member_id: string;
+  member_generation: number;
+  role_id: string;
+  scope_rule: ScopeRule;
+  source_id: string;
+  valid_from: string;
+  valid_to: string;
+}
+export const management = async (p: Partition): Promise<Management> =>
+  (await apiClient.get('/api/governance/v1/access/management', { params: p })).data;
+export const members = async (p: Partition, after?: string): Promise<Page<Member>> =>
+  (await apiClient.get('/api/governance/v1/access/members', { params: { ...p, after } })).data;
+export const roleImpact = async (p: Partition, role: string): Promise<RoleImpact> =>
+  (
+    await apiClient.get('/api/governance/v1/access/role-impact', {
+      params: { ...p, role_id: role },
+    })
+  ).data;
+export const createRole = async (body: RoleCommand): Promise<Role> =>
+  (await apiClient.post('/api/governance/v1/access/roles', body)).data;
+export const grantScoped = async (body: GrantCommand): Promise<Grant> =>
+  (await apiClient.post('/api/governance/v1/access/scoped-grants', body)).data;
 
-export interface MigrationGrant extends Omit<Grant, 'member_id'> { member_id: string | null; group_id: string | null }
-export interface RoleMigrationItem { grant: MigrationGrant; scope_rule: ScopeRule | null; scope_hash: string | null;
-  remaining_seconds: number; proposed_source_id: string; eligible: boolean; reasons: string[]; replacement_request_id?: string | null }
-export interface RoleMigrationPreview extends Partition { old_role: Role; new_role: Role; added: string[]; removed: string[]; retained: string[];
-  assessed_at: string; view_hash: string; continuity: 'REVOKE_CONFIRM_THEN_GRANT'; projection_status: 'UNKNOWN';
-  items: RoleMigrationItem[]; eligible_count: number; excluded_count: number }
-export interface RoleMigrationRequest extends Partition { old_role_id: string; new_role_id: string; grant_ids: string[] }
+export interface MigrationGrant extends Omit<Grant, 'member_id'> {
+  member_id: string | null;
+  group_id: string | null;
+}
+export interface RoleMigrationItem {
+  grant: MigrationGrant;
+  scope_rule: ScopeRule | null;
+  scope_hash: string | null;
+  remaining_seconds: number;
+  proposed_source_id: string;
+  eligible: boolean;
+  reasons: string[];
+  replacement_request_id?: string | null;
+}
+export interface RoleMigrationPreview extends Partition {
+  old_role: Role;
+  new_role: Role;
+  added: string[];
+  removed: string[];
+  retained: string[];
+  assessed_at: string;
+  view_hash: string;
+  continuity: 'REVOKE_CONFIRM_THEN_GRANT';
+  projection_status: 'UNKNOWN';
+  items: RoleMigrationItem[];
+  eligible_count: number;
+  excluded_count: number;
+}
+export interface RoleMigrationRequest extends Partition {
+  old_role_id: string;
+  new_role_id: string;
+  grant_ids: string[];
+}
 /** 引用页和资格报告来自当前主库；客户端不能用它作为执行授权。 */
-export const migrationGrants = async (p: Partition, role: string, after?: string, signal?: AbortSignal): Promise<Page<MigrationGrant>> =>
-  (await apiClient.get('/api/governance/v1/access/role-migration-grants', { params: { ...p, old_role_id: role, after }, signal })).data
-export const previewRoleMigration = async (body: RoleMigrationRequest, signal?: AbortSignal): Promise<RoleMigrationPreview> =>
-  (await apiClient.post('/api/governance/v1/access/role-migration-preview', body, { signal })).data
+export const migrationGrants = async (
+  p: Partition,
+  role: string,
+  after?: string,
+  signal?: AbortSignal,
+): Promise<Page<MigrationGrant>> =>
+  (
+    await apiClient.get('/api/governance/v1/access/role-migration-grants', {
+      params: { ...p, old_role_id: role, after },
+      signal,
+    })
+  ).data;
+export const previewRoleMigration = async (
+  body: RoleMigrationRequest,
+  signal?: AbortSignal,
+): Promise<RoleMigrationPreview> =>
+  (await apiClient.post('/api/governance/v1/access/role-migration-preview', body, { signal })).data;
 
-export interface MigrationTaskItem { id: string; old_grant_id: string; old_version: number; member_id: string | null; member_generation: number;
-  original_source_id: string; scope: string; scope_rule: ScopeRule | null; scope_hash: string | null; valid_from: string; valid_to: string;
-  new_source_id: string; state: string; version: number; reason: string | null; revocation_operation_id: string | null;
-  new_grant: MigrationGrant | null; new_operation_id: string | null; updated_at: string; source_type?: string; group_id?: string | null; replacement_request_id?: string | null }
-export interface MigrationTask { id: string; tenant_id: string; application_id: string; environment: string; old_role: Role; new_role: Role;
-  state: string; version: number; command_id: string; created_at: string; updated_at: string; items: MigrationTaskItem[];
-  completed_count: number; failed_count: number; cancelled_count: number; waiting_count: number }
-export interface MigrationTaskSummary { id: string; old_role_id: string; new_role_id: string; state: string; version: number; created_at: string; updated_at: string }
-export interface CreateMigrationTask extends Partition { command_id: string; old_role_id: string; new_role_id: string;
-  grants: { grant_id: string; expected_version: number; valid_to: string; scope_hash: string | null; replacement_request_id?: string | null }[] }
-export interface AdvanceMigrationTask extends Partition { command_id: string; item_id: string; expected_version: number }
-export interface CancelMigrationTask extends Partition { command_id: string; expected_version: number }
-const migrationTaskUrl = '/api/governance/v1/access/role-migrations'
-export const createMigrationTask = async (body: CreateMigrationTask): Promise<MigrationTask> => (await apiClient.post(migrationTaskUrl, body)).data
-export const migrationTasks = async (p: Partition, old?: string, after?: string, signal?: AbortSignal): Promise<Page<MigrationTaskSummary>> =>
-  (await apiClient.get(migrationTaskUrl, { params: { ...p, old_role_id: old, after }, signal })).data
-export const migrationTask = async (p: Partition, id: string, signal?: AbortSignal): Promise<MigrationTask> =>
-  (await apiClient.get(`${migrationTaskUrl}/${id}`, { params: p, signal })).data
-export const advanceMigrationTask = async (id: string, body: AdvanceMigrationTask): Promise<MigrationTask> => (await apiClient.post(`${migrationTaskUrl}/${id}/advance`, body)).data
-export const cancelMigrationTask = async (id: string, body: CancelMigrationTask): Promise<MigrationTask> => (await apiClient.post(`${migrationTaskUrl}/${id}/cancel`, body)).data
-export const retryMigrationProjection = async (p: Partition, command: string, kind: 'POLICY' | 'DIRECTORY'): Promise<void> => {
-  await apiClient.post('/api/governance/v1/access/retry-strict', { ...p, command_id: command, kind })
+export interface MigrationTaskItem {
+  id: string;
+  old_grant_id: string;
+  old_version: number;
+  member_id: string | null;
+  member_generation: number;
+  original_source_id: string;
+  scope: string;
+  scope_rule: ScopeRule | null;
+  scope_hash: string | null;
+  valid_from: string;
+  valid_to: string;
+  new_source_id: string;
+  state: string;
+  version: number;
+  reason: string | null;
+  revocation_operation_id: string | null;
+  new_grant: MigrationGrant | null;
+  new_operation_id: string | null;
+  updated_at: string;
+  source_type?: string;
+  group_id?: string | null;
+  replacement_request_id?: string | null;
 }
+export interface MigrationTask {
+  id: string;
+  tenant_id: string;
+  application_id: string;
+  environment: string;
+  old_role: Role;
+  new_role: Role;
+  state: string;
+  version: number;
+  command_id: string;
+  created_at: string;
+  updated_at: string;
+  items: MigrationTaskItem[];
+  completed_count: number;
+  failed_count: number;
+  cancelled_count: number;
+  waiting_count: number;
+}
+export interface MigrationTaskSummary {
+  id: string;
+  old_role_id: string;
+  new_role_id: string;
+  state: string;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+export interface CreateMigrationTask extends Partition {
+  command_id: string;
+  old_role_id: string;
+  new_role_id: string;
+  grants: {
+    grant_id: string;
+    expected_version: number;
+    valid_to: string;
+    scope_hash: string | null;
+    replacement_request_id?: string | null;
+  }[];
+}
+export interface AdvanceMigrationTask extends Partition {
+  command_id: string;
+  item_id: string;
+  expected_version: number;
+}
+export interface CancelMigrationTask extends Partition {
+  command_id: string;
+  expected_version: number;
+}
+const migrationTaskUrl = '/api/governance/v1/access/role-migrations';
+export const createMigrationTask = async (body: CreateMigrationTask): Promise<MigrationTask> =>
+  (await apiClient.post(migrationTaskUrl, body)).data;
+export const migrationTasks = async (
+  p: Partition,
+  old?: string,
+  after?: string,
+  signal?: AbortSignal,
+): Promise<Page<MigrationTaskSummary>> =>
+  (await apiClient.get(migrationTaskUrl, { params: { ...p, old_role_id: old, after }, signal }))
+    .data;
+export const migrationTask = async (
+  p: Partition,
+  id: string,
+  signal?: AbortSignal,
+): Promise<MigrationTask> =>
+  (await apiClient.get(`${migrationTaskUrl}/${id}`, { params: p, signal })).data;
+export const advanceMigrationTask = async (
+  id: string,
+  body: AdvanceMigrationTask,
+): Promise<MigrationTask> => (await apiClient.post(`${migrationTaskUrl}/${id}/advance`, body)).data;
+export const cancelMigrationTask = async (
+  id: string,
+  body: CancelMigrationTask,
+): Promise<MigrationTask> => (await apiClient.post(`${migrationTaskUrl}/${id}/cancel`, body)).data;
+export const retryMigrationProjection = async (
+  p: Partition,
+  command: string,
+  kind: 'POLICY' | 'DIRECTORY',
+): Promise<void> => {
+  await apiClient.post('/api/governance/v1/access/retry-strict', {
+    ...p,
+    command_id: command,
+    kind,
+  });
+};
 
-export interface MenuChange { code: string; kind: 'ADDED' | 'REMOVED' | 'CHANGED'; before: PublishedMenu | null; after: PublishedMenu | null; fields: string[] }
-export interface CatalogViolation { code: 'CAPABILITY_REMOVED' | 'CAPABILITY_CHANGED' | 'VERSION_REGRESSION' | 'SAME_VERSION_CHANGED'; capability: string | null;
-  before: CatalogManifest['capabilities'][number] | null; after: CatalogManifest['capabilities'][number] | null }
-export interface CatalogPreview { application: string; current_version: number; proposed_version: number; content_hash: string; added: string[]; retained: string[];
-  presentation_hash: string; menu_changes: MenuChange[]; violations: CatalogViolation[]; publishable: boolean; affected_capabilities: string[] }
-export interface CatalogManifest { schema_version: string; application: string; manifest_version: number;
-  capabilities: { code: string; resource_type: string; risk_level: string }[]; menus: { code: string; parent: string | null; route: string | null; any_of: string[]; label?: string | null; position?: number | null }[] }
-export const previewCatalog = async (manifest: CatalogManifest): Promise<CatalogPreview> => (await apiClient.post('/api/governance/v1/catalog/preview', manifest)).data
-export const publishCatalog = async (command: { manifest: CatalogManifest; commandId: string }): Promise<CatalogPreview> =>
-  (await apiClient.post('/api/governance/v1/catalog/publish', command.manifest, { headers: { 'X-Command-Id': command.commandId } })).data
+export interface MenuChange {
+  code: string;
+  kind: 'ADDED' | 'REMOVED' | 'CHANGED';
+  before: PublishedMenu | null;
+  after: PublishedMenu | null;
+  fields: string[];
+}
+export interface CatalogViolation {
+  code: 'CAPABILITY_REMOVED' | 'CAPABILITY_CHANGED' | 'VERSION_REGRESSION' | 'SAME_VERSION_CHANGED';
+  capability: string | null;
+  before: CatalogManifest['capabilities'][number] | null;
+  after: CatalogManifest['capabilities'][number] | null;
+}
+export interface CatalogPreview {
+  application: string;
+  current_version: number;
+  proposed_version: number;
+  content_hash: string;
+  added: string[];
+  retained: string[];
+  presentation_hash: string;
+  menu_changes: MenuChange[];
+  violations: CatalogViolation[];
+  publishable: boolean;
+  affected_capabilities: string[];
+}
+export interface CatalogManifest {
+  schema_version: string;
+  application: string;
+  manifest_version: number;
+  capabilities: { code: string; resource_type: string; risk_level: string }[];
+  menus: {
+    code: string;
+    parent: string | null;
+    route: string | null;
+    any_of: string[];
+    label?: string | null;
+    position?: number | null;
+  }[];
+}
+export const previewCatalog = async (manifest: CatalogManifest): Promise<CatalogPreview> =>
+  (await apiClient.post('/api/governance/v1/catalog/preview', manifest)).data;
+export const publishCatalog = async (command: {
+  manifest: CatalogManifest;
+  commandId: string;
+}): Promise<CatalogPreview> =>
+  (
+    await apiClient.post('/api/governance/v1/catalog/publish', command.manifest, {
+      headers: { 'X-Command-Id': command.commandId },
+    })
+  ).data;
 
-export interface CatalogImpactCursor { basis_hash: string; after_role: string; after_grant: string; after_member: string; after_policy: string }
-export interface CatalogImpactReport extends Partition { current_version: number; content_hash: string; presentation_hash: string;
-  observed_at: string; basis_hash: string | null; completeness: 'COMPLETE' | 'BASIS_LIMIT_EXCEEDED'; diff: CatalogPreview;
-  stats: { role_count: number; active_grant_count: number; pending_grant_count: number; active_people_count: number; pending_people_count: number;
-    people_count: number; group_grant_count: number; request_policy_count: number };
-  fences: { policy_state: string; directory_state: string; policy_desired_epoch: number | null; policy_applied_epoch: number | null;
-    directory_desired_epoch: number | null; directory_applied_epoch: number | null; source_quarantined: boolean; disabled_capabilities: string[] };
+export interface CatalogImpactCursor {
+  basis_hash: string;
+  after_role: string;
+  after_grant: string;
+  after_member: string;
+  after_policy: string;
+}
+export interface CatalogImpactReport extends Partition {
+  current_version: number;
+  content_hash: string;
+  presentation_hash: string;
+  observed_at: string;
+  basis_hash: string | null;
+  completeness: 'COMPLETE' | 'BASIS_LIMIT_EXCEEDED';
+  diff: CatalogPreview;
+  stats: {
+    role_count: number;
+    active_grant_count: number;
+    pending_grant_count: number;
+    active_people_count: number;
+    pending_people_count: number;
+    people_count: number;
+    group_grant_count: number;
+    request_policy_count: number;
+  };
+  fences: {
+    policy_state: string;
+    directory_state: string;
+    policy_desired_epoch: number | null;
+    policy_applied_epoch: number | null;
+    directory_desired_epoch: number | null;
+    directory_applied_epoch: number | null;
+    source_quarantined: boolean;
+    disabled_capabilities: string[];
+  };
   roles: (Role & { active_grant_count: number; pending_grant_count: number })[];
-  sources: { grant_id: string; role_id: string; member_id: string | null; generation: number | null; group_id: string | null;
-    source_type: string; source_id: string; valid_from: string; valid_to: string; grant_state: string; scope: string; scope_rule: ScopeRule | null }[];
-  policies: { id: string; role_id: string; policy_version: number; enabled: boolean }[]; next_cursor: CatalogImpactCursor | null }
+  sources: {
+    grant_id: string;
+    role_id: string;
+    member_id: string | null;
+    generation: number | null;
+    group_id: string | null;
+    source_type: string;
+    source_id: string;
+    valid_from: string;
+    valid_to: string;
+    grant_state: string;
+    scope: string;
+    scope_rule: ScopeRule | null;
+  }[];
+  policies: { id: string; role_id: string; policy_version: number; enabled: boolean }[];
+  next_cursor: CatalogImpactCursor | null;
+}
 /** 单独诊断入口不能用Owner权限或普通目录预览替代；失败保留HTTP状态，不生成零计数。 */
-export const catalogImpact = async (partition: Partition, manifest: CatalogManifest, cursor?: CatalogImpactCursor, signal?: AbortSignal): Promise<CatalogImpactReport> =>
-  (await apiClient.post('/api/governance/v1/access/catalog-impact', { ...partition, manifest, cursor }, { signal })).data
+export const catalogImpact = async (
+  partition: Partition,
+  manifest: CatalogManifest,
+  cursor?: CatalogImpactCursor,
+  signal?: AbortSignal,
+): Promise<CatalogImpactReport> =>
+  (
+    await apiClient.post(
+      '/api/governance/v1/access/catalog-impact',
+      { ...partition, manifest, cursor },
+      { signal },
+    )
+  ).data;
 
-export interface CatalogRelease { application: string; version: number; content_hash: string; presentation_hash: string | null; published_by: string; published_at: string;
-  source: { commit: string; artifact_hash: string } | null; reason: string | null; decision: 'KEEP_CURRENT_GRANTS' | 'SEPARATE_AUTHORIZATION_REVIEW' | null;
-  command_id: string | null; base_version: number | null; base_content_hash: string | null; base_presentation_hash: string | null; preview: CatalogPreview | null }
-export interface CatalogHistory { items: CatalogRelease[]; next_before_version: number | null }
-export interface CatalogReleaseDetail { release: CatalogRelease; manifest: CatalogManifest }
+export interface CatalogRelease {
+  application: string;
+  version: number;
+  content_hash: string;
+  presentation_hash: string | null;
+  published_by: string;
+  published_at: string;
+  source: { commit: string; artifact_hash: string } | null;
+  reason: string | null;
+  decision: 'KEEP_CURRENT_GRANTS' | 'SEPARATE_AUTHORIZATION_REVIEW' | null;
+  command_id: string | null;
+  base_version: number | null;
+  base_content_hash: string | null;
+  base_presentation_hash: string | null;
+  preview: CatalogPreview | null;
+}
+export interface CatalogHistory {
+  items: CatalogRelease[];
+  next_before_version: number | null;
+}
+export interface CatalogReleaseDetail {
+  release: CatalogRelease;
+  manifest: CatalogManifest;
+}
 /** 发布历史只读，失败不能替换成空列表或推测来源。 */
-export const catalogHistory = async (application: string, before?: number, signal?: AbortSignal): Promise<CatalogHistory> =>
-  (await apiClient.get('/api/governance/v1/catalog/releases', { params: { application_id: application, before_version: before }, signal })).data
-export const catalogReleaseDetail = async (application: string, version: number, signal?: AbortSignal): Promise<CatalogReleaseDetail> =>
-  (await apiClient.get(`/api/governance/v1/catalog/releases/${version}`, { params: { application_id: application }, signal })).data
+export const catalogHistory = async (
+  application: string,
+  before?: number,
+  signal?: AbortSignal,
+): Promise<CatalogHistory> =>
+  (
+    await apiClient.get('/api/governance/v1/catalog/releases', {
+      params: { application_id: application, before_version: before },
+      signal,
+    })
+  ).data;
+export const catalogReleaseDetail = async (
+  application: string,
+  version: number,
+  signal?: AbortSignal,
+): Promise<CatalogReleaseDetail> =>
+  (
+    await apiClient.get(`/api/governance/v1/catalog/releases/${version}`, {
+      params: { application_id: application },
+      signal,
+    })
+  ).data;
 
-export interface CatalogCandidate { manifest: CatalogManifest; source: CatalogRelease['source']; reason: string | null; decision: CatalogRelease['decision'] }
-export interface CatalogImpactBasis extends Partition { basis_hash: string }
-export interface CatalogReleaseTicket { preview_id: string; expires_at: string; base_version: number; base_content_hash: string | null; base_presentation_hash: string | null;
-  candidate: CatalogCandidate; preview: CatalogPreview; impact: CatalogImpactBasis | null }
-export interface CatalogPublishCommand { command_id: string; preview_id: string }
-export interface CatalogGuardPolicy { application_id: string; mode: 'LEGACY' | 'GUARDED'; version: number; enabled_by: string | null; enabled_at: string | null; reason: string | null; command_id: string | null }
-export interface CatalogEnableCommand { application_id: string; command_id: string; expected_version: number; legacy_writers_exited: boolean; reason: string }
+export interface CatalogCandidate {
+  manifest: CatalogManifest;
+  source: CatalogRelease['source'];
+  reason: string | null;
+  decision: CatalogRelease['decision'];
+}
+export interface CatalogImpactBasis extends Partition {
+  basis_hash: string;
+}
+export interface CatalogReleaseTicket {
+  preview_id: string;
+  expires_at: string;
+  base_version: number;
+  base_content_hash: string | null;
+  base_presentation_hash: string | null;
+  candidate: CatalogCandidate;
+  preview: CatalogPreview;
+  impact: CatalogImpactBasis | null;
+}
+export interface CatalogPublishCommand {
+  command_id: string;
+  preview_id: string;
+}
+export interface CatalogGuardPolicy {
+  application_id: string;
+  mode: 'LEGACY' | 'GUARDED';
+  version: number;
+  enabled_by: string | null;
+  enabled_at: string | null;
+  reason: string | null;
+  command_id: string | null;
+}
+export interface CatalogEnableCommand {
+  application_id: string;
+  command_id: string;
+  expected_version: number;
+  legacy_writers_exited: boolean;
+  reason: string;
+}
 /** 正式发布只发送服务器固定预览ID；不降级到旧清单写入口。 */
-export const catalogReleasePreview = async (input: CatalogCandidate & { impact: CatalogImpactBasis | null }, signal?: AbortSignal): Promise<CatalogReleaseTicket> =>
-  (await apiClient.post('/api/governance/v1/catalog/release-preview', input, { signal })).data
-export const catalogReleasePublish = async (command: CatalogPublishCommand): Promise<CatalogRelease> =>
-  (await apiClient.post('/api/governance/v1/catalog/release-publish', command)).data
-export const catalogGuardPolicy = async (application: string, signal?: AbortSignal): Promise<CatalogGuardPolicy> =>
-  (await apiClient.get('/api/governance/v1/catalog/guard-policy', { params: { application_id: application }, signal })).data
-export const catalogEnableGuard = async (command: CatalogEnableCommand): Promise<CatalogGuardPolicy> =>
-  (await apiClient.post('/api/governance/v1/catalog/enable-guard', command)).data
+export const catalogReleasePreview = async (
+  input: CatalogCandidate & { impact: CatalogImpactBasis | null },
+  signal?: AbortSignal,
+): Promise<CatalogReleaseTicket> =>
+  (await apiClient.post('/api/governance/v1/catalog/release-preview', input, { signal })).data;
+export const catalogReleasePublish = async (
+  command: CatalogPublishCommand,
+): Promise<CatalogRelease> =>
+  (await apiClient.post('/api/governance/v1/catalog/release-publish', command)).data;
+export const catalogGuardPolicy = async (
+  application: string,
+  signal?: AbortSignal,
+): Promise<CatalogGuardPolicy> =>
+  (
+    await apiClient.get('/api/governance/v1/catalog/guard-policy', {
+      params: { application_id: application },
+      signal,
+    })
+  ).data;
+export const catalogEnableGuard = async (
+  command: CatalogEnableCommand,
+): Promise<CatalogGuardPolicy> =>
+  (await apiClient.post('/api/governance/v1/catalog/enable-guard', command)).data;
 
-export type CatalogDriftState = 'NOT_PUBLISHED' | 'SOURCE_MISMATCH' | 'DISPLAY_MISMATCH' | 'MATCHED_DECLARATION' | 'UNKNOWN'
-export interface CatalogDeploymentDeclaration { application_id: string; manifest_version: number; content_hash: string; presentation_hash: string; source: NonNullable<CatalogRelease['source']>; declared_at: string; evidence_ref: string }
-export interface CatalogDriftReport { application: string; observed_at: string; expected_version: number; content_hash: string; presentation_hash: string; declared_source: CatalogRelease['source'];
-  published: CatalogRelease | null; state: CatalogDriftState; diff: CatalogPreview | null; deployment: { state: CatalogDriftState; declaration: CatalogDeploymentDeclaration | null }; runtime_state: 'UNKNOWN' }
+export type CatalogDriftState =
+  'NOT_PUBLISHED' | 'SOURCE_MISMATCH' | 'DISPLAY_MISMATCH' | 'MATCHED_DECLARATION' | 'UNKNOWN';
+export interface CatalogDeploymentDeclaration {
+  application_id: string;
+  manifest_version: number;
+  content_hash: string;
+  presentation_hash: string;
+  source: NonNullable<CatalogRelease['source']>;
+  declared_at: string;
+  evidence_ref: string;
+}
+export interface CatalogDriftReport {
+  application: string;
+  observed_at: string;
+  expected_version: number;
+  content_hash: string;
+  presentation_hash: string;
+  declared_source: CatalogRelease['source'];
+  published: CatalogRelease | null;
+  state: CatalogDriftState;
+  diff: CatalogPreview | null;
+  deployment: { state: CatalogDriftState; declaration: CatalogDeploymentDeclaration | null };
+  runtime_state: 'UNKNOWN';
+}
 /** 只读核对请求不接受客户端运行证明；Owner失败保留实际HTTP状态。 */
-export const catalogDrift = async (candidate: CatalogCandidate, signal?: AbortSignal): Promise<CatalogDriftReport> =>
-  (await apiClient.post('/api/governance/v1/catalog/drift', candidate, { signal })).data
+export const catalogDrift = async (
+  candidate: CatalogCandidate,
+  signal?: AbortSignal,
+): Promise<CatalogDriftReport> =>
+  (await apiClient.post('/api/governance/v1/catalog/drift', candidate, { signal })).data;
 
-export interface RequestPolicy { id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; policy_version: number; role_code: string; role_version: number; capabilities: string[] }
-export interface PolicyConfiguration { policy: RequestPolicy; approver_membership_id: string; approver_generation: number; enabled: boolean }
-export interface PolicyCommand extends Partition { command_id: string; role_id: string; scope_rule: ScopeRule; max_duration_seconds: number; approver_membership_id: string; approver_generation: number; policy_version: number }
-export interface AccessRequest { id: string; policy_id: string; role_id: string; capabilities: string[]; scope_rule: ScopeRule; valid_from: string; valid_to: string; reason: string; request_version: number; snapshot_hash: string; state: string; state_version: number; approval_instance_id: string | null; grant_id: string | null; migration_old_grant_id?: string | null; migration_old_version?: number | null; withdrawn?: boolean }
-export interface RequestExecution { request_id: string; grant_id: string | null; grant_state: string | null; display_state: string; operation_id: string | null; start_state: string; start_attempts: number; start_error: string | null; callback_status: string | null; callback_result: string | null; other_active_grant_count: number; grant_version?: number | null }
-export interface RequestNotice { id: string; request_id: string; state_version: number; message_key: string; delivered_at: string }
-export interface SubmitRequest extends Partition { command_id: string; policy_id: string; valid_from: string; valid_to: string; reason: string }
-export interface SubmitMigrationRequest extends Partition { command_id: string; policy_id: string; old_grant_id: string; expected_version: number; reason: string }
-export interface CancelRequest extends Partition { command_id: string; id: string; state_version: number }
-export const requestPolicies = async (p: Partition, after?: string): Promise<Page<RequestPolicy>> => (await apiClient.get('/api/governance/v1/requests/policies', { params: { ...p, after } })).data
-export const managedPolicies = async (p: Partition, after?: string): Promise<Page<PolicyConfiguration>> => (await apiClient.get('/api/governance/v1/access/request-policies', { params: { ...p, after } })).data
-export const registerPolicy = async (command: PolicyCommand): Promise<RequestPolicy> => (await apiClient.post('/api/governance/v1/requests/policies', command)).data
-export const myRequests = async (p: Partition, after?: string): Promise<Page<AccessRequest>> => (await apiClient.get('/api/governance/v1/requests', { params: { ...p, after } })).data
-export const requestDetail = async (p: Partition, id: string): Promise<AccessRequest> => (await apiClient.get(`/api/governance/v1/requests/${id}`, { params: p })).data
-export const requestExecution = async (p: Partition, id: string): Promise<RequestExecution> => (await apiClient.get(`/api/governance/v1/requests/${id}/execution`, { params: p })).data
-export const requestNotices = async (p: Partition, after?: string): Promise<Page<RequestNotice>> => (await apiClient.get('/api/governance/v1/requests/notifications', { params: { ...p, after } })).data
-export const submitRequest = async (command: SubmitRequest): Promise<AccessRequest> => (await apiClient.post('/api/governance/v1/requests', command)).data
-export const migrationRequestPolicies = async (p: Partition, id: string, after?: string): Promise<Page<RequestPolicy>> => (await apiClient.get(`/api/governance/v1/requests/${id}/role-migration-policies`, { params: { ...p, after } })).data
-export const submitMigrationRequest = async (command: SubmitMigrationRequest): Promise<AccessRequest> => (await apiClient.post('/api/governance/v1/requests/role-migration', command)).data
-export const cancelRequest = async ({ id, ...command }: CancelRequest): Promise<AccessRequest> => (await apiClient.post(`/api/governance/v1/requests/${id}/cancel`, command)).data
+export interface RequestPolicy {
+  id: string;
+  role_id: string;
+  scope_rule: ScopeRule;
+  max_duration_seconds: number;
+  policy_version: number;
+  role_code: string;
+  role_version: number;
+  capabilities: string[];
+}
+export interface PolicyConfiguration {
+  policy: RequestPolicy;
+  approver_membership_id: string;
+  approver_generation: number;
+  enabled: boolean;
+}
+export interface PolicyCommand extends Partition {
+  command_id: string;
+  role_id: string;
+  scope_rule: ScopeRule;
+  max_duration_seconds: number;
+  approver_membership_id: string;
+  approver_generation: number;
+  policy_version: number;
+}
+export interface AccessRequest {
+  id: string;
+  policy_id: string;
+  role_id: string;
+  capabilities: string[];
+  scope_rule: ScopeRule;
+  valid_from: string;
+  valid_to: string;
+  reason: string;
+  request_version: number;
+  snapshot_hash: string;
+  state: string;
+  state_version: number;
+  approval_instance_id: string | null;
+  grant_id: string | null;
+  migration_old_grant_id?: string | null;
+  migration_old_version?: number | null;
+  withdrawn?: boolean;
+}
+export interface RequestExecution {
+  request_id: string;
+  grant_id: string | null;
+  grant_state: string | null;
+  display_state: string;
+  operation_id: string | null;
+  start_state: string;
+  start_attempts: number;
+  start_error: string | null;
+  callback_status: string | null;
+  callback_result: string | null;
+  other_active_grant_count: number;
+  grant_version?: number | null;
+}
+export interface RequestNotice {
+  id: string;
+  request_id: string;
+  state_version: number;
+  message_key: string;
+  delivered_at: string;
+}
+export interface SubmitRequest extends Partition {
+  command_id: string;
+  policy_id: string;
+  valid_from: string;
+  valid_to: string;
+  reason: string;
+}
+export interface SubmitMigrationRequest extends Partition {
+  command_id: string;
+  policy_id: string;
+  old_grant_id: string;
+  expected_version: number;
+  reason: string;
+}
+export interface CancelRequest extends Partition {
+  command_id: string;
+  id: string;
+  state_version: number;
+}
+export const requestPolicies = async (p: Partition, after?: string): Promise<Page<RequestPolicy>> =>
+  (await apiClient.get('/api/governance/v1/requests/policies', { params: { ...p, after } })).data;
+export const managedPolicies = async (
+  p: Partition,
+  after?: string,
+): Promise<Page<PolicyConfiguration>> =>
+  (await apiClient.get('/api/governance/v1/access/request-policies', { params: { ...p, after } }))
+    .data;
+export const registerPolicy = async (command: PolicyCommand): Promise<RequestPolicy> =>
+  (await apiClient.post('/api/governance/v1/requests/policies', command)).data;
+export const myRequests = async (p: Partition, after?: string): Promise<Page<AccessRequest>> =>
+  (await apiClient.get('/api/governance/v1/requests', { params: { ...p, after } })).data;
+export const requestDetail = async (p: Partition, id: string): Promise<AccessRequest> =>
+  (await apiClient.get(`/api/governance/v1/requests/${id}`, { params: p })).data;
+export const requestExecution = async (p: Partition, id: string): Promise<RequestExecution> =>
+  (await apiClient.get(`/api/governance/v1/requests/${id}/execution`, { params: p })).data;
+export const requestNotices = async (p: Partition, after?: string): Promise<Page<RequestNotice>> =>
+  (await apiClient.get('/api/governance/v1/requests/notifications', { params: { ...p, after } }))
+    .data;
+export const submitRequest = async (command: SubmitRequest): Promise<AccessRequest> =>
+  (await apiClient.post('/api/governance/v1/requests', command)).data;
+export const migrationRequestPolicies = async (
+  p: Partition,
+  id: string,
+  after?: string,
+): Promise<Page<RequestPolicy>> =>
+  (
+    await apiClient.get(`/api/governance/v1/requests/${id}/role-migration-policies`, {
+      params: { ...p, after },
+    })
+  ).data;
+export const submitMigrationRequest = async (
+  command: SubmitMigrationRequest,
+): Promise<AccessRequest> =>
+  (await apiClient.post('/api/governance/v1/requests/role-migration', command)).data;
+export const cancelRequest = async ({ id, ...command }: CancelRequest): Promise<AccessRequest> =>
+  (await apiClient.post(`/api/governance/v1/requests/${id}/cancel`, command)).data;
 
-export interface InvitationAuthority { issuer: string; max_invitation_seconds: number; max_membership_seconds: number }
-export interface Invitation { id: string; target_issuer: string; target_subject: string; member_kind: string; expires_at: string; membership_valid_to: string; state: string; version: number }
-export interface IssueInvitation extends Partition { command_id: string; invitation_id: string; target_subject: string; member_kind: string; token: string; expires_at: string; membership_valid_to: string; reason: string }
-export interface RevokeInvitation extends Partition { id: string; command_id: string; expected_version: number; reason: string }
-export const invitationAuthority = async (p: Partition): Promise<InvitationAuthority> => (await apiClient.get('/api/governance/v1/portal-invitations/authority', { params: p })).data
-export const invitations = async (p: Partition, after?: string): Promise<Page<Invitation>> => (await apiClient.get('/api/governance/v1/portal-invitations', { params: { ...p, after } })).data
-export const issueInvitation = async (command: IssueInvitation): Promise<Invitation> => (await apiClient.post('/api/governance/v1/portal-invitations', command)).data
-export const revokeInvitation = async ({ id, ...command }: RevokeInvitation): Promise<Invitation> => (await apiClient.post(`/api/governance/v1/portal-invitations/${id}/revoke`, command)).data
-export const acceptInvitation = async (command: { invitation_id: string; token: string }): Promise<{ membership_id: string; membership_generation: number; membership_status: string }> => (await apiClient.post('/api/governance/v1/invitations/accept', command)).data
+export interface InvitationAuthority {
+  issuer: string;
+  max_invitation_seconds: number;
+  max_membership_seconds: number;
+}
+export interface Invitation {
+  id: string;
+  target_issuer: string;
+  target_subject: string;
+  member_kind: string;
+  expires_at: string;
+  membership_valid_to: string;
+  state: string;
+  version: number;
+}
+export interface IssueInvitation extends Partition {
+  command_id: string;
+  invitation_id: string;
+  target_subject: string;
+  member_kind: string;
+  token: string;
+  expires_at: string;
+  membership_valid_to: string;
+  reason: string;
+}
+export interface RevokeInvitation extends Partition {
+  id: string;
+  command_id: string;
+  expected_version: number;
+  reason: string;
+}
+export const invitationAuthority = async (p: Partition): Promise<InvitationAuthority> =>
+  (await apiClient.get('/api/governance/v1/portal-invitations/authority', { params: p })).data;
+export const invitations = async (p: Partition, after?: string): Promise<Page<Invitation>> =>
+  (await apiClient.get('/api/governance/v1/portal-invitations', { params: { ...p, after } })).data;
+export const issueInvitation = async (command: IssueInvitation): Promise<Invitation> =>
+  (await apiClient.post('/api/governance/v1/portal-invitations', command)).data;
+export const revokeInvitation = async ({ id, ...command }: RevokeInvitation): Promise<Invitation> =>
+  (await apiClient.post(`/api/governance/v1/portal-invitations/${id}/revoke`, command)).data;
+export const acceptInvitation = async (command: {
+  invitation_id: string;
+  token: string;
+}): Promise<{ membership_id: string; membership_generation: number; membership_status: string }> =>
+  (await apiClient.post('/api/governance/v1/invitations/accept', command)).data;
 
-export interface PermissionExplanation { grant_id: string; member_id: string | null; generation: number | null; group_id: string | null; role_id: string; role_code: string; role_version: number; capabilities: string[]; scope: string; scope_rule: ScopeRule | null; source_type: string; source_id: string; valid_from: string; valid_to: string; grant_state: string; effective_state: string; grant_version: number; operation_id: string | null; policy_state: string; directory_state: string }
-export interface AccessAudit { id: string; operator_ref: string; operation: string; target_id: string | null; target_version: number; occurred_at: string; outcome: string }
-export interface RevocationReceipt { grant_id: string; version: number; status: string; operation_id: string | null; desired_epoch: number; applied_epoch: number }
-export interface RevokeGrant extends Partition { command_id: string; grant_id: string; expected_version: number }
-export const myPermissions = async (p: Partition, after?: string): Promise<Page<PermissionExplanation>> => (await apiClient.get('/api/governance/v1/me/permissions', { params: { ...p, after } })).data
-export const grantExplanation = async (p: Partition, grant: string): Promise<PermissionExplanation> => (await apiClient.get('/api/governance/v1/access/explanations', { params: { ...p, grant_id: grant } })).data
-export const accessAudit = async (p: Partition, after?: string): Promise<Page<AccessAudit>> => (await apiClient.get('/api/governance/v1/access/audit', { params: { ...p, after } })).data
-export const revokeGrant = async (command: RevokeGrant): Promise<RevocationReceipt> => (await apiClient.post('/api/governance/v1/access/strict-revoke', command)).data
-export const revocationReceipt = async (p: Partition, grant: string): Promise<RevocationReceipt> => (await apiClient.get('/api/governance/v1/access/revocation-receipt', { params: { ...p, grant_id: grant } })).data
+export interface PermissionExplanation {
+  grant_id: string;
+  member_id: string | null;
+  generation: number | null;
+  group_id: string | null;
+  role_id: string;
+  role_code: string;
+  role_version: number;
+  capabilities: string[];
+  scope: string;
+  scope_rule: ScopeRule | null;
+  source_type: string;
+  source_id: string;
+  valid_from: string;
+  valid_to: string;
+  grant_state: string;
+  effective_state: string;
+  grant_version: number;
+  operation_id: string | null;
+  policy_state: string;
+  directory_state: string;
+}
+export interface AccessAudit {
+  id: string;
+  operator_ref: string;
+  operation: string;
+  target_id: string | null;
+  target_version: number;
+  occurred_at: string;
+  outcome: string;
+}
+export interface RevocationReceipt {
+  grant_id: string;
+  version: number;
+  status: string;
+  operation_id: string | null;
+  desired_epoch: number;
+  applied_epoch: number;
+}
+export interface RevokeGrant extends Partition {
+  command_id: string;
+  grant_id: string;
+  expected_version: number;
+}
+export const myPermissions = async (
+  p: Partition,
+  after?: string,
+): Promise<Page<PermissionExplanation>> =>
+  (await apiClient.get('/api/governance/v1/me/permissions', { params: { ...p, after } })).data;
+export const grantExplanation = async (
+  p: Partition,
+  grant: string,
+): Promise<PermissionExplanation> =>
+  (
+    await apiClient.get('/api/governance/v1/access/explanations', {
+      params: { ...p, grant_id: grant },
+    })
+  ).data;
+export const accessAudit = async (p: Partition, after?: string): Promise<Page<AccessAudit>> =>
+  (await apiClient.get('/api/governance/v1/access/audit', { params: { ...p, after } })).data;
+export const revokeGrant = async (command: RevokeGrant): Promise<RevocationReceipt> =>
+  (await apiClient.post('/api/governance/v1/access/strict-revoke', command)).data;
+export const revocationReceipt = async (p: Partition, grant: string): Promise<RevocationReceipt> =>
+  (
+    await apiClient.get('/api/governance/v1/access/revocation-receipt', {
+      params: { ...p, grant_id: grant },
+    })
+  ).data;
 
-export const personnelImpact = async (p: Partition, member: string, changeCursor?: string, sourceCursor?: string, signal?: AbortSignal): Promise<import('../governance/personnelImpact').PersonnelReport> => validatePersonnelReport((await apiClient.get('/api/governance/v1/access/personnel-impact', { params: { ...p, membership_id: member, change_cursor: changeCursor, source_cursor: sourceCursor }, signal })).data, member)
+export const personnelImpact = async (
+  p: Partition,
+  member: string,
+  changeCursor?: string,
+  sourceCursor?: string,
+  signal?: AbortSignal,
+): Promise<import('../governance/personnelImpact').PersonnelReport> =>
+  validatePersonnelReport(
+    (
+      await apiClient.get('/api/governance/v1/access/personnel-impact', {
+        params: {
+          ...p,
+          membership_id: member,
+          change_cursor: changeCursor,
+          source_cursor: sourceCursor,
+        },
+        signal,
+      })
+    ).data,
+    member,
+  );
 
-export interface RetirementCount { kind: string; blocking: number; historical: number }
-export interface RetirementReport { application_id: string; capability: string; lifecycle_state: CapabilityLifecycleState; lifecycle_version: number;
-  manifest_version: number; content_hash: string; presentation_hash: string; complete: boolean; counts: RetirementCount[];
-  proof_state: typeof RetirementProofState[keyof typeof RetirementProofState]; proof_reason: string | null; proof_hash: string | null; proof_valid_until: string | null;
-  eligible: boolean; basis_hash: string; checked_at: string }
-export interface RetirementReference { kind: string; id: string; blocking: boolean; state: string; role_id: string | null; source_type: string | null; valid_to: string | null }
-export interface RetirementReferences { items: RetirementReference[]; next_cursor: string | null; basis_hash: string }
-export interface RetirementCommand { application_id: string; capability: string; expected_version: number; basis_hash: string; reason: string; command_id: string }
+export interface RetirementCount {
+  kind: string;
+  blocking: number;
+  historical: number;
+}
+export interface RetirementReport {
+  application_id: string;
+  capability: string;
+  lifecycle_state: CapabilityLifecycleState;
+  lifecycle_version: number;
+  manifest_version: number;
+  content_hash: string;
+  presentation_hash: string;
+  complete: boolean;
+  counts: RetirementCount[];
+  proof_state: (typeof RetirementProofState)[keyof typeof RetirementProofState];
+  proof_reason: string | null;
+  proof_hash: string | null;
+  proof_valid_until: string | null;
+  eligible: boolean;
+  basis_hash: string;
+  checked_at: string;
+}
+export interface RetirementReference {
+  kind: string;
+  id: string;
+  blocking: boolean;
+  state: string;
+  role_id: string | null;
+  source_type: string | null;
+  valid_to: string | null;
+}
+export interface RetirementReferences {
+  items: RetirementReference[];
+  next_cursor: string | null;
+  basis_hash: string;
+}
+export interface RetirementCommand {
+  application_id: string;
+  capability: string;
+  expected_version: number;
+  basis_hash: string;
+  reason: string;
+  command_id: string;
+}
 /** 缺元数据必须拒绝，避免把旧服务null或403误判成零引用。 */
-export const capabilityRetirement = async (application_id: string, capability: string): Promise<RetirementReport> => {
-  const r = (await apiClient.get<RetirementReport>('/api/governance/v1/catalog/capability-retirement', { params: { application_id, capability } })).data
-  return validateRetirementReport(r, application_id, capability)
-}
+export const capabilityRetirement = async (
+  application_id: string,
+  capability: string,
+): Promise<RetirementReport> => {
+  const r = (
+    await apiClient.get<RetirementReport>('/api/governance/v1/catalog/capability-retirement', {
+      params: { application_id, capability },
+    })
+  ).data;
+  return validateRetirementReport(r, application_id, capability);
+};
 /** 当前分区独立诊断，不将应用Owner身份转成跨企业明细权限。 */
-export const retirementReferences = async (p: Partition, capability: string, cursor?: string): Promise<RetirementReferences> => {
-  const r = (await apiClient.get<RetirementReferences>('/api/governance/v1/access/capability-retirement', { params: { ...p, capability, cursor } })).data
-  return validateRetirementReferences(r)
-}
+export const retirementReferences = async (
+  p: Partition,
+  capability: string,
+  cursor?: string,
+): Promise<RetirementReferences> => {
+  const r = (
+    await apiClient.get<RetirementReferences>('/api/governance/v1/access/capability-retirement', {
+      params: { ...p, capability, cursor },
+    })
+  ).data;
+  return validateRetirementReferences(r);
+};
 /** 原成功回执与当前墓碑分开验证，未知提交只能原键恢复。 */
-export const retireCapability = async (body: RetirementCommand): Promise<CapabilityLifecycleMutation> => {
-  const r = (await apiClient.post<CapabilityLifecycleMutation>('/api/governance/v1/catalog/capability-retire', body)).data
-  return validateRetirementReceipt(r, body)
-}
+export const retireCapability = async (
+  body: RetirementCommand,
+): Promise<CapabilityLifecycleMutation> => {
+  const r = (
+    await apiClient.post<CapabilityLifecycleMutation>(
+      '/api/governance/v1/catalog/capability-retire',
+      body,
+    )
+  ).data;
+  return validateRetirementReceipt(r, body);
+};
 
-export interface OwnerCatalog { application_id: string; manifest_version: number; capabilities: PublishedCapability[] }
+export interface OwnerCatalog {
+  application_id: string;
+  manifest_version: number;
+  capabilities: PublishedCapability[];
+}
 /** Owner元数据不复用需要管理委派的角色／人员读接口。 */
 export const ownerCatalog = async (application_id: string): Promise<OwnerCatalog> => {
-  const r = (await apiClient.get<OwnerCatalog>('/api/governance/v1/catalog/owner-view', { params: { application_id } })).data
-  if (!r || r.application_id !== application_id || !Number.isSafeInteger(r.manifest_version) || !Array.isArray(r.capabilities) || r.capabilities.length > 200
-    || r.capabilities.some(c => !c.code.startsWith(`${application_id}.`) || c.grantable !== false || c.lifecycle_state == null || !Object.values(LifecycleState).includes(c.lifecycle_state))) throw new Error('Owner目录响应无效')
-  return r
-}
+  const r = (
+    await apiClient.get<OwnerCatalog>('/api/governance/v1/catalog/owner-view', {
+      params: { application_id },
+    })
+  ).data;
+  if (
+    !r ||
+    r.application_id !== application_id ||
+    !Number.isSafeInteger(r.manifest_version) ||
+    !Array.isArray(r.capabilities) ||
+    r.capabilities.length > 200 ||
+    r.capabilities.some(
+      (c) =>
+        !c.code.startsWith(`${application_id}.`) ||
+        c.grantable !== false ||
+        c.lifecycle_state == null ||
+        !Object.values(LifecycleState).includes(c.lifecycle_state),
+    )
+  )
+    throw new Error('Owner目录响应无效');
+  return r;
+};

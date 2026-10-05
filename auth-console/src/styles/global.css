@@ -48,5 +48,12 @@ body {
 }
 
 /* 旧工作区导航也使用居中弹层，避免短视口把菜单项推到屏幕外。 */
-.app-navigation-modal .ant-modal-content { max-height: calc(100dvh - 48px); display: flex; flex-direction: column; }
-.app-navigation-modal .ant-modal-body { min-height: 0; overflow-y: auto; }
+.app-navigation-modal .ant-modal-content {
+  max-height: calc(100dvh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+.app-navigation-modal .ant-modal-body {
+  min-height: 0;
+  overflow-y: auto;
+}

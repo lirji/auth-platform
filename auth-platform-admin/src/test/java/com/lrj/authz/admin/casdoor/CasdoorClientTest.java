@@ -1,7 +1,12 @@
 package com.lrj.authz.admin.casdoor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,10 +20,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CasdoorClientTest {
 
@@ -47,8 +48,11 @@ class CasdoorClientTest {
     }
 
     private void handle(HttpExchange exchange) throws IOException {
-        String key = exchange.getRequestURI().getPath()
-                + (exchange.getRequestURI().getRawQuery() == null ? "" : "?" + exchange.getRequestURI().getRawQuery());
+        String key =
+                exchange.getRequestURI().getPath()
+                        + (exchange.getRequestURI().getRawQuery() == null
+                                ? ""
+                                : "?" + exchange.getRequestURI().getRawQuery());
         seenPaths.add(key);
         authHeaders.add(exchange.getRequestHeaders().getFirst("Authorization"));
         byte[] bytes = responses.getOrDefault(key, "{}").getBytes(StandardCharsets.UTF_8);
@@ -70,23 +74,32 @@ class CasdoorClientTest {
     @Test
     void groupMembersScopesAndDeduplicatesAcrossOrganizations() {
         props.setOrganizations(List.of("acme", "beta"));
-        responses.put("/api/get-users?owner=acme", """
+        responses.put(
+                "/api/get-users?owner=acme",
+                """
                 {"data":[
                   {"name":"alice","id":"sub-a","groups":["eng","acme/eng",""]},
                   {"name":"missing-id","groups":["eng"]}
                 ]}
                 """);
-        responses.put("/api/get-users?owner=beta", """
+        responses.put(
+                "/api/get-users?owner=beta",
+                """
                 {"data":[{"name":"bob","id":"sub-b","groups":["eng"]}]}
                 """);
 
         Map<String, Set<String>> result = new CasdoorClient(props).groupMembers();
 
-        assertThat(result).containsEntry("acme_eng", Set.of("sub-a"))
+        assertThat(result)
+                .containsEntry("acme_eng", Set.of("sub-a"))
                 .containsEntry("beta_eng", Set.of("sub-b"));
         assertThat(result).hasSize(2);
-        assertThat(seenPaths).containsExactly("/api/get-users?owner=acme", "/api/get-users?owner=beta");
-        String expected = "Basic " + Base64.getEncoder().encodeToString("client:secret".getBytes(StandardCharsets.UTF_8));
+        assertThat(seenPaths)
+                .containsExactly("/api/get-users?owner=acme", "/api/get-users?owner=beta");
+        String expected =
+                "Basic "
+                        + Base64.getEncoder()
+                                .encodeToString("client:secret".getBytes(StandardCharsets.UTF_8));
         assertThat(authHeaders).allMatch(expected::equals);
         // TODO(issue-CAS03): acme 用户引用 beta/eng 应 fail-closed；当前会生成 beta_eng。
     }
@@ -94,7 +107,9 @@ class CasdoorClientTest {
     @Test
     void nameSubjectFieldUsesUserName() {
         props.setSubjectField("name");
-        responses.put("/api/get-users?owner=acme", """
+        responses.put(
+                "/api/get-users?owner=acme",
+                """
                 {"data":[{"name":"alice","id":"opaque-id","groups":["eng"]}]}
                 """);
 
@@ -104,7 +119,9 @@ class CasdoorClientTest {
 
     @Test
     void groupNamesUsesOwnerAndSkipsBlankNames() {
-        responses.put("/api/get-groups?owner=acme", """
+        responses.put(
+                "/api/get-groups?owner=acme",
+                """
                 {"data":[
                   {"owner":"acme","name":"eng"},
                   {"name":"ops"},
@@ -117,19 +134,25 @@ class CasdoorClientTest {
 
     @Test
     void departmentSnapshotBuildsTreeAndAdmins() {
-        responses.put("/api/get-users?owner=acme", """
+        responses.put(
+                "/api/get-users?owner=acme",
+                """
                 {"data":[
                   {"name":"alice","id":"sub-a","groups":["child"]},
                   {"name":"bob","id":"sub-b","groups":[]}
                 ]}
                 """);
-        responses.put("/api/get-groups?owner=acme", """
+        responses.put(
+                "/api/get-groups?owner=acme",
+                """
                 {"data":[
                   {"owner":"acme","name":"parent","parentId":""},
                   {"owner":"acme","name":"child","parentId":"acme/parent"}
                 ]}
                 """);
-        responses.put("/api/get-roles?owner=acme", """
+        responses.put(
+                "/api/get-roles?owner=acme",
+                """
                 {"data":[
                   {"owner":"acme","name":"child-admin","users":["acme/alice","acme/unknown"]},
                   {"owner":"acme","name":"unrelated","users":["acme/bob"]}
@@ -142,16 +165,20 @@ class CasdoorClientTest {
         assertThat(result.members()).containsEntry("acme_child", Set.of("sub-a"));
         assertThat(result.parents()).containsExactly(Map.entry("acme_child", "acme_parent"));
         assertThat(result.admins()).containsEntry("acme_child", Set.of("sub-a")).hasSize(1);
-        assertThat(seenPaths).containsExactly(
-                "/api/get-users?owner=acme", "/api/get-groups?owner=acme", "/api/get-roles?owner=acme");
+        assertThat(seenPaths)
+                .containsExactly(
+                        "/api/get-users?owner=acme",
+                        "/api/get-groups?owner=acme",
+                        "/api/get-roles?owner=acme");
     }
 
     @Test
     void malformedJsonFailsWithProtocolException() {
         responses.put("/api/get-users?owner=acme", "not-json");
 
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> new CasdoorClient(props).groupMembers());
+        IllegalStateException ex =
+                assertThrows(
+                        IllegalStateException.class, () -> new CasdoorClient(props).groupMembers());
         assertThat(ex).hasMessageContaining("Casdoor").hasMessageContaining("解析失败");
     }
 

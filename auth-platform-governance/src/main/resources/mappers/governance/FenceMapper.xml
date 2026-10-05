@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.FenceMapper">
- <insert id="enable">INSERT INTO auth_governance.policy_partition(tenant_id,application_id,environment,created_by)
+  <insert id="enable">INSERT INTO auth_governance.policy_partition(tenant_id,application_id,environment,created_by)
  VALUES(#{p.tenantId},#{p.applicationId},#{p.environment},#{actor}) ON CONFLICT DO NOTHING</insert>
- <select id="policy" resultType="com.lrj.authz.governance.domain.FenceModels$Fence">
+  <select id="policy" resultType="com.lrj.authz.governance.domain.FenceModels$Fence">
  SELECT id,desired_epoch,applied_epoch,state,zed_token FROM auth_governance.policy_partition
  WHERE tenant_id=#{p.tenantId} AND application_id=#{p.applicationId} AND environment=#{p.environment}
  </select>
- <select id="directory" resultType="com.lrj.authz.governance.domain.FenceModels$Fence">
+  <select id="directory" resultType="com.lrj.authz.governance.domain.FenceModels$Fence">
  SELECT id,desired_epoch,applied_epoch,state,zed_token FROM auth_governance.directory_fence WHERE tenant_id=#{tenant}
  </select>
- <select id="stamp" resultType="com.lrj.authz.governance.domain.FenceModels$Stamp">
+  <select id="stamp" resultType="com.lrj.authz.governance.domain.FenceModels$Stamp">
  SELECT u.id AS principal_id,m.id AS membership_id,m.generation,m.version AS membership_version,
  u.version AS principal_version,t.version AS tenant_version,app.manifest_version,
  p.tenant_id,p.application_id,p.environment,p.id AS policy_id,p.applied_epoch AS policy_epoch,p.zed_token AS policy_token,

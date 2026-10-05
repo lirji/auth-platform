@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.RoleMigrationMapper">
- <sql id="partition">g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}</sql>
- <select id="candidates" resultType="com.lrj.authz.governance.domain.AccessModels$Grant">
+  <sql id="partition">g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment}</sql>
+  <select id="candidates" resultType="com.lrj.authz.governance.domain.AccessModels$Grant">
   SELECT g.id,g.tenant_id,g.application_id,g.environment,g.membership_id,g.generation,g.role_id,g.scope,g.source_type,g.source_id,
    g.valid_from,g.valid_to,g.state,g.version,g.zed_token,g.group_id
   FROM auth_governance.access_grant g WHERE <include refid="partition"/> AND g.role_id=#{role} AND g.id &gt; #{after}
   ORDER BY g.id LIMIT 21
  </select>
- <select id="selected" resultType="com.lrj.authz.governance.domain.RoleMigrationModels$Snapshot">
+  <select id="selected" resultType="com.lrj.authz.governance.domain.RoleMigrationModels$Snapshot">
   SELECT g.id,g.tenant_id,g.application_id,g.environment,g.membership_id,g.generation,g.role_id,g.scope,g.source_type,g.source_id,
    g.valid_from,g.valid_to,g.state,g.version,g.group_id,g.zed_token AS graph_token,s.rule_json,s.content_hash AS scope_hash,
    COALESCE(m.status='ACTIVE' AND u.status='ACTIVE' AND u.kind='HUMAN' AND t.status='ACTIVE'
@@ -28,5 +28,5 @@
   <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
   ORDER BY g.id
  </select>
- <select id="now" resultType="java.time.Instant">SELECT clock_timestamp()</select>
+  <select id="now" resultType="java.time.Instant">SELECT clock_timestamp()</select>
 </mapper>

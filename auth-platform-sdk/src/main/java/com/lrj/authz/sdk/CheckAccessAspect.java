@@ -4,6 +4,7 @@ import com.lrj.authz.protocol.AuthzEngine;
 import com.lrj.authz.protocol.Consistency;
 import com.lrj.authz.protocol.ResourceRef;
 import com.lrj.authz.protocol.SubjectRef;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -26,12 +27,19 @@ public class CheckAccessAspect {
         SubjectRef subject = subjectResolver.currentSubject();
         String resourceId = resolveParam(pjp, checkAccess.resourceIdParam());
         ResourceRef resource = ResourceRef.of(checkAccess.resourceType(), resourceId);
-        Consistency consistency = checkAccess.fullyConsistent()
-                ? Consistency.fullyConsistent() : Consistency.minimizeLatency();
+        Consistency consistency =
+                checkAccess.fullyConsistent()
+                        ? Consistency.fullyConsistent()
+                        : Consistency.minimizeLatency();
         boolean allowed = engine.check(subject, checkAccess.permission(), resource, consistency);
         if (!allowed) {
             throw new AccessDeniedException(
-                    "拒绝: subject=" + subject + " 无 " + checkAccess.permission() + " 权限 on " + resource.ref());
+                    "拒绝: subject="
+                            + subject
+                            + " 无 "
+                            + checkAccess.permission()
+                            + " 权限 on "
+                            + resource.ref());
         }
         return pjp.proceed();
     }
@@ -45,6 +53,7 @@ public class CheckAccessAspect {
                 return String.valueOf(args[i]);
             }
         }
-        throw new IllegalStateException("@CheckAccess.resourceIdParam=\"" + paramName + "\" 未在方法参数中找到");
+        throw new IllegalStateException(
+                "@CheckAccess.resourceIdParam=\"" + paramName + "\" 未在方法参数中找到");
     }
 }

@@ -3,6 +3,7 @@ package com.lrj.authz.governance.authentication;
 import com.lrj.authz.governance.application.IdentityGovernance;
 import com.lrj.authz.governance.domain.IdentityModels.Membership;
 import com.lrj.authz.governance.domain.IdentityModels.Principal;
+
 import java.util.List;
 
 /** 把发行方身份接到显式绑定，认证成功不会隐式开户、赋角色或绕过当前治理状态。 */
@@ -11,7 +12,8 @@ public final class AuthenticatedIdentityReader {
     private final IdentityGovernance identity;
 
     /** 两种权威分别来自固定发行方与治理库，由所属服务显式装配。 */
-    public AuthenticatedIdentityReader(CasdoorAccessTokenVerifier tokens, IdentityGovernance identity) {
+    public AuthenticatedIdentityReader(
+            CasdoorAccessTokenVerifier tokens, IdentityGovernance identity) {
         this.tokens = tokens;
         this.identity = identity;
     }

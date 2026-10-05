@@ -33,24 +33,42 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
+    public SecurityFilterChain filterChain(
+            HttpSecurity http, JwtAuthenticationConverter jwtAuthenticationConverter)
+            throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/admin/casdoor/webhook").permitAll()
-                        // 写端点:需管理员
-                        .requestMatchers(HttpMethod.POST,
-                                "/admin/grants", "/admin/grants/revoke",
-                                "/admin/casdoor/sync", "/admin/casdoor/sync-departments").hasAuthority("authz-admin")
-                        // 读/调试端点:viewer 或 admin
-                        .requestMatchers(HttpMethod.POST, "/admin/check", "/admin/expand").hasAnyAuthority("authz-admin", "authz-viewer")
-                        .requestMatchers(HttpMethod.GET, "/admin/workspaces", "/admin/resources/**", "/admin/subjects/**", "/admin/schema",
-                                "/admin/relationships", "/admin/audit")
-                        .hasAnyAuthority("authz-admin", "authz-viewer")
-                        .anyRequest().authenticated())
-                .oauth2ResourceServer(o -> o.jwt(j -> j.jwtAuthenticationConverter(jwtAuthenticationConverter)));
+                .authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers("/actuator/health", "/actuator/info")
+                                        .permitAll()
+                                        .requestMatchers(HttpMethod.POST, "/admin/casdoor/webhook")
+                                        .permitAll()
+                                        // 写端点:需管理员
+                                        .requestMatchers(
+                                                HttpMethod.POST,
+                                                "/admin/grants",
+                                                "/admin/grants/revoke",
+                                                "/admin/casdoor/sync",
+                                                "/admin/casdoor/sync-departments")
+                                        .hasAuthority("authz-admin")
+                                        // 读/调试端点:viewer 或 admin
+                                        .requestMatchers(
+                                                HttpMethod.POST, "/admin/check", "/admin/expand")
+                                        .hasAnyAuthority("authz-admin", "authz-viewer")
+                                        .requestMatchers(
+                                                HttpMethod.GET,
+                                                "/admin/workspaces",
+                                                "/admin/resources/**",
+                                                "/admin/subjects/**",
+                                                "/admin/schema",
+                                                "/admin/relationships",
+                                                "/admin/audit")
+                                        .hasAnyAuthority("authz-admin", "authz-viewer")
+                                        .anyRequest()
+                                        .authenticated())
+                .oauth2ResourceServer(
+                        o -> o.jwt(j -> j.jwtAuthenticationConverter(jwtAuthenticationConverter)));
         return http.build();
     }
 
@@ -63,9 +81,13 @@ public class SecurityConfig {
         validators.add(new JwtIssuerValidator(props.getIssuer()));
         if (props.getClientId() != null && !props.getClientId().isBlank()) {
             String aud = props.getClientId();
-            validators.add(jwt -> jwt.getAudience().contains(aud)
-                    ? OAuth2TokenValidatorResult.success()
-                    : OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token", "aud 需含 " + aud, null)));
+            validators.add(
+                    jwt ->
+                            jwt.getAudience().contains(aud)
+                                    ? OAuth2TokenValidatorResult.success()
+                                    : OAuth2TokenValidatorResult.failure(
+                                            new OAuth2Error(
+                                                    "invalid_token", "aud 需含 " + aud, null)));
         }
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
         return decoder;
@@ -75,18 +97,20 @@ public class SecurityConfig {
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            Collection<GrantedAuthority> authorities = new ArrayList<>();
-            Object groups = jwt.getClaim("groups");
-            if (groups instanceof Collection<?> col) {
-                for (Object g : col) {
-                    String s = String.valueOf(g);
-                    int i = s.lastIndexOf('/');
-                    authorities.add(new SimpleGrantedAuthority(i >= 0 ? s.substring(i + 1) : s));
-                }
-            }
-            return authorities;
-        });
+        converter.setJwtGrantedAuthoritiesConverter(
+                jwt -> {
+                    Collection<GrantedAuthority> authorities = new ArrayList<>();
+                    Object groups = jwt.getClaim("groups");
+                    if (groups instanceof Collection<?> col) {
+                        for (Object g : col) {
+                            String s = String.valueOf(g);
+                            int i = s.lastIndexOf('/');
+                            authorities.add(
+                                    new SimpleGrantedAuthority(i >= 0 ? s.substring(i + 1) : s));
+                        }
+                    }
+                    return authorities;
+                });
         return converter;
     }
 }

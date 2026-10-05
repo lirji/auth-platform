@@ -1,9 +1,10 @@
 package com.lrj.authz.server;
 
+import com.lrj.authz.protocol.AuthzEngine;
 import com.lrj.authz.protocol.Consistency;
 import com.lrj.authz.protocol.ResourceRef;
-import com.lrj.authz.protocol.AuthzEngine;
 import com.lrj.authz.server.AuthzDtos.*;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,10 +26,15 @@ public class AuthzController {
     private final AuthzEngine engine;
     private final ZedTokenWatermark watermark;
     private final boolean watermarkEnabled;
-    private final com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+    private final com.fasterxml.jackson.databind.ObjectMapper mapper =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
-    public AuthzController(AuthzEngine engine, ZedTokenWatermark watermark,
-                           @org.springframework.beans.factory.annotation.Value("${authz.server.zed-token-watermark-enabled:true}") boolean watermarkEnabled) {
+    public AuthzController(
+            AuthzEngine engine,
+            ZedTokenWatermark watermark,
+            @org.springframework.beans.factory.annotation.Value(
+                            "${authz.server.zed-token-watermark-enabled:true}")
+                    boolean watermarkEnabled) {
         this.engine = engine;
         this.watermark = watermark;
         this.watermarkEnabled = watermarkEnabled;
@@ -36,39 +42,59 @@ public class AuthzController {
 
     @PostMapping("/check")
     public CheckResponse check(@RequestBody CheckRequest req) {
-        boolean allowed = engine.check(req.subject(), req.permission(), req.resource(), toConsistency(req.consistency()));
+        boolean allowed =
+                engine.check(
+                        req.subject(),
+                        req.permission(),
+                        req.resource(),
+                        toConsistency(req.consistency()));
         return new CheckResponse(allowed);
     }
 
     @PostMapping("/check-bulk")
     public CheckBulkResponse checkBulk(@RequestBody CheckBulkRequest req) {
-        Map<ResourceRef, Boolean> map = engine.checkBulk(req.subject(), req.permission(), req.resources(), toConsistency(req.consistency()));
+        Map<ResourceRef, Boolean> map =
+                engine.checkBulk(
+                        req.subject(),
+                        req.permission(),
+                        req.resources(),
+                        toConsistency(req.consistency()));
         // 引擎响应必须精确覆盖每个请求资源：缺项/ null 是端口协议故障，抛出让 SDK 层 fail-closed，
         // 不再用 Boolean.TRUE.equals(null) 把漏项静默降级成 allowed=false（否则会把依赖故障伪装成 deny，
         // 且 SDK 的严格校验因 server 已补齐每个资源而无法察觉）。
-        List<ResourceAllowed> results = req.resources().stream()
-                .map(r -> {
-                    Boolean allowed = map.get(r);
-                    if (allowed == null) {
-                        throw new IllegalStateException(
-                                "check-bulk 引擎响应缺资源 " + r.ref() + " —— 判权结果不可信");
-                    }
-                    return new ResourceAllowed(r, allowed);
-                })
-                .toList();
+        List<ResourceAllowed> results =
+                req.resources().stream()
+                        .map(
+                                r -> {
+                                    Boolean allowed = map.get(r);
+                                    if (allowed == null) {
+                                        throw new IllegalStateException(
+                                                "check-bulk 引擎响应缺资源 " + r.ref() + " —— 判权结果不可信");
+                                    }
+                                    return new ResourceAllowed(r, allowed);
+                                })
+                        .toList();
         return new CheckBulkResponse(results);
     }
 
     @PostMapping("/lookup-resources")
     public LookupResourcesResponse lookupResources(@RequestBody LookupResourcesRequest req) {
         return new LookupResourcesResponse(
-                engine.lookupResources(req.subject(), req.permission(), req.resourceType(), toConsistency(req.consistency())));
+                engine.lookupResources(
+                        req.subject(),
+                        req.permission(),
+                        req.resourceType(),
+                        toConsistency(req.consistency())));
     }
 
     @PostMapping("/lookup-subjects")
     public LookupSubjectsResponse lookupSubjects(@RequestBody LookupSubjectsRequest req) {
         return new LookupSubjectsResponse(
-                engine.lookupSubjects(req.resource(), req.permission(), req.subjectType(), toConsistency(req.consistency())));
+                engine.lookupSubjects(
+                        req.resource(),
+                        req.permission(),
+                        req.subjectType(),
+                        toConsistency(req.consistency())));
     }
 
     @PostMapping("/relationships")
@@ -93,7 +119,9 @@ public class AuthzController {
     @PostMapping("/expand")
     public com.fasterxml.jackson.databind.JsonNode expand(@RequestBody ExpandRequest req) {
         try {
-            return mapper.readTree(engine.expand(req.resource(), req.permission(), toConsistency(req.consistency())));
+            return mapper.readTree(
+                    engine.expand(
+                            req.resource(), req.permission(), toConsistency(req.consistency())));
         } catch (Exception e) {
             throw new IllegalStateException("expand 解析失败: " + e.getMessage(), e);
         }

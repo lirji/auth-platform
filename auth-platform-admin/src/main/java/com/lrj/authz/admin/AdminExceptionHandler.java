@@ -1,6 +1,7 @@
 package com.lrj.authz.admin;
 
 import com.lrj.authz.admin.workspace.WorkspaceRegistry;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -31,9 +32,12 @@ public class AdminExceptionHandler {
             int end = where.indexOf('"', start);
             endpoint = end > start ? where.substring(start, end) : where.substring(start);
         }
-        String msg = "工作区 " + id + " 的 SpiceDB 不可达"
-                + (endpoint.isBlank() ? "" : "（" + endpoint + "）")
-                + "。本机知识库是 :8543；推荐系统 :8544、风控 :8545 需先启动对应实例。";
+        String msg =
+                "工作区 "
+                        + id
+                        + " 的 SpiceDB 不可达"
+                        + (endpoint.isBlank() ? "" : "（" + endpoint + "）")
+                        + "。本机知识库是 :8543；推荐系统 :8544、风控 :8545 需先启动对应实例。";
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("error", msg));
     }
 }

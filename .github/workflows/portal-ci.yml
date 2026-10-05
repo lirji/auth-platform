@@ -22,7 +22,7 @@ on:
       - '.dockerignore'
       - '.github/workflows/portal-ci.yml'
   push:
-    branches: [main]
+    branches: [main, 'refactor/**']
     paths:
       - 'project-portal/**'
       - 'deploy/load-platform-ports.sh'
@@ -68,6 +68,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: project-portal/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
       - run: node ../deploy/sync-platform-catalog.mjs --check
       - run: pnpm test:run
       - run: pnpm typecheck

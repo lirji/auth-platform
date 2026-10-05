@@ -1,11 +1,11 @@
 package com.lrj.authz.server;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * AuthzServerSecurityFilter 单测（用 spring-test 的 Mock servlet，无需起容器）。
@@ -20,8 +20,8 @@ class AuthzServerSecurityFilterTest {
         return p;
     }
 
-    private static MockHttpServletResponse run(AuthzServerSecurityProperties p, String uri, String authHeader)
-            throws Exception {
+    private static MockHttpServletResponse run(
+            AuthzServerSecurityProperties p, String uri, String authHeader) throws Exception {
         AuthzServerSecurityFilter filter = new AuthzServerSecurityFilter(p);
         MockHttpServletRequest req = new MockHttpServletRequest("POST", uri);
         if (authHeader != null) {
@@ -49,18 +49,21 @@ class AuthzServerSecurityFilterTest {
 
     @Test
     void enabled_wrongToken_401() throws Exception {
-        assertThat(run(props(true, "secret"), "/v1/relationships", "Bearer nope").getStatus()).isEqualTo(401);
+        assertThat(run(props(true, "secret"), "/v1/relationships", "Bearer nope").getStatus())
+                .isEqualTo(401);
     }
 
     @Test
     void enabled_blankToken_failsFast() {
         // enabled=true 但 token 为空是配置错误：构造即抛（fail-fast），而非运行期所有请求 401。
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> new AuthzServerSecurityFilter(props(true, "")))
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> new AuthzServerSecurityFilter(props(true, "")))
                 .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     void enabled_correctToken_passes() throws Exception {
-        assertThat(run(props(true, "secret"), "/v1/check", "Bearer secret").getStatus()).isEqualTo(200);
+        assertThat(run(props(true, "secret"), "/v1/check", "Bearer secret").getStatus())
+                .isEqualTo(200);
     }
 }

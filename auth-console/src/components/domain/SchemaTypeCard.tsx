@@ -1,11 +1,11 @@
-import { Card, Divider, Space, Tag, Typography } from 'antd'
-import type { ParsedDefinition } from '../../domain/zedParser'
-import { OBJECT_TYPES, objectLabel } from '../../domain/lexicon'
-import { PermissionTag, RelationTag } from './SemanticTag'
+import { Card, Divider, Space, Tag, Typography } from 'antd';
+import type { ParsedDefinition } from '../../domain/zedParser';
+import { OBJECT_TYPES, objectLabel } from '../../domain/lexicon';
+import { PermissionTag, RelationTag } from './SemanticTag';
 
 /** 单类型卡片:关系区 + 权限区。只接 ParsedDefinition。 */
 export function SchemaTypeCard({ def }: { def: ParsedDefinition }) {
-  const color = OBJECT_TYPES.find((o) => o.value === def.name)?.color ?? 'default'
+  const color = OBJECT_TYPES.find((o) => o.value === def.name)?.color ?? 'default';
   return (
     <Card
       size="small"
@@ -34,7 +34,9 @@ export function SchemaTypeCard({ def }: { def: ParsedDefinition }) {
           </div>
         </>
       )}
-      {def.relations.length > 0 && def.permissions.length > 0 && <Divider style={{ margin: '10px 0' }} />}
+      {def.relations.length > 0 && def.permissions.length > 0 && (
+        <Divider style={{ margin: '10px 0' }} />
+      )}
       {def.permissions.length > 0 && (
         <>
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
@@ -53,5 +55,5 @@ export function SchemaTypeCard({ def }: { def: ParsedDefinition }) {
         </>
       )}
     </Card>
-  )
+  );
 }

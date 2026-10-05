@@ -2,6 +2,7 @@ package com.lrj.authz.admin.workspace;
 
 import com.lrj.authz.admin.AdminDtos.WorkspaceView;
 import com.lrj.authz.admin.AdminDtos.WorkspacesResponse;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,17 +24,25 @@ public class WorkspaceController {
 
     @GetMapping("/workspaces")
     public WorkspacesResponse list(@AuthenticationPrincipal Jwt jwt) {
-        List<WorkspaceView> items = WorkspaceAccess.visible(jwt,
-                        registry.all().stream().map(WorkspaceRegistry.BoundWorkspace::item).toList())
-                .stream()
-                .map(item -> new WorkspaceView(
-                        item.getId(),
-                        item.getName(),
-                        item.getOrganization(),
-                        item.getHome() == null || item.getHome().isBlank() ? "grants" : item.getHome(),
-                        item.getFeatures(),
-                        item.getEndpoint()))
-                .toList();
+        List<WorkspaceView> items =
+                WorkspaceAccess.visible(
+                                jwt,
+                                registry.all().stream()
+                                        .map(WorkspaceRegistry.BoundWorkspace::item)
+                                        .toList())
+                        .stream()
+                        .map(
+                                item ->
+                                        new WorkspaceView(
+                                                item.getId(),
+                                                item.getName(),
+                                                item.getOrganization(),
+                                                item.getHome() == null || item.getHome().isBlank()
+                                                        ? "grants"
+                                                        : item.getHome(),
+                                                item.getFeatures(),
+                                                item.getEndpoint()))
+                        .toList();
         return new WorkspacesResponse(items);
     }
 }

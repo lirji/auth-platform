@@ -1,5 +1,14 @@
 package com.lrj.authz.server;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.lrj.authz.protocol.AuthzEngine;
 import com.lrj.authz.protocol.Consistency;
 import com.lrj.authz.protocol.Relationship;
@@ -16,20 +25,12 @@ import com.lrj.authz.server.AuthzDtos.ExpandRequest;
 import com.lrj.authz.server.AuthzDtos.LookupResourcesRequest;
 import com.lrj.authz.server.AuthzDtos.LookupSubjectsRequest;
 import com.lrj.authz.server.AuthzDtos.WriteRequest;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class AuthzControllerFacadeTest {
 
@@ -43,14 +44,21 @@ class AuthzControllerFacadeTest {
         when(engine.check(any(), any(), any(), any())).thenReturn(true);
         AuthzController controller = new AuthzController(engine, new ZedTokenWatermark(), true);
 
-        assertThat(controller.check(new CheckRequest(SUBJECT, "view", D1, null)).allowed()).isTrue();
-        controller.check(new CheckRequest(SUBJECT, "view", D1, new ConsistencyDto("FULLY_CONSISTENT", null)));
-        controller.check(new CheckRequest(SUBJECT, "view", D1, new ConsistencyDto("unknown", "ignored")));
+        assertThat(controller.check(new CheckRequest(SUBJECT, "view", D1, null)).allowed())
+                .isTrue();
+        controller.check(
+                new CheckRequest(
+                        SUBJECT, "view", D1, new ConsistencyDto("FULLY_CONSISTENT", null)));
+        controller.check(
+                new CheckRequest(SUBJECT, "view", D1, new ConsistencyDto("unknown", "ignored")));
 
         ArgumentCaptor<Consistency> consistency = ArgumentCaptor.forClass(Consistency.class);
         verify(engine, times(3)).check(any(), any(), any(), consistency.capture());
-        assertThat(consistency.getAllValues()).containsExactly(
-                Consistency.minimizeLatency(), Consistency.fullyConsistent(), Consistency.minimizeLatency());
+        assertThat(consistency.getAllValues())
+                .containsExactly(
+                        Consistency.minimizeLatency(),
+                        Consistency.fullyConsistent(),
+                        Consistency.minimizeLatency());
         verify(engine, times(2)).check(SUBJECT, "view", D1, Consistency.minimizeLatency());
         // 锁定"当前行为"：null/空 mode 与未知 mode 均落到 minimize_latency（见 toConsistency 的 default 分支）。
         // TODO(issue-consistency-downgrade): 未知/拼错的 consistency mode 被静默降级为 minimize_latency，
@@ -64,11 +72,17 @@ class AuthzControllerFacadeTest {
         LinkedHashMap<ResourceRef, Boolean> map = new LinkedHashMap<>();
         map.put(D2, false);
         map.put(D1, true);
-        when(engine.checkBulk(SUBJECT, "view", List.of(D1, D2), Consistency.fullyConsistent())).thenReturn(map);
+        when(engine.checkBulk(SUBJECT, "view", List.of(D1, D2), Consistency.fullyConsistent()))
+                .thenReturn(map);
         AuthzController controller = new AuthzController(engine, new ZedTokenWatermark(), true);
 
-        var response = controller.checkBulk(new CheckBulkRequest(
-                SUBJECT, "view", List.of(D1, D2), new ConsistencyDto("full", null)));
+        var response =
+                controller.checkBulk(
+                        new CheckBulkRequest(
+                                SUBJECT,
+                                "view",
+                                List.of(D1, D2),
+                                new ConsistencyDto("full", null)));
 
         assertThat(response.results()).extracting(r -> r.resource()).containsExactly(D1, D2);
         assertThat(response.results()).extracting(r -> r.allowed()).containsExactly(true, false);
@@ -80,10 +94,15 @@ class AuthzControllerFacadeTest {
         AuthzEngine engine = mock(AuthzEngine.class);
         LinkedHashMap<ResourceRef, Boolean> partial = new LinkedHashMap<>();
         partial.put(D1, true); // 缺 D2
-        when(engine.checkBulk(SUBJECT, "view", List.of(D1, D2), Consistency.minimizeLatency())).thenReturn(partial);
+        when(engine.checkBulk(SUBJECT, "view", List.of(D1, D2), Consistency.minimizeLatency()))
+                .thenReturn(partial);
         AuthzController controller = new AuthzController(engine, new ZedTokenWatermark(), true);
 
-        assertThatThrownBy(() -> controller.checkBulk(new CheckBulkRequest(SUBJECT, "view", List.of(D1, D2), null)))
+        assertThatThrownBy(
+                        () ->
+                                controller.checkBulk(
+                                        new CheckBulkRequest(
+                                                SUBJECT, "view", List.of(D1, D2), null)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("document:d2");
     }
@@ -97,11 +116,25 @@ class AuthzControllerFacadeTest {
                 .thenReturn(List.of(SubjectRef.user("u2")));
         AuthzController controller = new AuthzController(engine, new ZedTokenWatermark(), true);
 
-        assertThat(controller.lookupResources(new LookupResourcesRequest(
-                SUBJECT, "view", "document", new ConsistencyDto("full", null))).resourceIds())
+        assertThat(
+                        controller
+                                .lookupResources(
+                                        new LookupResourcesRequest(
+                                                SUBJECT,
+                                                "view",
+                                                "document",
+                                                new ConsistencyDto("full", null)))
+                                .resourceIds())
                 .containsExactly("d1", "d2");
-        assertThat(controller.lookupSubjects(new LookupSubjectsRequest(
-                D1, "view", "user", new ConsistencyDto("full", null))).subjects())
+        assertThat(
+                        controller
+                                .lookupSubjects(
+                                        new LookupSubjectsRequest(
+                                                D1,
+                                                "view",
+                                                "user",
+                                                new ConsistencyDto("full", null)))
+                                .subjects())
                 .containsExactly(SubjectRef.user("u2"));
     }
 
@@ -111,11 +144,13 @@ class AuthzControllerFacadeTest {
         ZedTokenWatermark watermark = new ZedTokenWatermark();
         RelationshipUpdate update = RelationshipUpdate.touch(D1, "viewer", SUBJECT);
         RelationshipFilter filter = RelationshipFilter.ofResource(D1);
-        when(engine.writeRelationships(List.of(update))).thenReturn(new ZedTokenView("write-token"));
+        when(engine.writeRelationships(List.of(update)))
+                .thenReturn(new ZedTokenView("write-token"));
         when(engine.deleteRelationships(filter)).thenReturn(new ZedTokenView("delete-token"));
         AuthzController controller = new AuthzController(engine, watermark, true);
 
-        assertThat(controller.write(new WriteRequest(List.of(update))).token()).isEqualTo("write-token");
+        assertThat(controller.write(new WriteRequest(List.of(update))).token())
+                .isEqualTo("write-token");
         assertThat(watermark.latest()).isEqualTo("write-token");
         assertThat(controller.delete(new DeleteRequest(filter)).token()).isEqualTo("delete-token");
         assertThat(watermark.latest()).isEqualTo("delete-token");
@@ -127,13 +162,19 @@ class AuthzControllerFacadeTest {
         RelationshipFilter filter = RelationshipFilter.ofResource(D1);
         Relationship relationship = new Relationship(D1, "viewer", SUBJECT);
         when(engine.readSchema()).thenReturn("definition user {}");
-        when(engine.expand(D1, "view", Consistency.fullyConsistent())).thenReturn("{\"treeRoot\":{}}");
+        when(engine.expand(D1, "view", Consistency.fullyConsistent()))
+                .thenReturn("{\"treeRoot\":{}}");
         when(engine.readRelationships(filter)).thenReturn(List.of(relationship));
         AuthzController controller = new AuthzController(engine, new ZedTokenWatermark(), true);
 
         assertThat(controller.schema()).containsEntry("schema", "definition user {}");
-        assertThat(controller.expand(new ExpandRequest(D1, "view", new ConsistencyDto("full", null)))
-                .has("treeRoot")).isTrue();
+        assertThat(
+                        controller
+                                .expand(
+                                        new ExpandRequest(
+                                                D1, "view", new ConsistencyDto("full", null)))
+                                .has("treeRoot"))
+                .isTrue();
         assertThat(controller.readRelationships(new DeleteRequest(filter)).relationships())
                 .containsExactly(relationship);
     }
@@ -144,8 +185,10 @@ class AuthzControllerFacadeTest {
         when(engine.expand(any(), any(), any())).thenReturn("not-json");
         AuthzController controller = new AuthzController(engine, new ZedTokenWatermark(), true);
 
-        IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
-                controller.expand(new ExpandRequest(D1, "view", null)));
+        IllegalStateException ex =
+                assertThrows(
+                        IllegalStateException.class,
+                        () -> controller.expand(new ExpandRequest(D1, "view", null)));
         assertThat(ex).hasMessageContaining("expand");
     }
 }

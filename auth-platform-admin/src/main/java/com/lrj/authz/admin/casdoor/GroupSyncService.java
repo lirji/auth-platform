@@ -6,6 +6,7 @@ import com.lrj.authz.protocol.RelationshipFilter;
 import com.lrj.authz.protocol.RelationshipUpdate;
 import com.lrj.authz.protocol.ResourceRef;
 import com.lrj.authz.protocol.SubjectRef;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,7 @@ public class GroupSyncService {
 
     private final CasdoorClient casdoor;
     private final AuthzEngine engine;
+
     /** 一轮允许的最大 DELETE 数; 超过则中止整轮。<0 表示不限制。 */
     private final int deleteThreshold;
 
@@ -47,8 +49,7 @@ public class GroupSyncService {
         this.deleteThreshold = deleteThreshold;
     }
 
-    public record SyncSummary(int groups, int added, int removed) {
-    }
+    public record SyncSummary(int groups, int added, int removed) {}
 
     public synchronized SyncSummary sync() {
         Map<String, Set<String>> desired = casdoor.groupMembers();
@@ -75,10 +76,15 @@ public class GroupSyncService {
 
         // 删除熔断: 超阈值直接中止, 不写任何变更 (TOUCH 也不写, 保持整轮原子的"要么全做要么不做"直觉)。
         if (deleteThreshold >= 0 && deletes.size() > deleteThreshold) {
-            log.error("Casdoor 组同步中止: 本轮 DELETE={} 超过阈值 {} (疑似 Casdoor 拉取不全/误配); 未写入任何变更",
-                    deletes.size(), deleteThreshold);
+            log.error(
+                    "Casdoor 组同步中止: 本轮 DELETE={} 超过阈值 {} (疑似 Casdoor 拉取不全/误配); 未写入任何变更",
+                    deletes.size(),
+                    deleteThreshold);
             throw new IllegalStateException(
-                    "group sync aborted: delete count " + deletes.size() + " exceeds threshold " + deleteThreshold);
+                    "group sync aborted: delete count "
+                            + deletes.size()
+                            + " exceeds threshold "
+                            + deleteThreshold);
         }
 
         List<RelationshipUpdate> updates = new ArrayList<>(touches);
@@ -93,7 +99,8 @@ public class GroupSyncService {
     /** 读某组的 direct membership: 只认直接 user 主体 (relation=null), 排除嵌套组等间接成员。 */
     private Set<String> directMembers(ResourceRef group) {
         Set<String> out = new LinkedHashSet<>();
-        for (Relationship r : engine.readRelationships(RelationshipFilter.of("group", group.id(), "member"))) {
+        for (Relationship r :
+                engine.readRelationships(RelationshipFilter.of("group", group.id(), "member"))) {
             SubjectRef s = r.subject();
             if ("user".equals(s.type()) && s.relation() == null) {
                 out.add(s.id());

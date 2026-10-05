@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.ReliableProjectionMapper">
- <sql id="streamColumns">fence_id,policy_id,directory_id,worker_id,lease_generation,lease_until,target_epoch,scan_cursor,batch_counter,confirmed_batch,marker,zed_token,failures,next_attempt_at</sql>
- <sql id="operationColumns">id,fence_id,target_epoch,batch_no,expected_marker,payload_json,content_hash,after_cursor,last_batch,state,attempts,created_by,lease_generation</sql>
- <sql id="targetTable"><choose><when test="t.kind.name() == 'POLICY'">auth_governance.policy_partition</when><otherwise>auth_governance.directory_fence</otherwise></choose></sql>
- <insert id="register">
- <choose><when test="t.kind.name() == 'POLICY'">
+  <sql id="streamColumns">fence_id,policy_id,directory_id,worker_id,lease_generation,lease_until,target_epoch,scan_cursor,batch_counter,confirmed_batch,marker,zed_token,failures,next_attempt_at</sql>
+  <sql id="operationColumns">id,fence_id,target_epoch,batch_no,expected_marker,payload_json,content_hash,after_cursor,last_batch,state,attempts,created_by,lease_generation</sql>
+  <sql id="targetTable">
+    <choose>
+      <when test="t.kind.name() == 'POLICY'">auth_governance.policy_partition</when>
+      <otherwise>auth_governance.directory_fence</otherwise>
+    </choose>
+  </sql>
+  <insert id="register"><choose><when test="t.kind.name() == 'POLICY'">
  INSERT INTO auth_governance.projection_stream(fence_id,policy_id)
  SELECT id,id FROM auth_governance.policy_partition WHERE id=#{t.fenceId} AND tenant_id=#{t.partition.tenantId} AND application_id=#{t.partition.applicationId} AND environment=#{t.partition.environment}
  </when><otherwise>
@@ -13,31 +17,31 @@
  SELECT id,id FROM auth_governance.directory_fence WHERE id=#{t.fenceId} AND tenant_id=#{t.partition.tenantId}
  </otherwise></choose> ON CONFLICT DO NOTHING
  </insert>
- <select id="claim" resultType="com.lrj.authz.governance.domain.ProjectionModels$Stream" affectData="true" flushCache="true">
+  <select id="claim" resultType="com.lrj.authz.governance.domain.ProjectionModels$Stream" affectData="true" flushCache="true">
  UPDATE auth_governance.projection_stream SET worker_id=#{worker},lease_generation=lease_generation+1,
  lease_until=clock_timestamp()+interval '15 seconds',updated_at=clock_timestamp()
  WHERE fence_id=#{id} AND lease_until &lt;=clock_timestamp() AND next_attempt_at &lt;=clock_timestamp() AND failures &lt; 5
  RETURNING <include refid="streamColumns"/>
  </select>
- <select id="owned" resultType="com.lrj.authz.governance.domain.ProjectionModels$Stream">
+  <select id="owned" resultType="com.lrj.authz.governance.domain.ProjectionModels$Stream">
  SELECT <include refid="streamColumns"/> FROM auth_governance.projection_stream
  WHERE fence_id=#{lease.fenceId} AND worker_id=#{lease.workerId} AND lease_generation=#{lease.leaseGeneration} AND lease_until &gt;clock_timestamp() FOR UPDATE
  </select>
- <select id="fence" resultType="com.lrj.authz.governance.domain.FenceModels$Fence">
+  <select id="fence" resultType="com.lrj.authz.governance.domain.FenceModels$Fence">
  SELECT id,desired_epoch,applied_epoch,state,zed_token FROM <include refid="targetTable"/> WHERE id=#{t.fenceId}
  </select>
- <select id="pending" resultType="com.lrj.authz.governance.domain.ProjectionModels$Operation">
+  <select id="pending" resultType="com.lrj.authz.governance.domain.ProjectionModels$Operation">
  SELECT <include refid="operationColumns"/> FROM auth_governance.projection_operation WHERE fence_id=#{id} AND state='PENDING'
  </select>
- <select id="operation" resultType="com.lrj.authz.governance.domain.ProjectionModels$Operation">
+  <select id="operation" resultType="com.lrj.authz.governance.domain.ProjectionModels$Operation">
  SELECT <include refid="operationColumns"/> FROM auth_governance.projection_operation WHERE fence_id=#{fence} AND id=#{id}
  </select>
- <select id="grants" resultType="com.lrj.authz.governance.domain.ProjectionModels$GrantChange">
+  <select id="grants" resultType="com.lrj.authz.governance.domain.ProjectionModels$GrantChange">
  SELECT id,version,membership_id,generation,(state IN ('PENDING','ACTIVE') AND valid_to &gt;clock_timestamp()) AS present,group_id
  FROM auth_governance.access_grant WHERE tenant_id=#{t.partition.tenantId} AND application_id=#{t.partition.applicationId}
  AND environment=#{t.partition.environment} AND id &gt; #{after} ORDER BY id LIMIT 51
  </select>
- <select id="groups" resultType="com.lrj.authz.governance.domain.ProjectionModels$GroupChange">
+  <select id="groups" resultType="com.lrj.authz.governance.domain.ProjectionModels$GroupChange">
  SELECT gm.id,gm.group_id,gm.membership_id,gm.generation,
  (gm.current AND dg.active AND NOT src.quarantined AND src.business_zone IS NOT NULL
  AND m.generation=gm.generation AND m.status='ACTIVE' AND u.status='ACTIVE' AND t.status='ACTIVE') present
@@ -48,32 +52,32 @@
  JOIN auth_governance.tenant t ON t.id=gm.tenant_id
  WHERE gm.tenant_id=#{t.partition.tenantId} AND gm.id &gt;#{after} ORDER BY gm.id LIMIT 51
  </select>
- <insert id="grantReceipt">INSERT INTO auth_governance.projection_grant_receipt(grant_id,grant_version,operation_id)
+  <insert id="grantReceipt">INSERT INTO auth_governance.projection_grant_receipt(grant_id,grant_version,operation_id)
  VALUES(#{g.id},#{g.version},#{operation}) ON CONFLICT DO NOTHING</insert>
- <update id="advanceBatch">UPDATE auth_governance.projection_stream SET batch_counter=batch_counter+1
+  <update id="advanceBatch">UPDATE auth_governance.projection_stream SET batch_counter=batch_counter+1
  WHERE fence_id=#{id} AND batch_counter=#{before}</update>
- <insert id="insert">INSERT INTO auth_governance.projection_operation(id,fence_id,target_epoch,batch_no,expected_marker,payload_json,content_hash,after_cursor,last_batch,created_by,lease_generation)
+  <insert id="insert">INSERT INTO auth_governance.projection_operation(id,fence_id,target_epoch,batch_no,expected_marker,payload_json,content_hash,after_cursor,last_batch,created_by,lease_generation)
  VALUES(#{o.id},#{o.fenceId},#{o.targetEpoch},#{o.batchNo},#{o.expectedMarker},#{o.payloadJson},#{o.contentHash},#{o.afterCursor},#{o.lastBatch},#{o.createdBy},#{o.leaseGeneration})</insert>
- <update id="supersede">UPDATE auth_governance.projection_operation SET state='SUPERSEDED' WHERE id=#{id} AND state='PENDING'</update>
- <insert id="receipt">INSERT INTO auth_governance.projection_receipt(operation_id,graph_marker,content_hash,zed_token,confirmed_by)
+  <update id="supersede">UPDATE auth_governance.projection_operation SET state='SUPERSEDED' WHERE id=#{id} AND state='PENDING'</update>
+  <insert id="receipt">INSERT INTO auth_governance.projection_receipt(operation_id,graph_marker,content_hash,zed_token,confirmed_by)
  VALUES(#{o.id},#{o.id},#{o.contentHash},#{token},#{worker}) ON CONFLICT DO NOTHING</insert>
- <update id="confirmStream">UPDATE auth_governance.projection_stream SET marker=#{o.id},zed_token=#{token},confirmed_batch=#{o.batchNo},
+  <update id="confirmStream">UPDATE auth_governance.projection_stream SET marker=#{o.id},zed_token=#{token},confirmed_batch=#{o.batchNo},
  target_epoch=#{o.targetEpoch},scan_cursor=#{o.afterCursor},failures=0,next_attempt_at=clock_timestamp(),updated_at=clock_timestamp()
  WHERE fence_id=#{o.fenceId} AND confirmed_batch &lt; #{o.batchNo} AND marker IS NOT DISTINCT FROM #{o.expectedMarker}</update>
- <update id="applied">UPDATE auth_governance.projection_operation SET state='APPLIED' WHERE id=#{id} AND state IN ('PENDING','SUPERSEDED')</update>
- <update id="activate">UPDATE auth_governance.access_grant SET state='ACTIVE',zed_token=#{token},updated_at=clock_timestamp()
+  <update id="applied">UPDATE auth_governance.projection_operation SET state='APPLIED' WHERE id=#{id} AND state IN ('PENDING','SUPERSEDED')</update>
+  <update id="activate">UPDATE auth_governance.access_grant SET state='ACTIVE',zed_token=#{token},updated_at=clock_timestamp()
  WHERE id=#{g.id} AND version=#{g.version} AND state='PENDING'</update>
- <update id="completeLegacy">UPDATE auth_governance.grant_projection SET completed=true,last_error=NULL
+  <update id="completeLegacy">UPDATE auth_governance.grant_projection SET completed=true,last_error=NULL
  WHERE grant_id=#{g.id} AND grant_version &lt;= #{g.version} AND completed=false</update>
- <update id="ready">UPDATE <include refid="targetTable"/> SET applied_epoch=#{o.targetEpoch},state='READY',zed_token=#{token},updated_at=clock_timestamp()
+  <update id="ready">UPDATE <include refid="targetTable"/> SET applied_epoch=#{o.targetEpoch},state='READY',zed_token=#{token},updated_at=clock_timestamp()
  WHERE id=#{t.fenceId} AND desired_epoch=#{o.targetEpoch} AND state &lt;&gt; 'BLOCKED' AND #{o.lastBatch}=true</update>
- <update id="attempted">UPDATE auth_governance.projection_operation SET attempts=attempts+1 WHERE fence_id=#{id} AND state='PENDING'</update>
- <update id="successfulRead">UPDATE auth_governance.projection_stream SET failures=0,next_attempt_at=clock_timestamp(),updated_at=clock_timestamp()
+  <update id="attempted">UPDATE auth_governance.projection_operation SET attempts=attempts+1 WHERE fence_id=#{id} AND state='PENDING'</update>
+  <update id="successfulRead">UPDATE auth_governance.projection_stream SET failures=0,next_attempt_at=clock_timestamp(),updated_at=clock_timestamp()
  WHERE fence_id=#{lease.fenceId} AND worker_id=#{lease.workerId} AND lease_generation=#{lease.leaseGeneration} AND lease_until &gt;clock_timestamp() AND failures &gt; 0</update>
- <update id="failed">UPDATE auth_governance.projection_stream SET failures=least(5,failures+1),
+  <update id="failed">UPDATE auth_governance.projection_stream SET failures=least(5,failures+1),
  next_attempt_at=clock_timestamp()+make_interval(secs =&gt; least(60,power(2,failures+1)::integer) + random()),updated_at=clock_timestamp()
  WHERE fence_id=#{lease.fenceId} AND worker_id=#{lease.workerId} AND lease_generation=#{lease.leaseGeneration} AND lease_until &gt;clock_timestamp()</update>
- <update id="block">UPDATE <include refid="targetTable"/> SET state='BLOCKED',updated_at=clock_timestamp() WHERE id=#{t.fenceId}</update>
- <update id="release">UPDATE auth_governance.projection_stream SET lease_until=clock_timestamp()
+  <update id="block">UPDATE <include refid="targetTable"/> SET state='BLOCKED',updated_at=clock_timestamp() WHERE id=#{t.fenceId}</update>
+  <update id="release">UPDATE auth_governance.projection_stream SET lease_until=clock_timestamp()
  WHERE fence_id=#{lease.fenceId} AND worker_id=#{lease.workerId} AND lease_generation=#{lease.leaseGeneration}</update>
 </mapper>

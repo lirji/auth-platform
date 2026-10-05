@@ -5,37 +5,41 @@ import java.util.List;
 /** 管控台 REST 契约 (console ⇄ admin)。字段扁平, 便于前端表单/调试器直接映射。 */
 public final class AdminDtos {
 
-    private AdminDtos() {
-    }
+    private AdminDtos() {}
 
     /** 授予/撤销一条关系。subjectRelation 非空表示 userset 主体 (如 group:eng#member)。 */
-    public record GrantRequest(String resourceType, String resourceId, String relation,
-                               String subjectType, String subjectId, String subjectRelation) {
-    }
+    public record GrantRequest(
+            String resourceType,
+            String resourceId,
+            String relation,
+            String subjectType,
+            String subjectId,
+            String subjectRelation) {}
 
-    public record CheckRequest(String subjectType, String subjectId,
-                               String permission, String resourceType, String resourceId) {
-    }
+    public record CheckRequest(
+            String subjectType,
+            String subjectId,
+            String permission,
+            String resourceType,
+            String resourceId) {}
 
-    public record CheckResponse(boolean allowed) {
-    }
+    public record CheckResponse(boolean allowed) {}
 
-    public record TokenResponse(String token) {
-    }
+    public record TokenResponse(String token) {}
 
-    public record SubjectView(String type, String id) {
-    }
+    public record SubjectView(String type, String id) {}
 
-    public record SubjectsResponse(List<SubjectView> subjects) {
-    }
+    public record SubjectsResponse(List<SubjectView> subjects) {}
 
-    public record ResourcesResponse(List<String> resourceIds) {
-    }
+    public record ResourcesResponse(List<String> resourceIds) {}
 
-    public record WorkspaceView(String id, String name, String organization, String home,
-                                List<String> features, String endpoint) {
-    }
+    public record WorkspaceView(
+            String id,
+            String name,
+            String organization,
+            String home,
+            List<String> features,
+            String endpoint) {}
 
-    public record WorkspacesResponse(List<WorkspaceView> workspaces) {
-    }
+    public record WorkspacesResponse(List<WorkspaceView> workspaces) {}
 }

@@ -12,4 +12,4 @@ export const colors = {
   text: '#172033',
   textSecondary: '#667085',
   textTertiary: '#98A2B3',
-} as const
+} as const;

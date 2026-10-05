@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lrj.authz.protocol.*;
+
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
@@ -22,7 +23,11 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
     private final ObjectMapper mapper = new ObjectMapper();
 
     public SpiceDbAuthzEngine(String baseUrl, String presharedKey) {
-        this(baseUrl, presharedKey, java.time.Duration.ofSeconds(2), java.time.Duration.ofSeconds(15));
+        this(
+                baseUrl,
+                presharedKey,
+                java.time.Duration.ofSeconds(2),
+                java.time.Duration.ofSeconds(15));
     }
 
     /**
@@ -31,23 +36,27 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
      *                       底层用 JDK HttpClient（连接池化 keep-alive）——SimpleClientHttpRequestFactory 的
      *                       HttpURLConnection 每主机默认仅 5 条持久连接,高并发判权会在建连上排队。
      */
-    public SpiceDbAuthzEngine(String baseUrl, String presharedKey,
-                              java.time.Duration connectTimeout, java.time.Duration readTimeout) {
-        java.net.http.HttpClient http = java.net.http.HttpClient.newBuilder()
-                .connectTimeout(connectTimeout)
-                .build();
+    public SpiceDbAuthzEngine(
+            String baseUrl,
+            String presharedKey,
+            java.time.Duration connectTimeout,
+            java.time.Duration readTimeout) {
+        java.net.http.HttpClient http =
+                java.net.http.HttpClient.newBuilder().connectTimeout(connectTimeout).build();
         org.springframework.http.client.JdkClientHttpRequestFactory factory =
                 new org.springframework.http.client.JdkClientHttpRequestFactory(http);
         factory.setReadTimeout(readTimeout);
-        this.rest = RestClient.builder()
-                .requestFactory(factory)
-                .baseUrl(baseUrl)
-                .defaultHeaders(h -> h.setBearerAuth(presharedKey))
-                .build();
+        this.rest =
+                RestClient.builder()
+                        .requestFactory(factory)
+                        .baseUrl(baseUrl)
+                        .defaultHeaders(h -> h.setBearerAuth(presharedKey))
+                        .build();
     }
 
     @Override
-    public boolean check(SubjectRef subject, String permission, ResourceRef resource, Consistency consistency) {
+    public boolean check(
+            SubjectRef subject, String permission, ResourceRef resource, Consistency consistency) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("consistency", consistencyJson(consistency));
         body.put("resource", objectJson(resource));
@@ -58,7 +67,11 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
     }
 
     @Override
-    public Map<ResourceRef, Boolean> checkBulk(SubjectRef subject, String permission, List<ResourceRef> resources, Consistency consistency) {
+    public Map<ResourceRef, Boolean> checkBulk(
+            SubjectRef subject,
+            String permission,
+            List<ResourceRef> resources,
+            Consistency consistency) {
         Map<ResourceRef, Boolean> out = new LinkedHashMap<>();
         if (resources == null || resources.isEmpty()) {
             return out;
@@ -79,15 +92,23 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         // 严格校验 pairs 基数：SpiceDB checkbulk 按请求顺序回 pairs，缺项/多项都说明响应不可信 → 抛协议异常
         // （否则按下标盲映射会把漏项静默当 deny）。
         if (!pairs.isArray() || pairs.size() != resources.size()) {
-            throw new IllegalStateException("SpiceDB checkbulk 响应 pairs 基数不符: 期望 " + resources.size()
-                    + ", 实际 " + (pairs.isArray() ? String.valueOf(pairs.size()) : "非数组/缺失") + " —— 判权结果不可信");
+            throw new IllegalStateException(
+                    "SpiceDB checkbulk 响应 pairs 基数不符: 期望 "
+                            + resources.size()
+                            + ", 实际 "
+                            + (pairs.isArray() ? String.valueOf(pairs.size()) : "非数组/缺失")
+                            + " —— 判权结果不可信");
         }
         for (int i = 0; i < resources.size(); i++) {
             JsonNode pair = pairs.path(i);
             // pair 是 oneof(item|error)：某项返回 error（如 SpiceDB 内部错误）不能静默折成 deny，抛出让上游按依赖故障处理。
             if (pair.hasNonNull("error")) {
-                throw new IllegalStateException("SpiceDB checkbulk 第 " + i + " 项返回 error(code="
-                        + pair.path("error").path("code").asText("?") + ") —— 判权结果不可信");
+                throw new IllegalStateException(
+                        "SpiceDB checkbulk 第 "
+                                + i
+                                + " 项返回 error(code="
+                                + pair.path("error").path("code").asText("?")
+                                + ") —— 判权结果不可信");
             }
             out.put(resources.get(i), hasPermission(pair.path("item"), "checkbulk[" + i + "]"));
         }
@@ -110,7 +131,8 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
     }
 
     @Override
-    public List<String> lookupResources(SubjectRef subject, String permission, String resourceType, Consistency consistency) {
+    public List<String> lookupResources(
+            SubjectRef subject, String permission, String resourceType, Consistency consistency) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("consistency", consistencyJson(consistency));
         body.put("resourceObjectType", resourceType);
@@ -120,11 +142,13 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
         for (JsonNode msg : postStream("/v1/permissions/resources", body)) {
             JsonNode result = msg.path("result");
             // 与 check/checkBulk 的 hasPermission 严格语义对称：缺/空 permissionship 是协议错误 → 抛（勿 fail-open）。
-            // LookupResources 用 LOOKUP_PERMISSIONSHIP_HAS_PERMISSION (带 LOOKUP_ 前缀), 故用 endsWith 兼容；
+            // LookupResources 用 LOOKUP_PERMISSIONSHIP_HAS_PERMISSION (带 LOOKUP_ 前缀), 故用 endsWith
+            // 兼容；
             // CONDITIONAL/UNSPECIFIED 等非 HAS_PERMISSION 一律 fail-closed 排除（不纳入结果，等价于"无权限"）。
             String permissionship = result.path("permissionship").asText("");
             if (permissionship.isEmpty()) {
-                throw new IllegalStateException("SpiceDB lookupResources 响应缺 permissionship —— 判权结果不可信");
+                throw new IllegalStateException(
+                        "SpiceDB lookupResources 响应缺 permissionship —— 判权结果不可信");
             }
             if (permissionship.endsWith("HAS_PERMISSION")) {
                 JsonNode id = result.path("resourceObjectId");
@@ -137,7 +161,8 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
     }
 
     @Override
-    public List<SubjectRef> lookupSubjects(ResourceRef resource, String permission, String subjectType, Consistency consistency) {
+    public List<SubjectRef> lookupSubjects(
+            ResourceRef resource, String permission, String subjectType, Consistency consistency) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("consistency", consistencyJson(consistency));
         body.put("resource", objectJson(resource));
@@ -220,11 +245,15 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
             JsonNode res = rel.path("resource");
             JsonNode subObj = rel.path("subject").path("object");
             String subRel = rel.path("subject").path("optionalRelation").asText("");
-            out.add(new Relationship(
-                    ResourceRef.of(res.path("objectType").asText(), res.path("objectId").asText()),
-                    rel.path("relation").asText(),
-                    new SubjectRef(subObj.path("objectType").asText(), subObj.path("objectId").asText(),
-                            subRel.isEmpty() ? null : subRel)));
+            out.add(
+                    new Relationship(
+                            ResourceRef.of(
+                                    res.path("objectType").asText(), res.path("objectId").asText()),
+                            rel.path("relation").asText(),
+                            new SubjectRef(
+                                    subObj.path("objectType").asText(),
+                                    subObj.path("objectId").asText(),
+                                    subRel.isEmpty() ? null : subRel)));
         }
         return out;
     }
@@ -270,11 +299,13 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
     // --- HTTP ---
 
     private JsonNode post(String path, Object body) {
-        String resp = rest.post().uri(path)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .body(String.class);
+        String resp =
+                rest.post()
+                        .uri(path)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(body)
+                        .retrieve()
+                        .body(String.class);
         try {
             return mapper.readTree(resp == null || resp.isBlank() ? "{}" : resp);
         } catch (Exception e) {
@@ -284,11 +315,13 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
 
     /** 服务端流式端点 (lookup-resources/subjects): 响应为若干顶层 JSON 对象的拼接。 */
     private List<JsonNode> postStream(String path, Object body) {
-        String resp = rest.post().uri(path)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .body(String.class);
+        String resp =
+                rest.post()
+                        .uri(path)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(body)
+                        .retrieve()
+                        .body(String.class);
         List<JsonNode> out = new ArrayList<>();
         if (resp == null || resp.isBlank()) {
             return out;
@@ -299,8 +332,10 @@ public class SpiceDbAuthzEngine implements AuthzEngine {
                 JsonNode msg = it.next();
                 // 流中任一顶层 error（如中途 SpiceDB 内部错误）不能静默跳过 → 抛，避免把"可信的部分结果"返给上游。
                 if (msg.hasNonNull("error")) {
-                    throw new IllegalStateException("SpiceDB 流式响应含 error(code="
-                            + msg.path("error").path("code").asText("?") + ") —— 结果不可信");
+                    throw new IllegalStateException(
+                            "SpiceDB 流式响应含 error(code="
+                                    + msg.path("error").path("code").asText("?")
+                                    + ") —— 结果不可信");
                 }
                 out.add(msg);
             }

@@ -1,5 +1,8 @@
 package com.lrj.authz.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lrj.authz.protocol.Consistency;
@@ -10,6 +13,7 @@ import com.lrj.authz.protocol.ResourceRef;
 import com.lrj.authz.protocol.SubjectRef;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,9 +26,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SpiceDbAuthzEngineTest {
 
@@ -43,9 +44,12 @@ class SpiceDbAuthzEngineTest {
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/", this::handle);
         server.start();
-        engine = new SpiceDbAuthzEngine(
-                "http://127.0.0.1:" + server.getAddress().getPort(), "spice-secret",
-                Duration.ofSeconds(1), Duration.ofSeconds(2));
+        engine =
+                new SpiceDbAuthzEngine(
+                        "http://127.0.0.1:" + server.getAddress().getPort(),
+                        "spice-secret",
+                        Duration.ofSeconds(1),
+                        Duration.ofSeconds(2));
     }
 
     @AfterEach
@@ -55,11 +59,12 @@ class SpiceDbAuthzEngineTest {
 
     private void handle(HttpExchange exchange) throws IOException {
         byte[] requestBytes = exchange.getRequestBody().readAllBytes();
-        captured.set(new Captured(
-                exchange.getRequestURI().getPath(),
-                exchange.getRequestHeaders().getFirst("Authorization"),
-                exchange.getRequestHeaders().getFirst("Content-Type"),
-                new String(requestBytes, StandardCharsets.UTF_8)));
+        captured.set(
+                new Captured(
+                        exchange.getRequestURI().getPath(),
+                        exchange.getRequestHeaders().getFirst("Authorization"),
+                        exchange.getRequestHeaders().getFirst("Content-Type"),
+                        new String(requestBytes, StandardCharsets.UTF_8)));
         requestCount.incrementAndGet();
         byte[] bytes = response.get().getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "application/json");
@@ -81,9 +86,12 @@ class SpiceDbAuthzEngineTest {
     void checkSerializesUsersetAndFreshness() throws Exception {
         respond("{\"permissionship\":\"PERMISSIONSHIP_HAS_PERMISSION\"}");
 
-        boolean allowed = engine.check(
-                SubjectRef.ofRelation("group", "acme_eng", "member"), "view",
-                ResourceRef.of("document", "d1"), Consistency.atLeastAsFresh("zed-7"));
+        boolean allowed =
+                engine.check(
+                        SubjectRef.ofRelation("group", "acme_eng", "member"),
+                        "view",
+                        ResourceRef.of("document", "d1"),
+                        Consistency.atLeastAsFresh("zed-7"));
 
         assertThat(allowed).isTrue();
         assertThat(captured.get().path()).isEqualTo("/v1/permissions/check");
@@ -101,11 +109,24 @@ class SpiceDbAuthzEngineTest {
     @Test
     void checkReturnsFalseForNoPermissionAndRejectsMissingPermissionship() {
         respond("{\"permissionship\":\"PERMISSIONSHIP_NO_PERMISSION\"}");
-        assertThat(engine.check(SubjectRef.user("u1"), "view", ResourceRef.of("document", "d1"), null)).isFalse();
+        assertThat(
+                        engine.check(
+                                SubjectRef.user("u1"),
+                                "view",
+                                ResourceRef.of("document", "d1"),
+                                null))
+                .isFalse();
 
         respond("{}");
-        IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
-                engine.check(SubjectRef.user("u1"), "view", ResourceRef.of("document", "d1"), null));
+        IllegalStateException ex =
+                assertThrows(
+                        IllegalStateException.class,
+                        () ->
+                                engine.check(
+                                        SubjectRef.user("u1"),
+                                        "view",
+                                        ResourceRef.of("document", "d1"),
+                                        null));
         assertThat(ex).hasMessageContaining("permissionship");
     }
 
@@ -115,10 +136,18 @@ class SpiceDbAuthzEngineTest {
         engine.check(SubjectRef.user("u"), "view", ResourceRef.of("document", "d"), null);
         assertThat(requestJson().at("/consistency/minimizeLatency").asBoolean()).isTrue();
 
-        engine.check(SubjectRef.user("u"), "view", ResourceRef.of("document", "d"), Consistency.fullyConsistent());
+        engine.check(
+                SubjectRef.user("u"),
+                "view",
+                ResourceRef.of("document", "d"),
+                Consistency.fullyConsistent());
         assertThat(requestJson().at("/consistency/fullyConsistent").asBoolean()).isTrue();
 
-        engine.check(SubjectRef.user("u"), "view", ResourceRef.of("document", "d"), Consistency.minimizeLatency());
+        engine.check(
+                SubjectRef.user("u"),
+                "view",
+                ResourceRef.of("document", "d"),
+                Consistency.minimizeLatency());
         assertThat(requestJson().at("/consistency/minimizeLatency").asBoolean()).isTrue();
     }
 
@@ -131,7 +160,8 @@ class SpiceDbAuthzEngineTest {
 
     @Test
     void bulkMapsPairsInRequestOrder() throws Exception {
-        respond("""
+        respond(
+                """
                 {"pairs":[
                   {"item":{"permissionship":"PERMISSIONSHIP_HAS_PERMISSION"}},
                   {"item":{"permissionship":"PERMISSIONSHIP_NO_PERMISSION"}}
@@ -140,7 +170,12 @@ class SpiceDbAuthzEngineTest {
         ResourceRef d1 = ResourceRef.of("document", "d1");
         ResourceRef d2 = ResourceRef.of("document", "d2");
 
-        var result = engine.checkBulk(SubjectRef.user("u1"), "view", List.of(d1, d2), Consistency.fullyConsistent());
+        var result =
+                engine.checkBulk(
+                        SubjectRef.user("u1"),
+                        "view",
+                        List.of(d1, d2),
+                        Consistency.fullyConsistent());
 
         assertThat(result).containsEntry(d1, true).containsEntry(d2, false).hasSize(2);
         assertThat(result.keySet()).containsExactly(d1, d2);
@@ -152,12 +187,15 @@ class SpiceDbAuthzEngineTest {
     void bulkRejectsWrongCardinalityAndPerItemError() {
         ResourceRef d1 = ResourceRef.of("document", "d1");
         respond("{\"pairs\":[]}");
-        assertThrows(IllegalStateException.class, () ->
-                engine.checkBulk(SubjectRef.user("u"), "view", List.of(d1), null));
+        assertThrows(
+                IllegalStateException.class,
+                () -> engine.checkBulk(SubjectRef.user("u"), "view", List.of(d1), null));
 
         respond("{\"pairs\":[{\"error\":{\"code\":\"INTERNAL\"}}]}");
-        IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
-                engine.checkBulk(SubjectRef.user("u"), "view", List.of(d1), null));
+        IllegalStateException ex =
+                assertThrows(
+                        IllegalStateException.class,
+                        () -> engine.checkBulk(SubjectRef.user("u"), "view", List.of(d1), null));
         assertThat(ex).hasMessageContaining("INTERNAL");
     }
 
@@ -167,31 +205,47 @@ class SpiceDbAuthzEngineTest {
 
         // pairs 非数组（对象）：判权响应不可信 → 抛
         respond("{\"pairs\":{\"item\":{}}}");
-        assertThat(assertThrows(IllegalStateException.class, () ->
-                engine.checkBulk(SubjectRef.user("u"), "view", List.of(d1), null)))
+        assertThat(
+                        assertThrows(
+                                IllegalStateException.class,
+                                () ->
+                                        engine.checkBulk(
+                                                SubjectRef.user("u"), "view", List.of(d1), null)))
                 .hasMessageContaining("基数不符");
 
         // 多项（请求 1、返回 2）：基数不符 → 抛
-        respond("""
+        respond(
+                """
                 {"pairs":[
                   {"item":{"permissionship":"PERMISSIONSHIP_HAS_PERMISSION"}},
                   {"item":{"permissionship":"PERMISSIONSHIP_NO_PERMISSION"}}
                 ]}
                 """);
-        assertThrows(IllegalStateException.class, () ->
-                engine.checkBulk(SubjectRef.user("u"), "view", List.of(d1), null));
+        assertThrows(
+                IllegalStateException.class,
+                () -> engine.checkBulk(SubjectRef.user("u"), "view", List.of(d1), null));
 
         // item 缺 permissionship：与 check 严格语义对称 → 抛
         respond("{\"pairs\":[{\"item\":{}}]}");
-        assertThat(assertThrows(IllegalStateException.class, () ->
-                engine.checkBulk(SubjectRef.user("u"), "view", List.of(d1), null)))
+        assertThat(
+                        assertThrows(
+                                IllegalStateException.class,
+                                () ->
+                                        engine.checkBulk(
+                                                SubjectRef.user("u"), "view", List.of(d1), null)))
                 .hasMessageContaining("permissionship");
     }
 
     @Test
     void lookupResourcesSerializesRequestAndReturnsEmptyOnBlankStream() throws Exception {
-        respond("{\"result\":{\"permissionship\":\"LOOKUP_PERMISSIONSHIP_HAS_PERMISSION\",\"resourceObjectId\":\"d1\"}}");
-        assertThat(engine.lookupResources(SubjectRef.user("u1"), "view", "document", Consistency.fullyConsistent()))
+        respond(
+                "{\"result\":{\"permissionship\":\"LOOKUP_PERMISSIONSHIP_HAS_PERMISSION\",\"resourceObjectId\":\"d1\"}}");
+        assertThat(
+                        engine.lookupResources(
+                                SubjectRef.user("u1"),
+                                "view",
+                                "document",
+                                Consistency.fullyConsistent()))
                 .containsExactly("d1");
         assertThat(captured.get().path()).isEqualTo("/v1/permissions/resources");
         JsonNode body = requestJson();
@@ -201,7 +255,8 @@ class SpiceDbAuthzEngineTest {
         assertThat(body.at("/consistency/fullyConsistent").asBoolean()).isTrue();
 
         respond("");
-        assertThat(engine.lookupResources(SubjectRef.user("u1"), "view", "document", null)).isEmpty();
+        assertThat(engine.lookupResources(SubjectRef.user("u1"), "view", "document", null))
+                .isEmpty();
     }
 
     @Test
@@ -232,7 +287,8 @@ class SpiceDbAuthzEngineTest {
 
     @Test
     void lookupResourcesParsesConcatenatedJson() {
-        respond("""
+        respond(
+                """
                 {"result":{"permissionship":"LOOKUP_PERMISSIONSHIP_HAS_PERMISSION","resourceObjectId":"d1"}}
                 {"result":{"permissionship":"LOOKUP_PERMISSIONSHIP_CONDITIONAL_PERMISSION","resourceObjectId":"d2"}}
                 {"result":{"permissionship":"LOOKUP_PERMISSIONSHIP_HAS_PERMISSION","resourceObjectId":"d3"}}
@@ -247,14 +303,19 @@ class SpiceDbAuthzEngineTest {
     void lookupResourcesRejectsMissingPermissionship() {
         // C01 已修：缺 permissionship 的 result 不再被 fail-open 收录，而是抛协议异常（与 check 对称）。
         respond("{\"result\":{\"resourceObjectId\":\"secret\"}}");
-        assertThat(assertThrows(IllegalStateException.class, () ->
-                engine.lookupResources(SubjectRef.user("u"), "view", "document", null)))
+        assertThat(
+                        assertThrows(
+                                IllegalStateException.class,
+                                () ->
+                                        engine.lookupResources(
+                                                SubjectRef.user("u"), "view", "document", null)))
                 .hasMessageContaining("permissionship");
     }
 
     @Test
     void lookupSubjectsParsesStream() {
-        respond("""
+        respond(
+                """
                 {"result":{"subject":{"subjectObjectId":"u1"}}}
                 {"result":{"subject":{"subjectObjectId":"u2"}}}
                 """);
@@ -265,37 +326,53 @@ class SpiceDbAuthzEngineTest {
     @Test
     void streamTopLevelErrorFailsWholeCall() {
         // C02 已修：流中出现顶层 error 消息不再被静默跳过，整次调用抛异常（不返回可信部分结果）。
-        respond("""
+        respond(
+                """
                 {"result":{"subject":{"subjectObjectId":"u1"}}}
                 {"error":{"code":"internal"}}
                 """);
-        assertThat(assertThrows(IllegalStateException.class, () ->
-                engine.lookupSubjects(ResourceRef.of("document", "d"), "view", "user", null)))
+        assertThat(
+                        assertThrows(
+                                IllegalStateException.class,
+                                () ->
+                                        engine.lookupSubjects(
+                                                ResourceRef.of("document", "d"),
+                                                "view",
+                                                "user",
+                                                null)))
                 .hasMessageContaining("error");
 
-        respond("""
+        respond(
+                """
                 {"result":{"permissionship":"LOOKUP_PERMISSIONSHIP_HAS_PERMISSION","resourceObjectId":"d1"}}
                 {"error":{"code":"internal"}}
                 """);
-        assertThrows(IllegalStateException.class, () ->
-                engine.lookupResources(SubjectRef.user("u"), "view", "document", null));
+        assertThrows(
+                IllegalStateException.class,
+                () -> engine.lookupResources(SubjectRef.user("u"), "view", "document", null));
     }
 
     @Test
     void writeRelationshipsSerializesOperationsAndReturnsToken() throws Exception {
         respond("{\"writtenAt\":{\"token\":\"zed-write\"}}");
-        var updates = List.of(
-                RelationshipUpdate.create(ResourceRef.of("document", "d1"), "viewer", SubjectRef.user("u1")),
-                RelationshipUpdate.touch(ResourceRef.of("document", "d1"), "viewer",
-                        SubjectRef.ofRelation("group", "acme_eng", "member")),
-                RelationshipUpdate.delete(ResourceRef.of("document", "d1"), "viewer", SubjectRef.user("u2")));
+        var updates =
+                List.of(
+                        RelationshipUpdate.create(
+                                ResourceRef.of("document", "d1"), "viewer", SubjectRef.user("u1")),
+                        RelationshipUpdate.touch(
+                                ResourceRef.of("document", "d1"),
+                                "viewer",
+                                SubjectRef.ofRelation("group", "acme_eng", "member")),
+                        RelationshipUpdate.delete(
+                                ResourceRef.of("document", "d1"), "viewer", SubjectRef.user("u2")));
 
         assertThat(engine.writeRelationships(updates).token()).isEqualTo("zed-write");
         JsonNode body = requestJson();
         assertThat(captured.get().path()).isEqualTo("/v1/relationships/write");
         assertThat(body.at("/updates/0/operation").asText()).isEqualTo("OPERATION_CREATE");
         assertThat(body.at("/updates/1/operation").asText()).isEqualTo("OPERATION_TOUCH");
-        assertThat(body.at("/updates/1/relationship/subject/optionalRelation").asText()).isEqualTo("member");
+        assertThat(body.at("/updates/1/relationship/subject/optionalRelation").asText())
+                .isEqualTo("member");
         assertThat(body.at("/updates/2/operation").asText()).isEqualTo("OPERATION_DELETE");
     }
 
@@ -303,21 +380,35 @@ class SpiceDbAuthzEngineTest {
     void writeAndDeleteRejectMissingToken() {
         // C04 已修：写/删响应缺 token（空 writtenAt/deletedAt）不再静默成 ZedTokenView(null)，而是抛协议异常。
         respond("{\"writtenAt\":{}}");
-        assertThat(assertThrows(IllegalStateException.class, () ->
-                engine.writeRelationships(List.of(
-                        RelationshipUpdate.touch(ResourceRef.of("document", "d1"), "viewer", SubjectRef.user("u1"))))))
+        assertThat(
+                        assertThrows(
+                                IllegalStateException.class,
+                                () ->
+                                        engine.writeRelationships(
+                                                List.of(
+                                                        RelationshipUpdate.touch(
+                                                                ResourceRef.of("document", "d1"),
+                                                                "viewer",
+                                                                SubjectRef.user("u1"))))))
                 .hasMessageContaining("writtenAt.token");
 
         respond("{}");
-        assertThat(assertThrows(IllegalStateException.class, () ->
-                engine.deleteRelationships(RelationshipFilter.of("document", "d1", "viewer"))))
+        assertThat(
+                        assertThrows(
+                                IllegalStateException.class,
+                                () ->
+                                        engine.deleteRelationships(
+                                                RelationshipFilter.of("document", "d1", "viewer"))))
                 .hasMessageContaining("deletedAt.token");
     }
 
     @Test
     void deleteRelationshipsHonorsOptionalFilterFields() throws Exception {
         respond("{\"deletedAt\":{\"token\":\"zed-delete\"}}");
-        assertThat(engine.deleteRelationships(RelationshipFilter.of("document", "d1", "viewer")).token())
+        assertThat(
+                        engine.deleteRelationships(
+                                        RelationshipFilter.of("document", "d1", "viewer"))
+                                .token())
                 .isEqualTo("zed-delete");
         JsonNode full = requestJson().path("relationshipFilter");
         assertThat(full.path("resourceType").asText()).isEqualTo("document");
@@ -337,14 +428,17 @@ class SpiceDbAuthzEngineTest {
         assertThat(captured.get().path()).isEqualTo("/v1/schema/read");
 
         respond("{\"treeRoot\":{\"leaf\":{\"subjects\":[]}}}");
-        String tree = engine.expand(ResourceRef.of("document", "d"), "view", Consistency.fullyConsistent());
+        String tree =
+                engine.expand(
+                        ResourceRef.of("document", "d"), "view", Consistency.fullyConsistent());
         assertThat(mapper.readTree(tree).at("/treeRoot/leaf/subjects").isArray()).isTrue();
         assertThat(requestJson().at("/consistency/fullyConsistent").asBoolean()).isTrue();
     }
 
     @Test
     void readRelationshipsParsesDirectAndUsersetTuples() throws Exception {
-        respond("""
+        respond(
+                """
                 {"result":{"relationship":{"resource":{"objectType":"document","objectId":"d1"},
                   "relation":"viewer","subject":{"object":{"objectType":"user","objectId":"u1"}}}}}
                 {"result":{"relationship":{"resource":{"objectType":"document","objectId":"d1"},
@@ -352,12 +446,18 @@ class SpiceDbAuthzEngineTest {
                   "optionalRelation":"member"}}}}
                 """);
 
-        List<Relationship> result = engine.readRelationships(RelationshipFilter.ofResource(ResourceRef.of("document", "d1")));
+        List<Relationship> result =
+                engine.readRelationships(
+                        RelationshipFilter.ofResource(ResourceRef.of("document", "d1")));
 
-        assertThat(result).containsExactly(
-                new Relationship(ResourceRef.of("document", "d1"), "viewer", SubjectRef.user("u1")),
-                new Relationship(ResourceRef.of("document", "d1"), "viewer",
-                        SubjectRef.ofRelation("group", "acme_eng", "member")));
+        assertThat(result)
+                .containsExactly(
+                        new Relationship(
+                                ResourceRef.of("document", "d1"), "viewer", SubjectRef.user("u1")),
+                        new Relationship(
+                                ResourceRef.of("document", "d1"),
+                                "viewer",
+                                SubjectRef.ofRelation("group", "acme_eng", "member")));
         assertThat(requestJson().at("/consistency/fullyConsistent").asBoolean()).isTrue();
         // TODO(issue-C02): 内部 objectType/objectId/relation 缺失必须抛。
     }
@@ -369,7 +469,13 @@ class SpiceDbAuthzEngineTest {
 
         status.set(503);
         response.set("{\"error\":\"unavailable\"}");
-        assertThrows(RestClientResponseException.class, () ->
-                engine.check(SubjectRef.user("u"), "view", ResourceRef.of("document", "d"), null));
+        assertThrows(
+                RestClientResponseException.class,
+                () ->
+                        engine.check(
+                                SubjectRef.user("u"),
+                                "view",
+                                ResourceRef.of("document", "d"),
+                                null));
     }
 }

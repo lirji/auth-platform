@@ -1,50 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.DirectoryMapper">
-    <sql id="inboxColumns">event_id, partition_sequence, fingerprint, snapshot_id, processed</sql>
-    <insert id="insertSource">
+  <sql id="inboxColumns">event_id, partition_sequence, fingerprint, snapshot_id, processed</sql>
+  <insert id="insertSource">
         INSERT INTO auth_governance.directory_source(id, source, environment, source_tenant_ref, tenant_id, issuer)
         VALUES (#{id}, #{source}, #{environment}, #{sourceTenantRef}, #{tenantId}, #{issuer}) ON CONFLICT DO NOTHING
     </insert>
-    <select id="lockSource" resultType="com.lrj.authz.governance.domain.DirectoryModels$Source">
+  <select id="lockSource" resultType="com.lrj.authz.governance.domain.DirectoryModels$Source">
         SELECT id, source, environment, source_tenant_ref, tenant_id, issuer, last_sequence, last_fingerprint, quarantined
         FROM auth_governance.directory_source WHERE id = #{id} FOR UPDATE
     </select>
-    <select id="lockTenant" resultType="string">
+  <select id="lockTenant" resultType="string">
         SELECT id FROM auth_governance.tenant WHERE id = #{id} AND status = 'ACTIVE' FOR SHARE
     </select>
-    <select id="lockHuman" resultType="com.lrj.authz.governance.domain.IdentityModels$Principal">
+  <select id="lockHuman" resultType="com.lrj.authz.governance.domain.IdentityModels$Principal">
         SELECT id, kind, status, version FROM auth_governance.principal WHERE id = #{id} AND kind = 'HUMAN' FOR SHARE
     </select>
-    <select id="event" resultType="com.lrj.authz.governance.domain.DirectoryModels$Inbox">
+  <select id="event" resultType="com.lrj.authz.governance.domain.DirectoryModels$Inbox">
         SELECT <include refid="inboxColumns"/> FROM auth_governance.directory_inbox WHERE source_id = #{source} AND event_id = #{event}
     </select>
-    <select id="sequence" resultType="com.lrj.authz.governance.domain.DirectoryModels$Inbox">
+  <select id="sequence" resultType="com.lrj.authz.governance.domain.DirectoryModels$Inbox">
         SELECT <include refid="inboxColumns"/> FROM auth_governance.directory_inbox WHERE source_id = #{source} AND partition_sequence = #{sequence}
     </select>
-    <insert id="insertInbox">
+  <insert id="insertInbox">
         INSERT INTO auth_governance.directory_inbox(source_id, event_id, partition_sequence, aggregate_type, aggregate_id,
             aggregate_version, payload_hash, fingerprint, snapshot_id, processed)
         VALUES (#{source}, #{event.eventId}, #{event.partitionSequence}, #{event.aggregateType}, #{event.aggregateId},
             #{event.aggregateVersion}, #{event.payloadHash}, #{fingerprint}, #{event.snapshotId}, #{processed})
     </insert>
-    <select id="versionHash" resultType="string">
+  <select id="versionHash" resultType="string">
         SELECT payload_hash FROM auth_governance.directory_version_receipt
         WHERE source_id = #{source} AND aggregate_type = #{type} AND aggregate_id = #{id} AND aggregate_version = #{version}
     </select>
-    <insert id="insertVersion">
+  <insert id="insertVersion">
         INSERT INTO auth_governance.directory_version_receipt(source_id, aggregate_type, aggregate_id, aggregate_version, payload_hash)
         VALUES (#{source}, #{event.aggregateType}, #{event.aggregateId}, #{event.aggregateVersion}, #{event.payloadHash})
     </insert>
-    <select id="entry" resultType="com.lrj.authz.governance.domain.DirectoryModels$Entry">
+  <select id="entry" resultType="com.lrj.authz.governance.domain.DirectoryModels$Entry">
         SELECT source_id, tenant_id, aggregate_type, aggregate_id, aggregate_version, payload_hash, payload_json::text,
             principal_id, membership_id, login_subject FROM auth_governance.directory_entry
         WHERE source_id = #{source} AND aggregate_type = #{type} AND aggregate_id = #{id}
     </select>
-    <select id="employeeForMember" resultType="string">
+  <select id="employeeForMember" resultType="string">
         SELECT aggregate_id FROM auth_governance.directory_entry WHERE source_id = #{source} AND membership_id = #{member}
     </select>
-    <insert id="saveEntry">
+  <insert id="saveEntry">
         INSERT INTO auth_governance.directory_entry(source_id, tenant_id, aggregate_type, aggregate_id, aggregate_version,
             payload_hash, payload_json, principal_id, membership_id, login_subject)
         VALUES (#{sourceId}, #{tenantId}, #{aggregateType}, #{aggregateId}, #{aggregateVersion}, #{payloadHash},
@@ -54,11 +54,11 @@
             membership_id = EXCLUDED.membership_id, login_subject = EXCLUDED.login_subject, updated_at = clock_timestamp()
         WHERE auth_governance.directory_entry.aggregate_version &lt; EXCLUDED.aggregate_version
     </insert>
-    <insert id="appendChange">
+  <insert id="appendChange">
         INSERT INTO auth_governance.directory_change_evidence(source_id,event_id,tenant_id,partition_sequence,aggregate_type,aggregate_id,aggregate_version,event_fingerprint,membership_id,outcome,before_json,after_json,occurred_at)
         VALUES(#{sourceId},#{eventId},#{tenantId},#{partitionSequence},#{aggregateType},#{aggregateId},#{aggregateVersion},#{eventFingerprint},#{membershipId},#{outcome},CAST(#{beforeJson} AS jsonb),CAST(#{afterJson} AS jsonb),CAST(#{occurredAt} AS timestamptz))
     </insert>
-    <update id="changeEmployee">
+  <update id="changeEmployee">
         UPDATE auth_governance.membership SET status = #{after}, version = version + 1,
             generation = generation + CASE WHEN #{rejoin} THEN 1 ELSE 0 END,
             valid_from = CASE WHEN #{rejoin} THEN clock_timestamp() ELSE valid_from END,
@@ -66,63 +66,63 @@
         WHERE id = #{member} AND tenant_id = #{tenant} AND member_kind = 'EMPLOYEE' AND version = #{version}
             AND status = #{before} AND status IN ('ACTIVE','LEFT')
     </update>
-    <select id="invalidParent" resultType="boolean">
+  <select id="invalidParent" resultType="boolean">
         WITH RECURSIVE parents(id, depth, visited, cycle) AS (
             SELECT CAST(#{parent} AS varchar), 0, ARRAY[CAST(#{org} AS varchar)], #{parent} = #{org}
             UNION ALL
-            SELECT e.payload_json->'organization'->>'parent_id', p.depth + 1, p.visited || p.id,
-                (e.payload_json->'organization'->>'parent_id') = ANY(p.visited || p.id)
+            SELECT e.payload_json-&gt;'organization'-&gt;&gt;'parent_id', p.depth + 1, p.visited || p.id,
+                (e.payload_json-&gt;'organization'-&gt;&gt;'parent_id') = ANY(p.visited || p.id)
             FROM parents p JOIN auth_governance.directory_entry e ON e.source_id = #{source}
                 AND e.aggregate_type = 'ORG' AND e.aggregate_id = p.id
             WHERE p.id IS NOT NULL AND NOT p.cycle AND p.depth &lt; 64
-        ) SELECT EXISTS (SELECT 1 FROM parents WHERE cycle OR depth >= 64)
+        ) SELECT EXISTS (SELECT 1 FROM parents WHERE cycle OR depth &gt;= 64)
     </select>
-    <select id="snapshot" resultType="com.lrj.authz.governance.domain.DirectoryModels$Snapshot">
+  <select id="snapshot" resultType="com.lrj.authz.governance.domain.DirectoryModels$Snapshot">
         SELECT source_id, snapshot_id, start_sequence, end_sequence, expected_count, content_hash, begin_seen, end_seen, complete
         FROM auth_governance.directory_snapshot WHERE source_id = #{source} AND snapshot_id = #{id}
     </select>
-    <insert id="insertSnapshot">
+  <insert id="insertSnapshot">
         INSERT INTO auth_governance.directory_snapshot(source_id, snapshot_id, start_sequence, end_sequence, expected_count,
             content_hash, begin_seen, end_seen) VALUES (#{sourceId}, #{snapshotId}, #{startSequence}, #{endSequence},
             #{expectedCount}, #{contentHash}, #{beginSeen}, #{endSeen})
     </insert>
-    <update id="seenSnapshot">
+  <update id="seenSnapshot">
         UPDATE auth_governance.directory_snapshot SET begin_seen = begin_seen OR #{begin}, end_seen = end_seen OR NOT #{begin}
         WHERE source_id = #{source} AND snapshot_id = #{id}
     </update>
-    <select id="snapshotEvents" resultType="com.lrj.authz.governance.domain.DirectoryModels$Inbox">
+  <select id="snapshotEvents" resultType="com.lrj.authz.governance.domain.DirectoryModels$Inbox">
         SELECT <include refid="inboxColumns"/> FROM auth_governance.directory_inbox
-        WHERE source_id = #{source} AND partition_sequence > #{start} AND partition_sequence &lt; #{end}
+        WHERE source_id = #{source} AND partition_sequence &gt; #{start} AND partition_sequence &lt; #{end}
         ORDER BY partition_sequence LIMIT 10001
     </select>
-    <select id="outsideSnapshot" resultType="boolean">
+  <select id="outsideSnapshot" resultType="boolean">
         SELECT EXISTS (SELECT 1 FROM auth_governance.directory_inbox WHERE source_id = #{source} AND snapshot_id = #{id}
-            AND (partition_sequence &lt; #{start} OR partition_sequence > #{end}
+            AND (partition_sequence &lt; #{start} OR partition_sequence &gt; #{end}
                 OR (aggregate_type IN ('EMPLOYEE','ORG') AND partition_sequence IN (#{start}, #{end}))))
     </select>
-    <update id="completeSnapshot">
+  <update id="completeSnapshot">
         UPDATE auth_governance.directory_snapshot SET complete = true
         WHERE source_id = #{source} AND snapshot_id = #{id} AND begin_seen AND end_seen AND NOT complete
     </update>
-    <update id="completeSnapshotEnd">
+  <update id="completeSnapshotEnd">
         UPDATE auth_governance.directory_inbox SET processed = true
         WHERE source_id = #{source} AND snapshot_id = #{id} AND partition_sequence = #{end}
             AND aggregate_type = 'SNAPSHOT_END' AND NOT processed
     </update>
-    <select id="following" resultType="com.lrj.authz.governance.domain.DirectoryModels$Inbox">
+  <select id="following" resultType="com.lrj.authz.governance.domain.DirectoryModels$Inbox">
         SELECT <include refid="inboxColumns"/> FROM auth_governance.directory_inbox
-        WHERE source_id = #{source} AND partition_sequence > #{after} ORDER BY partition_sequence LIMIT 20001
+        WHERE source_id = #{source} AND partition_sequence &gt; #{after} ORDER BY partition_sequence LIMIT 20001
     </select>
-    <update id="checkpoint">
+  <update id="checkpoint">
         UPDATE auth_governance.directory_source SET last_sequence = #{after}, last_fingerprint = #{fingerprint}
         WHERE id = #{source} AND last_sequence = #{before} AND NOT quarantined
     </update>
-    <insert id="recordConflict">
+  <insert id="recordConflict">
         INSERT INTO auth_governance.directory_conflict(source_id, event_id, fingerprint, reason)
         VALUES (#{source}, #{event}, #{fingerprint}, #{reason})
         ON CONFLICT (source_id, event_id, fingerprint, reason) DO UPDATE SET last_seen = clock_timestamp(),
             occurrences = auth_governance.directory_conflict.occurrences + 1
     </insert>
-    <update id="quarantine">UPDATE auth_governance.directory_source SET quarantined = true WHERE id = #{source}</update>
+  <update id="quarantine">UPDATE auth_governance.directory_source SET quarantined = true WHERE id = #{source}</update>
   <update id="configureClock">UPDATE auth_governance.directory_source SET business_zone=#{zone} WHERE id=#{source} AND NOT quarantined</update>
 </mapper>

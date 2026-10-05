@@ -13,15 +13,18 @@ import org.springframework.stereotype.Component;
 public class ReconcileJob {
 
     private final GroupSyncService sync;
+
     /** 部门树同步（仅 department-sync-enabled 时存在）；一并对账。 */
     private final ObjectProvider<DepartmentSyncService> departmentSync;
 
-    public ReconcileJob(GroupSyncService sync, ObjectProvider<DepartmentSyncService> departmentSync) {
+    public ReconcileJob(
+            GroupSyncService sync, ObjectProvider<DepartmentSyncService> departmentSync) {
         this.sync = sync;
         this.departmentSync = departmentSync;
     }
 
-    @Scheduled(fixedDelayString = "${authz.casdoor.reconcile-interval-ms:300000}",
+    @Scheduled(
+            fixedDelayString = "${authz.casdoor.reconcile-interval-ms:300000}",
             initialDelayString = "${authz.casdoor.reconcile-interval-ms:300000}")
     public void reconcile() {
         sync.sync();

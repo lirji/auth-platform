@@ -1,5 +1,8 @@
 package com.lrj.authz.sdk;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lrj.authz.protocol.Consistency;
@@ -10,6 +13,7 @@ import com.lrj.authz.protocol.ResourceRef;
 import com.lrj.authz.protocol.SubjectRef;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,9 +25,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class RemoteAuthzEngineHttpTest {
 
@@ -41,8 +42,12 @@ class RemoteAuthzEngineHttpTest {
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/", this::handle);
         server.start();
-        engine = new RemoteAuthzEngine("http://127.0.0.1:" + server.getAddress().getPort(), "service-token",
-                Duration.ofSeconds(1), Duration.ofSeconds(2));
+        engine =
+                new RemoteAuthzEngine(
+                        "http://127.0.0.1:" + server.getAddress().getPort(),
+                        "service-token",
+                        Duration.ofSeconds(1),
+                        Duration.ofSeconds(2));
     }
 
     @AfterEach
@@ -54,7 +59,8 @@ class RemoteAuthzEngineHttpTest {
         requests.incrementAndGet();
         requestPath.set(exchange.getRequestURI().getPath());
         authorization.set(exchange.getRequestHeaders().getFirst("Authorization"));
-        requestBody.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+        requestBody.set(
+                new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
         byte[] bytes = response.get().getBytes(StandardCharsets.UTF_8);
         exchange.sendResponseHeaders(200, bytes.length);
         exchange.getResponseBody().write(bytes);
@@ -63,8 +69,12 @@ class RemoteAuthzEngineHttpTest {
 
     @Test
     void singleCheckRequiresBooleanAllowedAndSendsFreshness() throws Exception {
-        boolean allowed = engine.check(SubjectRef.user("u1"), "view", ResourceRef.of("document", "d1"),
-                Consistency.atLeastAsFresh("zed-1"));
+        boolean allowed =
+                engine.check(
+                        SubjectRef.user("u1"),
+                        "view",
+                        ResourceRef.of("document", "d1"),
+                        Consistency.atLeastAsFresh("zed-1"));
 
         assertThat(allowed).isTrue();
         assertThat(requestPath).hasValue("/v1/check");
@@ -75,13 +85,26 @@ class RemoteAuthzEngineHttpTest {
         assertThat(body.at("/resource/id").asText()).isEqualTo("d1");
 
         response.set("{}");
-        IllegalStateException missing = assertThrows(IllegalStateException.class, () ->
-                engine.check(SubjectRef.user("u1"), "view", ResourceRef.of("document", "d1"), null));
+        IllegalStateException missing =
+                assertThrows(
+                        IllegalStateException.class,
+                        () ->
+                                engine.check(
+                                        SubjectRef.user("u1"),
+                                        "view",
+                                        ResourceRef.of("document", "d1"),
+                                        null));
         assertThat(missing).hasMessageContaining("allowed");
 
         response.set("{\"allowed\":\"true\"}");
-        assertThrows(IllegalStateException.class, () ->
-                engine.check(SubjectRef.user("u1"), "view", ResourceRef.of("document", "d1"), null));
+        assertThrows(
+                IllegalStateException.class,
+                () ->
+                        engine.check(
+                                SubjectRef.user("u1"),
+                                "view",
+                                ResourceRef.of("document", "d1"),
+                                null));
     }
 
     @Test
@@ -94,7 +117,13 @@ class RemoteAuthzEngineHttpTest {
     @Test
     void singleCheckMapsFalse() {
         response.set("{\"allowed\":false}");
-        assertThat(engine.check(SubjectRef.user("u1"), "view", ResourceRef.of("document", "d1"), null)).isFalse();
+        assertThat(
+                        engine.check(
+                                SubjectRef.user("u1"),
+                                "view",
+                                ResourceRef.of("document", "d1"),
+                                null))
+                .isFalse();
     }
 
     @Test
@@ -103,23 +132,31 @@ class RemoteAuthzEngineHttpTest {
         ResourceRef d1 = ResourceRef.of("document", "d1");
 
         response.set("{\"resourceIds\":[\"d1\",\"d2\"]}");
-        assertThat(engine.lookupResources(subject, "view", "document", null)).containsExactly("d1", "d2");
+        assertThat(engine.lookupResources(subject, "view", "document", null))
+                .containsExactly("d1", "d2");
         assertThat(requestPath).hasValue("/v1/lookup-resources");
-        assertThat(mapper.readTree(requestBody.get()).at("/resourceType").asText()).isEqualTo("document");
+        assertThat(mapper.readTree(requestBody.get()).at("/resourceType").asText())
+                .isEqualTo("document");
 
-        response.set("{\"subjects\":[{\"type\":\"user\",\"id\":\"u1\",\"relation\":null},"
-                + "{\"type\":\"group\",\"id\":\"g1\",\"relation\":\"member\"}]}");
+        response.set(
+                "{\"subjects\":[{\"type\":\"user\",\"id\":\"u1\",\"relation\":null},"
+                        + "{\"type\":\"group\",\"id\":\"g1\",\"relation\":\"member\"}]}");
         assertThat(engine.lookupSubjects(d1, "view", "user", null))
-                .containsExactly(SubjectRef.user("u1"), SubjectRef.ofRelation("group", "g1", "member"));
+                .containsExactly(
+                        SubjectRef.user("u1"), SubjectRef.ofRelation("group", "g1", "member"));
         assertThat(requestPath).hasValue("/v1/lookup-subjects");
 
         response.set("{\"token\":\"zed-w\"}");
-        assertThat(engine.writeRelationships(List.of(
-                RelationshipUpdate.touch(d1, "viewer", subject))).token()).isEqualTo("zed-w");
+        assertThat(
+                        engine.writeRelationships(
+                                        List.of(RelationshipUpdate.touch(d1, "viewer", subject)))
+                                .token())
+                .isEqualTo("zed-w");
         assertThat(requestPath).hasValue("/v1/relationships");
 
         response.set("{\"token\":\"zed-d\"}");
-        assertThat(engine.deleteRelationships(RelationshipFilter.ofResource(d1)).token()).isEqualTo("zed-d");
+        assertThat(engine.deleteRelationships(RelationshipFilter.ofResource(d1)).token())
+                .isEqualTo("zed-d");
         assertThat(requestPath).hasValue("/v1/relationships/delete");
 
         response.set("{\"schema\":\"definition user {}\"}");
@@ -130,8 +167,9 @@ class RemoteAuthzEngineHttpTest {
         assertThat(mapper.readTree(engine.expand(d1, "view", null)).has("treeRoot")).isTrue();
         assertThat(requestPath).hasValue("/v1/expand");
 
-        response.set("{\"relationships\":[{\"resource\":{\"type\":\"document\",\"id\":\"d1\"},"
-                + "\"relation\":\"viewer\",\"subject\":{\"type\":\"user\",\"id\":\"u1\",\"relation\":null}}]}");
+        response.set(
+                "{\"relationships\":[{\"resource\":{\"type\":\"document\",\"id\":\"d1\"},"
+                        + "\"relation\":\"viewer\",\"subject\":{\"type\":\"user\",\"id\":\"u1\",\"relation\":null}}]}");
         assertThat(engine.readRelationships(RelationshipFilter.ofResource(d1)))
                 .containsExactly(new Relationship(d1, "viewer", SubjectRef.user("u1")));
         assertThat(requestPath).hasValue("/v1/relationships/read");
@@ -139,8 +177,8 @@ class RemoteAuthzEngineHttpTest {
 
     @Test
     void omittingTokenSendsNoAuthorizationHeader() {
-        RemoteAuthzEngine anonymous = new RemoteAuthzEngine(
-                "http://127.0.0.1:" + server.getAddress().getPort());
+        RemoteAuthzEngine anonymous =
+                new RemoteAuthzEngine("http://127.0.0.1:" + server.getAddress().getPort());
         response.set("{\"allowed\":true}");
 
         anonymous.check(SubjectRef.user("u"), "view", ResourceRef.of("document", "d"), null);

@@ -2,9 +2,15 @@
 // relation(可授予,写 grant 用) 与 permission(可判定,check/lookup 用)是两套词汇,UI 必须分清。
 
 export type ObjectType =
-  | 'user' | 'group' | 'organization'
-  | 'space' | 'folder' | 'document'
-  | 'dept' | 'patient' | 'encounter'
+  | 'user'
+  | 'group'
+  | 'organization'
+  | 'space'
+  | 'folder'
+  | 'document'
+  | 'dept'
+  | 'patient'
+  | 'encounter';
 
 export const OBJECT_TYPES: { value: ObjectType; label: string; color: string }[] = [
   { value: 'user', label: '用户', color: 'default' },
@@ -16,7 +22,7 @@ export const OBJECT_TYPES: { value: ObjectType; label: string; color: string }[]
   { value: 'dept', label: '科室', color: 'green' },
   { value: 'patient', label: '患者', color: 'magenta' },
   { value: 'encounter', label: '就诊/病历', color: 'volcano' },
-]
+];
 
 export const RELATIONS: Record<string, { label: string; color: string }> = {
   owner: { label: '所有者', color: 'red' },
@@ -34,7 +40,7 @@ export const RELATIONS: Record<string, { label: string; color: string }> = {
   parent_folder: { label: '所属文件夹', color: 'default' },
   dept: { label: '所属科室', color: 'default' },
   subject: { label: '关联患者', color: 'default' },
-}
+};
 
 export const PERMISSIONS: Record<string, { label: string; color: string }> = {
   view: { label: '查看', color: 'green' },
@@ -45,7 +51,7 @@ export const PERMISSIONS: Record<string, { label: string; color: string }> = {
   administrate: { label: '管理组织', color: 'volcano' },
   access: { label: '本科室', color: 'green' },
   care: { label: '主治', color: 'magenta' },
-}
+};
 
 // 依对象类型给可授予关系 / 可判权限(静态 from schema;M5 会从 /admin/schema 动态派生)
 const RELATIONS_FOR: Record<ObjectType, string[]> = {
@@ -54,11 +60,19 @@ const RELATIONS_FOR: Record<ObjectType, string[]> = {
   organization: ['admin', 'member'],
   space: ['owner', 'admin', 'editor', 'commenter', 'viewer', 'public_viewer', 'parent_org'],
   folder: ['editor', 'viewer', 'parent_space', 'parent_folder'],
-  document: ['owner', 'editor', 'commenter', 'viewer', 'public_viewer', 'parent_space', 'parent_folder'],
+  document: [
+    'owner',
+    'editor',
+    'commenter',
+    'viewer',
+    'public_viewer',
+    'parent_space',
+    'parent_folder',
+  ],
   dept: ['member', 'head'],
   patient: ['attending'],
   encounter: ['dept', 'subject', 'author'],
-}
+};
 
 const PERMISSIONS_FOR: Record<ObjectType, string[]> = {
   user: [],
@@ -70,8 +84,9 @@ const PERMISSIONS_FOR: Record<ObjectType, string[]> = {
   dept: ['access'],
   patient: ['care'],
   encounter: ['view', 'edit'],
-}
+};
 
-export const relationsFor = (t: ObjectType): string[] => RELATIONS_FOR[t] ?? []
-export const permissionsFor = (t: ObjectType): string[] => PERMISSIONS_FOR[t] ?? []
-export const objectLabel = (t: string): string => OBJECT_TYPES.find((o) => o.value === t)?.label ?? t
+export const relationsFor = (t: ObjectType): string[] => RELATIONS_FOR[t] ?? [];
+export const permissionsFor = (t: ObjectType): string[] => PERMISSIONS_FOR[t] ?? [];
+export const objectLabel = (t: string): string =>
+  OBJECT_TYPES.find((o) => o.value === t)?.label ?? t;

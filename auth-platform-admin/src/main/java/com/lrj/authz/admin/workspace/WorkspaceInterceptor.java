@@ -2,6 +2,7 @@ package com.lrj.authz.admin.workspace;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +22,8 @@ public class WorkspaceInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+    public boolean preHandle(
+            HttpServletRequest request, HttpServletResponse response, Object handler)
             throws IOException {
         String path = request.getServletPath();
         if (path == null || path.isEmpty()) {
@@ -38,7 +40,8 @@ public class WorkspaceInterceptor implements HandlerInterceptor {
             return true;
         }
         try {
-            registry.bind(request.getHeader(WorkspaceRegistry.HEADER),
+            registry.bind(
+                    request.getHeader(WorkspaceRegistry.HEADER),
                     SecurityContextHolder.getContext().getAuthentication());
             return true;
         } catch (AccessDeniedException e) {
@@ -51,8 +54,11 @@ public class WorkspaceInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
-                                Exception ex) {
+    public void afterCompletion(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler,
+            Exception ex) {
         registry.clear();
     }
 }

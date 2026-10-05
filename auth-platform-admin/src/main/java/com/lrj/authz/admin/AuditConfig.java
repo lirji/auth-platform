@@ -2,6 +2,7 @@ package com.lrj.authz.admin;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +20,10 @@ public class AuditConfig {
 
     /** 持久化开启：专用 Hikari 池（小池即可——审计只有 grant/revoke 写 + 控制台读）。 */
     @Bean(destroyMethod = "close")
-    @ConditionalOnProperty(prefix = "authz.audit", name = "persistence-enabled", havingValue = "true")
+    @ConditionalOnProperty(
+            prefix = "authz.audit",
+            name = "persistence-enabled",
+            havingValue = "true")
     public HikariDataSource auditDataSource(AuditProperties props) {
         if (props.getJdbcUrl() == null || props.getJdbcUrl().isBlank()) {
             throw new IllegalStateException(
@@ -35,14 +39,20 @@ public class AuditConfig {
     }
 
     @Bean
-    @ConditionalOnProperty(prefix = "authz.audit", name = "persistence-enabled", havingValue = "true")
+    @ConditionalOnProperty(
+            prefix = "authz.audit",
+            name = "persistence-enabled",
+            havingValue = "true")
     public AuditStore jdbcAuditStore(HikariDataSource auditDataSource, AuditProperties props) {
         return new JdbcAuditStore(new JdbcTemplate(auditDataSource), props.getRetentionMaxRows());
     }
 
     @Bean
-    @ConditionalOnProperty(prefix = "authz.audit", name = "persistence-enabled",
-            havingValue = "false", matchIfMissing = true)
+    @ConditionalOnProperty(
+            prefix = "authz.audit",
+            name = "persistence-enabled",
+            havingValue = "false",
+            matchIfMissing = true)
     public AuditStore inMemoryAuditStore(AuditProperties props) {
         return new InMemoryAuditStore(props.getInMemoryCapacity());
     }

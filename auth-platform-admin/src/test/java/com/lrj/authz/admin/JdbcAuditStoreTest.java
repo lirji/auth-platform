@@ -1,5 +1,7 @@
 package com.lrj.authz.admin;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -7,14 +9,15 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 /** JdbcAuditStore 单测：幂等建表、写读回、actor 归一、retention 裁剪。H2 PostgreSQL 兼容模式。 */
 class JdbcAuditStoreTest {
 
     private static JdbcTemplate freshDb() {
-        DriverManagerDataSource ds = new DriverManagerDataSource(
-                "jdbc:h2:mem:" + UUID.randomUUID() + ";MODE=PostgreSQL;DB_CLOSE_DELAY=-1", "sa", "");
+        DriverManagerDataSource ds =
+                new DriverManagerDataSource(
+                        "jdbc:h2:mem:" + UUID.randomUUID() + ";MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
+                        "sa",
+                        "");
         return new JdbcTemplate(ds);
     }
 
@@ -43,7 +46,9 @@ class JdbcAuditStoreTest {
         List<AuditStore.AuditRecord> one = store.recent(0);
 
         assertThat(one).hasSize(1);
-        assertThat(store.recent(10)).extracting(AuditStore.AuditRecord::actor).contains("-", "carol");
+        assertThat(store.recent(10))
+                .extracting(AuditStore.AuditRecord::actor)
+                .contains("-", "carol");
     }
 
     @Test
@@ -56,7 +61,8 @@ class JdbcAuditStoreTest {
         List<AuditStore.AuditRecord> recent = store.recent(10);
 
         assertThat(recent).hasSize(3);
-        assertThat(recent).extracting(AuditStore.AuditRecord::detail)
+        assertThat(recent)
+                .extracting(AuditStore.AuditRecord::detail)
                 .containsExactly("detail-5", "detail-4", "detail-3");
     }
 
@@ -66,6 +72,8 @@ class JdbcAuditStoreTest {
         new JdbcAuditStore(jdbc, 0).record("a", "grant", "before-restart");
         JdbcAuditStore reopened = new JdbcAuditStore(jdbc, 0); // 同库再次构造 = 模拟重启
 
-        assertThat(reopened.recent(10)).extracting(AuditStore.AuditRecord::detail).contains("before-restart");
+        assertThat(reopened.recent(10))
+                .extracting(AuditStore.AuditRecord::detail)
+                .contains("before-restart");
     }
 }

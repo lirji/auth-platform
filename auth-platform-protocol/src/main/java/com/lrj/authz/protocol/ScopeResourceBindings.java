@@ -1,56 +1,86 @@
 package com.lrj.authz.protocol;
 
-import java.util.Set;
 import com.lrj.authz.protocol.ScopeDtos.Facts;
 import com.lrj.authz.protocol.ScopeDtos.Kind;
 
+import java.util.Set;
+
 /** 有限资源字段绑定由协议固定；清单声明资源名不等于获准解释任意归属字段。 */
 public final class ScopeResourceBindings {
-    private static final Set<String> TENANT_ONLY = Set.of(
-            ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE, ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE, ScopeDtos.COMMERCE_RUNTIME_RESOURCE_TYPE, ScopeDtos.COMMERCE_TENANT_RESOURCE_TYPE,
-            ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE, ScopeDtos.MARKETING_RULE_RESOURCE_TYPE, ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE, ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE, ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE, ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE,
-            ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE, ScopeDtos.ENTITLEMENT_RESOURCE_TYPE, ScopeDtos.POINT_OFFER_RESOURCE_TYPE, ScopeDtos.JOURNEY_RESOURCE_TYPE, ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE,
-            ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE, ScopeDtos.OPS_PAGE_RESOURCE_TYPE, ScopeDtos.MARKETING_REPORT_RESOURCE_TYPE,
-            ScopeDtos.WMS_ENTERPRISE_RESOURCE_TYPE);
+    private static final Set<String> TENANT_ONLY =
+            Set.of(
+                    ScopeDtos.COMMERCE_MEMBER_RESOURCE_TYPE,
+                    ScopeDtos.COMMERCE_MEMBER_POLICY_RESOURCE_TYPE,
+                    ScopeDtos.COMMERCE_RUNTIME_RESOURCE_TYPE,
+                    ScopeDtos.COMMERCE_TENANT_RESOURCE_TYPE,
+                    ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE,
+                    ScopeDtos.MARKETING_RULE_RESOURCE_TYPE,
+                    ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE,
+                    ScopeDtos.MARKETING_AUDIENCE_RESOURCE_TYPE,
+                    ScopeDtos.COUPON_DEFINITION_RESOURCE_TYPE,
+                    ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE,
+                    ScopeDtos.ENTITLEMENT_DEFINITION_RESOURCE_TYPE,
+                    ScopeDtos.ENTITLEMENT_RESOURCE_TYPE,
+                    ScopeDtos.POINT_OFFER_RESOURCE_TYPE,
+                    ScopeDtos.JOURNEY_RESOURCE_TYPE,
+                    ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE,
+                    ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE,
+                    ScopeDtos.OPS_PAGE_RESOURCE_TYPE,
+                    ScopeDtos.MARKETING_REPORT_RESOURCE_TYPE,
+                    ScopeDtos.WMS_ENTERPRISE_RESOURCE_TYPE);
 
     private ScopeResourceBindings() {}
 
     /** 未绑定类型失败关闭；服务端还必须显式登记调用应用为该类型Owner。 */
     public static boolean supports(String type) {
-        return type != null && (storeBound(type) || ScopeDtos.MERCHANT_RESOURCE_TYPE.equals(type)
-                || ScopeDtos.WMS_WAREHOUSE_RESOURCE_TYPE.equals(type) || TENANT_ONLY.contains(type));
+        return type != null
+                && (storeBound(type)
+                        || ScopeDtos.MERCHANT_RESOURCE_TYPE.equals(type)
+                        || ScopeDtos.WMS_WAREHOUSE_RESOURCE_TYPE.equals(type)
+                        || TENANT_ONLY.contains(type));
     }
 
     /** 同一资源类型在治理校验和SDK响应校验中使用同一范围语义。 */
     public static boolean allows(String type, Kind kind) {
         if (!supports(type) || kind == null) return false;
         // 精确登记仓库集合，防止旧角色隐式取得将来新增仓库；门店范围不能被解释为仓范围。
-        if (ScopeDtos.WMS_WAREHOUSE_RESOURCE_TYPE.equals(type)) return kind == Kind.SPECIFIED_RESOURCES;
+        if (ScopeDtos.WMS_WAREHOUSE_RESOURCE_TYPE.equals(type))
+            return kind == Kind.SPECIFIED_RESOURCES;
         if (kind == Kind.TENANT_ALL) return true;
-        if (kind == Kind.SPECIFIED_RESOURCES) return storeBound(type) || ScopeDtos.MERCHANT_RESOURCE_TYPE.equals(type);
+        if (kind == Kind.SPECIFIED_RESOURCES)
+            return storeBound(type) || ScopeDtos.MERCHANT_RESOURCE_TYPE.equals(type);
         return kind == Kind.SPECIFIED_STORES && storeBound(type);
     }
 
     /** 门店/商品沿用P3归属字段，会员营销等类型不能借传入storeId伪造细粒度隔离。 */
     public static boolean validFacts(Facts facts) {
-        if (facts == null || !supports(facts.resourceType()) || !resourceId(facts.resourceId())
-                || facts.resourceVersion() < 0 || facts.ownerPrincipalId() != null || facts.departmentId() != null
-                || facts.supplierId() != null || facts.departmentAncestors() == null || !facts.departmentAncestors().isEmpty()) return false;
+        if (facts == null
+                || !supports(facts.resourceType())
+                || !resourceId(facts.resourceId())
+                || facts.resourceVersion() < 0
+                || facts.ownerPrincipalId() != null
+                || facts.departmentId() != null
+                || facts.supplierId() != null
+                || facts.departmentAncestors() == null
+                || !facts.departmentAncestors().isEmpty()) return false;
         // 活动、人群和发券批次内容从正版本开始，不能用初始进度/状态锁版本0冒充事实版本。
         if ((ScopeDtos.MARKETING_CAMPAIGN_RESOURCE_TYPE.equals(facts.resourceType())
-                || ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE.equals(facts.resourceType())
-                || ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE.equals(facts.resourceType())
-                || ScopeDtos.JOURNEY_RESOURCE_TYPE.equals(facts.resourceType())
-                || ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE.equals(facts.resourceType())
-                || ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE.equals(facts.resourceType())
-                || ScopeDtos.OPS_PAGE_RESOURCE_TYPE.equals(facts.resourceType())) && facts.resourceVersion() == 0) return false;
+                        || ScopeDtos.COUPON_DELIVERY_RESOURCE_TYPE.equals(facts.resourceType())
+                        || ScopeDtos.MARKETING_SEGMENT_RESOURCE_TYPE.equals(facts.resourceType())
+                        || ScopeDtos.JOURNEY_RESOURCE_TYPE.equals(facts.resourceType())
+                        || ScopeDtos.JOURNEY_INSTANCE_RESOURCE_TYPE.equals(facts.resourceType())
+                        || ScopeDtos.JOURNEY_SCAN_RESOURCE_TYPE.equals(facts.resourceType())
+                        || ScopeDtos.OPS_PAGE_RESOURCE_TYPE.equals(facts.resourceType()))
+                && facts.resourceVersion() == 0) return false;
         if (!storeBound(facts.resourceType())) return facts.storeId() == null;
-        return resourceId(facts.storeId()) && (!ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())
-                || facts.resourceId().equals(facts.storeId()));
+        return resourceId(facts.storeId())
+                && (!ScopeDtos.STORE_RESOURCE_TYPE.equals(facts.resourceType())
+                        || facts.resourceId().equals(facts.storeId()));
     }
 
     private static boolean storeBound(String type) {
-        return ScopeDtos.STORE_RESOURCE_TYPE.equals(type) || ScopeDtos.PRODUCT_RESOURCE_TYPE.equals(type);
+        return ScopeDtos.STORE_RESOURCE_TYPE.equals(type)
+                || ScopeDtos.PRODUCT_RESOURCE_TYPE.equals(type);
     }
 
     private static boolean resourceId(String value) {

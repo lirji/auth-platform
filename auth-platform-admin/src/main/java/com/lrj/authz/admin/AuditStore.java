@@ -9,8 +9,7 @@ import java.util.List;
 public interface AuditStore {
 
     /** 一条审计记录。{@code at} 为 ISO-8601 Instant 字符串（两实现返回形状一致，前端/API 不感知实现）。 */
-    record AuditRecord(String at, String actor, String action, String detail) {
-    }
+    record AuditRecord(String at, String actor, String action, String detail) {}
 
     /** 记录一次授权操作（actor 为空归一为 "-"）。 */
     void record(String actor, String action, String detail);

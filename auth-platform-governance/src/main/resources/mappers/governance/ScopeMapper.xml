@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.ScopeMapper">
- <select id="eligible" resultType="com.lrj.authz.governance.domain.ScopeModels$GrantPath">
+  <select id="eligible" resultType="com.lrj.authz.governance.domain.ScopeModels$GrantPath">
  SELECT g.id,g.version,r.capabilities_json,g.scope,s.rule_json,CASE WHEN g.source_type='GROUP' THEN least(g.valid_to,m.valid_to,((clock_timestamp() AT TIME ZONE src.business_zone)::date+1)::timestamp AT TIME ZONE src.business_zone) ELSE least(g.valid_to,m.valid_to) END valid_to
  FROM auth_governance.access_grant g
  JOIN auth_governance.role_version r ON r.id=g.role_id AND r.tenant_id=g.tenant_id AND r.application_id=g.application_id AND r.environment=g.environment
@@ -17,8 +17,8 @@
  AND EXISTS(SELECT 1 FROM auth_governance.directory_group_member gm
  WHERE gm.group_id=dg.id AND gm.tenant_id=m.tenant_id AND gm.membership_id=m.id AND gm.generation=m.generation AND gm.current
  AND EXISTS(SELECT 1 FROM jsonb_array_elements(gm.periods) a
- WHERE (a->>'valid_from')::date &lt;=(clock_timestamp() AT TIME ZONE src.business_zone)::date
- AND (a->>'valid_to' IS NULL OR (a->>'valid_to')::date &gt;(clock_timestamp() AT TIME ZONE src.business_zone)::date)))))
+ WHERE (a-&gt;&gt;'valid_from')::date &lt;=(clock_timestamp() AT TIME ZONE src.business_zone)::date
+ AND (a-&gt;&gt;'valid_to' IS NULL OR (a-&gt;&gt;'valid_to')::date &gt;(clock_timestamp() AT TIME ZONE src.business_zone)::date)))))
  AND g.valid_from &lt;=clock_timestamp() AND g.valid_to &gt;clock_timestamp()
  AND m.status='ACTIVE' AND u.status='ACTIVE' AND u.kind='HUMAN'
  AND m.valid_from &lt;=clock_timestamp() AND (m.valid_to IS NULL OR m.valid_to &gt;clock_timestamp())

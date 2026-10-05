@@ -15,6 +15,7 @@ public class WorkspaceWebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new WorkspaceInterceptor(this.registry)).addPathPatterns("/admin/**");
+        registry.addInterceptor(new WorkspaceInterceptor(this.registry))
+                .addPathPatterns("/admin/**");
     }
 }

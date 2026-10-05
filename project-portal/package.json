@@ -13,7 +13,9 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "test": "node --experimental-strip-types --test src/catalog/availability.test.ts src/catalog/defaultCatalog.test.ts src/catalog/parseCatalog.test.ts src/catalog/projectOrder.test.ts src/catalog/viewModel.test.ts",
-    "test:run": "node --experimental-strip-types --test src/catalog/availability.test.ts src/catalog/defaultCatalog.test.ts src/catalog/parseCatalog.test.ts src/catalog/projectOrder.test.ts src/catalog/viewModel.test.ts"
+    "test:run": "node --experimental-strip-types --test src/catalog/availability.test.ts src/catalog/defaultCatalog.test.ts src/catalog/parseCatalog.test.ts src/catalog/projectOrder.test.ts src/catalog/viewModel.test.ts",
+    "format": "prettier --write src vite.config.ts tsconfig*.json",
+    "format:check": "prettier --check src vite.config.ts tsconfig*.json"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -24,7 +26,8 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.6.3",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "prettier": "3.9.9"
   },
   "packageManager": "pnpm@9.15.9"
 }

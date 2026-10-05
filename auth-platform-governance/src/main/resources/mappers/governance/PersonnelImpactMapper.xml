@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lrj.authz.governance.persistence.PersonnelImpactMapper">
- <select id="target" resultType="com.lrj.authz.protocol.PersonnelImpactDtos$Target">
+  <select id="target" resultType="com.lrj.authz.protocol.PersonnelImpactDtos$Target">
  SELECT m.id membership_id,m.status,m.generation,m.version,u.status principal_status,u.version principal_version,m.valid_from::text,m.valid_to::text
  FROM auth_governance.membership m JOIN auth_governance.principal u ON u.id=m.principal_id
  WHERE m.id=#{member} AND m.tenant_id=#{p.tenantId} AND u.kind='HUMAN'
  </select>
- <sql id="related">
+  <sql id="related">
  WITH employee AS MATERIALIZED (SELECT e.* FROM auth_governance.directory_entry e WHERE e.tenant_id=#{p.tenantId} AND e.membership_id=#{member}),
  orgs AS MATERIALIZED (
- SELECT e.source_id,a->>'org_id' org_id FROM employee e CROSS JOIN LATERAL jsonb_array_elements(e.payload_json->'employee'->'assignments') a
+ SELECT e.source_id,a-&gt;&gt;'org_id' org_id FROM employee e CROSS JOIN LATERAL jsonb_array_elements(e.payload_json-&gt;'employee'-&gt;'assignments') a
  UNION SELECT g.source_id,g.org_ref FROM auth_governance.directory_group g JOIN auth_governance.directory_group_member gm ON gm.group_id=g.id AND gm.tenant_id=g.tenant_id WHERE gm.tenant_id=#{p.tenantId} AND gm.membership_id=#{member}
- UNION SELECT c.source_id,a->>'org_id' FROM auth_governance.directory_change_evidence c CROSS JOIN LATERAL jsonb_array_elements(COALESCE(c.before_json->'facts'->'assignments','[]'::jsonb)||COALESCE(c.after_json->'facts'->'assignments','[]'::jsonb)) a WHERE c.tenant_id=#{p.tenantId} AND c.membership_id=#{member}
+ UNION SELECT c.source_id,a-&gt;&gt;'org_id' FROM auth_governance.directory_change_evidence c CROSS JOIN LATERAL jsonb_array_elements(COALESCE(c.before_json-&gt;'facts'-&gt;'assignments','[]'::jsonb)||COALESCE(c.after_json-&gt;'facts'-&gt;'assignments','[]'::jsonb)) a WHERE c.tenant_id=#{p.tenantId} AND c.membership_id=#{member}
  ), changes AS MATERIALIZED (
  SELECT c.* FROM auth_governance.directory_change_evidence c WHERE c.tenant_id=#{p.tenantId} AND (c.membership_id=#{member} OR c.aggregate_type='ORG' AND EXISTS(SELECT 1 FROM orgs o WHERE o.source_id=c.source_id AND o.org_id=c.aggregate_id))
  ), grants AS MATERIALIZED (
@@ -19,8 +19,7 @@
  AND (g.membership_id=#{member} OR g.source_type='GROUP' AND EXISTS(SELECT 1 FROM auth_governance.directory_group_member gm WHERE gm.tenant_id=g.tenant_id AND gm.group_id=g.group_id AND gm.membership_id=#{member}))
  )
  </sql>
- <select id="basis" resultType="com.lrj.authz.governance.persistence.PersonnelImpactMapper$Basis">
- <include refid="related"/>, rows AS MATERIALIZED (
+  <select id="basis" resultType="com.lrj.authz.governance.persistence.PersonnelImpactMapper$Basis"><include refid="related"/>, rows AS MATERIALIZED (
  SELECT 'MEMBER' kind,m.id id,(to_jsonb(m)||jsonb_build_object('started',m.valid_from&lt;=clock_timestamp(),'unexpired',m.valid_to IS NULL OR m.valid_to&gt;clock_timestamp()))::text value FROM auth_governance.membership m WHERE m.tenant_id=#{p.tenantId} AND m.id=#{member}
  UNION ALL SELECT 'PRINCIPAL',u.id,to_jsonb(u)::text FROM auth_governance.principal u JOIN auth_governance.membership m ON m.principal_id=u.id WHERE m.tenant_id=#{p.tenantId} AND m.id=#{member}
  UNION ALL SELECT 'TENANT',t.id,to_jsonb(t)::text FROM auth_governance.tenant t WHERE t.id=#{p.tenantId}
@@ -43,29 +42,28 @@
  ), bounded AS (SELECT * FROM rows ORDER BY kind,id LIMIT 10000)
  SELECT (SELECT count(*) FROM rows) total,encode(sha256(convert_to(COALESCE(string_agg(kind||'|'||id||'|'||value,E'\n' ORDER BY kind,id),''),'UTF8')),'hex') hash FROM bounded
  </select>
- <select id="directories" resultType="com.lrj.authz.governance.persistence.PersonnelImpactMapper$DirectoryRow">
- SELECT e.source_id,e.aggregate_id,e.aggregate_version,e.payload_hash,jsonb_build_object('status',e.payload_json->'employee'->>'status','assignments',e.payload_json->'employee'->'assignments','parent_id',null)::text facts_json,
+  <select id="directories" resultType="com.lrj.authz.governance.persistence.PersonnelImpactMapper$DirectoryRow">
+ SELECT e.source_id,e.aggregate_id,e.aggregate_version,e.payload_hash,jsonb_build_object('status',e.payload_json-&gt;'employee'-&gt;&gt;'status','assignments',e.payload_json-&gt;'employee'-&gt;'assignments','parent_id',null)::text facts_json,
  ((SELECT count(*) FROM auth_governance.directory_version_receipt v WHERE v.source_id=e.source_id AND v.aggregate_type=e.aggregate_type AND v.aggregate_id=e.aggregate_id) &gt; (SELECT count(DISTINCT c.aggregate_version) FROM auth_governance.directory_change_evidence c WHERE c.source_id=e.source_id AND c.aggregate_type=e.aggregate_type AND c.aggregate_id=e.aggregate_id)
  OR EXISTS(SELECT 1 FROM auth_governance.directory_change_evidence c WHERE c.source_id=e.source_id AND c.aggregate_type=e.aggregate_type AND c.aggregate_id=e.aggregate_id AND c.before_json IS NULL AND c.aggregate_version&gt;1 AND c.outcome='APPLIED')) history_missing
  FROM auth_governance.directory_entry e WHERE e.tenant_id=#{p.tenantId} AND e.membership_id=#{member} ORDER BY e.source_id LIMIT 101
  </select>
- <select id="directorySources" resultType="com.lrj.authz.governance.persistence.PersonnelImpactMapper$SourceRow">
+  <select id="directorySources" resultType="com.lrj.authz.governance.persistence.PersonnelImpactMapper$SourceRow">
  SELECT s.id source_id,s.last_sequence,s.quarantined,COALESCE((SELECT jsonb_agg(reason ORDER BY reason)::text FROM (SELECT DISTINCT reason FROM auth_governance.directory_conflict c WHERE c.source_id=s.id ORDER BY reason LIMIT 64) r),'[]') conflict_reasons
  FROM auth_governance.directory_source s WHERE s.tenant_id=#{p.tenantId} ORDER BY s.id LIMIT 101
  </select>
- <select id="changes" resultType="com.lrj.authz.governance.persistence.PersonnelImpactMapper$ChangeRow">
- <include refid="related"/>
+  <select id="changes" resultType="com.lrj.authz.governance.persistence.PersonnelImpactMapper$ChangeRow"><include refid="related"/>
  SELECT c.source_id,c.event_id,c.partition_sequence,c.aggregate_type,c.aggregate_id,c.aggregate_version,c.event_fingerprint,c.outcome,c.before_json::text,c.after_json::text,c.occurred_at::text FROM changes c
  WHERE (c.source_id,c.partition_sequence) &gt; (#{source},#{sequence}) ORDER BY c.source_id,c.partition_sequence LIMIT 101
  </select>
- <select id="relations" resultType="com.lrj.authz.governance.persistence.PersonnelImpactMapper$GroupRow">
+  <select id="relations" resultType="com.lrj.authz.governance.persistence.PersonnelImpactMapper$GroupRow">
  SELECT g.id grant_id,gm.id,gm.generation,gm.current,gm.periods::text periods_json,dg.active group_active FROM auth_governance.access_grant g
  JOIN auth_governance.directory_group dg ON dg.id=g.group_id AND dg.tenant_id=g.tenant_id
  JOIN auth_governance.directory_group_member gm ON gm.group_id=g.group_id AND gm.tenant_id=g.tenant_id AND gm.membership_id=#{member}
  WHERE g.tenant_id=#{p.tenantId} AND g.application_id=#{p.applicationId} AND g.environment=#{p.environment} AND g.id IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
  ORDER BY g.id,gm.generation,gm.id LIMIT 10001
  </select>
- <select id="receipts" resultType="com.lrj.authz.protocol.PersonnelImpactDtos$RevocationReceipt">
+  <select id="receipts" resultType="com.lrj.authz.protocol.PersonnelImpactDtos$RevocationReceipt">
  SELECT g.id grant_id,g.version,CASE WHEN p.state='BLOCKED' OR d.state='BLOCKED' THEN 'BLOCKED'
  WHEN g.state='REVOKED' AND r.operation_id IS NOT NULL AND p.state='READY' AND p.applied_epoch&gt;=o.target_epoch AND d.state='READY' THEN 'COMPLETED' ELSE 'PROCESSING' END status,
  r.operation_id,p.desired_epoch,p.applied_epoch FROM auth_governance.access_grant g

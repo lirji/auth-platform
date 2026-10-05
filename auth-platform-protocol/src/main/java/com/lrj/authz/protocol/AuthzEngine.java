@@ -11,16 +11,23 @@ import java.util.Map;
 public interface AuthzEngine {
 
     /** subject 是否对 resource 拥有 permission。 */
-    boolean check(SubjectRef subject, String permission, ResourceRef resource, Consistency consistency);
+    boolean check(
+            SubjectRef subject, String permission, ResourceRef resource, Consistency consistency);
 
     /** 批量判权 (一次 RPC), 返回每个 resource 是否放行 (保持入参顺序)。 */
-    Map<ResourceRef, Boolean> checkBulk(SubjectRef subject, String permission, List<ResourceRef> resources, Consistency consistency);
+    Map<ResourceRef, Boolean> checkBulk(
+            SubjectRef subject,
+            String permission,
+            List<ResourceRef> resources,
+            Consistency consistency);
 
     /** subject 对某类型对象拥有 permission 的全部对象 id (反查: "我能看哪些")。 */
-    List<String> lookupResources(SubjectRef subject, String permission, String resourceType, Consistency consistency);
+    List<String> lookupResources(
+            SubjectRef subject, String permission, String resourceType, Consistency consistency);
 
     /** 对 resource 拥有 permission 的全部某类型主体 (反查: "谁能看这个")。 */
-    List<SubjectRef> lookupSubjects(ResourceRef resource, String permission, String subjectType, Consistency consistency);
+    List<SubjectRef> lookupSubjects(
+            ResourceRef resource, String permission, String subjectType, Consistency consistency);
 
     /** 写关系元组 (TOUCH/CREATE/DELETE), 返回写入后的一致性水位。 */
     ZedTokenView writeRelationships(List<RelationshipUpdate> updates);

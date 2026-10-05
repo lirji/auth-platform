@@ -1,10 +1,10 @@
 package com.lrj.authz.admin.casdoor;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
 
 /** {@link CasdoorGroupIds} 租户化编码与碰撞安全单测。 */
 class CasdoorGroupIdsTest {
@@ -37,7 +37,8 @@ class CasdoorGroupIdsTest {
     @Test
     void rejectsSlash() {
         // 传入的应是短组名，不应含 <org>/ 路径分隔符。
-        assertThrows(IllegalArgumentException.class, () -> CasdoorGroupIds.encode("built-in/x", "g"));
+        assertThrows(
+                IllegalArgumentException.class, () -> CasdoorGroupIds.encode("built-in/x", "g"));
         assertThrows(IllegalArgumentException.class, () -> CasdoorGroupIds.encode("org", "a/b"));
     }
 
