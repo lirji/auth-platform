@@ -22,7 +22,7 @@ provision = module('wms_setup', 'governance-wms-provision.py')
 h = module('governance_http_fixture', 'governance-context-smoke.py')
 
 
-def pkce(state, user):
+def pkce(state, user, *, client=None, organization=None, redirect=None):
     """通过IdP正式授权码交换；返回的两种Token不能混用，不自己签发身份。"""
     def call(path, data, form=False):
         raw = (urllib.parse.urlencode(data) if form else json.dumps(data)).encode()
@@ -37,13 +37,15 @@ def pkce(state, user):
         return result
     verifier = secrets.token_urlsafe(48)
     challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip('=')
-    redirect = provision.REDIRECTS[1]
-    query = urllib.parse.urlencode({'clientId': provision.CLIENT, 'responseType': 'code', 'redirectUri': redirect,
+    client = client or provision.CLIENT
+    organization = organization or provision.ORGANIZATION
+    redirect = redirect or provision.REDIRECTS[1]
+    query = urllib.parse.urlencode({'clientId': client, 'responseType': 'code', 'redirectUri': redirect,
         'scope': 'openid profile', 'state': secrets.token_urlsafe(24), 'nonce': secrets.token_urlsafe(24),
         'code_challenge_method': 'S256', 'code_challenge': challenge})
-    login = call('login?' + query, {'type': 'code', 'organization': provision.ORGANIZATION,
-        'username': user['name'], 'password': user['password'], 'application': provision.CLIENT, 'signinMethod': 'Password'})
-    tokens = call('login/oauth/access_token', {'grant_type': 'authorization_code', 'client_id': provision.CLIENT,
+    login = call('login?' + query, {'type': 'code', 'organization': organization,
+        'username': user['name'], 'password': user['password'], 'application': client, 'signinMethod': 'Password'})
+    tokens = call('login/oauth/access_token', {'grant_type': 'authorization_code', 'client_id': client,
         'code': login['data'], 'code_verifier': verifier, 'redirect_uri': redirect}, True)
     if not tokens.get('access_token') or not tokens.get('id_token') or tokens['access_token'] == tokens['id_token']:
         raise RuntimeError('发行方没有提供可区分的Access/ID Token')
