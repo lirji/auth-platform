@@ -91,7 +91,11 @@ public final class ReliableProjection {
             confirm(target, lease, committed, remote.orElseThrow().readToken());
             return new Work(Step.RECOVERED, null);
         }
-        if (fence.state() == State.READY && fence.desiredEpoch() == fence.appliedEpoch()) return new Work(Step.READY, null);
+        if (fence.state() == State.READY && fence.desiredEpoch() == fence.appliedEpoch()) {
+            // 已完全一致核对远端marker和当前租约；成功轮次应结束连续失败预算，避免空闲分区积累零星超时后误隔离。
+            if (current.failures() > 0) one(mapper.successfulRead(lease));
+            return new Work(Step.READY, null);
+        }
         Operation pending = mapper.pending(target.fenceId());
         if (pending != null && (pending.targetEpoch() != fence.desiredEpoch() || !Objects.equals(pending.expectedMarker(), current.marker()))) {
             one(mapper.supersede(pending.id())); pending = null;

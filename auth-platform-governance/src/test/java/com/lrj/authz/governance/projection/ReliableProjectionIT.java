@@ -126,5 +126,69 @@ class ReliableProjectionIT {
         assertThat(runtime.reliableProjector(graph).step(f.p, Kind.POLICY, id())).isEqualTo(Step.BLOCKED);
         assertThat(state(f)).isEqualTo("BLOCKED"); assertThat(graph.readMarker(fence).orElseThrow().operationId()).isEqualTo(unknown);
     }
+    /** 真实PG租约和图marker证明成功轮次隔开失败；不能将空闲分区的零星依赖故障累计成永久阻塞。 */
+    @Test void successfulReadyMarkerReadResetsFailureBudgetForPolicyAndDirectory() {
+        for (Kind kind : Kind.values()) {
+            var f = fixture(); grant(f);
+            assertThat(runtime.reliableProjector(graph).step(f.p, kind, id())).isEqualTo(Step.READY);
+            String fence = targetFence(f, kind);
+            String marker = graph.readMarker(fence).orElseThrow().operationId();
+            Integer operations = jdbc.queryForObject("select count(*) from auth_governance.projection_operation where fence_id=?", Integer.class, fence);
+            for (int cycle = 0; cycle < 6; cycle++) {
+                assertThat(runtime.reliableProjector(unavailable()).step(f.p, kind, id())).isEqualTo(Step.RETRY_WAIT);
+                assertThat(failures(fence)).isEqualTo(1);
+                // 测试库提前结束真实退避资格，不用长sleep改变生产重试期限。
+                jdbc.update("update auth_governance.projection_stream set next_attempt_at=clock_timestamp() where fence_id=?", fence);
+                assertThat(second.reliableProjector(graph).step(f.p, kind, id())).isEqualTo(Step.READY);
+                assertThat(failures(fence)).isZero();
+            }
+            assertThat(graph.readMarker(fence).orElseThrow().operationId()).isEqualTo(marker);
+            assertThat(jdbc.queryForObject("select count(*) from auth_governance.projection_operation where fence_id=?", Integer.class, fence)).isEqualTo(operations);
+        }
+    }
+    /** 成功预算重置不取消连续失败阈值；协议marker冲突仍由既有测试证明立即隔离。 */
+    @Test void fiveConsecutiveMarkerReadFailuresStillBlock() {
+        var f = fixture(); grant(f);
+        assertThat(runtime.reliableProjector(graph).step(f.p, Kind.POLICY, id())).isEqualTo(Step.READY);
+        String fence = fenceId(f), marker = graph.readMarker(fence).orElseThrow().operationId();
+        for (int attempt = 1; attempt <= 5; attempt++) {
+            assertThat(runtime.reliableProjector(unavailable()).step(f.p, Kind.POLICY, id())).isEqualTo(attempt < 5 ? Step.RETRY_WAIT : Step.BLOCKED);
+            assertThat(failures(fence)).isEqualTo(attempt);
+            jdbc.update("update auth_governance.projection_stream set next_attempt_at=clock_timestamp() where fence_id=?", fence);
+        }
+        assertThat(state(f)).isEqualTo("BLOCKED");
+        assertThat(graph.readMarker(fence).orElseThrow().operationId()).isEqualTo(marker);
+        assertThat(runtime.reliableProjector(graph).step(f.p, Kind.POLICY, id())).isEqualTo(Step.BLOCKED);
+    }
+    /** 失去租约的旧执行器即使读到了正确marker，也不能清除新代际所持的失败预算。 */
+    @Test void expiredLeaseCannotResetReadyFailureBudget() {
+        var f = fixture(); grant(f); String fence = fenceId(f);
+        assertThat(runtime.reliableProjector(graph).step(f.p, Kind.POLICY, id())).isEqualTo(Step.READY);
+        assertThat(runtime.reliableProjector(unavailable()).step(f.p, Kind.POLICY, id())).isEqualTo(Step.RETRY_WAIT);
+        jdbc.update("update auth_governance.projection_stream set next_attempt_at=clock_timestamp() where fence_id=?", fence);
+        var expired = new ProjectionGraph() {
+            public Optional<Marker> readMarker(String partition) {
+                var result = graph.readMarker(partition);
+                jdbc.update("update auth_governance.projection_stream set lease_until=clock_timestamp()-interval '1 second' where fence_id=?", partition);
+                return result;
+            }
+            public String compareAndWrite(String partition, String expected, String next, List<RelationshipUpdate> updates) { throw new AssertionError("READY读取不能写图"); }
+        };
+        assertThat(runtime.reliableProjector(expired).step(f.p, Kind.POLICY, id())).isEqualTo(Step.BUSY);
+        assertThat(failures(fence)).isEqualTo(1);
+    }
+    /** 故障只注入远端读取，真实数据库事务和图中已有marker仍由集成组件承担。 */
+    private ProjectionGraph unavailable() {
+        return new ProjectionGraph() {
+            public Optional<Marker> readMarker(String partition) { throw new ProjectionGraph.Failure(ProjectionGraph.Failure.Code.DEPENDENCY_UNAVAILABLE); }
+            public String compareAndWrite(String partition, String expected, String next, List<RelationshipUpdate> updates) { throw new AssertionError("不可用读取后不能写图"); }
+        };
+    }
+    private String targetFence(Fixture f, Kind kind) {
+        return kind == Kind.POLICY ? fenceId(f) : jdbc.queryForObject("select id from auth_governance.directory_fence where tenant_id=?", String.class, f.p.tenantId());
+    }
+    private int failures(String fence) {
+        return jdbc.queryForObject("select failures from auth_governance.projection_stream where fence_id=?", Integer.class, fence);
+    }
     private record Fixture(Partition p, VerifiedLogin login, BootstrapCommand member, RoleVersion role) {}
 }

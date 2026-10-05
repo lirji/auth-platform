@@ -45,6 +45,8 @@ public interface ReliableProjectionMapper {
     int ready(@Param("t") Target target, @Param("o") Operation operation, @Param("token") String token);
     /** 当前固定操作记一次失败尝试，不改写执行内容。 */
     int attempted(@Param("id") String fenceId);
+    /** 仅当前租约且远端marker已确认一致的READY轮次结束连续失败预算，不改变栅栏或操作回执。 */
+    int successfulRead(@Param("lease") Stream lease);
     /** 有界退避并记录失败次数，不将未知结果当作未写入。 */
     int failed(@Param("lease") Stream lease);
     /** 永久冲突或耗尽重试隔离分区，普通管理更新不会清除。 */

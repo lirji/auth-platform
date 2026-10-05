@@ -68,6 +68,8 @@
  <update id="ready">UPDATE <include refid="targetTable"/> SET applied_epoch=#{o.targetEpoch},state='READY',zed_token=#{token},updated_at=clock_timestamp()
  WHERE id=#{t.fenceId} AND desired_epoch=#{o.targetEpoch} AND state &lt;&gt; 'BLOCKED' AND #{o.lastBatch}=true</update>
  <update id="attempted">UPDATE auth_governance.projection_operation SET attempts=attempts+1 WHERE fence_id=#{id} AND state='PENDING'</update>
+ <update id="successfulRead">UPDATE auth_governance.projection_stream SET failures=0,next_attempt_at=clock_timestamp(),updated_at=clock_timestamp()
+ WHERE fence_id=#{lease.fenceId} AND worker_id=#{lease.workerId} AND lease_generation=#{lease.leaseGeneration} AND lease_until &gt;clock_timestamp() AND failures &gt; 0</update>
  <update id="failed">UPDATE auth_governance.projection_stream SET failures=least(5,failures+1),
  next_attempt_at=clock_timestamp()+make_interval(secs =&gt; least(60,power(2,failures+1)::integer) + random()),updated_at=clock_timestamp()
  WHERE fence_id=#{lease.fenceId} AND worker_id=#{lease.workerId} AND lease_generation=#{lease.leaseGeneration} AND lease_until &gt;clock_timestamp()</update>

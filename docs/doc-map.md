@@ -22,5 +22,6 @@
 | WMS能力/资源、SDK、Owner动作、本人导航 | [契约](design/wms-auth-integration/CONTRACTS.md)、[切片](design/wms-auth-integration/IMPLEMENTATION_SLICES.md)及W01–W06 TEST_RESULT |
 | Auth server源码镜像、wms-auth Compose、relay/init、机器工具 | [Runtime](design/wms-auth-integration/RUNTIME_SPEC.md)、[W07验收](design/wms-auth-integration/W07_TEST_RESULT.md)、[审查](design/wms-auth-integration/W07_REVIEW.md) |
 | 已完成状态、实际Git/CI回执引用 | [进度](design/wms-auth-integration/PROGRESS_STATE.md)；私密.local/wms-auth-integration/delivery-result.json |
+| READY成功轮次与连续失败预算、投影恢复补充 | [投影恢复修复](design/wms-auth-integration/PROJECTION_RECOVERY_FIX.md)；专属PG/Graph回归与当前制品回执 |
 
 公开连接标识local/wms/identity、local/wms/authorization、local/wms/machine-identity；实际账号、期限与凭据引用保存在忽略的0600 ACCESS.md，不公开值。

@@ -91,3 +91,5 @@ WMS readiness 为各服务 `/actuator/health/readiness`，Auth server 为可信 
 Graph重建或网络地址改变后，必须重新核对该容器ID/镜像/端口并更新这两份连接绑定，再正常更新relay/server和console/admin/projector；不能使用历史IP作为新权威来源。原Graph、IdP及数据未重建。验证日志证明原宿主转发3秒超时、直接本体成功；保留失败和旧配置，当前管理/连续投影已healthy。
 
 中央overlay的console依赖使用[Compose restart语义](https://docs.docker.com/reference/compose-file/services/#depends_on)，显式更新后端时重新解析服务IP。已更换IP但控制台未更新时，需要正常restartconsole并复核实际反代；仅healthz成功不能证明上游连通。
+
+初轮 W07 发布后的持续观察补充发现稳定 READY 轮次未清连续失败预算，已有分区可能累计间歇故障后阻塞。局部 Auth Java/Mapper 修复、真实 PG/Graph 回归及治理制品更新另见 [投影恢复修复](PROJECTION_RECOVERY_FIX.md)；WMS 源/镜像和固定 SDK 不变。新源码镜像与当前运行终态以私密交付回执为准；现有 BLOCKED 只能在核对远端事实后由真实管理者执行有审计的 retry-strict，不能直接改状态或自动绕过保护。
