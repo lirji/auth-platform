@@ -6,7 +6,7 @@ import {
   validateReviewList,
   validateReviewResponsibles,
   canReviewDecide,
-} from '../src/governance/accessReview.ts';
+} from '../src/features/reviews/model/accessReview.ts';
 const id = randomUUID(),
   member = randomUUID(),
   responsible = randomUUID(),

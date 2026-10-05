@@ -7,7 +7,7 @@ import {
   contextualEntry,
   normalizedSearch,
   applicationSearch,
-} from '../src/governance/context.ts';
+} from '../src/features/governance/shared/context.ts';
 
 test('organization switch drops application, cursor and detail state', () => {
   assert.equal(organizationSearch('tenant-b').toString(), 'tenant=tenant-b');

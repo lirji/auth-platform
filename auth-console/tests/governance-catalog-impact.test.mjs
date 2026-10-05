@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateCatalogImpact } from '../src/governance/catalogImpact.ts';
+import { validateCatalogImpact } from '../src/features/catalog/model/catalogImpact.ts';
 const p = { tenant_id: 'tenant', application_id: 'commerce', environment: 'test' };
 const preview = {
   content_hash: 'a'.repeat(64),

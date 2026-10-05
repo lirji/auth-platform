@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validatePersonnelReport } from '../src/governance/personnelImpact.ts';
+import { validatePersonnelReport } from '../src/features/personnel/model/personnelImpact.ts';
 
 const member = 'd2703a86-f347-4b66-b9e8-2722f86a4b42',
   hash = 'a'.repeat(64),

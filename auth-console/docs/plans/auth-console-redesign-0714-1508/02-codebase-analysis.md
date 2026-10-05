@@ -199,12 +199,12 @@ SchemaViewerPage useQuery ['schema']
 | `src/components/layout/AppLayout.tsx` | `AppLayout` | 重建壳层、面包屑、移动 Drawer、内容容器 |
 | `src/nav.tsx` | `NAV`, `NavItem` | 增加导航分组/描述/访问级别展示元数据（保留 path） |
 | `src/pages/OverviewPage.tsx` | `QuickCard`, `OverviewPage` | 任务优先布局 |
-| `src/pages/GrantsPage.tsx` | `GrantsPage`, `submit`, `afterWrite`, `onResourceType` | 仅重组呈现与状态面板，保留方法行为 |
-| `src/pages/PlaygroundPage.tsx` | `PlaygroundPage`, `run` | 输入/结果工作区与独立 check/expand 状态 |
-| `src/pages/SchemaViewerPage.tsx` | `SchemaViewerPage`, `typeColor` | 网格、类别视觉、解析空态、raw 面板 |
-| `src/pages/SpacesPage.tsx` | `SpacesPage` | 正式规划中空态 |
-| `src/pages/IdentitySyncPage.tsx` | `IdentitySyncPage` | 单任务页和统一反馈 |
-| `src/pages/AuditPage.tsx` | `AuditPage`, `actionColor` | 表格工具条、四态、响应式 |
+| `src/features/grants/pages/GrantsPage.tsx` | `GrantsPage`, `submit`, `afterWrite`, `onResourceType` | 仅重组呈现与状态面板，保留方法行为 |
+| `src/features/playground/pages/PlaygroundPage.tsx` | `PlaygroundPage`, `run` | 输入/结果工作区与独立 check/expand 状态 |
+| `src/features/schema/pages/SchemaViewerPage.tsx` | `SchemaViewerPage`, `typeColor` | 网格、类别视觉、解析空态、raw 面板 |
+| `src/features/spaces/pages/SpacesPage.tsx` | `SpacesPage` | 正式规划中空态 |
+| `src/features/identity/pages/IdentitySyncPage.tsx` | `IdentitySyncPage` | 单任务页和统一反馈 |
+| `src/features/audit/pages/AuditPage.tsx` | `AuditPage`, `actionColor` | 表格工具条、四态、响应式 |
 | `src/components/domain/selects.tsx` | 三个 Select 组件 | 大小、状态、option 类别提示等兼容 props |
 | `src/components/domain/RefBadge.tsx` | `RefBadge`, `TupleText` | 统一外观、溢出、类别辅助 |
 
@@ -231,7 +231,7 @@ SchemaViewerPage useQuery ['schema']
 | `src/domain/zedParser.ts` | 默认只补测试；若修解析 bug，需独立评审，不混入纯视觉提交 |
 | `src/hooks/useAuthz.ts` | 默认不改；仅在统一错误对象确有必要时修改 |
 | `src/router/routes.tsx` | 默认不改路径；仅当 Page metadata 由 route handle 驱动时修改 |
-| `src/auth/ProtectedRoute.tsx`, `src/pages/CallbackPage.tsx` | 可做视觉一致化，禁止改变鉴权条件/跳转 |
+| `src/auth/ProtectedRoute.tsx`, `src/features/session/pages/CallbackPage.tsx` | 可做视觉一致化，禁止改变鉴权条件/跳转 |
 | `package.json`, `pnpm-lock.yaml` | 仅为测试依赖/脚本修改，不引入 UI 库 |
 
 ### 明确不改

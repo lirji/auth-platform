@@ -41,7 +41,7 @@ Q-EXT已由本轮用户明确选定；P5-01无业务输入阻塞。后续管理/
 ### 1. 范围、事实与目标
 
 - 范围：`/governance` 首页、共享组织/应用壳层，及 access、permissions、requests、policies、invitations、audit、diagnostic 的关联交互。邀请接受页仅验证入口兼容，不重做登录页、`/w/:workspaceId` 运维工作区或商城。
-- 当前源码：`auth-console/src/pages/GovernancePage.tsx`、`router/routes.tsx`、`api/governance.ts`、`governance/context.ts`，以及各 Governance 子页面。
+- 当前源码：`auth-console/src/features/governance/shell/GovernancePage.tsx`、`router/routes.tsx`、`api/governance.ts`、`governance/context.ts`，以及各 Governance 子页面。
 - 改版前浏览器观察：真实组织 `local-commerce`、应用 `commerce`、环境 `local`；内部成员；有管理入口，当前没有可用业务入口。现有组织卡片占用大量空间，应用卡片内有六个等重动作；首页没有持久作业导航。这是实际观察，不是待办/角色/权限数量的依据。
 - 用户提供的 URL 含 `amp;application`/`amp;environment` 转义残留与正常同名参数；导航须生成规范参数，不扩散错误参数。合法 `application`/`environment` 优先；只清理已识别残留，不接受任意参数别名作为安全上下文。
 - Brownfield：React 18、Router 6、TypeScript、Ant Design 5、React Query 5、Vite 5、OIDC PKCE 已存在。具体已安装版本以 lockfile 为准；不升级依赖、不引入第二组件库、微前端或 BFF。

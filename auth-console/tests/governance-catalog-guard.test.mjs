@@ -5,7 +5,7 @@ import {
   validateCatalogTicket,
   validateCatalogReceipt,
   validateCatalogPolicy,
-} from '../src/governance/catalogGuard.ts';
+} from '../src/features/catalog/model/catalogGuard.ts';
 const app = 'commerce',
   hash = 'a'.repeat(64),
   display = 'b'.repeat(64),

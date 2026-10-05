@@ -1,12 +1,12 @@
-import { LifecycleState, RetirementProofState } from '../governance/codes.ts';
+import { LifecycleState, RetirementProofState } from '../features/governance/shared/codes.ts';
 import {
   validateRetirementReport,
   validateRetirementReferences,
   validateRetirementReceipt,
-} from '../governance/capabilityRetirement';
+} from '../features/catalog/model/capabilityRetirement';
 import { apiClient } from './client';
-import { validatePublishedCatalog } from '../governance/publishedCatalog';
-import { validatePersonnelReport } from '../governance/personnelImpact';
+import { validatePublishedCatalog } from '../features/catalog/model/publishedCatalog';
+import { validatePersonnelReport } from '../features/personnel/model/personnelImpact';
 
 export interface Partition {
   tenant_id: string;
@@ -945,7 +945,7 @@ export const personnelImpact = async (
   changeCursor?: string,
   sourceCursor?: string,
   signal?: AbortSignal,
-): Promise<import('../governance/personnelImpact').PersonnelReport> =>
+): Promise<import('../features/personnel/model/personnelImpact').PersonnelReport> =>
   validatePersonnelReport(
     (
       await apiClient.get('/api/governance/v1/access/personnel-impact', {

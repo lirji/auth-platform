@@ -233,16 +233,16 @@ Sync 使用 640–720px 聚焦面板，分说明/动作/本次响应；不虚构
 | `src/components/layout/AppLayout.tsx` | `AppLayout` | 增加受控折叠、移动 Drawer、分组 Menu、breadcrumb、最大宽容器；保留 `useAuth` 登出、username、Outlet 与 path navigation |
 | `src/nav.tsx` | `NavItem`, `NAV` | 在保留 7 个 path/label/icon 的前提下增加 group、description、可选 access/badge 元数据；不得成为前端安全边界 |
 | `src/pages/OverviewPage.tsx` | `QuickCard`, `OverviewPage` | `QuickCard` 改为可复用任务卡呈现；重排任务/身份/提示，authStore 读取不变 |
-| `src/pages/GrantsPage.tsx` | `GrantsPage`, `submit`, `afterWrite`, `onResourceType` | 保留 state 与三个方法语义；将表单和列表渲染委托给拟新增面板；不得改变 payload/query key/invalidate |
-| `src/pages/PlaygroundPage.tsx` | `PlaygroundPage`, `run` | 保留三模式和 run 分支；委托 QueryPanel/ResultPanel；显式传 check/expand 独立状态；不改 API 并行关系 |
-| `src/pages/SchemaViewerPage.tsx` | `SchemaViewerPage`, `typeColor` | 使用统一 PageHeader/状态原语/SchemaTypeCard；增加 parse 为空 fallback；query key/path 不变 |
-| `src/pages/AuditPage.tsx` | `AuditPage`, `actionColor` | 重排 toolbar/Table，增加 error/empty；保持 `audit(200)`、4 列、pageSize 20 |
-| `src/pages/IdentitySyncPage.tsx` | `IdentitySyncPage` | 重排单任务面板和四态；保持 `useCasdoorSync` 与响应字段 |
-| `src/pages/SpacesPage.tsx` | `SpacesPage` | 用统一 EmptyState 表达规划中，不新增 CRUD |
+| `src/features/grants/pages/GrantsPage.tsx` | `GrantsPage`, `submit`, `afterWrite`, `onResourceType` | 保留 state 与三个方法语义；将表单和列表渲染委托给拟新增面板；不得改变 payload/query key/invalidate |
+| `src/features/playground/pages/PlaygroundPage.tsx` | `PlaygroundPage`, `run` | 保留三模式和 run 分支；委托 QueryPanel/ResultPanel；显式传 check/expand 独立状态；不改 API 并行关系 |
+| `src/features/schema/pages/SchemaViewerPage.tsx` | `SchemaViewerPage`, `typeColor` | 使用统一 PageHeader/状态原语/SchemaTypeCard；增加 parse 为空 fallback；query key/path 不变 |
+| `src/features/audit/pages/AuditPage.tsx` | `AuditPage`, `actionColor` | 重排 toolbar/Table，增加 error/empty；保持 `audit(200)`、4 列、pageSize 20 |
+| `src/features/identity/pages/IdentitySyncPage.tsx` | `IdentitySyncPage` | 重排单任务面板和四态；保持 `useCasdoorSync` 与响应字段 |
+| `src/features/spaces/pages/SpacesPage.tsx` | `SpacesPage` | 用统一 EmptyState 表达规划中，不新增 CRUD |
 | `src/components/domain/selects.tsx` | `ObjectTypeSelect`, `RelationSelect`, `PermissionSelect` | 增加兼容的 size/status/disabled/className 等呈现 props（按实际需要最小化）；options 仍来自 lexicon |
 | `src/components/domain/RefBadge.tsx` | `RefBadge`, `TupleText` | 移除关键行内样式，增加溢出/可访问类；文本格式不变 |
 | `src/auth/ProtectedRoute.tsx` | `ProtectedRoute` | 可选：只统一 loading/error 容器；鉴权判断、redirect、403 文案语义不变 |
-| `src/pages/CallbackPage.tsx` | `CallbackPage` | 可选：只统一状态页面视觉；回调与 returnTo 逻辑不变 |
+| `src/features/session/pages/CallbackPage.tsx` | `CallbackPage` | 可选：只统一状态页面视觉；回调与 returnTo 逻辑不变 |
 
 ### 9.2 拟新增文件
 

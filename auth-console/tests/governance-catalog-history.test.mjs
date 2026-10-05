@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   validateCatalogHistory,
   validateCatalogReleaseDetail,
-} from '../src/governance/catalogHistory.ts';
+} from '../src/features/catalog/model/catalogHistory.ts';
 const row = (version) => ({ application: 'commerce', version, source: null });
 test('real empty and unknown-source history remain distinct', () => {
   assert.equal(

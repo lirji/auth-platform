@@ -4,7 +4,7 @@ import {
   validateRetirementReport,
   validateRetirementReferences,
   validateRetirementReceipt,
-} from '../src/governance/capabilityRetirement.ts';
+} from '../src/features/catalog/model/capabilityRetirement.ts';
 
 const application = 'shop',
   capability = 'shop.write',

@@ -10,7 +10,7 @@ import {
   type ReviewDetail,
   type ReviewResponsible,
   type ReviewSummary,
-} from '../governance/accessReview';
+} from '../features/reviews/model/accessReview';
 
 const base = '/api/governance/v1/access/reviews';
 /** 复核客户端绑定完整分区；状态缺失不是空数据或成功。 */

@@ -7,7 +7,7 @@ import {
   collectRoles,
   menuTitle,
   orderedMenus,
-} from '../src/governance/catalogModel.ts';
+} from '../src/features/catalog/model/catalogModel.ts';
 
 const catalog = {
   menus: [

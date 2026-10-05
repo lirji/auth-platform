@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
-import { GrantState } from '../auth-console/src/governance/codes.ts'
+import { GrantState } from '../auth-console/src/features/governance/shared/codes.ts'
 const { chromium, expect: baseExpect } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || path.resolve('../commerce-platform/frontend/node_modules/@playwright/test'))
 const expect = baseExpect.configure({ timeout: 15000 }), dir = path.resolve(process.argv[2]), f = JSON.parse(fs.readFileSync(path.join(dir, 'browser.private.json')))
 const browser = await chromium.launch({ headless: true }), context = await browser.newContext({ viewport: { width: 1440, height: 1000 } }), page = await context.newPage()

@@ -24,7 +24,7 @@
 - `auth-console` 是需要 `authz-viewer/admin` 的权限管控台，现有 `ProtectedRoute` 会对普通用户返回 403，不符合“公开免登录门户”；因此不复用或改造成门户（`auth-console/src/auth/ProtectedRoute.tsx:15-61`）。
 - auth-console 已有 React/Vite/TypeScript/Ant Design 视觉基线，可作为新门户的样式参考，但新门户不依赖 auth-console runtime、admin API 或 OIDC client（`auth-console/package.json`、`auth-console/src/theme/`）。
 - LangChain4j 当前未登录访问保护路由只会转到自身 `/login?redirect=...`，用户仍需填写 tenant 并点击“用 Casdoor 登录”；真正的 PKCE 发起函数是目标项目的 `startOidcLogin`（`capability-showcase-frontend/src/router/index.ts:57-78`、`src/modules/auth/LoginView.vue`、`src/auth/oidc.ts:131-138`）。
-- Recsys 当前未登录访问只会转到 `/login`，OIDC 页仍需点击按钮调用 `signInOidc`（`console/src/router.tsx:35-46`、`console/src/pages/LoginPage.tsx`、`console/src/hooks/useAuth.tsx:113-121`）。
+- Recsys 当前未登录访问只会转到 `/login`，OIDC 页仍需点击按钮调用 `signInOidc`（`console/src/router.tsx:35-46`、`console/src/features/session/pages/LoginPage.tsx`、`console/src/hooks/useAuth.tsx:113-121`）。
 - Drools 当前未登录访问会转到 `/ui/login?returnTo=...`，用户仍需选择 tenant/client 后点击，才由 `beginLogin` 跳 Casdoor（`frontend/src/router/index.ts:40-53`、`frontend/src/views/LoginView.vue`）。
 - 因此，若要求“点击门户卡片后直接跳 Casdoor”，门户不能自己拼 Casdoor authorize URL：PKCE verifier 必须在目标 origin 中生成和保存。正确实现是给每个目标前端增加受控的 portal auto-launch 参数/路由，由目标项目调用既有 OIDC 方法。
 - 三个项目生产域名和 base path 不同：LangChain4j base 可配置且本地 compose 是 `:8093`，Recsys 根路径本地常为 `:8095`，Drools 路径带 `/ui/` 且当前本地也默认占 `:8095`。门户 launch URL 必须在运行时配置，不能烘焙进 Vite bundle。
@@ -274,7 +274,7 @@ LangChain4j target:
 
 Recsys target:
 
-- `console/src/pages/LoginPage.tsx` — 解析 `source/auto/returnTo`，OIDC-only 单次 auto-start。
+- `console/src/features/session/pages/LoginPage.tsx` — 解析 `source/auto/returnTo`，OIDC-only 单次 auto-start。
 - `console/src/pages/__tests__/LoginPage.test.tsx` — StrictMode 单飞、legacy 不跳、非法 returnTo 回退。
 - `console/src/auth/oidc.ts` 或独立纯函数文件 — 只在现有 sanitize 不可复用时补共享 returnTo 校验。
 - `console/README.md` — launch URL 与 OIDC 部署要求。

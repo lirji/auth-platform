@@ -20,10 +20,10 @@
 ## 改动路径
 
 - `auth-console/src/api/governance.ts`
-- `auth-console/src/governance/personnelImpact.ts`
-- `auth-console/src/pages/GovernancePage.tsx`
-- `auth-console/src/pages/GovernancePermissionsPage.tsx`
-- `auth-console/src/pages/GovernancePersonnelPage.tsx`
+- `auth-console/src/features/personnel/model/personnelImpact.ts`
+- `auth-console/src/features/governance/shell/GovernancePage.tsx`
+- `auth-console/src/features/permissions/pages/GovernancePermissionsPage.tsx`
+- `auth-console/src/features/personnel/pages/GovernancePersonnelPage.tsx`
 - `auth-console/src/router/routes.tsx`
 - `auth-console/tests/governance-personnel-impact.test.mjs`
 - `auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/http/GovernanceAccessController.java`

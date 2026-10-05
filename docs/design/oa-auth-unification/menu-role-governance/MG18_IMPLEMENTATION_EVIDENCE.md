@@ -20,11 +20,11 @@
 ## 改动路径
 
 - `auth-console/src/api/accessReview.ts`
-- `auth-console/src/governance/ReviewCreate.tsx`
-- `auth-console/src/governance/accessReview.ts`
-- `auth-console/src/pages/GovernancePage.tsx`
-- `auth-console/src/pages/GovernancePersonnelPage.tsx`
-- `auth-console/src/pages/GovernanceReviewsPage.tsx`
+- `auth-console/src/features/reviews/components/ReviewCreate.tsx`
+- `auth-console/src/features/reviews/model/accessReview.ts`
+- `auth-console/src/features/governance/shell/GovernancePage.tsx`
+- `auth-console/src/features/personnel/pages/GovernancePersonnelPage.tsx`
+- `auth-console/src/features/reviews/pages/GovernanceReviewsPage.tsx`
 - `auth-console/src/router/routes.tsx`
 - `auth-console/tests/governance-access-review.test.mjs`
 - `auth-platform-admin/src/main/java/com/lrj/authz/admin/governance/http/GovernanceReviewController.java`

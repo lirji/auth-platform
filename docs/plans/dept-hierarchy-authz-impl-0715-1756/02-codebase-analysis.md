@@ -85,7 +85,7 @@ Casdoor parent 字段、admin 标记、分页参数和 token groups 形状均未
 - `deploy/spicedb-smoke.sh:22-70` seed/断言全是旧 space/folder/document/public_viewer 模型，目标 schema 后会失败；应改为部门 view/share 矩阵。
 - `deploy/server-smoke.sh:14-40` 经 AP server seed `parent_space` 并断言旧继承；应改为 department，同时保留对 F3 API 形状的覆盖。
 - `auth-console/src/domain/lexicon.ts:4-76` 没有 `department`，document 仍暴露旧 relation/permission。
-- `auth-console/src/pages/SpacesPage.tsx:17-31,82-111,203-225` 将 `public_viewer` 写死并把 document landing permission 固定为 `edit`。兼容窗口若不更新，控制台会继续写旧 tuple或对不存在的最终 permission 发 check。
+- `auth-console/src/features/spaces/pages/SpacesPage.tsx:17-31,82-111,203-225` 将 `public_viewer` 写死并把 document landing permission 固定为 `edit`。兼容窗口若不更新，控制台会继续写旧 tuple或对不存在的最终 permission 发 check。
 
 这些是实际 schema 消费方，不能只改用户点名的 fixture 后忽略。
 

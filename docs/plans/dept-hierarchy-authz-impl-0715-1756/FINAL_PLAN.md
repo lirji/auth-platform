@@ -17,7 +17,7 @@
 - **`auth-platform-admin/.../casdoor/`**：`CasdoorProperties`（单 `organization`→organizations 列表 + page-size + per-org deleteThreshold + `writer-enabled` 开关，旧单值作 fallback）；`CasdoorClient`（`groupMembers/groupNames` 分页完整、读 group 的 **parent + admin**）；`GroupSyncService`（同步 `department` 的 **parent/member/admin**，读**全量 department direct tuple 按 `<org>_` 前缀分区**以发现被删部门，per-org 熔断，单写者）；`CasdoorGroupIds` 复用为 department id codec（更新注释）。
 - **`deploy/rag-authz-fixture.sh`**：删除 D3 的 `space:<t>_default#viewer@group` 绑定，改 seed 部门树（parent/member/admin）+ 文档 `home_dept`；APPLY 后校验改为“本部门/上级可读、平级/下级/其他 deny”矩阵。
 - **`deploy/casdoor-tenant-provision.sh`**（`WIRE_SPICEDB=1`）、**`deploy/spicedb-smoke.sh`**、**`deploy/server-smoke.sh`**：停止写/断言 D3 与旧 space/folder 继承，改部门模型（否则新租户继续制造待清理旧边）。
-- **`auth-console`（IAM 控制台，React）**：`src/domain/lexicon.ts`、`src/pages/SpacesPage.tsx` 硬编码 `public_viewer` 且 document landing permission 固定 `edit`——兼容窗口需同步，否则控制台对不存在的最终 permission 发 check。
+- **`auth-console`（IAM 控制台，React）**：`src/domain/lexicon.ts`、`src/features/spaces/pages/SpacesPage.tsx` 硬编码 `public_viewer` 且 document landing permission 固定 `edit`——兼容窗口需同步，否则控制台对不存在的最终 permission 发 check。
 - **`auth-platform-protocol`**：**无需改**（`ResourceRef(type,id)` 自由字符串，`ResourceRef.of("department",id)` 即可；已核验）。**F3/core 严格校验只回归、不动**。
 
 ### 1.2 langchain4j-platform

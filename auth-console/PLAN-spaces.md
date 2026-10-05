@@ -14,7 +14,7 @@
 ## 1. Goals / Non-Goals
 
 **Goals**
-- 把 `src/pages/SpacesPage.tsx` 从占位卡转正为**以单个对象(space/folder/document)为中心的成员治理工作台**:选/输入对象 → 按角色(relation)分组展示直接成员 → 每个角色内增删成员(user / group#member)→ 公开链接开关(space/document)→ 同页判权自检(check + expand)。
+- 把 `src/features/spaces/pages/SpacesPage.tsx` 从占位卡转正为**以单个对象(space/folder/document)为中心的成员治理工作台**:选/输入对象 → 按角色(relation)分组展示直接成员 → 每个角色内增删成员(user / group#member)→ 公开链接开关(space/document)→ 同页判权自检(check + expand)。
 - 与既有页面**差异化**:GrantsPage 是「原语视角」(选任意 type×relation 拼元组),SpacesPage 是「对象视角」(对象固定、按角色卡编排、语义化增删、公开开关、内嵌自检)。
 - **最大化复用**:数据/hooks/组件/词典/交互约定全部沿用现有,净新增 1 个展示组件 + 重写 1 个页面。
 
@@ -52,7 +52,7 @@
 ## 3. 组件树与文件级改动
 
 ```
-SpacesPage (重写 src/pages/SpacesPage.tsx)
+SpacesPage (重写 src/features/spaces/pages/SpacesPage.tsx)
 ├─ PageHeader                              (复用 layout/PageHeader)
 ├─ 顶部控制卡 Card
 │   ├─ ObjectTypeSelect(exclude 非资源类型,仅留 space/folder/document)   (复用 selects)
@@ -91,7 +91,7 @@ SpaceMemberCard (新增 src/components/domain/SpaceMemberCard.tsx)  —— 自�
 ### 文件级改动清单
 | 文件 | 改动 | 说明 |
 |---|---|---|
-| `src/pages/SpacesPage.tsx` | **重写** | 占位卡 → 实页编排(见组件树) |
+| `src/features/spaces/pages/SpacesPage.tsx` | **重写** | 占位卡 → 实页编排(见组件树) |
 | `src/components/domain/SpaceMemberCard.tsx` | **新增** | 自包含单角色卡(增删 + invalidate) |
 | — 其余全部**不改** | — | routes/nav/main/config/client/authz.ts/useAuthz.ts/selects/RefBadge/AllowDenyResult/AsyncState/PageHeader/lexicon/expandTree/authStore 均直接复用 |
 

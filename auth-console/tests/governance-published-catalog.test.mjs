@@ -5,7 +5,7 @@ import {
   roleScopeEligibility,
   capabilitySelectionError,
   menuCapabilityCodes,
-} from '../src/governance/publishedCatalog.ts';
+} from '../src/features/catalog/model/publishedCatalog.ts';
 const p = { tenant_id: 'tenant', application_id: 'commerce', environment: 'test' };
 const catalog = () => ({
   ...p,

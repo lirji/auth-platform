@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateCatalogDrift } from '../src/governance/catalogDrift.ts';
+import { validateCatalogDrift } from '../src/features/catalog/model/catalogDrift.ts';
 const application = 'commerce',
   hash = 'a'.repeat(64),
   display = 'b'.repeat(64),

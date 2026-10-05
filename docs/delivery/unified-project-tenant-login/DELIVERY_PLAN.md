@@ -81,7 +81,7 @@ project-portal ProjectCard
 - `recsys/console/src/config/auth.ts`、`.env.example`：声明固定 organization。
 - `recsys/console/eslint.config.js`：忽略 Vite 依赖预构建缓存，保证本地完整 lint 可重复执行。
 - `recsys/console/src/auth/tenantSelection.ts` 及测试：单租户与 clientId 一致性校验。
-- `recsys/console/src/pages/LoginPage.tsx` 及测试：OIDC 面板增加租户输入和安全 returnTo。
+- `recsys/console/src/features/session/pages/LoginPage.tsx` 及测试：OIDC 面板增加租户输入和安全 returnTo。
 - `recsys/console/README.md`：说明 Recsys 当前仍是单租户安全边界。
 - `drools-demo/frontend/src/views/LoginView.vue` 及测试：改为 tenant 输入并使用后端 allowlist 映射 clientId。
 - `drools-demo/README.md`：门户正式入口与兼容 auto 分支分开说明。
